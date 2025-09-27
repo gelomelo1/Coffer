@@ -9,3 +9,15 @@ E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.Domain\obj\Debug\net8.
 E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.Domain\obj\Debug\net8.0\refint\Coffer.Domain.dll
 E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.Domain\obj\Debug\net8.0\Coffer.Domain.pdb
 E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.Domain\obj\Debug\net8.0\ref\Coffer.Domain.dll
+E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.Domain\bin\Debug\net8.0\Coffer.Domain.deps.json
+E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.Domain\bin\Debug\net8.0\Coffer.Domain.dll
+E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.Domain\bin\Debug\net8.0\Coffer.Domain.pdb
+E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.Domain\obj\Debug\net8.0\Coffer.Domain.GeneratedMSBuildEditorConfig.editorconfig
+E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.Domain\obj\Debug\net8.0\Coffer.Domain.AssemblyInfoInputs.cache
+E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.Domain\obj\Debug\net8.0\Coffer.Domain.AssemblyInfo.cs
+E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.Domain\obj\Debug\net8.0\Coffer.Domain.csproj.CoreCompileInputs.cache
+E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.Domain\obj\Debug\net8.0\Coffer.Domain.sourcelink.json
+E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.Domain\obj\Debug\net8.0\Coffer.Domain.dll
+E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.Domain\obj\Debug\net8.0\refint\Coffer.Domain.dll
+E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.Domain\obj\Debug\net8.0\Coffer.Domain.pdb
+E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.Domain\obj\Debug\net8.0\ref\Coffer.Domain.dll

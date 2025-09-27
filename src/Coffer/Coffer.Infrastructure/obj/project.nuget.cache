@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "BPq62jFLudo=",
+  "dgSpecHash": "UJwM9dxE9EY=",
   "success": true,
-  "projectFilePath": "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.Infrastructure\\Coffer.Infrastructure.csproj",
+  "projectFilePath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Infrastructure\\Coffer.Infrastructure.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\gelli\\.nuget\\packages\\dotnetenv\\3.1.1\\dotnetenv.3.1.1.nupkg.sha512",
     "C:\\Users\\gelli\\.nuget\\packages\\efcore.namingconventions\\9.0.0\\efcore.namingconventions.9.0.0.nupkg.sha512",

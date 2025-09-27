@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.Domain\\Coffer.Domain.csproj": {}
+    "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Domain\\Coffer.Domain.csproj": {}
   },
   "projects": {
-    "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.Domain\\Coffer.Domain.csproj": {
+    "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Domain\\Coffer.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.Domain\\Coffer.Domain.csproj",
+        "projectUniqueName": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Domain\\Coffer.Domain.csproj",
         "projectName": "Coffer.Domain",
-        "projectPath": "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.Domain\\Coffer.Domain.csproj",
+        "projectPath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Domain\\Coffer.Domain.csproj",
         "packagesPath": "C:\\Users\\gelli\\.nuget\\packages\\",
-        "outputPath": "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.Domain\\obj\\",
+        "outputPath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "E:\\Apps\\Visual Studio\\SDK\\NuGetPackages"

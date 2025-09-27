@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "LrLmCk9ZIjM=",
+  "dgSpecHash": "cvR5GzIkuKc=",
   "success": true,
-  "projectFilePath": "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.BusinessLogic\\Coffer.BusinessLogic.csproj",
+  "projectFilePath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.BusinessLogic\\Coffer.BusinessLogic.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\gelli\\.nuget\\packages\\dotnetenv\\3.1.1\\dotnetenv.3.1.1.nupkg.sha512",
     "C:\\Users\\gelli\\.nuget\\packages\\microsoft.entityframeworkcore\\9.0.9\\microsoft.entityframeworkcore.9.0.9.nupkg.sha512",

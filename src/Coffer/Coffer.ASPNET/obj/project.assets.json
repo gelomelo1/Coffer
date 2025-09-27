@@ -6554,11 +6554,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.ASPNET\\Coffer.ASPNET.csproj",
+      "projectUniqueName": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.ASPNET\\Coffer.ASPNET.csproj",
       "projectName": "Coffer.ASPNET",
-      "projectPath": "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.ASPNET\\Coffer.ASPNET.csproj",
+      "projectPath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.ASPNET\\Coffer.ASPNET.csproj",
       "packagesPath": "C:\\Users\\gelli\\.nuget\\packages\\",
-      "outputPath": "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.ASPNET\\obj\\",
+      "outputPath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.ASPNET\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "E:\\Apps\\Visual Studio\\SDK\\NuGetPackages"
@@ -6579,14 +6579,14 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.BusinessLogic\\Coffer.BusinessLogic.csproj": {
-              "projectPath": "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.BusinessLogic\\Coffer.BusinessLogic.csproj"
+            "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.BusinessLogic\\Coffer.BusinessLogic.csproj": {
+              "projectPath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.BusinessLogic\\Coffer.BusinessLogic.csproj"
             },
-            "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.DataAccess\\Coffer.DataAccess.csproj": {
-              "projectPath": "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.DataAccess\\Coffer.DataAccess.csproj"
+            "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.DataAccess\\Coffer.DataAccess.csproj": {
+              "projectPath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.DataAccess\\Coffer.DataAccess.csproj"
             },
-            "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.Infrastructure\\Coffer.Infrastructure.csproj": {
-              "projectPath": "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.Infrastructure\\Coffer.Infrastructure.csproj"
+            "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Infrastructure\\Coffer.Infrastructure.csproj": {
+              "projectPath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Infrastructure\\Coffer.Infrastructure.csproj"
             }
           }
         }

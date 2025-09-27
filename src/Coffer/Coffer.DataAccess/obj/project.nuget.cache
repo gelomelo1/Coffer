@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "XHeVhEm5JE8=",
+  "dgSpecHash": "MKZ6jgkjuRE=",
   "success": true,
-  "projectFilePath": "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.DataAccess\\Coffer.DataAccess.csproj",
+  "projectFilePath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.DataAccess\\Coffer.DataAccess.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\gelli\\.nuget\\packages\\microsoft.entityframeworkcore\\9.0.9\\microsoft.entityframeworkcore.9.0.9.nupkg.sha512",
     "C:\\Users\\gelli\\.nuget\\packages\\microsoft.entityframeworkcore.abstractions\\9.0.9\\microsoft.entityframeworkcore.abstractions.9.0.9.nupkg.sha512",

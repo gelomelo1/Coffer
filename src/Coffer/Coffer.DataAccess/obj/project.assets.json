@@ -680,11 +680,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.DataAccess\\Coffer.DataAccess.csproj",
+      "projectUniqueName": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.DataAccess\\Coffer.DataAccess.csproj",
       "projectName": "Coffer.DataAccess",
-      "projectPath": "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.DataAccess\\Coffer.DataAccess.csproj",
+      "projectPath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.DataAccess\\Coffer.DataAccess.csproj",
       "packagesPath": "C:\\Users\\gelli\\.nuget\\packages\\",
-      "outputPath": "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.DataAccess\\obj\\",
+      "outputPath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.DataAccess\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "E:\\Apps\\Visual Studio\\SDK\\NuGetPackages"
@@ -705,8 +705,8 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.Domain\\Coffer.Domain.csproj": {
-              "projectPath": "E:\\Homework\\Programming\\AI\\szakdolgozat\\src\\Coffer\\Coffer.Domain\\Coffer.Domain.csproj"
+            "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Domain\\Coffer.Domain.csproj": {
+              "projectPath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Domain\\Coffer.Domain.csproj"
             }
           }
         }
