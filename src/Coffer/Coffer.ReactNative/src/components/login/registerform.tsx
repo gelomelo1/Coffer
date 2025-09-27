@@ -4,10 +4,11 @@ import { getData } from "@/src/utils/backend_access";
 import buildQuery from "@/src/utils/query_builder";
 import { Filter } from "profanity-check";
 import { useRef, useState } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { Icon } from "react-native-elements";
 import { customTheme } from "../../theme/theme";
 import CustomButton from "../custom_ui/custom_button";
+import CustomText from "../custom_ui/custom_text";
 import CustomTextInput from "../custom_ui/custom_text_input";
 
 interface RegisterFormProps {
@@ -86,24 +87,8 @@ function RegisterForm({ submitRegistration }: RegisterFormProps) {
         backgroundColor: customTheme.colors.background,
       }}
     >
-      <Text
-        style={{
-          color: customTheme.colors.primary,
-          fontSize: 16,
-          fontFamily: "VendSans",
-        }}
-      >
-        You have not have a registered account yet.
-      </Text>
-      <Text
-        style={{
-          color: customTheme.colors.primary,
-          fontSize: 16,
-          fontFamily: "VendSans",
-        }}
-      >
-        Please enter a username to finnish registration
-      </Text>
+      <CustomText>You have not have a registered account yet.</CustomText>
+      <CustomText>Please enter a username to finnish registration</CustomText>
       <CustomTextInput
         placeholder="Enter Username"
         label="Username"
@@ -119,11 +104,13 @@ function RegisterForm({ submitRegistration }: RegisterFormProps) {
             <Icon name="check" size={20} color="green" />
           ) : undefined
         }
+        containerStyle={{ width: "80%", marginBottom: 50 }}
       />
       <CustomButton
         title="Submit"
         disabled={isSubmitDisabled}
         onPress={() => submitRegistration(userName)}
+        containerStyle={{ width: "80%" }}
       />
     </View>
   );

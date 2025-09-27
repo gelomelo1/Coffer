@@ -1,31 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
-import { useSearchParams } from "expo-router/build/hooks";
 import { useState } from "react";
-import { View } from "react-native";
+import { ScrollView } from "react-native";
 import { Icon } from "react-native-elements";
 import CollectionsContainer from "../components/collections/collections_container";
 import CreateCollectionForm from "../components/collections/create_collection_form";
 import CustomButton from "../components/custom_ui/custom_button";
 import { Loading } from "../components/custom_ui/loading";
 import { endpoints } from "../const/endpoints";
+import { querykeys } from "../const/querykeys";
+import { useGetData } from "../hooks/data_hooks";
+import { useUserStore } from "../hooks/user_store";
 import { customTheme } from "../theme/theme";
 import { Collection } from "../types/entities/collection";
 import CollectionType from "../types/entities/collectiontype";
-import User from "../types/entities/user";
-import { getData } from "../utils/backend_access";
-import buildQuery from "../utils/query_builder";
 
 function Collections() {
-  const params = useSearchParams();
-  let user: User | undefined = undefined;
-
-  if (params.get("user") !== null) {
-    try {
-      user = JSON.parse(params.get("user") as string) as User;
-    } catch (e) {
-      console.warn("Failed to parse user from params", e);
-    }
-  }
+  const { user } = useUserStore();
 
   const [
     isCreateNewCollectionOverlayOpen,
@@ -33,36 +22,27 @@ function Collections() {
   ] = useState(false);
 
   const { data: collectionTypes = [], isFetching: isCollectionTypesFetching } =
-    useQuery({
-      queryKey: ["collectionTypesData"],
-      queryFn: () => {
-        return getData<CollectionType>(endpoints.collectionTypes);
-      },
-    });
+    useGetData<CollectionType>(
+      endpoints.collectionTypes,
+      querykeys.collectionTypesData
+    );
 
   const { data: collections = [], isFetching: isCollectionsFetching } =
-    useQuery({
-      queryKey: ["collectionsData"],
-      queryFn: () => {
-        return getData<Collection>(
-          `${endpoints.collections}/${buildQuery<Collection>({
-            filters: [
-              {
-                filter: "Match",
-                field: "userId",
-                value: user?.id ?? "",
-              },
-            ],
-          })}`
-        );
-      },
+    useGetData<Collection>(endpoints.collections, querykeys.collectionsData, {
+      filters: [
+        {
+          filter: "Match",
+          field: "userId",
+          value: user.id,
+        },
+      ],
     });
 
   const loading = isCollectionTypesFetching || isCollectionsFetching;
 
   return (
     <>
-      <View
+      <ScrollView
         style={{
           flex: 1,
           backgroundColor: customTheme.colors.background,
@@ -90,7 +70,7 @@ function Collections() {
             collections={collections}
           />
         )}
-      </View>
+      </ScrollView>
       <CreateCollectionForm
         isCreateNewCollectionOverlayOpen={{
           value: isCreateNewCollectionOverlayOpen,

@@ -1,18 +1,17 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
-import React, { useState } from "react";
-import { Modal, Text, TouchableOpacity, View } from "react-native";
+import { navigate } from "expo-router/build/global-state/routing";
+import React from "react";
+import { Image, View } from "react-native";
 import { Icon } from "react-native-elements";
-import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import CustomText from "../components/custom_ui/custom_text";
+import { pageParams, ROUTES } from "../const/navigation_params";
 import useStartup from "../hooks/startup";
 import { customTheme } from "../theme/theme";
-import User from "../types/entities/user";
+import { parseParams } from "../utils/navigation_utils";
 
 export default function Layout() {
-  const [isDeveloperMenuVisible, setIsDeveloperMenuVisible] = useState(false);
-
   const { isReady, queryClient } = useStartup();
 
   if (!isReady) return null;
@@ -21,17 +20,16 @@ export default function Layout() {
     <QueryClientProvider client={queryClient}>
       <Stack
         screenOptions={({ route, navigation }) => {
-          // Grab the username from route params if available
-          let user: User | undefined = undefined;
-          try {
-            user = JSON.parse(route.params?.user as string);
-          } catch (e) {
-            console.warn("Failed to parse user from route params", e);
-          }
+          const params = parseParams(route);
+
+          if (!params)
+            return {
+              headerShown: false,
+            };
 
           return {
             title: "",
-            headerShown: user ? true : false,
+            headerShown: params ? true : false,
             headerStyle: {
               backgroundColor: customTheme.colors.background,
             },
@@ -43,82 +41,76 @@ export default function Layout() {
                   alignItems: "flex-start",
                 }}
               >
-                <Text
-                  style={{
-                    color: customTheme.colors.primary,
-                    fontFamily: "VendSansBold",
-                    fontSize: 20,
-                  }}
+                <CustomText
+                  style={{ fontFamily: "VendSansBold", fontSize: 20 }}
+                  numberOfLines={1}
+                  ellipsizeMode="middle"
                 >
-                  Hello {user?.name}!
-                </Text>
-                <Text
-                  style={{
-                    color: customTheme.colors.primary,
-                    fontFamily: "VendSans",
-                    marginLeft: 10,
-                    borderBottomWidth: 10,
-                    borderBottomColor: customTheme.colors.primary,
-                  }}
-                >
-                  {`${
-                    route.name[0].toLocaleUpperCase() + route.name.substring(1)
-                  }`}
-                </Text>
+                  {params.title}
+                </CustomText>
+                {params.description ? (
+                  <View
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "flex-start",
+                      flexDirection: "row",
+                      marginLeft: 10,
+                    }}
+                  >
+                    {params.description?.icon ? (
+                      <Image
+                        source={require("../../assets/images/icon.png")}
+                        style={{ width: 14, height: 14 }}
+                      />
+                    ) : null}
+
+                    <CustomText
+                      style={{
+                        fontSize: 14,
+                        borderBottomWidth: 10,
+                        borderBottomColor: customTheme.colors.primary,
+                      }}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {params.description.title}
+                    </CustomText>
+                    {params.description.additionalHeadings.length > 0 ? (
+                      <CustomText
+                        style={{
+                          fontSize: 14,
+                          color: customTheme.colors.secondary,
+                        }}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {` -> ${params.description.additionalHeadings.join(
+                          " -> "
+                        )}`}
+                      </CustomText>
+                    ) : null}
+                  </View>
+                ) : null}
               </View>
             ),
-            headerRight: () => (
-              <Icon name="settings" color={customTheme.colors.primary} />
-            ),
+            headerRight: () =>
+              params.isSettingsShown ? (
+                <Icon
+                  name="settings"
+                  color={customTheme.colors.primary}
+                  onPress={() =>
+                    navigate({
+                      pathname: ROUTES.SETTINGS.ROOT,
+                      params: pageParams.settings,
+                    })
+                  }
+                />
+              ) : null,
           };
         }}
       />
-      <TouchableOpacity
-        style={{ position: "absolute", bottom: 0, right: 0, zIndex: 999 }}
-        onPress={() => setIsDeveloperMenuVisible(true)}
-      >
-        <Text>Dev Menu</Text>
-      </TouchableOpacity>
-      <Modal
-        visible={isDeveloperMenuVisible}
-        onRequestClose={() => setIsDeveloperMenuVisible(false)}
-      >
-        <DeveloperMenu />
-      </Modal>
       <Toast />
     </QueryClientProvider>
-  );
-}
-
-function DeveloperMenu() {
-  const handleClearStorage = async () => {
-    await AsyncStorage.clear();
-    alert("Async Storage Cleared");
-  };
-
-  return (
-    <SafeAreaView
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <TouchableOpacity
-        style={{
-          width: "100%",
-          height: 50,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "white",
-          boxShadow: "inset 0 0 5px rgba(0, 0, 0, 1)",
-        }}
-        onPress={handleClearStorage}
-      >
-        <Text style={{ fontSize: 18, color: "black" }}>
-          Delete Async Storage
-        </Text>
-      </TouchableOpacity>
-    </SafeAreaView>
   );
 }

@@ -1,7 +1,15 @@
 import { backendAxios } from "../const/backendAccessConfiguration";
 
-export async function postData<TData>(url: string, data: TData, headers?: Record<string, string>): Promise<void>;
-export async function postData<TData, TResponse>(url: string, data: TData, headers?: Record<string, string>): Promise<TResponse>;
+export async function postData<TData>(
+  url: string,
+  data: TData,
+  headers?: Record<string, string>
+): Promise<void>;
+export async function postData<TData, TResponse>(
+  url: string,
+  data: TData,
+  headers?: Record<string, string>
+): Promise<TResponse>;
 
 export async function postData<TData, TResponse>(
   url: string,
@@ -30,4 +38,39 @@ export async function getDataById<TResponse>(
     { headers }
   );
   return response.data;
+}
+
+export async function updateData<TData>(
+  url: string,
+  id: string | number,
+  data: TData,
+  headers?: Record<string, string>
+): Promise<void>;
+export async function updateData<TData, TResponse>(
+  url: string,
+  id: string | number,
+  data: TData,
+  headers?: Record<string, string>
+): Promise<TResponse>;
+
+export async function updateData<TData, TResponse>(
+  url: string,
+  id: string | number,
+  data: TData,
+  headers?: Record<string, string>
+): Promise<TResponse> {
+  const response = await backendAxios.put<TResponse>(`${url}/${id}`, data, {
+    headers,
+  });
+  return response.data;
+}
+
+export async function deleteData(
+  url: string,
+  id: string | number,
+  headers?: Record<string, string>
+): Promise<void> {
+  await backendAxios.delete(`${url}/${id}`, {
+    headers,
+  });
 }

@@ -10,6 +10,7 @@ import {
   webGoogleClientId,
 } from "../const/authAccessConfiguration";
 import { endpoints } from "../const/endpoints";
+import { ROUTES } from "../const/navigation_params";
 import { postData } from "../utils/backend_access";
 
 const reidrectUri = AuthSession.makeRedirectUri({
@@ -55,7 +56,7 @@ export function useGoogleAuth({
           if (validation.exists && validation.token) {
             await AsyncStorage.setItem("jwt", validation.token);
             onSuccessfulLogin?.();
-            navigate("/");
+            navigate(ROUTES.HOME);
           } else if (!validation.exists && validation.tempId) {
             setTempId(validation.tempId);
           }
@@ -78,7 +79,7 @@ export function useGoogleAuth({
       >(endpoints.googleRegister, { tempId, username });
       await AsyncStorage.setItem("jwt", jwtResp.token);
       onSuccessfulRegistration?.();
-      navigate("/");
+      navigate(ROUTES.HOME);
     } catch (error) {
       console.error("Registration failed:", error);
     }
@@ -131,7 +132,7 @@ export function useGitHubAuth({
           if (validation.exists && validation.token) {
             await AsyncStorage.setItem("jwt", validation.token);
             onSuccessfulLogin?.();
-            navigate("/");
+            navigate(ROUTES.HOME);
           } else if (!validation.exists && validation.tempId) {
             setTempId(validation.tempId);
           }
@@ -153,7 +154,7 @@ export function useGitHubAuth({
       >(endpoints.githubRegister, { tempId, username });
       await AsyncStorage.setItem("jwt", jwtResp.token);
       onSuccessfulRegistration?.();
-      navigate("/");
+      navigate(ROUTES.HOME);
     } catch (error) {
       console.error("GitHub registration failed:", error);
     }

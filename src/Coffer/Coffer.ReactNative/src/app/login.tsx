@@ -1,25 +1,15 @@
 import { useState } from "react";
-import {
-  Image,
-  Modal,
-  Pressable,
-  Text,
-  View
-} from "react-native";
+import { Image, Modal, View } from "react-native";
+import CustomButton from "../components/custom_ui/custom_button";
+import CustomText from "../components/custom_ui/custom_text";
+import showToast from "../components/custom_ui/toast";
 import RegisterForm from "../components/login/registerform";
 import { useGitHubAuth, useGoogleAuth } from "../hooks/auth";
 import { customTheme } from "../theme/theme";
 
 function Login() {
-
   const [provider, setProvider] = useState<"google" | "github" | null>(null);
   const [isUsernameModalOpen, setIsUsernameModalOpen] = useState(false);
-  const [
-    isRegistrationSuccessSnackbarVisible,
-    setIsRegistrationSuccessSnackbarVisible,
-  ] = useState(false);
-  const [isLoginSuccessSnackbarVisible, setIsLoginSuccessSnackbarVisible] =
-    useState(false);
 
   const handleUserNotExists = (exists: boolean | null) => {
     if (exists === false) {
@@ -29,20 +19,26 @@ function Login() {
 
   const handleSuccessfulRegistration = () => {
     setIsUsernameModalOpen(false);
-    setIsRegistrationSuccessSnackbarVisible(true);
+    showToast("success", "Registration was successful", "Logging you in...");
   };
 
   const handleSuccessfulLogin = () => {
-    setIsLoginSuccessSnackbarVisible(true);
+    showToast("success", "Authorization was successful", "Logging you in...");
   };
 
-  const { promptAsync: googlePrompt, submitRegistration: googleSubmitRegistration } = useGoogleAuth({
+  const {
+    promptAsync: googlePrompt,
+    submitRegistration: googleSubmitRegistration,
+  } = useGoogleAuth({
     onUserExistsChange: handleUserNotExists,
     onSuccessfulRegistration: handleSuccessfulRegistration,
     onSuccessfulLogin: handleSuccessfulLogin,
   });
 
-  const {promptAsync: githubPrompt, submitRegistration: githubSubmitRegistration} = useGitHubAuth({
+  const {
+    promptAsync: githubPrompt,
+    submitRegistration: githubSubmitRegistration,
+  } = useGitHubAuth({
     onUserExistsChange: handleUserNotExists,
     onSuccessfulRegistration: handleSuccessfulRegistration,
     onSuccessfulLogin: handleSuccessfulLogin,
@@ -51,12 +47,12 @@ function Login() {
   const handleGooglePress = () => {
     setProvider("google");
     googlePrompt();
-  }
+  };
 
   const handleGithubPress = () => {
     setProvider("github");
-      githubPrompt();
-  }
+    githubPrompt();
+  };
 
   const handleSubmitRegistration = async (username: string) => {
     if (provider === "google") {
@@ -64,7 +60,7 @@ function Login() {
     } else if (provider === "github") {
       await githubSubmitRegistration(username);
     }
-  }
+  };
 
   return (
     <>
@@ -82,62 +78,32 @@ function Login() {
           style={{ width: "60%", height: "auto", aspectRatio: "1/1" }}
         />
         <View style={{ width: "100%", gap: 10, alignItems: "center" }}>
-          <Text
-            style={{
-              color: customTheme.colors.primary,
-              fontSize: 34,
-              fontFamily: "VendSansBold",
-            }}
-          >
+          <CustomText style={{ fontSize: 34, fontFamily: "VendSansBold" }}>
             Helloo
-          </Text>
-          <Text
-            style={{
-              color: customTheme.colors.primary,
-              fontSize: 16,
-              fontFamily: "VendSans",
-            }}
-          >
-            Please sign in, with one of the following
-          </Text>
-          <Pressable
+          </CustomText>
+          <CustomText>Please sign in, with one of the following</CustomText>
+          <CustomButton
             onPress={handleGooglePress}
-            style={{
-              width: "60%",
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 10,
-              backgroundColor: customTheme.colors.primary,
-              padding: 5,
-              borderWidth: 1,
-              borderColor: customTheme.colors.secondary,
-              boxShadow: `1px 1px ${customTheme.colors.secondary}`,
-            }}
-          >
-            <Image source={require("../../assets/images/googlesignin.png")} />
-            <Text style={{ color: customTheme.colors.secondary }}>
-              Sign in with Google
-            </Text>
-          </Pressable>
-          <Pressable
+            title="Sign in with Google"
+            icon={
+              <Image
+                source={require("../../assets/images/googlesignin.png")}
+                style={{ width: 32, height: 32, marginRight: 10 }}
+              />
+            }
+            containerStyle={{ width: "60%" }}
+          />
+          <CustomButton
             onPress={handleGithubPress}
-            style={{
-              width: "60%",
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 10,
-              backgroundColor: customTheme.colors.primary,
-              padding: 5,
-              borderWidth: 1,
-              borderColor: customTheme.colors.secondary,
-              boxShadow: `1px 1px ${customTheme.colors.secondary}`,
-            }}
-          >
-            <Image source={require("../../assets/images/githubsignin.png")} />
-            <Text style={{ color: customTheme.colors.secondary }}>
-              Sign in with Github
-            </Text>
-          </Pressable>
+            title="Sign in with Github"
+            icon={
+              <Image
+                source={require("../../assets/images/githubsignin.png")}
+                style={{ width: 32, height: 32, marginRight: 10 }}
+              />
+            }
+            containerStyle={{ width: "60%" }}
+          />
         </View>
       </View>
       <Modal

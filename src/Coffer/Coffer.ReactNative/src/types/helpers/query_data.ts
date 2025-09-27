@@ -1,3 +1,8 @@
+export interface UpdateDataPayload<T> {
+  id: string | number;
+  value: T;
+}
+
 export type QueryFilterData<T> =
   | {
       filter: "Match" | "Contains" | "StartsWith" | "EndsWith";

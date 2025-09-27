@@ -14,7 +14,7 @@ export function darkenBy60Percent(hex: string): string {
   let g = parseInt(hex.substring(2, 4), 16);
   let b = parseInt(hex.substring(4, 6), 16);
 
-  // Apply 60% black = scale down by 95%
+  // Apply 60% black = scale down by 40%
   r = Math.max(0, Math.floor(r * 0.4));
   g = Math.max(0, Math.floor(g * 0.4));
   b = Math.max(0, Math.floor(b * 0.4));

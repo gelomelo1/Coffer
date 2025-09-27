@@ -1,14 +1,16 @@
 import { endpoints } from "@/src/const/endpoints";
+import { querykeys } from "@/src/const/querykeys";
+import { useCreateData } from "@/src/hooks/data_hooks";
 import { customTheme } from "@/src/theme/theme";
-import { Collection } from "@/src/types/entities/collection";
+import {
+  Collection,
+  CollectionRequired,
+} from "@/src/types/entities/collection";
 import CollectionType from "@/src/types/entities/collectiontype";
 import User from "@/src/types/entities/user";
-import { postData } from "@/src/utils/backend_access";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { View } from "react-native";
 import { Overlay } from "react-native-elements";
-import Toast from "react-native-toast-message";
 import CustomButton from "../custom_ui/custom_button";
 import CustomDropdown from "../custom_ui/custom_dropdown";
 import CustomTextInput from "../custom_ui/custom_text_input";
@@ -27,8 +29,6 @@ function CreateCollectionForm({
   collectionTypes,
   user,
 }: CreateCollectionFormProps) {
-  const queryClient = useQueryClient();
-
   const [open, setOpen] = useState(false);
 
   const [collectionName, setCollectionName] = useState("");
@@ -42,27 +42,10 @@ function CreateCollectionForm({
     value: type.id, // unique primitive value
   }));
 
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: (newCollection: {
-      userId: string;
-      collectionTypeId: string;
-      name: string;
-    }) =>
-      postData<
-        { userId: string; collectionTypeId: string; name: string },
-        Collection
-      >(endpoints.collections, newCollection),
-    onSuccess: () => {
-      // invalidate the collectionsData cache
-      queryClient.invalidateQueries({ queryKey: ["collectionsData"] });
-      Toast.show({
-        type: "success",
-        text1: "Sikeres létrehozás",
-        position: "bottom",
-        visibilityTime: 2000,
-      });
-    },
-  });
+  const { mutateAsync, isPending } = useCreateData<
+    CollectionRequired,
+    Collection
+  >(endpoints.collections, querykeys.collectionsData);
 
   const resetFormData = () => {
     setOpen(false);

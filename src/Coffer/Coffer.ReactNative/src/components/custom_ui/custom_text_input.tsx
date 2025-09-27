@@ -46,8 +46,6 @@ const CustomTextInput: React.FC<InputProps> = ({
           position: "relative",
           alignSelf: "center",
         },
-        defaultStyles.containerStyle,
-        containerStyle,
       ]}
     >
       <Input

@@ -45,6 +45,7 @@
     <PackageJsonDependenciesReactNativeToastMessage Condition="$(PackageJsonDependenciesReactNativeToastMessage) == ''">^2.3.3</PackageJsonDependenciesReactNativeToastMessage>
     <PackageJsonDependenciesReactNativeWeb Condition="$(PackageJsonDependenciesReactNativeWeb) == ''">~0.21.0</PackageJsonDependenciesReactNativeWeb>
     <PackageJsonDependenciesReactNativeWorklets Condition="$(PackageJsonDependenciesReactNativeWorklets) == ''">0.5.1</PackageJsonDependenciesReactNativeWorklets>
+    <PackageJsonDependenciesZustand Condition="$(PackageJsonDependenciesZustand) == ''">^5.0.8</PackageJsonDependenciesZustand>
     <PackageJsonDevdependenciesTypesReact Condition="$(PackageJsonDevdependenciesTypesReact) == ''">~19.1.0</PackageJsonDevdependenciesTypesReact>
     <PackageJsonDevdependenciesEslint Condition="$(PackageJsonDevdependenciesEslint) == ''">^9.25.0</PackageJsonDevdependenciesEslint>
     <PackageJsonDevdependenciesEslintConfigExpo Condition="$(PackageJsonDevdependenciesEslintConfigExpo) == ''">~10.0.0</PackageJsonDevdependenciesEslintConfigExpo>

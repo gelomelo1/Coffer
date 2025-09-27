@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{EACAA64B-DE45-D852-8CAF-FB85846AC237}|Coffer\\Coffer.ASPNET\\Coffer.ASPNET.csproj|e:\\homework\\programming\\ai\\coffer\\src\\coffer\\coffer.aspnet\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EACAA64B-DE45-D852-8CAF-FB85846AC237}|Coffer\\Coffer.ASPNET\\Coffer.ASPNET.csproj|solutionrelative:coffer\\coffer.aspnet\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{EACAA64B-DE45-D852-8CAF-FB85846AC237}|Coffer\\Coffer.ASPNET\\Coffer.ASPNET.csproj|e:\\homework\\programming\\ai\\coffer\\src\\coffer\\coffer.aspnet\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{EACAA64B-DE45-D852-8CAF-FB85846AC237}|Coffer\\Coffer.ASPNET\\Coffer.ASPNET.csproj|solutionrelative:coffer\\coffer.aspnet\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -81,10 +85,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{D71BABBD-E7C9-4CE0-8633-802675E9F8EE}|Coffer\\Coffer.DataAccess\\Coffer.DataAccess.csproj|e:\\homework\\programming\\ai\\coffer\\src\\coffer\\coffer.dataaccess\\repositories.interfaces\\iusersrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D71BABBD-E7C9-4CE0-8633-802675E9F8EE}|Coffer\\Coffer.DataAccess\\Coffer.DataAccess.csproj|solutionrelative:coffer\\coffer.dataaccess\\repositories.interfaces\\iusersrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{EACAA64B-DE45-D852-8CAF-FB85846AC237}|Coffer\\Coffer.ASPNET\\Coffer.ASPNET.csproj|e:\\homework\\programming\\ai\\coffer\\src\\coffer\\coffer.aspnet\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{EACAA64B-DE45-D852-8CAF-FB85846AC237}|Coffer\\Coffer.ASPNET\\Coffer.ASPNET.csproj|solutionrelative:coffer\\coffer.aspnet\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{587EDC69-90E3-4B9B-B0C3-063BE9D096A5}|Coffer\\Coffer.Domain\\Coffer.Domain.csproj|e:\\homework\\programming\\ai\\coffer\\src\\coffer\\coffer.domain\\entities.interfaces\\igenericentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -168,19 +168,7 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "DependencyInjection.cs",
-              "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Infrastructure\\DependencyInjection.cs",
-              "RelativeDocumentMoniker": "Coffer\\Coffer.Infrastructure\\DependencyInjection.cs",
-              "ToolTip": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Infrastructure\\DependencyInjection.cs",
-              "RelativeToolTip": "Coffer\\Coffer.Infrastructure\\DependencyInjection.cs",
-              "ViewState": "AgIAAAkAAAAAAAAAAAAAAC4AAAAWAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-18T12:44:16.581Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 11,
               "Title": "QueryParameters.cs",
               "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.ASPNET\\Extensions\\QueryParameters.cs",
               "RelativeDocumentMoniker": "Coffer\\Coffer.ASPNET\\Extensions\\QueryParameters.cs",
@@ -192,7 +180,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "StartupExtension.cs",
               "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.ASPNET\\Extensions\\StartupExtension.cs",
               "RelativeDocumentMoniker": "Coffer\\Coffer.ASPNET\\Extensions\\StartupExtension.cs",
@@ -204,7 +192,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "JwtService.cs",
               "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.BusinessLogic\\Services\\JwtService.cs",
               "RelativeDocumentMoniker": "Coffer\\Coffer.BusinessLogic\\Services\\JwtService.cs",
@@ -212,12 +200,11 @@
               "RelativeToolTip": "Coffer\\Coffer.BusinessLogic\\Services\\JwtService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAABLAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-18T11:03:02.727Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-18T11:03:02.727Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "Collection.cs",
               "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Domain\\Entities\\Collection.cs",
               "RelativeDocumentMoniker": "Coffer\\Coffer.Domain\\Entities\\Collection.cs",
@@ -229,7 +216,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "IGenericRepository.cs",
               "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.DataAccess\\Repositories.Interfaces\\IGenericRepository.cs",
               "RelativeDocumentMoniker": "Coffer\\Coffer.DataAccess\\Repositories.Interfaces\\IGenericRepository.cs",
@@ -241,7 +228,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "GenericRepository.cs",
               "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.DataAccess\\Repositories\\Generic\\GenericRepository.cs",
               "RelativeDocumentMoniker": "Coffer\\Coffer.DataAccess\\Repositories\\Generic\\GenericRepository.cs",
@@ -253,7 +240,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "IJwtService.cs",
               "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.BusinessLogic\\Services.Interfaces\\IJwtService.cs",
               "RelativeDocumentMoniker": "Coffer\\Coffer.BusinessLogic\\Services.Interfaces\\IJwtService.cs",
@@ -265,7 +252,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "GenericController.cs",
               "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.ASPNET\\Controllers\\Generic\\GenericController.cs",
               "RelativeDocumentMoniker": "Coffer\\Coffer.ASPNET\\Controllers\\Generic\\GenericController.cs",
@@ -277,7 +264,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "Program.cs",
               "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.ASPNET\\Program.cs",
               "RelativeDocumentMoniker": "Coffer\\Coffer.ASPNET\\Program.cs",
@@ -285,12 +272,36 @@
               "RelativeToolTip": "Coffer\\Coffer.ASPNET\\Program.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-13T12:11:05.239Z",
+              "WhenOpened": "2025-09-13T12:11:05.239Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "AuthController.cs",
+              "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.ASPNET\\Controllers\\AuthController.cs",
+              "RelativeDocumentMoniker": "Coffer\\Coffer.ASPNET\\Controllers\\AuthController.cs",
+              "ToolTip": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.ASPNET\\Controllers\\AuthController.cs",
+              "RelativeToolTip": "Coffer\\Coffer.ASPNET\\Controllers\\AuthController.cs",
+              "ViewState": "AgIAAFIAAAAAAAAAAAAcwHIAAAAeAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-18T09:54:41.15Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 4,
+              "Title": "DependencyInjection.cs",
+              "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Infrastructure\\DependencyInjection.cs",
+              "RelativeDocumentMoniker": "Coffer\\Coffer.Infrastructure\\DependencyInjection.cs",
+              "ToolTip": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Infrastructure\\DependencyInjection.cs",
+              "RelativeToolTip": "Coffer\\Coffer.Infrastructure\\DependencyInjection.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAAC4AAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-18T12:44:16.581Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
               "Title": "UsersController.cs",
               "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.ASPNET\\Controllers\\UsersController.cs",
               "RelativeDocumentMoniker": "Coffer\\Coffer.ASPNET\\Controllers\\UsersController.cs",
@@ -302,7 +313,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 14,
               "Title": "CofferDbContext.cs",
               "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.DataAccess\\CofferDbContext.cs",
               "RelativeDocumentMoniker": "Coffer\\Coffer.DataAccess\\CofferDbContext.cs",
@@ -314,7 +325,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 13,
               "Title": "CollectionTypesController.cs",
               "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.ASPNET\\Controllers\\CollectionTypesController.cs",
               "RelativeDocumentMoniker": "Coffer\\Coffer.ASPNET\\Controllers\\CollectionTypesController.cs",
@@ -326,7 +337,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 17,
               "Title": "CollectionTypesRepository.cs",
               "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.DataAccess\\Repositories\\CollectionTypesRepository.cs",
               "RelativeDocumentMoniker": "Coffer\\Coffer.DataAccess\\Repositories\\CollectionTypesRepository.cs",
@@ -338,7 +349,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 12,
               "Title": "CollectionsController.cs",
               "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.ASPNET\\Controllers\\CollectionsController.cs",
               "RelativeDocumentMoniker": "Coffer\\Coffer.ASPNET\\Controllers\\CollectionsController.cs",
@@ -350,7 +361,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 15,
               "Title": "CollectionsRepository.cs",
               "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.DataAccess\\Repositories\\CollectionsRepository.cs",
               "RelativeDocumentMoniker": "Coffer\\Coffer.DataAccess\\Repositories\\CollectionsRepository.cs",
@@ -362,7 +373,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 18,
               "Title": "UsersRepository.cs",
               "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.DataAccess\\Repositories\\UsersRepository.cs",
               "RelativeDocumentMoniker": "Coffer\\Coffer.DataAccess\\Repositories\\UsersRepository.cs",
@@ -374,7 +385,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 19,
               "Title": "User.cs",
               "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Domain\\Entities\\User.cs",
               "RelativeDocumentMoniker": "Coffer\\Coffer.Domain\\Entities\\User.cs",
@@ -386,7 +397,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 16,
               "Title": "CollectionType.cs",
               "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Domain\\Entities\\CollectionType.cs",
               "RelativeDocumentMoniker": "Coffer\\Coffer.Domain\\Entities\\CollectionType.cs",
@@ -399,18 +410,6 @@
             {
               "$type": "Document",
               "DocumentIndex": 20,
-              "Title": "AuthController.cs",
-              "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.ASPNET\\Controllers\\AuthController.cs",
-              "RelativeDocumentMoniker": "Coffer\\Coffer.ASPNET\\Controllers\\AuthController.cs",
-              "ToolTip": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.ASPNET\\Controllers\\AuthController.cs",
-              "RelativeToolTip": "Coffer\\Coffer.ASPNET\\Controllers\\AuthController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB4AAAAJAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-18T09:54:41.15Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 19,
               "Title": "IUsersRepository.cs",
               "DocumentMoniker": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.DataAccess\\Repositories.Interfaces\\IUsersRepository.cs",
               "RelativeDocumentMoniker": "Coffer\\Coffer.DataAccess\\Repositories.Interfaces\\IUsersRepository.cs",
