@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "Coffer.Domain/1.0.0": {
+        "runtime": {
+          "Coffer.Domain.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Coffer.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

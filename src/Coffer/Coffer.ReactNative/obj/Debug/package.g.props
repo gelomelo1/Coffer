@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <PackageJsonName Condition="$(PackageJsonName) == ''">coffer.reactnative</PackageJsonName>
+    <PackageJsonMain Condition="$(PackageJsonMain) == ''">expo-router/entry</PackageJsonMain>
+    <PackageJsonVersion Condition="$(PackageJsonVersion) == ''">1.0.0</PackageJsonVersion>
+    <PackageJsonScriptsStart Condition="$(PackageJsonScriptsStart) == ''">expo start</PackageJsonScriptsStart>
+    <PackageJsonScriptsAndroid Condition="$(PackageJsonScriptsAndroid) == ''">expo run:android</PackageJsonScriptsAndroid>
+    <PackageJsonScriptsIos Condition="$(PackageJsonScriptsIos) == ''">expo run:ios</PackageJsonScriptsIos>
+    <PackageJsonScriptsWeb Condition="$(PackageJsonScriptsWeb) == ''">expo start --web</PackageJsonScriptsWeb>
+    <PackageJsonScriptsLint Condition="$(PackageJsonScriptsLint) == ''">expo lint</PackageJsonScriptsLint>
+    <PackageJsonDependenciesExpoVectorIcons Condition="$(PackageJsonDependenciesExpoVectorIcons) == ''">^15.0.2</PackageJsonDependenciesExpoVectorIcons>
+    <PackageJsonDependenciesReactNativeAsyncStorageAsyncStorage Condition="$(PackageJsonDependenciesReactNativeAsyncStorageAsyncStorage) == ''">^2.2.0</PackageJsonDependenciesReactNativeAsyncStorageAsyncStorage>
+    <PackageJsonDependenciesReactNativeGradlePlugin Condition="$(PackageJsonDependenciesReactNativeGradlePlugin) == ''">^0.75.1</PackageJsonDependenciesReactNativeGradlePlugin>
+    <PackageJsonDependenciesReactNavigationBottomTabs Condition="$(PackageJsonDependenciesReactNavigationBottomTabs) == ''">^7.4.0</PackageJsonDependenciesReactNavigationBottomTabs>
+    <PackageJsonDependenciesReactNavigationElements Condition="$(PackageJsonDependenciesReactNavigationElements) == ''">^2.6.3</PackageJsonDependenciesReactNavigationElements>
+    <PackageJsonDependenciesReactNavigationNative Condition="$(PackageJsonDependenciesReactNavigationNative) == ''">^7.1.8</PackageJsonDependenciesReactNavigationNative>
+    <PackageJsonDependenciesTanstackReactQuery Condition="$(PackageJsonDependenciesTanstackReactQuery) == ''">^5.90.2</PackageJsonDependenciesTanstackReactQuery>
+    <PackageJsonDependenciesAxios Condition="$(PackageJsonDependenciesAxios) == ''">^1.12.2</PackageJsonDependenciesAxios>
+    <PackageJsonDependenciesExpo Condition="$(PackageJsonDependenciesExpo) == ''">~54.0.6</PackageJsonDependenciesExpo>
+    <PackageJsonDependenciesExpoAsset Condition="$(PackageJsonDependenciesExpoAsset) == ''">~12.0.8</PackageJsonDependenciesExpoAsset>
+    <PackageJsonDependenciesExpoAuthSession Condition="$(PackageJsonDependenciesExpoAuthSession) == ''">^7.0.8</PackageJsonDependenciesExpoAuthSession>
+    <PackageJsonDependenciesExpoConstants Condition="$(PackageJsonDependenciesExpoConstants) == ''">~18.0.8</PackageJsonDependenciesExpoConstants>
+    <PackageJsonDependenciesExpoFont Condition="$(PackageJsonDependenciesExpoFont) == ''">~14.0.8</PackageJsonDependenciesExpoFont>
+    <PackageJsonDependenciesExpoHaptics Condition="$(PackageJsonDependenciesExpoHaptics) == ''">~15.0.7</PackageJsonDependenciesExpoHaptics>
+    <PackageJsonDependenciesExpoImage Condition="$(PackageJsonDependenciesExpoImage) == ''">~3.0.8</PackageJsonDependenciesExpoImage>
+    <PackageJsonDependenciesExpoLinking Condition="$(PackageJsonDependenciesExpoLinking) == ''">~8.0.8</PackageJsonDependenciesExpoLinking>
+    <PackageJsonDependenciesExpoRouter Condition="$(PackageJsonDependenciesExpoRouter) == ''">~6.0.3</PackageJsonDependenciesExpoRouter>
+    <PackageJsonDependenciesExpoSplashScreen Condition="$(PackageJsonDependenciesExpoSplashScreen) == ''">~31.0.10</PackageJsonDependenciesExpoSplashScreen>
+    <PackageJsonDependenciesExpoStatusBar Condition="$(PackageJsonDependenciesExpoStatusBar) == ''">~3.0.8</PackageJsonDependenciesExpoStatusBar>
+    <PackageJsonDependenciesExpoSymbols Condition="$(PackageJsonDependenciesExpoSymbols) == ''">~1.0.7</PackageJsonDependenciesExpoSymbols>
+    <PackageJsonDependenciesExpoSystemUi Condition="$(PackageJsonDependenciesExpoSystemUi) == ''">~6.0.7</PackageJsonDependenciesExpoSystemUi>
+    <PackageJsonDependenciesExpoWebBrowser Condition="$(PackageJsonDependenciesExpoWebBrowser) == ''">~15.0.7</PackageJsonDependenciesExpoWebBrowser>
+    <PackageJsonDependenciesProfanityCheck Condition="$(PackageJsonDependenciesProfanityCheck) == ''">^0.0.3</PackageJsonDependenciesProfanityCheck>
+    <PackageJsonDependenciesReact Condition="$(PackageJsonDependenciesReact) == ''">19.1.0</PackageJsonDependenciesReact>
+    <PackageJsonDependenciesReactDom Condition="$(PackageJsonDependenciesReactDom) == ''">19.1.0</PackageJsonDependenciesReactDom>
+    <PackageJsonDependenciesReactNative Condition="$(PackageJsonDependenciesReactNative) == ''">0.81.4</PackageJsonDependenciesReactNative>
+    <PackageJsonDependenciesReactNativeDropdownPicker Condition="$(PackageJsonDependenciesReactNativeDropdownPicker) == ''">^5.4.6</PackageJsonDependenciesReactNativeDropdownPicker>
+    <PackageJsonDependenciesReactNativeElements Condition="$(PackageJsonDependenciesReactNativeElements) == ''">^3.0.0</PackageJsonDependenciesReactNativeElements>
+    <PackageJsonDependenciesReactNativeGestureHandler Condition="$(PackageJsonDependenciesReactNativeGestureHandler) == ''">~2.28.0</PackageJsonDependenciesReactNativeGestureHandler>
+    <PackageJsonDependenciesReactNativeIndicator Condition="$(PackageJsonDependenciesReactNativeIndicator) == ''">^1.2.1</PackageJsonDependenciesReactNativeIndicator>
+    <PackageJsonDependenciesReactNativeReanimated Condition="$(PackageJsonDependenciesReactNativeReanimated) == ''">~4.1.0</PackageJsonDependenciesReactNativeReanimated>
+    <PackageJsonDependenciesReactNativeSafeAreaContext Condition="$(PackageJsonDependenciesReactNativeSafeAreaContext) == ''">^5.6.0</PackageJsonDependenciesReactNativeSafeAreaContext>
+    <PackageJsonDependenciesReactNativeScreens Condition="$(PackageJsonDependenciesReactNativeScreens) == ''">~4.16.0</PackageJsonDependenciesReactNativeScreens>
+    <PackageJsonDependenciesReactNativeToastMessage Condition="$(PackageJsonDependenciesReactNativeToastMessage) == ''">^2.3.3</PackageJsonDependenciesReactNativeToastMessage>
+    <PackageJsonDependenciesReactNativeWeb Condition="$(PackageJsonDependenciesReactNativeWeb) == ''">~0.21.0</PackageJsonDependenciesReactNativeWeb>
+    <PackageJsonDependenciesReactNativeWorklets Condition="$(PackageJsonDependenciesReactNativeWorklets) == ''">0.5.1</PackageJsonDependenciesReactNativeWorklets>
+    <PackageJsonDevdependenciesTypesReact Condition="$(PackageJsonDevdependenciesTypesReact) == ''">~19.1.0</PackageJsonDevdependenciesTypesReact>
+    <PackageJsonDevdependenciesEslint Condition="$(PackageJsonDevdependenciesEslint) == ''">^9.25.0</PackageJsonDevdependenciesEslint>
+    <PackageJsonDevdependenciesEslintConfigExpo Condition="$(PackageJsonDevdependenciesEslintConfigExpo) == ''">~10.0.0</PackageJsonDevdependenciesEslintConfigExpo>
+    <PackageJsonDevdependenciesTypescript Condition="$(PackageJsonDevdependenciesTypescript) == ''">~5.9.2</PackageJsonDevdependenciesTypescript>
+    <PackageJsonPrivate Condition="$(PackageJsonPrivate) == ''">true</PackageJsonPrivate>
+  </PropertyGroup>
+</Project>

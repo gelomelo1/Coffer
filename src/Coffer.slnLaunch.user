@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "Coffer\\Coffer.ASPNET\\Coffer.ASPNET.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "Coffer\\Coffer.ReactNative\\Coffer.ReactNative.esproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

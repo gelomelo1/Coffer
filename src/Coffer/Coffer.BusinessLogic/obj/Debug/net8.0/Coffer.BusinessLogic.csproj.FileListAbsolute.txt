@@ -1,0 +1,17 @@
+E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.BusinessLogic\bin\Debug\net8.0\Coffer.BusinessLogic.deps.json
+E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.BusinessLogic\bin\Debug\net8.0\Coffer.BusinessLogic.dll
+E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.BusinessLogic\bin\Debug\net8.0\Coffer.BusinessLogic.pdb
+E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.BusinessLogic\bin\Debug\net8.0\Coffer.Domain.dll
+E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.BusinessLogic\bin\Debug\net8.0\Coffer.Domain.pdb
+E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.BusinessLogic\obj\Debug\net8.0\Coffer.BusinessLogic.csproj.AssemblyReference.cache
+E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.BusinessLogic\obj\Debug\net8.0\Coffer.BusinessLogic.GeneratedMSBuildEditorConfig.editorconfig
+E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.BusinessLogic\obj\Debug\net8.0\Coffer.BusinessLogic.AssemblyInfoInputs.cache
+E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.BusinessLogic\obj\Debug\net8.0\Coffer.BusinessLogic.AssemblyInfo.cs
+E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.BusinessLogic\obj\Debug\net8.0\Coffer.BusinessLogic.csproj.CoreCompileInputs.cache
+E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.BusinessLogic\obj\Debug\net8.0\Coffer.B.365CD9B2.Up2Date
+E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.BusinessLogic\obj\Debug\net8.0\Coffer.BusinessLogic.dll
+E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.BusinessLogic\obj\Debug\net8.0\refint\Coffer.BusinessLogic.dll
+E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.BusinessLogic\obj\Debug\net8.0\Coffer.BusinessLogic.pdb
+E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.BusinessLogic\obj\Debug\net8.0\ref\Coffer.BusinessLogic.dll
+E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.BusinessLogic\bin\Debug\net8.0\Coffer.DataAccess.dll
+E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.BusinessLogic\bin\Debug\net8.0\Coffer.DataAccess.pdb
