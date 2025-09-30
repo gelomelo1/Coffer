@@ -7,6 +7,7 @@ export interface NavigationParams {
   description?: {
     icon?: string;
     title: string;
+    color?: string;
     additionalHeadings: string[];
   };
   isSettingsShown?: boolean;

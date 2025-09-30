@@ -70,6 +70,7 @@ export async function deleteData(
   id: string | number,
   headers?: Record<string, string>
 ): Promise<void> {
+  console.log(`${url}/${id}`);
   await backendAxios.delete(`${url}/${id}`, {
     headers,
   });

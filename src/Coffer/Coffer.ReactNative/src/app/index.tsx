@@ -25,7 +25,7 @@ export default function Index() {
           );
           initUserStore(currentUser);
           navigate({
-            pathname: ROUTES.COLLECTIONS,
+            pathname: ROUTES.COLLECTIONS.ROOT,
             params: pageParams.collections(currentUser.name),
           });
         } catch (error: unknown) {

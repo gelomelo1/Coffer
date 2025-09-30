@@ -1,5 +1,5 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { Pressable, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import { Divider } from "react-native-elements";
 import { customTheme } from "../../theme/theme";
 import CustomText from "../custom_ui/custom_text";
@@ -18,7 +18,7 @@ function SettingsButton({
   isLastInList = false,
 }: SettingsButtonProps) {
   return (
-    <Pressable style={{ width: "95%" }} onPress={() => onPress()}>
+    <TouchableOpacity style={{ width: "95%" }} onPress={() => onPress()}>
       <View
         style={{
           width: "100%",
@@ -50,7 +50,7 @@ function SettingsButton({
         />
       </View>
       {!isLastInList ? <Divider color={customTheme.colors.secondary} /> : null}
-    </Pressable>
+    </TouchableOpacity>
   );
 }
 

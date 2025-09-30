@@ -50,10 +50,10 @@ namespace Coffer.ASPNET.Controllers.Generic
             return Ok(item);
         }
 
-        [HttpDelete]
-        public async Task<ActionResult> Delete(TKey key)
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> Delete(TKey id)
         {
-            var success = await _repository.DeleteItemAsync(key);
+            var success = await _repository.DeleteItemAsync(id);
             if(!success) return NotFound();
             return NoContent();
         }

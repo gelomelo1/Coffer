@@ -1,3 +1,5 @@
+import { backendAxios } from "./backendAccessConfiguration";
+
 export const endpoints = {
   googleValidate: "api/auth/google/validate",
   googleRegister: "api/auth/google/register",
@@ -7,5 +9,5 @@ export const endpoints = {
   users: "api/Users",
   collectionTypes: "api/CollectionTypes",
   collections: "api/Collections",
-  icons: "icons",
+  icons: `${backendAxios.defaults.baseURL}/icons`,
 };

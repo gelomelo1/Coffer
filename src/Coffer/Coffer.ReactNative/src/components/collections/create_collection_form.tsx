@@ -1,6 +1,6 @@
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
-import { useCreateData } from "@/src/hooks/data_hooks";
+import { useCreateData, useGetData } from "@/src/hooks/data_hooks";
 import { customTheme } from "@/src/theme/theme";
 import {
   Collection,
@@ -8,9 +8,10 @@ import {
 } from "@/src/types/entities/collection";
 import CollectionType from "@/src/types/entities/collectiontype";
 import User from "@/src/types/entities/user";
-import { useState } from "react";
-import { View } from "react-native";
-import { Overlay } from "react-native-elements";
+import { Filter } from "profanity-check";
+import React, { useRef, useState } from "react";
+import { ActivityIndicator, View } from "react-native";
+import { Icon, Overlay } from "react-native-elements";
 import CustomButton from "../custom_ui/custom_button";
 import CustomDropdown from "../custom_ui/custom_dropdown";
 import CustomTextInput from "../custom_ui/custom_text_input";
@@ -21,7 +22,7 @@ interface CreateCollectionFormProps {
     set: React.Dispatch<React.SetStateAction<boolean>>;
   };
   collectionTypes: CollectionType[];
-  user: User | undefined;
+  user: User;
 }
 
 function CreateCollectionForm({
@@ -30,17 +31,46 @@ function CreateCollectionForm({
   user,
 }: CreateCollectionFormProps) {
   const [open, setOpen] = useState(false);
-
   const [collectionName, setCollectionName] = useState("");
-
   const [selectedCollectionTypeId, setSelectedCollectionTypeId] = useState<
     string | null
   >(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isInputCheck, setIsInputCheck] = useState(true);
+  const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const languageFilter = new Filter();
 
   const dropdownItems = collectionTypes.map((type) => ({
-    label: type.name, // what you want to show
-    value: type.id, // unique primitive value
+    label: type.name,
+    value: type.id,
   }));
+
+  const isSubmitDisabled =
+    collectionName === "" || selectedCollectionTypeId === null || isInputCheck;
+
+  const { isFetching, refetch } = useGetData<Collection>(
+    endpoints.collections,
+    querykeys.collectionsWithCurrentName,
+    {
+      filters: [
+        {
+          filter: "Match",
+          field: "userId",
+          value: user.id,
+        },
+        {
+          filter: "Match",
+          field: "name",
+          value: collectionName,
+        },
+      ],
+    },
+    undefined,
+    {
+      enabled: false,
+      queryKey: [querykeys.collectionsWithCurrentName],
+    }
+  );
 
   const { mutateAsync, isPending } = useCreateData<
     CollectionRequired,
@@ -51,6 +81,9 @@ function CreateCollectionForm({
     setOpen(false);
     setCollectionName("");
     setSelectedCollectionTypeId(null);
+    setErrorMessage("");
+    setIsInputCheck(true);
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
   };
 
   const handleOverlayClose = () => {
@@ -59,7 +92,45 @@ function CreateCollectionForm({
     resetFormData();
   };
 
-  const submitCollectionCreation = async () => {
+  const handleChangeCollectionName = (newValue: string) => {
+    setCollectionName(newValue);
+    setIsInputCheck(true);
+
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+
+    if (newValue === "") {
+      setErrorMessage("");
+      return;
+    }
+
+    debounceTimeout.current = setTimeout(async () => {
+      const usernameRegex = /^[a-zA-Z0-9._-]+$/;
+
+      if (!usernameRegex.test(newValue)) {
+        setErrorMessage("Allowed characters: letters, numbers, ., _, -");
+        return;
+      }
+
+      if (languageFilter.isProfane(newValue)) {
+        setErrorMessage("Please avoid using inappropriate language");
+        return;
+      }
+
+      const collectionsWithCurrentName = (await refetch()).data ?? [];
+
+      if (collectionsWithCurrentName?.length !== 0) {
+        setErrorMessage("You already have a collection with this name");
+        return;
+      }
+
+      setErrorMessage("");
+      setIsInputCheck(false);
+    }, 1000);
+  };
+
+  const handleSubmitCollectionCreation = async () => {
     if (user?.id && selectedCollectionTypeId && collectionName) {
       await mutateAsync({
         userId: user.id,
@@ -99,14 +170,24 @@ function CreateCollectionForm({
           placeholder="Enter a name for your collection"
           label="Collection name"
           value={collectionName}
-          onChangeText={(newValue) => setCollectionName(newValue)}
+          onChangeText={(newValue) => handleChangeCollectionName(newValue)}
+          errorMessage={errorMessage}
+          rightIcon={
+            isFetching ? (
+              <ActivityIndicator size="small" color="dimgray" />
+            ) : !!errorMessage ? (
+              <Icon name="close" size={20} color="red" />
+            ) : !isInputCheck ? (
+              <Icon name="check" size={20} color="green" />
+            ) : undefined
+          }
         />
         <CustomButton
           title="Create collection"
-          disabled={selectedCollectionTypeId === null || collectionName === ""}
+          disabled={isSubmitDisabled}
           containerStyle={{ marginTop: 20 }}
           loading={isPending}
-          onPress={submitCollectionCreation}
+          onPress={handleSubmitCollectionCreation}
         />
       </View>
     </Overlay>

@@ -97,7 +97,7 @@ function RegisterForm({ submitRegistration }: RegisterFormProps) {
         errorMessage={errorMessage}
         rightIcon={
           isLoading ? (
-            <ActivityIndicator size="small" color="lightblue" />
+            <ActivityIndicator size="small" color="dimgray" />
           ) : !!errorMessage ? (
             <Icon name="close" size={20} color="red" />
           ) : !isSubmitDisabled ? (

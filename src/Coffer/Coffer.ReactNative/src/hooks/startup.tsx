@@ -2,6 +2,8 @@ import { QueryClient } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { SplashScreen } from "expo-router";
 import { useEffect } from "react";
+import { useNavigationMode } from "react-native-navigation-mode";
+import { initNavigationModeStore } from "./navigation_mode_store";
 
 function useStartup() {
   const queryClient = new QueryClient();
@@ -13,13 +15,23 @@ function useStartup() {
     VendSansBold: require("../../assets/fonts/VendSans-Bold.ttf"),
   });
 
+  const {
+    navigationMode,
+    loading,
+    error: navigationModeError,
+  } = useNavigationMode();
+
+  const allLoaded = loaded && !loading;
+  const allError = error || navigationModeError;
+
   useEffect(() => {
-    if (loaded || error) {
+    if (allLoaded && !allError && navigationMode !== null) {
+      initNavigationModeStore(navigationMode);
       SplashScreen.hideAsync();
     }
-  }, [loaded, error]);
+  }, [allError, allLoaded, navigationMode]);
 
-  const isReady = loaded && !error;
+  const isReady = allLoaded && !allError && navigationMode !== null;
 
   return { isReady, queryClient };
 }

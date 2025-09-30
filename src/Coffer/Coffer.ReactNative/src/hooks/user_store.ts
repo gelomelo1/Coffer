@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import User, { UserStore } from "../types/entities/user";
+import User from "../types/entities/user";
+import { UserStore } from "../types/helpers/data_store";
 
 export function initUserStore(user: User) {
   useUserStore = createUserStore(user);

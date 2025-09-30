@@ -1,66 +1,75 @@
 import { customTheme } from "@/src/theme/theme";
-import { StyleSheet, TextStyle, View, ViewStyle } from "react-native";
+import {
+  ActivityIndicatorProps,
+  StyleSheet,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from "react-native";
 import { Button, ButtonProps } from "react-native-elements";
 
 const defaultStyles = {
-  containerStyle: {
-    width: "100%",
-  } as ViewStyle,
-  buttonStyle: {
-    width: "100%",
-    backgroundColor: customTheme.colors.primary,
-    borderWidth: 2,
+  containerStyle: (disabled: boolean): ViewStyle => ({
+    borderWidth: disabled ? 0 : 2,
     borderColor: customTheme.colors.secondary,
     borderRadius: 0,
-    boxShadow: `2px 2px ${customTheme.colors.secondary}`,
-  } as unknown as ViewStyle,
-  disabledStyle: {
-    backgroundColor: customTheme.colors.primary,
-    borderWidth: 0,
-    shadowOpacity: 0,
+    boxShadow: disabled ? "none" : `1px 1px ${customTheme.colors.secondary}`,
+  }),
+  innerContainerStyle: {
+    borderRadius: 0,
   } as ViewStyle,
-  titleStyle: {
-    color: customTheme.colors.secondary,
-    fontFamily: "VendSansBold",
-  } as TextStyle,
+  disabledStyle: {
+    width: "100%",
+    backgroundColor: customTheme.colors.primary,
+    borderRadius: 0,
+  } as ViewStyle,
   disabledTitleStyle: {
     color: customTheme.colors.secondary,
     fontFamily: "VendSansBold",
   } as TextStyle,
+  loadingProps: {
+    color: customTheme.colors.secondary,
+  } as ActivityIndicatorProps,
 };
 
 const CustomButton: React.FC<ButtonProps> = ({
   containerStyle,
-  buttonStyle,
   disabledStyle,
   titleStyle,
   disabledTitleStyle,
+  loadingProps,
   disabled,
+  onPress,
   ...rest
 }) => {
-  const isDisabled = disabled;
+  const isDisabled = disabled ?? false;
 
   return (
-    <View
+    <TouchableOpacity
       style={[
         {
           position: "relative",
-          alignSelf: "center",
+          alignSelf: "stretch",
         },
-        defaultStyles.containerStyle,
+        defaultStyles.containerStyle(isDisabled),
         containerStyle,
       ]}
+      disabled={isDisabled}
+      onPress={onPress}
     >
       <Button
         {...rest}
-        disabled={isDisabled}
-        buttonStyle={[defaultStyles.buttonStyle, buttonStyle]}
-        disabledStyle={[defaultStyles.disabledStyle, disabledStyle]}
-        titleStyle={[defaultStyles.titleStyle, titleStyle]}
+        disabled={true}
+        onPress={(e) => e.preventDefault()}
+        containerStyle={defaultStyles.innerContainerStyle}
+        disabledStyle={[defaultStyles.disabledStyle]}
+        titleStyle={[defaultStyles.disabledTitleStyle, titleStyle]}
         disabledTitleStyle={[
           defaultStyles.disabledTitleStyle,
           disabledTitleStyle,
         ]}
+        loadingProps={{ ...defaultStyles.loadingProps, ...loadingProps }}
         raised
       />
 
@@ -76,7 +85,7 @@ const CustomButton: React.FC<ButtonProps> = ({
           ]}
         />
       )}
-    </View>
+    </TouchableOpacity>
   );
 };
 

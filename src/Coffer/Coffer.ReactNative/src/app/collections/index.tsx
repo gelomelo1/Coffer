@@ -1,17 +1,17 @@
+import CollectionsContainer from "@/src/components/collections/collections_container";
+import CreateCollectionForm from "@/src/components/collections/create_collection_form";
+import CustomButton from "@/src/components/custom_ui/custom_button";
+import { Loading } from "@/src/components/custom_ui/loading";
+import RootView from "@/src/components/custom_ui/root_view";
+import { endpoints } from "@/src/const/endpoints";
+import { querykeys } from "@/src/const/querykeys";
+import { useGetData } from "@/src/hooks/data_hooks";
+import { useUserStore } from "@/src/hooks/user_store";
+import { customTheme } from "@/src/theme/theme";
+import { Collection } from "@/src/types/entities/collection";
+import CollectionType from "@/src/types/entities/collectiontype";
 import { useState } from "react";
-import { ScrollView } from "react-native";
 import { Icon } from "react-native-elements";
-import CollectionsContainer from "../components/collections/collections_container";
-import CreateCollectionForm from "../components/collections/create_collection_form";
-import CustomButton from "../components/custom_ui/custom_button";
-import { Loading } from "../components/custom_ui/loading";
-import { endpoints } from "../const/endpoints";
-import { querykeys } from "../const/querykeys";
-import { useGetData } from "../hooks/data_hooks";
-import { useUserStore } from "../hooks/user_store";
-import { customTheme } from "../theme/theme";
-import { Collection } from "../types/entities/collection";
-import CollectionType from "../types/entities/collectiontype";
 
 function Collections() {
   const { user } = useUserStore();
@@ -42,14 +42,7 @@ function Collections() {
 
   return (
     <>
-      <ScrollView
-        style={{
-          flex: 1,
-          backgroundColor: customTheme.colors.background,
-          borderWidth: 2,
-          borderColor: customTheme.colors.primary,
-        }}
-      >
+      <RootView>
         <CustomButton
           title="Create new collection"
           icon={
@@ -57,8 +50,8 @@ function Collections() {
           }
           onPress={() => setIsCreateNewCollectionOverlayOpen(true)}
           containerStyle={{
-            marginBottom: 10,
-            padding: 10,
+            marginVertical: 10,
+            marginHorizontal: 10,
           }}
           disabled={isCollectionTypesFetching}
         />
@@ -70,7 +63,7 @@ function Collections() {
             collections={collections}
           />
         )}
-      </ScrollView>
+      </RootView>
       <CreateCollectionForm
         isCreateNewCollectionOverlayOpen={{
           value: isCreateNewCollectionOverlayOpen,

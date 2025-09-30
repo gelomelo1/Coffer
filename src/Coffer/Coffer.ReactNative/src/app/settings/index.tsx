@@ -6,7 +6,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { navigate } from "expo-router/build/global-state/routing";
 import { View } from "react-native";
 
-function Index() {
+function Settings() {
   return (
     <View
       style={{
@@ -54,4 +54,4 @@ function Index() {
   );
 }
 
-export default Index;
+export default Settings;

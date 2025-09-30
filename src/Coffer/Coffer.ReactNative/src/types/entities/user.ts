@@ -1,7 +1,3 @@
-export interface UserStore {
-  user: User;
-}
-
 interface User {
   id: string;
   name: string;
