@@ -38,6 +38,7 @@ const CustomButton: React.FC<ButtonProps> = ({
   disabledStyle,
   titleStyle,
   disabledTitleStyle,
+  buttonStyle,
   loadingProps,
   disabled,
   onPress,
@@ -63,7 +64,7 @@ const CustomButton: React.FC<ButtonProps> = ({
         disabled={true}
         onPress={(e) => e.preventDefault()}
         containerStyle={defaultStyles.innerContainerStyle}
-        disabledStyle={[defaultStyles.disabledStyle]}
+        disabledStyle={[defaultStyles.disabledStyle, buttonStyle]}
         titleStyle={[defaultStyles.disabledTitleStyle, titleStyle]}
         disabledTitleStyle={[
           defaultStyles.disabledTitleStyle,

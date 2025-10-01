@@ -24,6 +24,7 @@
     <PackageJsonDependenciesExpoFont Condition="$(PackageJsonDependenciesExpoFont) == ''">~14.0.8</PackageJsonDependenciesExpoFont>
     <PackageJsonDependenciesExpoHaptics Condition="$(PackageJsonDependenciesExpoHaptics) == ''">~15.0.7</PackageJsonDependenciesExpoHaptics>
     <PackageJsonDependenciesExpoImage Condition="$(PackageJsonDependenciesExpoImage) == ''">~3.0.8</PackageJsonDependenciesExpoImage>
+    <PackageJsonDependenciesExpoImagePicker Condition="$(PackageJsonDependenciesExpoImagePicker) == ''">^17.0.8</PackageJsonDependenciesExpoImagePicker>
     <PackageJsonDependenciesExpoLinking Condition="$(PackageJsonDependenciesExpoLinking) == ''">~8.0.8</PackageJsonDependenciesExpoLinking>
     <PackageJsonDependenciesExpoRouter Condition="$(PackageJsonDependenciesExpoRouter) == ''">~6.0.3</PackageJsonDependenciesExpoRouter>
     <PackageJsonDependenciesExpoSplashScreen Condition="$(PackageJsonDependenciesExpoSplashScreen) == ''">~31.0.10</PackageJsonDependenciesExpoSplashScreen>

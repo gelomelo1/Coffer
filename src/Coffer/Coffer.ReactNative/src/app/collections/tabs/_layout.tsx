@@ -1,15 +1,11 @@
 import AnimatedTabIcon from "@/src/components/collections/tabs/layout/animated_tab_icon";
 import CollectionTabsCustomLayout from "@/src/components/collections/tabs/layout/collection_tabs_custom_layout";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
-import { useCollectionStore } from "@/src/hooks/collection_store";
-import { useUserStore } from "@/src/hooks/user_store";
 import { Tabs, usePathname } from "expo-router";
 import { navigate } from "expo-router/build/global-state/routing";
 import React from "react";
 
 function CollectionLayout() {
-  const { user } = useUserStore();
-  const { collectionType, collection } = useCollectionStore();
   const pathname = usePathname();
 
   return (
@@ -21,18 +17,13 @@ function CollectionLayout() {
             title: "Home",
             tabBarIcon: () => (
               <AnimatedTabIcon
-                focused={pathname === ROUTES.COLLECTIONS.HOME}
+                focused={pathname === `/${ROUTES.COLLECTIONS.HOME}`}
                 title="Home"
                 icon={{ library: "fontawesome", name: "home" }}
                 navigate={() => {
                   navigate({
                     pathname: ROUTES.COLLECTIONS.HOME,
-                    params: pageParams.home(
-                      user.name,
-                      collectionType.icon,
-                      collection.name,
-                      collectionType.color
-                    ),
+                    params: pageParams.home,
                   });
                 }}
               />
@@ -47,18 +38,13 @@ function CollectionLayout() {
             title: "Barter",
             tabBarIcon: () => (
               <AnimatedTabIcon
-                focused={pathname === ROUTES.COLLECTIONS.BARTER}
+                focused={pathname === `/${ROUTES.COLLECTIONS.BARTER}`}
                 title="Barter"
                 icon={{ library: "fontawesome", name: "exchange" }}
                 navigate={() => {
                   navigate({
                     pathname: ROUTES.COLLECTIONS.BARTER,
-                    params: pageParams.barter(
-                      user.name,
-                      collectionType.icon,
-                      collection.name,
-                      collectionType.color
-                    ),
+                    params: pageParams.barter,
                   });
                 }}
               />
@@ -73,7 +59,7 @@ function CollectionLayout() {
             title: "My Collection",
             tabBarIcon: () => (
               <AnimatedTabIcon
-                focused={pathname === ROUTES.COLLECTIONS.MYCOLLECTION}
+                focused={pathname === `/${ROUTES.COLLECTIONS.MYCOLLECTION}`}
                 title="My Collection"
                 icon={{
                   library: "materialcommunityicons",
@@ -82,12 +68,7 @@ function CollectionLayout() {
                 navigate={() => {
                   navigate({
                     pathname: ROUTES.COLLECTIONS.MYCOLLECTION,
-                    params: pageParams.mycollection(
-                      user.name,
-                      collectionType.icon,
-                      collection.name,
-                      collectionType.color
-                    ),
+                    params: pageParams.mycollection,
                   });
                 }}
               />

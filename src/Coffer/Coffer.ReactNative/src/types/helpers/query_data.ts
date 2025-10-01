@@ -1,3 +1,8 @@
+export interface CreateDataPayload<T> {
+  id?: string | number;
+  value: T;
+}
+
 export interface UpdateDataPayload<T> {
   id: string | number;
   value: T;

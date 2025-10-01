@@ -33,7 +33,7 @@ function Collections() {
         {
           filter: "Match",
           field: "userId",
-          value: user.id,
+          value: user!.id,
         },
       ],
     });
@@ -70,7 +70,7 @@ function Collections() {
           set: setIsCreateNewCollectionOverlayOpen,
         }}
         collectionTypes={collectionTypes}
-        user={user}
+        user={user!}
       />
     </>
   );

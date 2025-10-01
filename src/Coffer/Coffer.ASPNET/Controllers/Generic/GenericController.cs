@@ -21,14 +21,14 @@ namespace Coffer.ASPNET.Controllers.Generic
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TProvied>>> Get([FromQuery] string? filter = null, [FromQuery] string? orderBy = null, [FromQuery] int? page = null, [FromQuery] int? pageSize = null)
+        public virtual async Task<ActionResult<IEnumerable<TProvied>>> Get([FromQuery] string? filter = null, [FromQuery] string? orderBy = null, [FromQuery] int? page = null, [FromQuery] int? pageSize = null)
         {
             var items = await _repository.GetItemsAsync(filter, orderBy, page, pageSize);
             return Ok(items);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<TProvied>> GetById(TKey id)
+        public virtual async Task<ActionResult<TProvied>> GetById(TKey id)
         {
             var item = await _repository.GetItemByIdAsync(id);
             if(item == null) return NotFound();
@@ -36,14 +36,14 @@ namespace Coffer.ASPNET.Controllers.Generic
         }
 
         [HttpPost]
-        public async Task<ActionResult<TProvied>> Create([FromBody] TRequired required)
+        public virtual async Task<ActionResult<TProvied>> Create([FromBody] TRequired required)
         {
             var item = await _repository.InsertItemAsync(required);
             return CreatedAtAction(nameof(GetById), new { id = (item as dynamic).Id }, item);
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<TProvied>> Update(TKey id, [FromBody] TRequired required)
+        public virtual async Task<ActionResult<TProvied>> Update(TKey id, [FromBody] TRequired required)
         {
             var item = await _repository.UpdateItemAsync(id, required);
             if(item == null) return NotFound();
@@ -51,7 +51,7 @@ namespace Coffer.ASPNET.Controllers.Generic
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(TKey id)
+        public virtual async Task<ActionResult> Delete(TKey id)
         {
             var success = await _repository.DeleteItemAsync(id);
             if(!success) return NotFound();

@@ -127,7 +127,7 @@ export default function CollectionsContainer({
                 matchingCollections={matchingCollections}
                 matchingCollectionType={type}
                 triggerAnimation={sorts[type.id]}
-                user={user}
+                user={user!}
               />
             }
           </View>
@@ -166,12 +166,7 @@ function CollectionCarousel({
     initCollectionStore(matchingCollectionType, item);
     navigate({
       pathname: ROUTES.COLLECTIONS.HOME,
-      params: pageParams.home(
-        user.name,
-        matchingCollectionType.icon,
-        item.name,
-        matchingCollectionType.color
-      ),
+      params: pageParams.home,
     });
   };
 
@@ -203,7 +198,10 @@ function CollectionCarousel({
           >
             <Image
               source={{
-                uri: `${endpoints.icons}/${matchingCollectionType.icon}`,
+                uri: item.image
+                  ? `${endpoints.collectionsCoverImage}/${item.image}`
+                  : `${endpoints.icons}/${matchingCollectionType.icon}`,
+                cache: "reload",
               }}
               style={{
                 width: "100%",

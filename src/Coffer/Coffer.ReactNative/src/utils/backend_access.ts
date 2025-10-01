@@ -3,20 +3,28 @@ import { backendAxios } from "../const/backendAccessConfiguration";
 export async function postData<TData>(
   url: string,
   data: TData,
+  id?: string | number,
   headers?: Record<string, string>
 ): Promise<void>;
 export async function postData<TData, TResponse>(
   url: string,
   data: TData,
+  id?: string | number,
   headers?: Record<string, string>
 ): Promise<TResponse>;
 
 export async function postData<TData, TResponse>(
   url: string,
   data: TData,
+  id?: string | number,
   headers?: Record<string, string>
 ): Promise<TResponse> {
-  const response = await backendAxios.post<TResponse>(url, data, { headers });
+  console.log(id ? `${url}/${id}` : url);
+  const response = await backendAxios.post<TResponse>(
+    id ? `${url}/${id}` : url,
+    data,
+    { headers }
+  );
   return response.data;
 }
 

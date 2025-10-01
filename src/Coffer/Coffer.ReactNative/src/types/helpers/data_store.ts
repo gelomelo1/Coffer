@@ -14,5 +14,6 @@ export interface CollectionStore {
 }
 
 export interface UserStore {
-  user: User;
+  user: User | null;
+  setUser: (user: User | null) => void;
 }

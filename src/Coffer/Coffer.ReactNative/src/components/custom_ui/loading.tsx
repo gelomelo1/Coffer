@@ -1,6 +1,6 @@
 import { customTheme } from "@/src/theme/theme";
 import { useEffect, useState } from "react";
-import { Image, Text, View } from "react-native";
+import { ActivityIndicator, Image, Text, View } from "react-native";
 import { LinearProgress } from "react-native-elements";
 
 interface LoadingProps {
@@ -75,3 +75,23 @@ export const Loading = () => {
     </View>
   );
 };
+
+export function ComponentLoading() {
+  return (
+    <View
+      style={{
+        position: "absolute",
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        backgroundColor: `${customTheme.colors.primary}CC`,
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 9999,
+      }}
+    >
+      <ActivityIndicator size={"large"} color={customTheme.colors.secondary} />
+    </View>
+  );
+}

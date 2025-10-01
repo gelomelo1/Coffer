@@ -56,7 +56,7 @@ export function useGoogleAuth({
           if (validation.exists && validation.token) {
             await AsyncStorage.setItem("jwt", validation.token);
             onSuccessfulLogin?.();
-            navigate(ROUTES.HOME);
+            navigate(ROUTES.ROOT);
           } else if (!validation.exists && validation.tempId) {
             setTempId(validation.tempId);
           }
@@ -79,7 +79,7 @@ export function useGoogleAuth({
       >(endpoints.googleRegister, { tempId, username });
       await AsyncStorage.setItem("jwt", jwtResp.token);
       onSuccessfulRegistration?.();
-      navigate(ROUTES.HOME);
+      navigate(ROUTES.ROOT);
     } catch (error) {
       console.error("Registration failed:", error);
     }
@@ -132,7 +132,7 @@ export function useGitHubAuth({
           if (validation.exists && validation.token) {
             await AsyncStorage.setItem("jwt", validation.token);
             onSuccessfulLogin?.();
-            navigate(ROUTES.HOME);
+            navigate(ROUTES.ROOT);
           } else if (!validation.exists && validation.tempId) {
             setTempId(validation.tempId);
           }
@@ -154,7 +154,7 @@ export function useGitHubAuth({
       >(endpoints.githubRegister, { tempId, username });
       await AsyncStorage.setItem("jwt", jwtResp.token);
       onSuccessfulRegistration?.();
-      navigate(ROUTES.HOME);
+      navigate(ROUTES.ROOT);
     } catch (error) {
       console.error("GitHub registration failed:", error);
     }

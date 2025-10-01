@@ -42,6 +42,7 @@ namespace Coffer.Infrastructure
             #region AddServices
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IGithubService, GithubService>();
+            services.AddScoped<IImageService, ImageService>();
             services.AddMemoryCache();
             services.AddSingleton<ITempTokenService, TempTokenService>();
             #endregion

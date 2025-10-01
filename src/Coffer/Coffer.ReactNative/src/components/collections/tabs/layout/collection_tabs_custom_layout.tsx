@@ -5,6 +5,7 @@ import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useNavigationModeStore } from "@/src/hooks/navigation_mode_store";
 import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
+import { parseParams } from "@/src/utils/navigation_utils";
 import { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
 import { ParamListBase, RouteProp } from "@react-navigation/native";
 import { navigate } from "expo-router/build/global-state/routing";
@@ -17,6 +18,12 @@ function CollectionTabsCustomLayout(
   const { user } = useUserStore();
   const { collectionType, collection } = useCollectionStore();
   const { navigationMode } = useNavigationModeStore();
+  const params = parseParams(route);
+
+  let screenTitle = null;
+  if (params) {
+    if (params.screenTitle) screenTitle = params.screenTitle;
+  }
 
   return {
     tabBarStyle: {
@@ -45,7 +52,7 @@ function CollectionTabsCustomLayout(
           numberOfLines={1}
           ellipsizeMode="middle"
         >
-          {user.name}
+          {`Hello ${user!.name}`}
         </CustomText>
         <View
           style={{
@@ -93,16 +100,18 @@ function CollectionTabsCustomLayout(
           >
             {collection.name}
           </CustomText>
-          <CustomText
-            style={{
-              fontSize: 14,
-              color: customTheme.colors.secondary,
-            }}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {` -> ${route.name}`}
-          </CustomText>
+          {screenTitle ? (
+            <CustomText
+              style={{
+                fontSize: 14,
+                color: customTheme.colors.secondary,
+              }}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {` -> ${screenTitle}`}
+            </CustomText>
+          ) : null}
         </View>
       </View>
     ),

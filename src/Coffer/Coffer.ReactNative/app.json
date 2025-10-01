@@ -61,7 +61,8 @@
         }
       ],
       "expo-font",
-      "react-native-navigation-mode"
+      "react-native-navigation-mode",
+      ["expo-image-picker"]
     ],
     "experiments": {
       "typedRoutes": true,

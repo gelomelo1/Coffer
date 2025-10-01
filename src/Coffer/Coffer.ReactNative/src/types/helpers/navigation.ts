@@ -3,12 +3,7 @@ export type NavigationData = {
 };
 
 export interface NavigationParams {
-  title: string;
-  description?: {
-    icon?: string;
-    title: string;
-    color?: string;
-    additionalHeadings: string[];
-  };
+  title?: string;
+  screenTitle?: string;
   isSettingsShown?: boolean;
 }

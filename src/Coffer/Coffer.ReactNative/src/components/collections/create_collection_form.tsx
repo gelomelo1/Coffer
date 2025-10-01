@@ -133,9 +133,11 @@ function CreateCollectionForm({
   const handleSubmitCollectionCreation = async () => {
     if (user?.id && selectedCollectionTypeId && collectionName) {
       await mutateAsync({
-        userId: user.id,
-        collectionTypeId: selectedCollectionTypeId,
-        name: collectionName,
+        value: {
+          userId: user.id,
+          collectionTypeId: selectedCollectionTypeId,
+          name: collectionName,
+        },
       });
       handleOverlayClose();
     }

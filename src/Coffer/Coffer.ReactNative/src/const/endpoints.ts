@@ -9,5 +9,7 @@ export const endpoints = {
   users: "api/Users",
   collectionTypes: "api/CollectionTypes",
   collections: "api/Collections",
+  collectionsCoverImage: `${backendAxios.defaults.baseURL}/api/Collections/CoverImage`,
+  collectionsCoverImageUpload: "api/Collections/CoverImage/Upload",
   icons: `${backendAxios.defaults.baseURL}/icons`,
 };

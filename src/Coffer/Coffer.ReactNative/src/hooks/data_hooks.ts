@@ -7,7 +7,11 @@ import {
 } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import showToast from "../components/custom_ui/toast";
-import { QueryOptions, UpdateDataPayload } from "../types/helpers/query_data";
+import {
+  CreateDataPayload,
+  QueryOptions,
+  UpdateDataPayload,
+} from "../types/helpers/query_data";
 import {
   deleteData,
   getData,
@@ -74,18 +78,20 @@ export function useCreateData<TData, TResponse = void>(
   headers?: Record<string, string>
 ) {
   const queryClient = useQueryClient();
-  return useMutation<TResponse, AxiosError, TData>({
-    mutationFn: (value: TData) => {
-      return postData<TData, TResponse>(apiPath, value, headers);
+  return useMutation<TResponse, AxiosError, CreateDataPayload<TData>>({
+    mutationFn: ({ id, value }) => {
+      return postData<TData, TResponse>(apiPath, value, id, headers);
     },
     onSuccess: () => {
-      showToast("success", customSucessText ?? "Successfully created");
+      if (customSucessText !== "")
+        showToast("success", customSucessText ?? "Successfully created");
       if (queryKey) {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
       }
     },
     onError: () => {
-      showToast("error", customErrorText ?? "Creation failed");
+      if (customErrorText !== "")
+        showToast("error", customErrorText ?? "Creation failed");
     },
   });
 }
@@ -103,13 +109,15 @@ export function useUpdateData<TData, TResponse = void>(
       return updateData<TData, TResponse>(apiPath, id, value, headers);
     },
     onSuccess: () => {
-      showToast("success", customSucessText ?? "Successfully updated");
+      if (customSucessText !== "")
+        showToast("success", customSucessText ?? "Successfully updated");
       if (queryKey) {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
       }
     },
     onError: () => {
-      showToast("error", customErrorText ?? "Update failed");
+      if (customErrorText !== "")
+        showToast("error", customErrorText ?? "Update failed");
     },
   });
 }
@@ -127,13 +135,15 @@ export function useDeleteData(
       return deleteData(apiPath, id, headers);
     },
     onSuccess: () => {
-      showToast("success", customSucessText ?? "Successfully deleted");
+      if (customSucessText !== "")
+        showToast("success", customSucessText ?? "Successfully deleted");
       if (queryKey) {
         queryClient.invalidateQueries({ queryKey: [queryKey] });
       }
     },
     onError: () => {
-      showToast("error", customErrorText ?? "Delete failed");
+      if (customErrorText !== "")
+        showToast("error", customErrorText ?? "Delete failed");
     },
   });
 }
