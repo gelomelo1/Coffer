@@ -44,3 +44,128 @@ app-example
 /android
 
 **/.vs/
+
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# ----------------------------
+# Node / Expo / Native
+# ----------------------------
+
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+# example app folder
+app-example
+
+# generated native folders
+/ios
+/android
+
+# Visual Studio
+**/.vs/
+
+
+# PythonService PROJECT src/Coffer/Coffer.PythonService
+
+src/Coffer/Coffer.PythonService/__pycache__/
+src/Coffer/Coffer.PythonService/**/*.py[cod]
+src/Coffer/Coffer.PythonService/**/*.pyo
+src/Coffer/Coffer.PythonService/**/*.pyd
+
+# C extensions
+src/Coffer/Coffer.PythonService/**/*.so
+
+# Distribution / packaging
+src/Coffer/Coffer.PythonService/build/
+src/Coffer/Coffer.PythonService/develop-eggs/
+src/Coffer/Coffer.PythonService/dist/
+src/Coffer/Coffer.PythonService/downloads/
+src/Coffer/Coffer.PythonService/eggs/
+src/Coffer/Coffer.PythonService/.eggs/
+src/Coffer/Coffer.PythonService/lib/
+src/Coffer/Coffer.PythonService/lib64/
+src/Coffer/Coffer.PythonService/parts/
+src/Coffer/Coffer.PythonService/sdist/
+src/Coffer/Coffer.PythonService/var/
+src/Coffer/Coffer.PythonService/*.egg-info/
+src/Coffer/Coffer.PythonService/.installed.cfg
+src/Coffer/Coffer.PythonService/*.egg
+
+# PyInstaller
+src/Coffer/Coffer.PythonService/dist/
+src/Coffer/Coffer.PythonService/build/
+src/Coffer/Coffer.PythonService/*.manifest
+src/Coffer/Coffer.PythonService/*.spec
+
+# Installer logs
+src/Coffer/Coffer.PythonService/pip-log.txt
+src/Coffer/Coffer.PythonService/pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+src/Coffer/Coffer.PythonService/.tox/
+src/Coffer/Coffer.PythonService/.nox/
+src/Coffer/Coffer.PythonService/.coverage
+src/Coffer/Coffer.PythonService/.coverage.*
+src/Coffer/Coffer.PythonService/nosetests.xml
+src/Coffer/Coffer.PythonService/coverage.xml
+src/Coffer/Coffer.PythonService/*.cover
+src/Coffer/Coffer.PythonService/*.py,cover
+src/Coffer/Coffer.PythonService/.hypothesis/
+src/Coffer/Coffer.PythonService/.pytest_cache/
+
+# Jupyter Notebook
+src/Coffer/Coffer.PythonService/.ipynb_checkpoints
+
+# pyenv
+src/Coffer/Coffer.PythonService/.python-version
+
+# virtualenv
+src/Coffer/Coffer.PythonService/venv/
+src/Coffer/Coffer.PythonService/ENV/
+src/Coffer/Coffer.PythonService/env/
+src/Coffer/Coffer.PythonService/.env/
+src/Coffer/Coffer.PythonService/env.bak/
+src/Coffer/Coffer.PythonService/venv.bak/
+
+# Spyder project settings
+src/Coffer/Coffer.PythonService/.spyderproject
+src/Coffer/Coffer.PythonService/.spyproject
+
+# Rope project settings
+src/Coffer/Coffer.PythonService/.ropeproject
+
+
