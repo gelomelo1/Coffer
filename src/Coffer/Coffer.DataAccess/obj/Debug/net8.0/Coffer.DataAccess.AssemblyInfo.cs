@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Coffer.DataAccess")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ecde62b9ad6b3212ba22a4b775c1158b22905a13")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0d017fc994c339cb2e983715ecd49169a10c91e9")]
 [assembly: System.Reflection.AssemblyProductAttribute("Coffer.DataAccess")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Coffer.DataAccess")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

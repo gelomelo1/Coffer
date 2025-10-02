@@ -1,5 +1,5 @@
 interface CollectionType {
-  id: string;
+  id: number;
   name: string;
   description: string;
   color: string;

@@ -23,10 +23,18 @@ namespace Coffer.Domain.Entities
         }
     }
 
-    public class CollectionTypeProvided : CollectionTypeRequired, IGenericEntity<Guid>
+    public class CollectionTypeProvided : CollectionTypeRequired, IGenericEntity<int>
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public DateTime CreatedAt { get; set; }
+
+        public ICollection<Attribute> Attributes { get; set; } = new List<Attribute>();
+
+        public CollectionTypeProvided(string name, string description, string color, string icon, ICollection<Attribute> attributes) : base(name, description, color, icon)
+        {
+            CreatedAt = DateTime.UtcNow;
+            Attributes = attributes;
+        }
 
         public CollectionTypeProvided(string name, string description, string color, string icon) : base(name, description, color, icon)
         {

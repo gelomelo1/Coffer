@@ -99,6 +99,8 @@ app-example
 **/.vs/
 
 
+
+
 # PythonService PROJECT src/Coffer/Coffer.PythonService
 
 src/Coffer/Coffer.PythonService/__pycache__/
@@ -169,3 +171,55 @@ src/Coffer/Coffer.PythonService/.spyproject
 src/Coffer/Coffer.PythonService/.ropeproject
 
 
+
+
+# ASP.NET / .NET (recursive)
+
+# Build results
+**/[Bb]in/
+**/[Oo]bj/
+**/[Ll]og/
+**/[Ll]ogs/
+
+# User-specific files
+**/*.rsuser
+**/*.suo
+**/*.user
+**/*.userosscache
+**/*.sln.docstates
+
+# Mono Auto Generated Files
+**/mono_crash.*
+
+# Build artifacts
+**/Debug/
+**/Release/
+**/x64/
+**/x86/
+**/bld/
+**/[Aa]ppPackages/
+**/[Pp]ublishProfiles/
+**/*.publishsettings
+**/*.pubxml
+**/*.pubxml.user
+
+# Visual Studio
+**/.vs/
+**/*.dbmdl
+**/*.bak
+**/*.ldf
+**/*.mdf
+
+# Rider / JetBrains
+**/.idea/
+**/*.sln.iml
+
+# Others
+**/Generated\ Files/
+**/TestResult*/
+**/TestResults/
+**/*.Cache/
+**/ClientBin/
+**/packages/
+!**/packages/build/
+**/App_Data/

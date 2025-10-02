@@ -2,6 +2,8 @@
 using Coffer.BusinessLogic.Services;
 using Coffer.BusinessLogic.Services.Interfaces;
 using Coffer.DataAccess;
+using Coffer.DataAccess.Extensions.IncludeProviders;
+using Coffer.DataAccess.Extensions.IncludeProviders.Interfaces;
 using Coffer.DataAccess.Repositories;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
@@ -47,10 +49,16 @@ namespace Coffer.Infrastructure
             services.AddSingleton<ITempTokenService, TempTokenService>();
             #endregion
 
+            #region AddIncludes
+            services.AddScoped<IIncludeProvider<CollectionTypeProvided>, CollectionTypeProvidedIncludeProvider>();
+            services.AddScoped<IIncludeProvider<ItemProvided>, ItemIncludeProvider>();
+            #endregion
+
             #region AddRepositories
             services.AddScoped<IUsersRepository, UsersRepository>();
-            services.AddScoped<IGenericRepository<Guid, CollectionTypeProvided, CollectionTypeProvided, CollectionTypeRequired>, CollectionTypesRepository>();
+            services.AddScoped<IReadOnlyGenericRepository<int, CollectionTypeProvided, CollectionTypeProvided>, CollectionTypesRepository>();
             services.AddScoped<IGenericRepository<Guid, CollectionProvided, CollectionProvided, CollectionRequired>, CollectionsRepository>();
+            services.AddScoped<IGenericRepository<Guid, ItemProvided, ItemProvided, ItemRequired>, ItemsRepository>();
             #endregion
 
             return services;

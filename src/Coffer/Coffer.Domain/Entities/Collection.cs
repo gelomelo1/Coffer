@@ -10,10 +10,10 @@ namespace Coffer.Domain.Entities
     public class CollectionRequired
     {
         public Guid UserId { get; set; }
-        public Guid CollectionTypeId { get; set; }
+        public int CollectionTypeId { get; set; }
         public string Name { get; set; }
 
-        public CollectionRequired(Guid userId, Guid collectionTypeId, string name)
+        public CollectionRequired(Guid userId, int collectionTypeId, string name)
         {
             UserId = userId;
             CollectionTypeId = collectionTypeId;
@@ -28,7 +28,7 @@ namespace Coffer.Domain.Entities
 
         public DateTime CreatedAt { get; set; }
 
-        public CollectionProvided(Guid userId, Guid collectionTypeId, string name, string? image = null) : base(userId, collectionTypeId, name)
+        public CollectionProvided(Guid userId, int collectionTypeId, string name, string? image = null) : base(userId, collectionTypeId, name)
         {
             UserId = userId;
             CollectionTypeId = collectionTypeId;

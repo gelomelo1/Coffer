@@ -7,46 +7,33 @@ namespace Coffer.ASPNET.Controllers.Generic
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class GenericController<TKey, TEntity, TProvied, TRequired> : ControllerBase
+    public class GenericController<TKey, TEntity, TProvided, TRequired>
+        : ReadOnlyGenericController<TKey, TEntity, TProvided>
         where TKey : notnull
-        where TEntity : class, TProvied
-        where TProvied : class, IGenericEntity<TKey>
+        where TEntity : class, TProvided
+        where TProvided : class, IGenericEntity<TKey>
         where TRequired : class
     {
-        protected readonly IGenericRepository<TKey, TEntity, TProvied, TRequired> _repository;
+        protected new readonly IGenericRepository<TKey, TEntity, TProvided, TRequired> _repository;
 
-        public GenericController(IGenericRepository<TKey, TEntity, TProvied, TRequired> genericRepository)
+        public GenericController(IGenericRepository<TKey, TEntity, TProvided, TRequired> repository)
+            : base(repository)
         {
-            _repository = genericRepository;
-        }
-
-        [HttpGet]
-        public virtual async Task<ActionResult<IEnumerable<TProvied>>> Get([FromQuery] string? filter = null, [FromQuery] string? orderBy = null, [FromQuery] int? page = null, [FromQuery] int? pageSize = null)
-        {
-            var items = await _repository.GetItemsAsync(filter, orderBy, page, pageSize);
-            return Ok(items);
-        }
-
-        [HttpGet("{id}")]
-        public virtual async Task<ActionResult<TProvied>> GetById(TKey id)
-        {
-            var item = await _repository.GetItemByIdAsync(id);
-            if(item == null) return NotFound();
-            return Ok(item);
+            _repository = repository;
         }
 
         [HttpPost]
-        public virtual async Task<ActionResult<TProvied>> Create([FromBody] TRequired required)
+        public virtual async Task<ActionResult<TProvided>> Create([FromBody] TRequired required)
         {
             var item = await _repository.InsertItemAsync(required);
-            return CreatedAtAction(nameof(GetById), new { id = (item as dynamic).Id }, item);
+            return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
         }
 
         [HttpPut("{id}")]
-        public virtual async Task<ActionResult<TProvied>> Update(TKey id, [FromBody] TRequired required)
+        public virtual async Task<ActionResult<TProvided>> Update(TKey id, [FromBody] TRequired required)
         {
             var item = await _repository.UpdateItemAsync(id, required);
-            if(item == null) return NotFound();
+            if (item == null) return NotFound();
             return Ok(item);
         }
 
@@ -54,7 +41,7 @@ namespace Coffer.ASPNET.Controllers.Generic
         public virtual async Task<ActionResult> Delete(TKey id)
         {
             var success = await _repository.DeleteItemAsync(id);
-            if(!success) return NotFound();
+            if (!success) return NotFound();
             return NoContent();
         }
     }
