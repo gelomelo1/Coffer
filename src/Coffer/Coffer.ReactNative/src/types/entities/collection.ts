@@ -1,6 +1,6 @@
 export interface CollectionRequired {
   userId: string;
-  collectionTypeId: string;
+  collectionTypeId: number;
   name: string;
 }
 

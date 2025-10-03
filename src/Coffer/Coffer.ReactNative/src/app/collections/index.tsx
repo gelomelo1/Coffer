@@ -2,7 +2,7 @@ import CollectionsContainer from "@/src/components/collections/collections_conta
 import CreateCollectionForm from "@/src/components/collections/create_collection_form";
 import CustomButton from "@/src/components/custom_ui/custom_button";
 import { Loading } from "@/src/components/custom_ui/loading";
-import RootView from "@/src/components/custom_ui/root_view";
+import rootViewStyle from "@/src/components/custom_ui/root_view";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
 import { useGetData } from "@/src/hooks/data_hooks";
@@ -11,6 +11,7 @@ import { customTheme } from "@/src/theme/theme";
 import { Collection } from "@/src/types/entities/collection";
 import CollectionType from "@/src/types/entities/collectiontype";
 import { useState } from "react";
+import { View } from "react-native";
 import { Icon } from "react-native-elements";
 
 function Collections() {
@@ -42,7 +43,7 @@ function Collections() {
 
   return (
     <>
-      <RootView>
+      <View style={rootViewStyle()}>
         <CustomButton
           title="Create new collection"
           icon={
@@ -63,7 +64,7 @@ function Collections() {
             collections={collections}
           />
         )}
-      </RootView>
+      </View>
       <CreateCollectionForm
         isCreateNewCollectionOverlayOpen={{
           value: isCreateNewCollectionOverlayOpen,

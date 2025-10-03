@@ -1,6 +1,6 @@
 import { QueryFilterData, QueryOptions } from "../types/helpers/query_data";
 
-export default function buildQuery<T>(options: QueryOptions<T>): string {
+export default function buildQuery(options: QueryOptions): string {
   if (!options.filters && !options.sort && !options.page && !options.pageSize) {
     return "";
   }
@@ -38,7 +38,7 @@ export default function buildQuery<T>(options: QueryOptions<T>): string {
   return encodeURI(url);
 }
 
-function buildFilter<T>(filter: QueryFilterData<T>): string {
+function buildFilter(filter: QueryFilterData): string {
   let filterString = String(filter.field); // <-- convert to string
 
   if (filter.filter === undefined) {

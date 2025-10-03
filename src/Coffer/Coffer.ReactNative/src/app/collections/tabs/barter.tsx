@@ -1,14 +1,14 @@
-import RootView from "@/src/components/custom_ui/root_view";
+import rootViewStyle from "@/src/components/custom_ui/root_view";
 import { useCollectionStore } from "@/src/hooks/collection_store";
-import { Text } from "react-native";
+import { Text, View } from "react-native";
 
 function Barter() {
   const { collectionType } = useCollectionStore();
 
   return (
-    <RootView color={collectionType.color}>
+    <View style={rootViewStyle({ color: collectionType.color })}>
       <Text>Barter</Text>
-    </RootView>
+    </View>
   );
 }
 

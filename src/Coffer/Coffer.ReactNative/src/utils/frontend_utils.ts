@@ -1,4 +1,4 @@
-export function darkenBy60Percent(hex: string): string {
+export function adjustColor(hex: string, percent: number): string {
   // Remove leading #
   hex = hex.replace(/^#/, "");
 
@@ -14,10 +14,18 @@ export function darkenBy60Percent(hex: string): string {
   let g = parseInt(hex.substring(2, 4), 16);
   let b = parseInt(hex.substring(4, 6), 16);
 
-  // Apply 60% black = scale down by 40%
-  r = Math.max(0, Math.floor(r * 0.4));
-  g = Math.max(0, Math.floor(g * 0.4));
-  b = Math.max(0, Math.floor(b * 0.4));
+  if (percent < 0) {
+    // Darken
+    const value = 1 + percent; // e.g., -0.4 → scale to 60%
+    r = Math.max(0, Math.floor(r * value));
+    g = Math.max(0, Math.floor(g * value));
+    b = Math.max(0, Math.floor(b * value));
+  } else {
+    // Lighten
+    r = Math.min(255, Math.floor(r + (255 - r) * percent));
+    g = Math.min(255, Math.floor(g + (255 - g) * percent));
+    b = Math.min(255, Math.floor(b + (255 - b) * percent));
+  }
 
   // Convert back to hex
   return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");

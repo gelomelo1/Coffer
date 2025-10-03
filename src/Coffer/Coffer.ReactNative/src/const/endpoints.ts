@@ -12,4 +12,6 @@ export const endpoints = {
   collectionsCoverImage: `${backendAxios.defaults.baseURL}/api/Collections/CoverImage`,
   collectionsCoverImageUpload: "api/Collections/CoverImage/Upload",
   icons: `${backendAxios.defaults.baseURL}/icons`,
+  items: "api/Items",
+  itemsCoverImage: `${backendAxios.defaults.baseURL}/api/Items/CoverImage`,
 };

@@ -111,5 +111,34 @@ namespace Coffer.DataAccess.Repositories
 
             return entity;
         }
+
+        protected override ItemProvided MapToEntity(ItemProvided provided, ItemProvided? entity = null)
+        {
+            if (entity == null)
+            {
+                // New entity
+                var newEntity = new ItemProvided(
+                    provided.CollectionId,
+                    provided.Description,
+                    provided.Quantity,
+                    provided.Image
+                );
+
+                // Add attributes
+                foreach (var attr in provided.ItemAttributes)
+                {
+                    newEntity.ItemAttributes.Add(attr);
+                }
+
+                // Add tags
+                foreach (var tag in provided.ItemTags)
+                {
+                    newEntity.ItemTags.Add(tag);
+                }
+
+                return newEntity;
+            }
+            return provided;
+        }
     }
 }

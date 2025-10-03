@@ -33,7 +33,7 @@ function CreateCollectionForm({
   const [open, setOpen] = useState(false);
   const [collectionName, setCollectionName] = useState("");
   const [selectedCollectionTypeId, setSelectedCollectionTypeId] = useState<
-    string | null
+    number | null
   >(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [isInputCheck, setIsInputCheck] = useState(true);

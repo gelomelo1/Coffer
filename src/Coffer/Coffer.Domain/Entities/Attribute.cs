@@ -13,8 +13,8 @@ namespace Coffer.Domain.Entities
         public int Id { get; set; }
         public int CollectionTypeId { get; set; }
         public string Name { get; set; }
-
         public string DataType { get; set; }
+        public bool Primary {  get; set; }
 
         [JsonIgnore]
         public CollectionTypeProvided CollectionTypeProvided { get; set; }

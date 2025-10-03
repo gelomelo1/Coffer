@@ -1,15 +1,15 @@
 import { customTheme } from "@/src/theme/theme";
 import { useState } from "react";
 import { Text, TextStyle, View, ViewStyle } from "react-native";
-import DropDownPicker from "react-native-dropdown-picker";
+import DropDownPicker, { ValueType } from "react-native-dropdown-picker";
 
-type CustomDropdownProps = {
+type CustomDropdownProps<T extends ValueType> = {
   label: string;
-  value: string | null;
+  value: T | null;
   open?: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setValue: React.Dispatch<React.SetStateAction<string | null>>;
-  items: { label: string; value: string }[];
+  setValue: React.Dispatch<React.SetStateAction<T | null>>;
+  items: { label: string; value: T }[];
   disabled?: boolean;
   containerStyle?: ViewStyle;
   labelStyle?: TextStyle;
@@ -18,7 +18,7 @@ type CustomDropdownProps = {
   textStyle?: TextStyle;
 };
 
-function CustomDropdown(props: CustomDropdownProps) {
+function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
   const {
     label,
     open,
@@ -56,14 +56,23 @@ function CustomDropdown(props: CustomDropdownProps) {
       </Text>
 
       {/* Dropdown */}
-      <DropDownPicker
+      <DropDownPicker<T>
         {...rest}
         open={open ?? uncontrolledOpen}
         setOpen={setOpen ?? setUncontrolledOpen}
         value={value ?? null}
         items={items ?? []}
-        setValue={setValue}
+        setValue={(callback) => {
+          const newValue = callback(value);
+
+          if (newValue === value) {
+            setValue(null);
+          } else {
+            setValue(newValue);
+          }
+        }}
         multiple={false}
+        listMode="SCROLLVIEW"
         style={[
           {
             backgroundColor: customTheme.colors.secondary,

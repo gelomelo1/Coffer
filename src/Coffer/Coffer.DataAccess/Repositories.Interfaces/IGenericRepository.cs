@@ -16,7 +16,9 @@ namespace Coffer.DataAccess.Repositories.Interfaces
     where TRequired : class
     {
         Task<TProvided> InsertItemAsync(TRequired item);
+        Task<TProvided> InsertItemAsync(TProvided item);
         Task<TProvided?> UpdateItemAsync(Tkey id, TRequired item);
+        Task<TProvided?> UpdateItemAsync(Tkey id, TProvided item);
         Task<bool> DeleteItemAsync(Tkey id);
     }
 }

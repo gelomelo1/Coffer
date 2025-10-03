@@ -6,7 +6,7 @@ import { customTheme } from "@/src/theme/theme";
 import { Collection } from "@/src/types/entities/collection";
 import CollectionType from "@/src/types/entities/collectiontype";
 import User from "@/src/types/entities/user";
-import { darkenBy60Percent } from "@/src/utils/frontend_utils";
+import { adjustColor } from "@/src/utils/frontend_utils";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { navigate } from "expo-router/build/global-state/routing";
 import React, { useEffect, useRef, useState } from "react";
@@ -38,7 +38,7 @@ export default function CollectionsContainer({
     )
   );
 
-  const handleSorts = (typeId: string) => {
+  const handleSorts = (typeId: number) => {
     setSorts((prev) => ({
       ...prev,
       [typeId]: prev[typeId] === "name" ? "createdAt" : "name",
@@ -148,7 +148,7 @@ function CollectionCarousel({
   triggerAnimation: string;
   user: User;
 }) {
-  const contrastColor = darkenBy60Percent(matchingCollectionType.color);
+  const contrastColor = adjustColor(matchingCollectionType.color, -0.6);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {

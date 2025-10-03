@@ -1,160 +1,84 @@
-import CollectionDeleteForm from "@/src/components/collections/tabs/mycollection/collection_delete_form";
-import CollectionInfoEditForm from "@/src/components/collections/tabs/mycollection/collection_info_edit_form";
-import CustomButton from "@/src/components/custom_ui/custom_button";
-import CustomText from "@/src/components/custom_ui/custom_text";
-import RootView from "@/src/components/custom_ui/root_view";
+import CollectionInfoCard from "@/src/components/collections/tabs/mycollection/collection_info/collection_info_card";
+import CollectionItemListCard from "@/src/components/collections/tabs/mycollection/collection_item_list/collection_item_list_card";
+import CollectionListItemFilterWrapper from "@/src/components/collections/tabs/mycollection/collection_item_list/collection_item_list_filter_wrapper";
+import CollectionItemList from "@/src/components/collections/tabs/mycollection/collection_item_list/collection_item_title";
+import { Loading } from "@/src/components/custom_ui/loading";
+import rootViewStyle from "@/src/components/custom_ui/root_view";
 import { endpoints } from "@/src/const/endpoints";
+import { querykeys } from "@/src/const/querykeys";
 import { useCollectionStore } from "@/src/hooks/collection_store";
-import { customTheme } from "@/src/theme/theme";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import Entypo from "@expo/vector-icons/Entypo";
-import { useState } from "react";
-import { Image, TouchableOpacity, View } from "react-native";
-import { Button } from "react-native-elements";
+import { useGetData } from "@/src/hooks/data_hooks";
+import Item from "@/src/types/entities/item";
+import { QueryOptions } from "@/src/types/helpers/query_data";
+import { useEffect, useState } from "react";
+import { FlatList, View } from "react-native";
 
 function MyCollection() {
   const { collectionType, collection } = useCollectionStore();
 
-  const [
-    isDeleteCollectionConfirmVisible,
-    setIsDeleteCollectionConfirmVisible,
-  ] = useState(false);
+  const [queryOptions, setQueryOptions] = useState<QueryOptions>({});
 
-  const [isCollectionInfoEditFormOpen, setIsCollectionInfoEditFormOpen] =
-    useState(false);
+  const {
+    data: items = [],
+    isFetching,
+    refetch,
+  } = useGetData<Item>(
+    endpoints.items,
+    `${querykeys.itemsData}${collection.id}`,
+    {
+      filters: [
+        {
+          filter: "Match",
+          field: "collectionId",
+          value: collection.id,
+        },
+        ...(queryOptions.filters ?? []),
+      ],
+      sort: queryOptions.sort,
+      page: queryOptions.page,
+      pageSize: queryOptions.pageSize,
+      filterConjunction: queryOptions.filterConjunction,
+    }
+  );
+
+  useEffect(() => {
+    console.log(queryOptions.sort);
+    refetch();
+  }, [queryOptions, refetch]);
 
   return (
-    <RootView color={collectionType.color}>
-      <View
-        style={{
-          borderWidth: 4,
-          borderColor: customTheme.colors.primary,
-          borderTopLeftRadius: 20,
-          borderTopRightRadius: 20,
+    <View
+      style={[
+        rootViewStyle({ color: collectionType.color }),
+        { flex: 1, paddingVertical: 0 },
+      ]}
+    >
+      <FlatList
+        data={items}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        renderItem={(item) => (
+          <CollectionItemListCard item={item} collectionType={collectionType} />
+        )}
+        contentContainerStyle={{
+          paddingTop: 20,
+          paddingBottom: 80,
         }}
-      >
-        <View
-          style={{
-            height: 150,
-            flexDirection: "row",
-            margin: 5,
-            marginBottom: 10,
-            gap: 5,
-          }}
-        >
-          <View
-            style={{
-              position: "relative",
-              width: 150,
-              borderWidth: 1,
-              borderColor: customTheme.colors.primary,
-              justifyContent: "center",
-            }}
-          >
-            {collection.image ? (
-              <Image
-                source={{
-                  uri: `${endpoints.collectionsCoverImage}/${collection.image}`,
-                  cache: "reload",
-                }}
-                style={{ width: "100%", height: "100%" }}
-              />
-            ) : (
-              <CustomText
-                style={{
-                  fontFamily: "VendSansItalic",
-                  fontSize: 14,
-                  textAlign: "center",
-                }}
-              >
-                No cover image uploaded
-              </CustomText>
-            )}
-          </View>
-          <View
-            style={{
-              flex: 1,
-            }}
-          >
-            <CustomText
-              style={{ fontFamily: "VendSansBold", fontSize: 20 }}
-              numberOfLines={2}
-              ellipsizeMode="tail"
-            >
-              {collection.name}
-            </CustomText>
-            <CustomText>
-              {new Date(collection.createdAt).toLocaleDateString()}
-            </CustomText>
-          </View>
-        </View>
-        <View
-          style={{
-            flexDirection: "row",
-            marginBottom: 1,
-          }}
-        >
-          <View
-            style={{
-              flex: 1,
-              marginRight: 1,
-            }}
-          >
-            <CustomButton
-              title={"Edit"}
-              icon={
-                <Entypo
-                  name="edit"
-                  size={20}
-                  color={customTheme.colors.secondary}
-                  style={{ marginRight: 5 }}
-                />
-              }
-              onPress={() => setIsCollectionInfoEditFormOpen(true)}
-            />
-          </View>
-          <TouchableOpacity
-            style={{ flex: 1, marginBottom: -1 }}
-            onPress={() => setIsDeleteCollectionConfirmVisible(true)}
-          >
-            <Button
-              title={"Delete"}
-              containerStyle={{
-                flex: 1,
-                borderRadius: 0,
-              }}
-              disabled={true}
-              disabledStyle={{
-                flex: 1,
-                backgroundColor: "red",
-                borderRadius: 0,
-              }}
-              disabledTitleStyle={{ color: "white" }}
-              icon={
-                <AntDesign
-                  name="delete"
-                  size={20}
-                  color={"white"}
-                  style={{ marginRight: 5 }}
-                />
-              }
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
-      <CollectionDeleteForm
-        isDeleteCollectionConfirmVisible={{
-          value: isDeleteCollectionConfirmVisible,
-          set: setIsDeleteCollectionConfirmVisible,
-        }}
+        ListHeaderComponent={
+          <>
+            <CollectionInfoCard />
+            <CollectionItemList />
+            {isFetching ? <Loading /> : null}
+          </>
+        }
+        columnWrapperStyle={{ justifyContent: "center", gap: 10 }}
+        ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
       />
-      <CollectionInfoEditForm
-        isCollectionInfoEditOverlayOpen={{
-          value: isCollectionInfoEditFormOpen,
-          set: setIsCollectionInfoEditFormOpen,
-        }}
+      <CollectionListItemFilterWrapper
+        items={items}
+        queryOptions={{ value: queryOptions, set: setQueryOptions }}
       />
-    </RootView>
+    </View>
   );
 }
 

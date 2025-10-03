@@ -44,5 +44,10 @@ namespace Coffer.DataAccess.Repositories
 
             return entity;
         }
+
+        protected override User MapToEntity(UserProvided provided, User? entity = null)
+        {
+            throw new InvalidOperationException("This function should not be called.");
+        }
     }
 }
