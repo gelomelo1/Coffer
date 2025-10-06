@@ -58,10 +58,3 @@ CREATE TABLE item_options (
     option_ids TEXT NOT NULL,              -- e.g. "1;2;3"
     option_labels TEXT NOT NULL            -- e.g. "Red;Green;Blue"
 );
-
-CREATE TABLE attribute_options_mapping (
-    id SERIAL PRIMARY KEY,
-    attribute_id INT NOT NULL REFERENCES attributes(id) ON DELETE CASCADE,
-    item_options_id INT NOT NULL REFERENCES item_options(id) ON DELETE CASCADE,
-    UNIQUE(attribute_id, item_options_id)
-);

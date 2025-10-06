@@ -4,4 +4,5 @@ export const querykeys = {
   collectionsWithCurrentName: "collectionsWithCurrentName",
   itemsData: "itemsData",
   itemOptionsData: "itemOptionsData",
+  attributesData: "attributesData",
 };

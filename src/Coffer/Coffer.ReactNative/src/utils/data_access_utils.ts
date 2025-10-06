@@ -2,6 +2,7 @@ import {
   itemSortDefaultOptions,
   nestedAttributeFilterQuery,
 } from "../const/filter";
+import Attribute from "../types/entities/attribute";
 import Item from "../types/entities/item";
 import ItemAttribute from "../types/entities/item_attribute";
 import ItemOptions from "../types/entities/itemoptions";
@@ -48,6 +49,22 @@ export function getItemAttributeValue(
   };
 }
 
+export function getAttributeValue(attribute: Attribute): AttributeTypes {
+  switch (attribute.dataType) {
+    case "string":
+    case "select":
+      return "valueString";
+    case "number":
+      return "valueNumber";
+    case "boolean":
+      return "valueBoolean";
+    case "date":
+      return "valueDate";
+    default:
+      return "";
+  }
+}
+
 export function getItemPrimaryAttributeValue(
   itemAttributes: ItemAttribute[]
 ): AttributeValue | null {
@@ -66,7 +83,7 @@ export function parseSortKeysToQuerySortData(keys: string[]): QuerySortData[] {
 }
 
 export function generateSortRecordDataForItem(
-  item: Item
+  attributes: Attribute[]
 ): { value: string; label: string }[] {
   // Generate default sort options
   const records = itemSortDefaultOptions.flatMap((option) => [
@@ -81,11 +98,11 @@ export function generateSortRecordDataForItem(
   ]);
 
   // Get primary attribute
-  const primaryAttribute = getItemPrimaryAttributeValue(item.itemAttributes);
+  const primaryAttribute = attributes.find((attribute) => attribute.primary);
   if (primaryAttribute) {
-    const id = primaryAttribute.itemAttribute.attributeId;
-    const name = primaryAttribute.itemAttribute.attribute.name;
-    const key = primaryAttribute.valueKey;
+    const id = primaryAttribute.id;
+    const name = primaryAttribute.name;
+    const key = getAttributeValue(primaryAttribute);
     const nestedSortQuery = nestedAttributeFilterQuery(id, key);
     records.push(
       {
@@ -120,4 +137,10 @@ export function getOptions(optionsData: ItemOptions | undefined) {
   }));
 
   return options;
+}
+
+export function getItemsQuantity(items: Item[]) {
+  let quantity = 0;
+  items.forEach((item) => (quantity += item.quantity));
+  return quantity;
 }

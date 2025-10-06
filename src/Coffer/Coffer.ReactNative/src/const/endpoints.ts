@@ -15,4 +15,5 @@ export const endpoints = {
   items: "api/Items",
   itemsCoverImage: `${backendAxios.defaults.baseURL}/api/Items/CoverImage`,
   itemOptions: "api/ItemOptions",
+  attributes: "api/Attributes",
 };

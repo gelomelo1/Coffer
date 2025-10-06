@@ -1,13 +1,16 @@
 import CustomButton from "@/src/components/custom_ui/custom_button";
 import { customTheme } from "@/src/theme/theme";
+import Attribute from "@/src/types/entities/attribute";
 import Item from "@/src/types/entities/item";
 import { QueryOptions } from "@/src/types/helpers/query_data";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useState } from "react";
+import CollectionItemListNumbers from "./collection_item_list_numbers";
 import CollectionListFilterBottomSheet from "./collection_list_filter_bottomsheet";
 
 interface CollectionListItemFilterWrapperProps {
   items: Item[];
+  attributes: Attribute[];
   queryOptions: {
     value: QueryOptions;
     set: React.Dispatch<React.SetStateAction<QueryOptions>>;
@@ -16,6 +19,7 @@ interface CollectionListItemFilterWrapperProps {
 
 function CollectionListItemFilterWrapper({
   items,
+  attributes,
   queryOptions,
 }: CollectionListItemFilterWrapperProps) {
   const [
@@ -45,7 +49,10 @@ function CollectionListItemFilterWrapper({
           />
         }
         onPress={() => setIsCollectionListFilterBottemSheetOpen(true)}
-        disabled={items.length === 0}
+      />
+      <CollectionItemListNumbers
+        items={items}
+        queryOptions={queryOptions.value}
       />
       <CollectionListFilterBottomSheet
         isCollectionListFilterBottomSheetOpen={{
@@ -53,6 +60,7 @@ function CollectionListItemFilterWrapper({
           set: setIsCollectionListFilterBottemSheetOpen,
         }}
         items={items}
+        attributes={attributes}
         setQueryOptions={queryOptions.set}
       />
     </>

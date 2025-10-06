@@ -11,6 +11,7 @@ using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Attribute = Coffer.Domain.Entities.Attribute;
 
 namespace Coffer.Infrastructure
 {
@@ -60,6 +61,7 @@ namespace Coffer.Infrastructure
             services.AddScoped<IGenericRepository<Guid, CollectionProvided, CollectionProvided, CollectionRequired>, CollectionsRepository>();
             services.AddScoped<IGenericRepository<Guid, ItemProvided, ItemProvided, ItemRequired>, ItemsRepository>();
             services.AddScoped<IReadOnlyGenericRepository<int, ItemOptions, ItemOptions>, ItemOptionsRepository>();
+            services.AddScoped<IReadOnlyGenericRepository<int, Attribute, Attribute>, AttributesRepository>();
             #endregion
 
             return services;

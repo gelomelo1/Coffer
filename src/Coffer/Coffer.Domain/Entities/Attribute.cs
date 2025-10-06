@@ -15,7 +15,6 @@ namespace Coffer.Domain.Entities
         public string Name { get; set; }
         public string DataType { get; set; }
         public bool Primary {  get; set; }
-
         public int? ItemOptionsId { get; set; }
 
         [JsonIgnore]

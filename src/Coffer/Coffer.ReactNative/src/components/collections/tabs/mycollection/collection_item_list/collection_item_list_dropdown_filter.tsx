@@ -3,21 +3,25 @@ import { endpoints } from "@/src/const/endpoints";
 import { nestedAttributeFilterQuery } from "@/src/const/filter";
 import { querykeys } from "@/src/const/querykeys";
 import { useGetSingleData } from "@/src/hooks/data_hooks";
-import ItemAttribute from "@/src/types/entities/item_attribute";
+import Attribute from "@/src/types/entities/attribute";
 import ItemOptions from "@/src/types/entities/itemoptions";
+import { QueryFilterDataItem } from "@/src/types/helpers/attribute_data";
 import { QueryFilterData } from "@/src/types/helpers/query_data";
 import { getOptions } from "@/src/utils/data_access_utils";
 import { useEffect, useState } from "react";
 
 interface CollectionItemListDropdownFilterProps {
-  itemAttribute: ItemAttribute;
+  attribute: Attribute;
   isBottomSheetVisible: boolean;
-  onQueryFilterDataChange: (filter: QueryFilterData) => void;
-  draftQueryFilterData?: QueryFilterData;
+  onQueryFilterDataChange: (
+    filter: QueryFilterData,
+    id?: string | number
+  ) => void;
+  draftQueryFilterData?: QueryFilterDataItem;
 }
 
 function CollectionItemListDropdownFilter({
-  itemAttribute,
+  attribute,
   isBottomSheetVisible,
   onQueryFilterDataChange,
   draftQueryFilterData,
@@ -27,8 +31,8 @@ function CollectionItemListDropdownFilter({
 
   const { data: optionsData } = useGetSingleData<ItemOptions>(
     `${endpoints.itemOptions}`,
-    `${querykeys.itemOptionsData}/${itemAttribute.attribute.itemOptionsId}`,
-    `${itemAttribute.attribute.itemOptionsId}`
+    `${querykeys.itemOptionsData}/${attribute.itemOptionsId}`,
+    `${attribute.itemOptionsId}`
   );
 
   useEffect(() => {
@@ -38,7 +42,7 @@ function CollectionItemListDropdownFilter({
   useEffect(() => {
     if (isBottomSheetVisible) {
       setSelectValue(
-        (draftQueryFilterData?.value as string)?.split(";")[0] ?? null
+        (draftQueryFilterData?.value.value as string)?.split(";")[0] ?? null
       );
       setDropDownIsOpen(false);
     }
@@ -47,17 +51,14 @@ function CollectionItemListDropdownFilter({
   return (
     <CustomDropdown
       open={dropDownIsOpen}
-      label={`${itemAttribute.attribute.name} select`}
+      label={`${attribute.name} select`}
       value={selectValue}
       setOpen={setDropDownIsOpen}
       setValue={(newValue) => {
         setSelectValue(newValue);
         onQueryFilterDataChange({
           filter: "Contains",
-          field: nestedAttributeFilterQuery(
-            itemAttribute.attributeId,
-            "valueString"
-          ),
+          field: nestedAttributeFilterQuery(attribute.id, "valueString"),
           value: `${newValue};`,
         });
       }}

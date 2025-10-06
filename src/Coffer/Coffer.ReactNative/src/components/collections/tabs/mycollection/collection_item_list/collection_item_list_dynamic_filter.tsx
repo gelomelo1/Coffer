@@ -1,48 +1,52 @@
-import CustomText from "@/src/components/custom_ui/custom_text";
 import CustomTextInput from "@/src/components/custom_ui/custom_text_input";
 import { nestedAttributeFilterQuery } from "@/src/const/filter";
-import ItemAttribute from "@/src/types/entities/item_attribute";
+import Attribute from "@/src/types/entities/attribute";
+import { QueryFilterDataItem } from "@/src/types/helpers/attribute_data";
 import { QueryFilterData } from "@/src/types/helpers/query_data";
-import { View } from "react-native";
 import CollectionItemListBooleanFilter from "./collection_item_list_boolean_filter";
+import CollectionItemListDateFilter from "./collection_item_list_date_filter";
 import CollectionItemListDropdownFilter from "./collection_item_list_dropdown_filter";
 
 interface CollectionItemListDynamicFilterProps {
-  itemAttribute: ItemAttribute;
+  attribute: Attribute;
   isBottomSheetVisible: boolean;
-  onQueryFilterDataChange: (filter: QueryFilterData) => void;
-  draftQueryFilterData?: QueryFilterData;
+  onQueryFilterDataChange: (
+    filter: QueryFilterData,
+    id?: string | number
+  ) => void;
+  draftQueryFilterData: QueryFilterDataItem[];
 }
 
 function CollectionItemListDynamicFilter({
-  itemAttribute,
+  attribute,
   isBottomSheetVisible,
   onQueryFilterDataChange,
   draftQueryFilterData,
 }: CollectionItemListDynamicFilterProps) {
-  switch (itemAttribute.attribute.dataType) {
+  switch (attribute.dataType) {
     case "select":
       return (
         <CollectionItemListDropdownFilter
-          itemAttribute={itemAttribute}
+          attribute={attribute}
           isBottomSheetVisible={isBottomSheetVisible}
           onQueryFilterDataChange={onQueryFilterDataChange}
-          draftQueryFilterData={draftQueryFilterData}
+          draftQueryFilterData={
+            draftQueryFilterData?.length > 0
+              ? draftQueryFilterData[0]
+              : undefined
+          }
         />
       );
     case "string": {
       return (
         <CustomTextInput
-          label={`${itemAttribute.attribute.name} contains`}
+          label={`${attribute.name} contains`}
           placeholder="Write keywords"
-          defaultValue={(draftQueryFilterData?.value as string) ?? ""}
+          defaultValue={(draftQueryFilterData[0]?.value.value as string) ?? ""}
           onChangeText={(newValue) =>
             onQueryFilterDataChange({
               filter: "Contains",
-              field: nestedAttributeFilterQuery(
-                itemAttribute.attributeId,
-                "valueString"
-              ),
+              field: nestedAttributeFilterQuery(attribute.id, "valueString"),
               value: newValue.toLocaleLowerCase(),
             })
           }
@@ -52,16 +56,13 @@ function CollectionItemListDynamicFilter({
     case "number":
       return (
         <CustomTextInput
-          label={`${itemAttribute.attribute.name} contains`}
+          label={`${attribute.name} contains`}
           placeholder="Write a matching value"
-          defaultValue={draftQueryFilterData?.value.toString() ?? ""}
+          defaultValue={draftQueryFilterData[0]?.value.value.toString() ?? ""}
           onChangeText={(newValue) =>
             onQueryFilterDataChange({
               filter: "==",
-              field: nestedAttributeFilterQuery(
-                itemAttribute.attributeId,
-                "valueNumber"
-              ),
+              field: nestedAttributeFilterQuery(attribute.id, "valueNumber"),
               value: Number(newValue),
             })
           }
@@ -70,39 +71,25 @@ function CollectionItemListDynamicFilter({
     case "boolean": {
       return (
         <CollectionItemListBooleanFilter
-          itemAttribute={itemAttribute}
+          attribute={attribute}
           isBottomSheetVisible={isBottomSheetVisible}
           onQueryFilterDataChange={onQueryFilterDataChange}
-          draftQueryFilterData={draftQueryFilterData}
+          draftQueryFilterData={
+            draftQueryFilterData?.length > 0
+              ? draftQueryFilterData[0]
+              : undefined
+          }
         />
       );
     }
     case "date":
       return (
-        <>
-          <CustomText style={{ marginTop: 10 }}>
-            {itemAttribute.attribute.name}
-          </CustomText>
-          <View
-            style={{
-              position: "relative",
-              width: "100%",
-              justifyContent: "space-between",
-              flexDirection: "row",
-            }}
-          >
-            <CustomTextInput
-              label="After Date"
-              editable={false}
-              style={{ width: "48%" }}
-            />
-            <CustomTextInput
-              label="Before Date"
-              editable={false}
-              style={{ width: "48%" }}
-            />
-          </View>
-        </>
+        <CollectionItemListDateFilter
+          attribute={attribute}
+          isBottomSheetVisible={isBottomSheetVisible}
+          onQueryFilterDataChange={onQueryFilterDataChange}
+          draftQueryFilterData={draftQueryFilterData}
+        />
       );
   }
 }

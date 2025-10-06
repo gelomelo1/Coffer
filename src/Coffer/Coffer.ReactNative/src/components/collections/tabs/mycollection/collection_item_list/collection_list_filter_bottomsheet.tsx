@@ -9,6 +9,7 @@ import {
   tagItemFilterKey,
 } from "@/src/const/filter";
 import { customTheme } from "@/src/theme/theme";
+import Attribute from "@/src/types/entities/attribute";
 import Item from "@/src/types/entities/item";
 import { QueryFilterDataItem } from "@/src/types/helpers/attribute_data";
 import { QueryOptions } from "@/src/types/helpers/query_data";
@@ -29,12 +30,14 @@ interface CollectionListFilterBottomSheetProps {
     set: React.Dispatch<React.SetStateAction<boolean>>;
   };
   items: Item[];
+  attributes: Attribute[];
   setQueryOptions: React.Dispatch<React.SetStateAction<QueryOptions>>;
 }
 
 function CollectionListFilterBottomSheet({
   isCollectionListFilterBottomSheetOpen,
   items,
+  attributes,
   setQueryOptions,
 }: CollectionListFilterBottomSheetProps) {
   const [isSortingDropdownOpen, setIsSortingDropdownOpen] = useState(false);
@@ -219,7 +222,7 @@ function CollectionListFilterBottomSheet({
           value={draftSortId} // use draft state here
           setOpen={setIsSortingDropdownOpen}
           setValue={setDraftSortId}
-          items={items[0] ? generateSortRecordDataForItem(items[0]) : []}
+          items={generateSortRecordDataForItem(attributes)}
         />
         <CustomText style={{ fontSize: 24, marginLeft: 20, marginTop: 20 }}>
           Filter
@@ -299,33 +302,38 @@ function CollectionListFilterBottomSheet({
               />
             ) : null}
           </View>
-          {items.length > 0
-            ? items[0].itemAttributes
-                .slice() // create a copy so we don’t mutate original
-                .sort((a, b) => {
-                  if (a.attribute.primary && !b.attribute.primary) return -1; // a first
-                  if (!a.attribute.primary && b.attribute.primary) return 1; // b first
-                  return 0; // keep original order otherwise
-                })
-                .map((itemAttribute) => (
-                  <CollectionItemListDynamicFilter
-                    key={itemAttribute.attributeId}
-                    itemAttribute={itemAttribute}
-                    isBottomSheetVisible={
-                      isCollectionListFilterBottomSheetOpen.value
-                    }
-                    onQueryFilterDataChange={(filter) =>
-                      handleChangeFilterData({
-                        id: itemAttribute.attributeId,
-                        value: filter,
-                      })
-                    }
-                    draftQueryFilterData={
-                      getFilterData(itemAttribute.attributeId)?.value
-                    }
-                  />
-                ))
-            : null}
+          {attributes
+            .slice() // create a copy so we don’t mutate original
+            .sort((a, b) => {
+              if (a.primary && !b.primary) return -1; // a first
+              if (!a.primary && b.primary) return 1; // b first
+              return 0; // keep original order otherwise
+            })
+            .map((attribute) => (
+              <CollectionItemListDynamicFilter
+                key={attribute.id}
+                attribute={attribute}
+                isBottomSheetVisible={
+                  isCollectionListFilterBottomSheetOpen.value
+                }
+                onQueryFilterDataChange={(filter, id) =>
+                  handleChangeFilterData({
+                    id: id ?? attribute.id,
+                    value: filter,
+                  })
+                }
+                draftQueryFilterData={
+                  attribute.dataType === "date"
+                    ? [
+                        getFilterData(`${attribute.id}_before`),
+                        getFilterData(`${attribute.id}_after`),
+                      ].filter((f): f is QueryFilterDataItem => f !== undefined)
+                    : [getFilterData(attribute.id)].filter(
+                        (f): f is QueryFilterDataItem => f !== undefined
+                      )
+                }
+              />
+            ))}
         </View>
         <CustomButton title={"Apply"} onPress={handleOnApply} />
       </ScrollView>
