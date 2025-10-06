@@ -15,6 +15,7 @@ namespace Coffer.DataAccess
         public DbSet<ItemProvided> Items { get; set; }
         public DbSet<ItemAttribute> ItemAttributes { get; set; }
         public DbSet<ItemTags> ItemTags { get; set; }
+        public DbSet<ItemOptions> ItemOptions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -50,7 +51,14 @@ namespace Coffer.DataAccess
             modelBuilder.Entity<ItemAttribute>()
                 .HasIndex(ia => new { ia.ItemId, ia.AttributeId })
                 .IsUnique();
-          
+
+            // ItemOptions
+            modelBuilder.Entity<Attribute>()
+                .HasOne(a => a.ItemOptions)
+                .WithMany(o => o.Attributes)
+                .HasForeignKey(a => a.ItemOptionsId)
+                .OnDelete(DeleteBehavior.SetNull);
+
         }
     }
 

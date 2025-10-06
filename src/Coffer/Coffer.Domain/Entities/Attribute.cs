@@ -16,10 +16,15 @@ namespace Coffer.Domain.Entities
         public string DataType { get; set; }
         public bool Primary {  get; set; }
 
+        public int? ItemOptionsId { get; set; }
+
         [JsonIgnore]
         public CollectionTypeProvided CollectionTypeProvided { get; set; }
 
         [JsonIgnore]
         public ICollection<ItemAttribute> ItemAttributes { get; set; }
+
+        [JsonIgnore]
+        public ItemOptions? ItemOptions { get; set; }
     }
 }

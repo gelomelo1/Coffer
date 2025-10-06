@@ -24,7 +24,7 @@ import buildQuery from "../utils/query_builder";
 export function useGetData<TData>(
   apiPath: string,
   queryKey: string,
-  options?: QueryOptions<TData>,
+  options?: QueryOptions,
   headers?: Record<string, string>,
   queryOptions?: UseQueryOptions<TData[], AxiosError, TData[], QueryKey>
 ) {
@@ -33,7 +33,7 @@ export function useGetData<TData>(
     queryKey: [queryKey],
     queryFn: () =>
       getData<TData>(
-        `${apiPath}${options ? `/${buildQuery<TData>(options)}` : ""}`,
+        `${apiPath}${options ? `/${buildQuery(options)}` : ""}`,
         headers
       ),
     refetchOnWindowFocus: false,
@@ -44,7 +44,7 @@ export function useGetSingleData<TData>(
   apiPath: string,
   queryKey: string,
   id?: string,
-  options?: QueryOptions<TData>,
+  options?: QueryOptions,
   headers?: Record<string, string>,
   queryOptions?: UseQueryOptions<TData, AxiosError, TData, QueryKey>
 ) {
@@ -57,7 +57,7 @@ export function useGetSingleData<TData>(
       }
 
       const data = getData<TData>(
-        `${apiPath}${options ? `/${buildQuery<TData>(options)}` : ""}`,
+        `${apiPath}${options ? `/${buildQuery(options)}` : ""}`,
         headers
       );
 

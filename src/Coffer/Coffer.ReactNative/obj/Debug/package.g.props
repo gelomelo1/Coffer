@@ -40,6 +40,7 @@
     <PackageJsonDependenciesReactNativeElements Condition="$(PackageJsonDependenciesReactNativeElements) == ''">^3.0.0</PackageJsonDependenciesReactNativeElements>
     <PackageJsonDependenciesReactNativeGestureHandler Condition="$(PackageJsonDependenciesReactNativeGestureHandler) == ''">~2.28.0</PackageJsonDependenciesReactNativeGestureHandler>
     <PackageJsonDependenciesReactNativeIndicator Condition="$(PackageJsonDependenciesReactNativeIndicator) == ''">^1.2.1</PackageJsonDependenciesReactNativeIndicator>
+    <PackageJsonDependenciesReactNativeMonthYearPicker Condition="$(PackageJsonDependenciesReactNativeMonthYearPicker) == ''">^1.9.0</PackageJsonDependenciesReactNativeMonthYearPicker>
     <PackageJsonDependenciesReactNativeNavigationMode Condition="$(PackageJsonDependenciesReactNativeNavigationMode) == ''">^1.2.3</PackageJsonDependenciesReactNativeNavigationMode>
     <PackageJsonDependenciesReactNativeSafeAreaContext Condition="$(PackageJsonDependenciesReactNativeSafeAreaContext) == ''">^5.6.0</PackageJsonDependenciesReactNativeSafeAreaContext>
     <PackageJsonDependenciesReactNativeScreens Condition="$(PackageJsonDependenciesReactNativeScreens) == ''">~4.16.0</PackageJsonDependenciesReactNativeScreens>

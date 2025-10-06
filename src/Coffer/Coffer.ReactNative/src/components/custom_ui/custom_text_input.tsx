@@ -35,6 +35,8 @@ const CustomTextInput: React.FC<InputProps> = ({
   labelStyle,
   placeholderTextColor,
   disabled,
+  style,
+  keyboardType = "default",
   ...rest
 }) => {
   const isDisabled = disabled ?? false;
@@ -46,6 +48,7 @@ const CustomTextInput: React.FC<InputProps> = ({
           position: "relative",
           alignSelf: "center",
         },
+        style as ViewStyle,
       ]}
     >
       <Input
@@ -62,6 +65,7 @@ const CustomTextInput: React.FC<InputProps> = ({
           placeholderTextColor || defaultStyles.placeholderTextColor
         }
         disabledInputStyle={[defaultStyles.inputStyle, inputStyle]}
+        keyboardType={keyboardType}
       />
       {disabled && (
         <View

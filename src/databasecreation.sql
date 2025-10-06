@@ -21,6 +21,7 @@ CREATE TABLE collections (
 CREATE TABLE attributes (
     id SERIAL PRIMARY KEY,
     collection_type_id INT NOT NULL REFERENCES collection_types(id) ON DELETE CASCADE,
+    item_options_id INT REFERENCES item_options(id) ON DELETE SET NULL,
     name VARCHAR(20) NOT NULL,   -- pl. "Gyártó"
     data_type TEXT NOT NULL CHECK (data_type IN ('string','number','date','boolean', "select")),
 );

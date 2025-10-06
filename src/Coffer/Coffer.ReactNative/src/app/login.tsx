@@ -91,7 +91,7 @@ function Login() {
                 style={{ width: 32, height: 32, marginRight: 10 }}
               />
             }
-            containerStyle={{ width: "60%" }}
+            containerStyle={{ width: "60%", alignSelf: "center" }}
           />
           <CustomButton
             onPress={handleGithubPress}
@@ -102,7 +102,7 @@ function Login() {
                 style={{ width: 32, height: 32, marginRight: 10 }}
               />
             }
-            containerStyle={{ width: "60%" }}
+            containerStyle={{ width: "60%", alignSelf: "center" }}
           />
         </View>
       </View>

@@ -42,7 +42,8 @@ function MyCollection() {
   );
 
   useEffect(() => {
-    console.log(queryOptions.sort);
+    console.log("yeah");
+    console.log(queryOptions);
     refetch();
   }, [queryOptions, refetch]);
 

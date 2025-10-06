@@ -4,14 +4,17 @@ import {
 } from "../const/filter";
 import Item from "../types/entities/item";
 import ItemAttribute from "../types/entities/item_attribute";
-import AttributeValue from "../types/helpers/attribute_data";
+import ItemOptions from "../types/entities/itemoptions";
+import AttributeValue, {
+  AttributeTypes,
+} from "../types/helpers/attribute_data";
 import { QuerySortData } from "../types/helpers/query_data";
 
 export function getItemAttributeValue(
   itemAttribute: ItemAttribute
 ): AttributeValue {
   let value: string | number | boolean | Date | null;
-  let valueKey: string;
+  let valueKey: AttributeTypes;
 
   switch (itemAttribute.attribute.dataType) {
     case "string":
@@ -83,7 +86,7 @@ export function generateSortRecordDataForItem(
     const id = primaryAttribute.itemAttribute.attributeId;
     const name = primaryAttribute.itemAttribute.attribute.name;
     const key = primaryAttribute.valueKey;
-    const nestedSortQuery = nestedAttributeFilterQuery(id.toString(), key);
+    const nestedSortQuery = nestedAttributeFilterQuery(id, key);
     records.push(
       {
         value: `${nestedSortQuery}_asc`,
@@ -104,4 +107,17 @@ function lowerCamelCaseToNormalFormat(input: string): string {
 
   const capitalized = input[0].toUpperCase() + input.slice(1);
   return capitalized.replace(/([a-z])([A-Z])/g, "$1 $2");
+}
+
+export function getOptions(optionsData: ItemOptions | undefined) {
+  if (!optionsData) return [];
+  const values = optionsData.optionIds.split(";");
+  const labels = optionsData.optionLabels.split(";");
+
+  const options = values.map((value, index) => ({
+    value: value.trim(),
+    label: labels[index].trim() ?? "",
+  }));
+
+  return options;
 }

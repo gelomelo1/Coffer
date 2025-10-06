@@ -53,7 +53,22 @@ function buildFilter(filter: QueryFilterData): string {
     filter.filter === "!="
   ) {
     // number
-    filterString += `${filter.filter}${filter.value}`;
+    if (typeof filter.value === "number")
+      filterString += `${filter.filter}${filter.value}`;
+    else {
+      const date = filter.value as Date;
+      const firstDayOfMonth = `DateTime(${date.getFullYear()}, ${
+        date.getMonth() + 1
+      }, 1, 0, 0, 0, DateTimeKind.Utc)`;
+      const lastDayOfMonth = `DateTime(${date.getFullYear()}, ${
+        date.getMonth() + 2
+      }, 1, 0, 0, 0, DateTimeKind.Utc)`;
+      filterString += `${filter.filter}${
+        filter.filter === ">" || filter.filter === ">="
+          ? lastDayOfMonth
+          : firstDayOfMonth
+      }`;
+    }
   } else {
     // string
     if (filter.filter === "Match") {

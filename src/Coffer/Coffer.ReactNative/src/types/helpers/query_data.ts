@@ -8,7 +8,7 @@ export interface UpdateDataPayload<T> {
   value: T;
 }
 
-//SUPPORT RAW LINQ, USE FIELD FOR RAW LINQ AND MATCH FILTER
+//SUPPORT RAW LINQ, USE FIELD FOR RAW LINQ
 export type QueryFilterData =
   | {
       filter: "Match" | "Contains" | "StartsWith" | "EndsWith";
@@ -18,7 +18,7 @@ export type QueryFilterData =
   | {
       filter: "==" | "<" | "<=" | ">" | ">=" | "!=";
       field: string;
-      value: number;
+      value: number | Date;
     }
   | {
       filter?: never;
