@@ -1,23 +1,18 @@
-import CustomText from "@/src/components/custom_ui/custom_text";
 import { endpoints } from "@/src/const/endpoints";
 import { ROUTES, pageParams } from "@/src/const/navigation_params";
 import { useCollectionStore } from "@/src/hooks/collection_store";
-import { useNavigationModeStore } from "@/src/hooks/navigation_mode_store";
 import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import { parseParams } from "@/src/utils/navigation_utils";
-import { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
 import { ParamListBase, RouteProp } from "@react-navigation/native";
 import { navigate } from "expo-router/build/global-state/routing";
 import { Image, TouchableOpacity, View } from "react-native";
 import { Icon } from "react-native-elements";
+import CustomText from "../custom_ui/custom_text";
 
-function CollectionTabsCustomLayout(
-  route: RouteProp<ParamListBase, string>
-): BottomTabNavigationOptions {
+function IndexCollectionCustomLayout(route: RouteProp<ParamListBase, string>) {
   const { user } = useUserStore();
   const { collectionType, collection } = useCollectionStore();
-  const { navigationMode } = useNavigationModeStore();
   const params = parseParams(route);
 
   let screenTitle = null;
@@ -26,13 +21,6 @@ function CollectionTabsCustomLayout(
   }
 
   return {
-    tabBarStyle: {
-      height: navigationMode.navigationBarHeight + 47,
-      backgroundColor: customTheme.colors.background,
-      paddingTop: 2,
-    },
-    animation: "fade",
-    tabBarShowLabel: false,
     headerTitle: "",
     headerShown: true,
     headerStyle: {
@@ -44,7 +32,6 @@ function CollectionTabsCustomLayout(
           display: "flex",
           justifyContent: "space-between",
           alignItems: "flex-start",
-          marginLeft: 16,
         }}
       >
         <CustomText
@@ -117,7 +104,6 @@ function CollectionTabsCustomLayout(
     ),
     headerRight: () => (
       <TouchableOpacity
-        style={{ marginRight: 16 }}
         onPress={() =>
           navigate({
             pathname: ROUTES.SETTINGS.ROOT,
@@ -131,4 +117,4 @@ function CollectionTabsCustomLayout(
   };
 }
 
-export default CollectionTabsCustomLayout;
+export default IndexCollectionCustomLayout;

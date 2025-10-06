@@ -1,9 +1,13 @@
 import CustomText from "@/src/components/custom_ui/custom_text";
 import { endpoints } from "@/src/const/endpoints";
+import { pageParams, ROUTES } from "@/src/const/navigation_params";
+import { initItemStore } from "@/src/hooks/item_store";
+import { customTheme } from "@/src/theme/theme";
 import CollectionType from "@/src/types/entities/collectiontype";
 import Item from "@/src/types/entities/item";
 import { getItemPrimaryAttributeValue } from "@/src/utils/data_access_utils";
 import { adjustColor } from "@/src/utils/frontend_utils";
+import { navigate } from "expo-router/build/global-state/routing";
 import {
   Image,
   ListRenderItemInfo,
@@ -21,12 +25,26 @@ function CollectionItemListCard({
   collectionType,
 }: CollectionItemListCardProps) {
   console.log(item.item.itemAttributes[0].valueString);
-  const darkContrastColor = adjustColor(collectionType.color, -0.6);
-  const lightContrastColor = adjustColor(collectionType.color, 0.8);
+  const darkContrastColor = adjustColor(
+    collectionType.color,
+    customTheme.colorChangePercent.dark
+  );
+  const lightContrastColor = adjustColor(
+    collectionType.color,
+    customTheme.colorChangePercent.light
+  );
   const primaryValue = getItemPrimaryAttributeValue(item.item.itemAttributes);
+
+  const handleCardPress = () => {
+    initItemStore(item.item);
+    navigate({
+      pathname: ROUTES.ITEMDETAILS,
+      params: pageParams.itemdetails,
+    });
+  };
+
   return (
     <TouchableOpacity
-      onPress={() => console.log(item.item.id)}
       style={{
         width: "46%",
         height: "auto",
@@ -35,6 +53,7 @@ function CollectionItemListCard({
         borderWidth: 2,
         borderColor: darkContrastColor,
       }}
+      onPress={handleCardPress}
     >
       <Image
         source={{

@@ -13,6 +13,7 @@ export const ROUTES = {
     ROOT: "settings" as any,
     DEVELOPER: "settings/developer" as any,
   },
+  ITEMDETAILS: "itemdetails" as any,
 } as const;
 
 export const pageParams = {
@@ -34,5 +35,8 @@ export const pageParams = {
   }),
   mycollection: buildNavigationData({
     screenTitle: "My Collection",
+  }),
+  itemdetails: buildNavigationData({
+    screenTitle: `Item Details`,
   }),
 };

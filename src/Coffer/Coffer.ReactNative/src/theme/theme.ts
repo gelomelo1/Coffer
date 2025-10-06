@@ -5,4 +5,8 @@ export const customTheme = {
     secondary: "#a98d3c",
     disabledOverlay: "rgba(0,0,0,0.5)",
   },
+  colorChangePercent: {
+    dark: -0.6,
+    light: 0.8,
+  },
 };

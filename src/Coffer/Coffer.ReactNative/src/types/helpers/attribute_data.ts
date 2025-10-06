@@ -16,17 +16,6 @@ interface AttributeValue {
 
 export default AttributeValue;
 
-/*export type DynamicFilterAttributeTypes =
-  | "description"
-  | "quantity"
-  | "acquiredAt"
-  | `${number}_${AttributeTypes}`;
-
-export interface DynamicFilter {
-  value: string | number | Date | boolean;
-  valueKey: DynamicFilterAttributeTypes;
-}*/
-
 export interface QueryFilterDataItem {
   id: number | string;
   value: QueryFilterData;

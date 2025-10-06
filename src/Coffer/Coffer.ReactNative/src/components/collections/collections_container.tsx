@@ -148,7 +148,10 @@ function CollectionCarousel({
   triggerAnimation: string;
   user: User;
 }) {
-  const contrastColor = adjustColor(matchingCollectionType.color, -0.6);
+  const contrastColor = adjustColor(
+    matchingCollectionType.color,
+    customTheme.colorChangePercent.dark
+  );
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {

@@ -15,7 +15,8 @@ function IndexCustomLayout(
   const params = parseParams(route);
   if (
     route.name === (ROUTES.COLLECTIONS.HOME as string) ||
-    route.name === (ROUTES.LOGIN as string)
+    route.name === (ROUTES.LOGIN as string) ||
+    route.name === (ROUTES.ITEMDETAILS as string)
   )
     return {
       headerShown: false,

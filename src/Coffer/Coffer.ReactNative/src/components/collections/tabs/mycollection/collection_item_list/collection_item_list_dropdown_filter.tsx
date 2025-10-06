@@ -36,10 +36,6 @@ function CollectionItemListDropdownFilter({
   );
 
   useEffect(() => {
-    console.log(optionsData);
-  }, [optionsData]);
-
-  useEffect(() => {
     if (isBottomSheetVisible) {
       setSelectValue(
         (draftQueryFilterData?.value.value as string)?.split(";")[0] ?? null
