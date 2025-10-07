@@ -3,7 +3,9 @@ import CustomText from "@/src/components/custom_ui/custom_text";
 import CustomTextInput from "@/src/components/custom_ui/custom_text_input";
 import { ComponentLoading } from "@/src/components/custom_ui/loading";
 import { endpoints } from "@/src/const/endpoints";
+import { languageFilter, textInputRegex } from "@/src/const/filter";
 import { querykeys } from "@/src/const/querykeys";
+import { stringResource } from "@/src/const/resource";
 import { useCollectionStore } from "@/src/hooks/collection_store";
 import {
   useCreateData,
@@ -19,7 +21,6 @@ import {
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
 import * as ImagePicker from "expo-image-picker";
-import { Filter } from "profanity-check";
 import React, { useRef, useState } from "react";
 import { ActivityIndicator, Image, Pressable, View } from "react-native";
 import { Icon, Overlay } from "react-native-elements";
@@ -44,7 +45,6 @@ function CollectionInfoEditForm({
   const [isInputCheck, setIsInputCheck] = useState(false);
   const [isImagePickerLoading, setIsImagePickerLoading] = useState(false);
   const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const languageFilter = new Filter();
 
   const isSubmitDisabled = collectionName === "" || isInputCheck;
 
@@ -157,22 +157,20 @@ function CollectionInfoEditForm({
     }
 
     debounceTimeout.current = setTimeout(async () => {
-      const usernameRegex = /^[a-zA-Z0-9._-]+$/;
-
-      if (!usernameRegex.test(newValue)) {
-        setErrorMessage("Allowed characters: letters, numbers, ., _, -");
+      if (!textInputRegex.test(newValue)) {
+        setErrorMessage(stringResource.textInputRegexError);
         return;
       }
 
       if (languageFilter.isProfane(newValue)) {
-        setErrorMessage("Please avoid using inappropriate language");
+        setErrorMessage(stringResource.profaneError);
         return;
       }
 
       const collectionsWithCurrentName = (await refetch()).data ?? [];
 
       if (collectionsWithCurrentName?.length !== 0) {
-        setErrorMessage("You already have a collection with this name");
+        setErrorMessage(stringResource.alreadyExistsError);
         return;
       }
 
@@ -305,7 +303,10 @@ function CollectionInfoEditForm({
             errorMessage={errorMessage}
             rightIcon={
               isFetching ? (
-                <ActivityIndicator size="small" color="dimgray" />
+                <ActivityIndicator
+                  size="small"
+                  color={customTheme.colors.accent}
+                />
               ) : !!errorMessage ? (
                 <Icon name="close" size={20} color="red" />
               ) : !isInputCheck ? (

@@ -86,7 +86,7 @@ function ItemDetails() {
           numberOfLines={1}
           lineBreakMode="tail"
         >
-          {primaryAttribute?.value?.toString()}
+          {primaryAttribute?.valueString}
         </CustomText>
         <View style={{ justifyContent: "space-between", flexDirection: "row" }}>
           <View>

@@ -257,8 +257,8 @@ function CollectionListFilterBottomSheet({
               handleChangeFilterData({
                 id: tagItemFilterKey,
                 value: {
-                  filter: "Contains",
-                  field: nestedTagFilterQuery,
+                  filter: "None",
+                  field: nestedTagFilterQuery(newValue),
                   value: newValue,
                 },
               })

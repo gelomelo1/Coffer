@@ -39,7 +39,12 @@ export default function buildQuery(options: QueryOptions): string {
 }
 
 function buildFilter(filter: QueryFilterData): string {
-  let filterString = String(filter.field); // <-- convert to string
+  let filterString = String(filter.field);
+
+  if (filter.filter === "None") {
+    // raw LINQ support
+    return filter.field;
+  }
 
   if (filter.filter === undefined) {
     // boolean
@@ -52,10 +57,10 @@ function buildFilter(filter: QueryFilterData): string {
     filter.filter === ">=" ||
     filter.filter === "!="
   ) {
-    // number
-    if (typeof filter.value === "number")
+    // number or date
+    if (typeof filter.value === "number") {
       filterString += `${filter.filter}${filter.value}`;
-    else {
+    } else {
       const date = filter.value as Date;
       const firstDayOfMonth = `DateTime(${date.getFullYear()}, ${
         date.getMonth() + 1
@@ -70,7 +75,7 @@ function buildFilter(filter: QueryFilterData): string {
       }`;
     }
   } else {
-    // string
+    // string filters
     if (filter.filter === "Match") {
       filterString += `=="${filter.value}"`;
     } else {

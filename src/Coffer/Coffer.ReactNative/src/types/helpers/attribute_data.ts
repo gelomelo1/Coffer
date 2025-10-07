@@ -11,6 +11,7 @@ export type AttributeTypes =
 interface AttributeValue {
   itemAttribute: ItemAttribute;
   value: string | number | boolean | Date | null;
+  valueString: string;
   valueKey: AttributeTypes;
 }
 

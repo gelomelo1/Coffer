@@ -23,9 +23,9 @@ function ItemDetailsSelectAttributeDisplay({
   const optionIds = optionsData.optionIds.split(";");
   const optionLabels = optionsData.optionLabels.split(";");
 
-  const selectValues = (attributeValue.value as string)
-    .split(";")
-    .filter(Boolean);
+  const selectValues = attributeValue.value
+    ? (attributeValue.value as string).split(";").filter(Boolean)
+    : [];
 
   const getAttributeLabel = (value: string) => {
     const index = optionIds.findIndex((id) => id === value);

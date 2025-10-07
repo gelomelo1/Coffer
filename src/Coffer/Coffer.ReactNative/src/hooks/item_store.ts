@@ -7,8 +7,9 @@ export function initItemStore(item: Item) {
 }
 
 export const createItemStore = (item: Item) =>
-  create<ItemStore>(() => ({
+  create<ItemStore>((set) => ({
     item: item,
+    setItem: (newItem: Item) => set({ item: newItem }),
   }));
 
 export let useItemStore: ReturnType<typeof createItemStore>;

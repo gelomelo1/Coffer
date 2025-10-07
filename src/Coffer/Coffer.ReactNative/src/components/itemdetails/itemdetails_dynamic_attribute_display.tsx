@@ -28,6 +28,8 @@ function ItemDetailsDynamicAttributeDisplay({
   );
 
   const getDisplayFormat = (): ReactNode => {
+    if (attributeValue.value === null) return null;
+
     switch (attributeValue.valueKey) {
       case "valueString":
         if (attributeValue.itemAttribute.attribute.dataType === "select")
@@ -82,6 +84,8 @@ function ItemDetailsDynamicAttributeDisplay({
         return null;
     }
   };
+
+  if (attributeValue.value === null) return null;
 
   return (
     <ItemDetailsAttributeContainer

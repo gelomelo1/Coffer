@@ -4,6 +4,7 @@ export const customTheme = {
     primary: "#19283f",
     secondary: "#a98d3c",
     disabledOverlay: "rgba(0,0,0,0.5)",
+    accent: "dimgray",
   },
   colorChangePercent: {
     dark: -0.6,

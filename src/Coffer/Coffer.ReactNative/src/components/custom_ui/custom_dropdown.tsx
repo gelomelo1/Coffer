@@ -2,6 +2,7 @@ import { customTheme } from "@/src/theme/theme";
 import { useState } from "react";
 import { Text, TextStyle, View, ViewStyle } from "react-native";
 import DropDownPicker, { ValueType } from "react-native-dropdown-picker";
+import CustomText from "./custom_text";
 
 type CustomDropdownProps<T extends ValueType> = {
   label: string;
@@ -16,6 +17,7 @@ type CustomDropdownProps<T extends ValueType> = {
   style?: ViewStyle;
   dropDownContainerStyle?: ViewStyle;
   textStyle?: TextStyle;
+  errorMessage?: string;
 };
 
 function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
@@ -32,6 +34,7 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
     style,
     dropDownContainerStyle,
     textStyle,
+    errorMessage,
     ...rest
   } = props;
 
@@ -121,6 +124,18 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
             zIndex: 9999, // make sure overlay is above everything
           }}
         />
+      )}
+
+      {errorMessage && (
+        <CustomText
+          style={{
+            color: "red",
+            fontSize: 12,
+            marginTop: 4,
+          }}
+        >
+          {errorMessage}
+        </CustomText>
       )}
     </View>
   );

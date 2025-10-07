@@ -6,6 +6,7 @@ import User from "../entities/user";
 
 export interface ItemStore {
   item: Item;
+  setItem: (item: Item) => void;
 }
 
 export interface NavigationModeStore {

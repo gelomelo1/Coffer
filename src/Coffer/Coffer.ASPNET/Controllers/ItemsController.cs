@@ -3,6 +3,7 @@ using Coffer.BusinessLogic.Services.Interfaces;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace Coffer.ASPNET.Controllers
 {
@@ -55,6 +56,24 @@ namespace Coffer.ASPNET.Controllers
             {
                 return NotFound();
             }
+        }
+
+        [HttpPut("{id}")]
+        public override async Task<ActionResult<ItemProvided>> Update(Guid id, [FromBody] ItemRequired required)
+        {
+            Console.WriteLine("item update");
+            if (required.Quantity == 0)
+            {
+                var collection = await _repository.GetItemByIdAsync(id);
+                if (collection == null) return NotFound();
+
+                if (!string.IsNullOrEmpty(collection.Image))
+                    await _imageService.DeleteImageAsync(collection.Image, relativePath);
+
+                return await base.Delete(id);
+            }
+
+            return await base.Update(id, required);
         }
 
         [HttpDelete("{id}")]

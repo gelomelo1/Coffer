@@ -79,7 +79,7 @@ function CollectionItemListCard({
               color: darkContrastColor,
             }}
           >
-            {primaryValue.value.toString()}
+            {primaryValue.valueString}
           </CustomText>
         )}
         <CustomText

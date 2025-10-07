@@ -24,6 +24,11 @@ export type QueryFilterData =
       filter?: never;
       field: string;
       value: boolean;
+    }
+  | {
+      filter: "None";
+      field: string;
+      value?: string;
     };
 
 export interface QuerySortData {

@@ -15,26 +15,31 @@ export function getItemAttributeValue(
   itemAttribute: ItemAttribute
 ): AttributeValue {
   let value: string | number | boolean | Date | null;
+  let valueString = "";
   let valueKey: AttributeTypes;
 
   switch (itemAttribute.attribute.dataType) {
     case "string":
     case "select":
       value = itemAttribute.valueString ?? null;
+      valueString = itemAttribute.valueString;
       valueKey = "valueString";
       break;
     case "number":
       value = itemAttribute.valueNumber ?? null;
+      valueString = itemAttribute.valueNumber.toLocaleString();
       valueKey = "valueNumber";
       break;
     case "boolean":
       value = itemAttribute.valueBoolean ?? null;
+      valueString = itemAttribute.valueBoolean ? "true" : "false";
       valueKey = "valueBoolean";
       break;
     case "date":
       value = itemAttribute.valueDate
         ? new Date(itemAttribute.valueDate)
         : null;
+      valueString = new Date(itemAttribute.valueDate).toLocaleDateString();
       valueKey = "valueDate";
       break;
     default:
@@ -45,6 +50,7 @@ export function getItemAttributeValue(
   return {
     itemAttribute: itemAttribute,
     value,
+    valueString,
     valueKey,
   };
 }
@@ -143,4 +149,24 @@ export function getItemsQuantity(items: Item[]) {
   let quantity = 0;
   items.forEach((item) => (quantity += item.quantity));
   return quantity;
+}
+
+export function updateItemAttributeValue(
+  attr: ItemAttribute,
+  newValue: any
+): ItemAttribute {
+  console.log("ltsggooo");
+  switch (attr.attribute.dataType) {
+    case "string":
+    case "select":
+      return { ...attr, valueString: newValue as string };
+    case "number":
+      return { ...attr, valueNumber: newValue as number };
+    case "boolean":
+      return { ...attr, valueBoolean: newValue as boolean };
+    case "date":
+      return { ...attr, valueDate: newValue as string };
+    default:
+      return attr;
+  }
 }

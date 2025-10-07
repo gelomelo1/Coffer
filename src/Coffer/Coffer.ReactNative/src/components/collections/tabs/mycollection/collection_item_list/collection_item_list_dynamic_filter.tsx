@@ -56,9 +56,11 @@ function CollectionItemListDynamicFilter({
     case "number":
       return (
         <CustomTextInput
-          label={`${attribute.name} contains`}
+          label={`${attribute.name} equals`}
           placeholder="Write a matching value"
-          defaultValue={draftQueryFilterData[0]?.value.value.toString() ?? ""}
+          defaultValue={
+            (draftQueryFilterData[0]?.value.value as string).toString() ?? ""
+          }
           onChangeText={(newValue) =>
             onQueryFilterDataChange({
               filter: "==",
@@ -66,6 +68,7 @@ function CollectionItemListDynamicFilter({
               value: Number(newValue),
             })
           }
+          keyboardType="numeric"
         />
       );
     case "boolean": {

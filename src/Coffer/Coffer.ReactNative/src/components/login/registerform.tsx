@@ -1,8 +1,9 @@
 import { endpoints } from "@/src/const/endpoints";
+import { languageFilter } from "@/src/const/filter";
+import { stringResource } from "@/src/const/resource";
 import User from "@/src/types/entities/user";
 import { getData } from "@/src/utils/backend_access";
 import buildQuery from "@/src/utils/query_builder";
-import { Filter } from "profanity-check";
 import { useRef, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { Icon } from "react-native-elements";
@@ -21,7 +22,6 @@ function RegisterForm({ submitRegistration }: RegisterFormProps) {
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
   const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const languageFilter = new Filter();
 
   const handleChangeUsername = (newValue: string) => {
     setUsername(newValue);
@@ -32,7 +32,7 @@ function RegisterForm({ submitRegistration }: RegisterFormProps) {
     }
 
     if (newValue === "") {
-      setErrorMessage("");
+      setErrorMessage(stringResource.requiredError);
       return;
     }
 
@@ -41,13 +41,13 @@ function RegisterForm({ submitRegistration }: RegisterFormProps) {
       const usernameRegex = /^[a-zA-Z0-9._-]+$/;
 
       if (!usernameRegex.test(newValue)) {
-        setErrorMessage("Allowed characters: letters, numbers, ., _, -");
+        setErrorMessage(stringResource.loginTextInputRegexError);
         setIsLoading(false);
         return;
       }
 
       if (languageFilter.isProfane(newValue)) {
-        setErrorMessage("Please avoid using inappropriate language");
+        setErrorMessage(stringResource.profaneError);
         setIsLoading(false);
         return;
       }
@@ -65,7 +65,7 @@ function RegisterForm({ submitRegistration }: RegisterFormProps) {
       const userWithCurrentUsername = await getData<User>(url);
 
       if (userWithCurrentUsername.length !== 0) {
-        setErrorMessage("User already exists");
+        setErrorMessage(stringResource.alreadyExistsError);
         setIsLoading(false);
         return;
       }
@@ -97,7 +97,7 @@ function RegisterForm({ submitRegistration }: RegisterFormProps) {
         errorMessage={errorMessage}
         rightIcon={
           isLoading ? (
-            <ActivityIndicator size="small" color="dimgray" />
+            <ActivityIndicator size="small" color={customTheme.colors.accent} />
           ) : !!errorMessage ? (
             <Icon name="close" size={20} color="red" />
           ) : !isSubmitDisabled ? (

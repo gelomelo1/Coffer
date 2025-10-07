@@ -37,6 +37,7 @@ const CustomTextInput: React.FC<InputProps> = ({
   disabled,
   style,
   keyboardType = "default",
+  multiline = false,
   ...rest
 }) => {
   const isDisabled = disabled ?? false;
@@ -66,6 +67,7 @@ const CustomTextInput: React.FC<InputProps> = ({
         }
         disabledInputStyle={[defaultStyles.inputStyle, inputStyle]}
         keyboardType={keyboardType}
+        multiline={multiline}
       />
       {disabled && (
         <View
