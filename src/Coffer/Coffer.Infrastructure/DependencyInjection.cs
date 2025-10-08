@@ -48,6 +48,7 @@ namespace Coffer.Infrastructure
             services.AddScoped<IImageService, ImageService>();
             services.AddMemoryCache();
             services.AddSingleton<ITempTokenService, TempTokenService>();
+            services.AddHttpClient();
             #endregion
 
             #region AddIncludes

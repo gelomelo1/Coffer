@@ -8,15 +8,10 @@ import Item from "@/src/types/entities/item";
 import { getItemPrimaryAttributeValue } from "@/src/utils/data_access_utils";
 import { adjustColor } from "@/src/utils/frontend_utils";
 import { navigate } from "expo-router/build/global-state/routing";
-import {
-  Image,
-  ListRenderItemInfo,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Image, TouchableOpacity, View } from "react-native";
 
 interface CollectionItemListCardProps {
-  item: ListRenderItemInfo<Item>;
+  item: Item;
   collectionType: CollectionType;
 }
 
@@ -24,7 +19,7 @@ function CollectionItemListCard({
   item,
   collectionType,
 }: CollectionItemListCardProps) {
-  console.log(item.item.itemAttributes[0].valueString);
+  console.log(item.itemAttributes[0].valueString);
   const darkContrastColor = adjustColor(
     collectionType.color,
     customTheme.colorChangePercent.dark
@@ -33,10 +28,10 @@ function CollectionItemListCard({
     collectionType.color,
     customTheme.colorChangePercent.light
   );
-  const primaryValue = getItemPrimaryAttributeValue(item.item.itemAttributes);
+  const primaryValue = getItemPrimaryAttributeValue(item.itemAttributes);
 
   const handleCardPress = () => {
-    initItemStore(item.item);
+    initItemStore(item);
     navigate({
       pathname: ROUTES.ITEMDETAILS,
       params: pageParams.itemdetails,
@@ -57,8 +52,8 @@ function CollectionItemListCard({
     >
       <Image
         source={{
-          uri: item.item.image
-            ? `${endpoints.itemsCoverImage}/${item.item.image}`
+          uri: item.image
+            ? `${endpoints.itemsCoverImage}/${item.image}`
             : `${endpoints.icons}/${collectionType.icon}`,
           cache: "reload",
         }}
@@ -88,7 +83,7 @@ function CollectionItemListCard({
             color: lightContrastColor,
           }}
         >
-          {new Date(item.item.acquiredAt).toLocaleDateString()}
+          {new Date(item.acquiredAt).toLocaleDateString()}
         </CustomText>
         <CustomText
           style={{
@@ -100,7 +95,7 @@ function CollectionItemListCard({
           Last acquisition date
         </CustomText>
         <CustomText style={{ color: darkContrastColor, marginLeft: 10 }}>
-          {item.item.quantity}
+          {item.quantity}
           <CustomText style={{ color: lightContrastColor, fontSize: 12 }}>
             pcs
           </CustomText>

@@ -42,7 +42,8 @@
     <PackageJsonDependenciesReactNativeIndicator Condition="$(PackageJsonDependenciesReactNativeIndicator) == ''">^1.2.1</PackageJsonDependenciesReactNativeIndicator>
     <PackageJsonDependenciesReactNativeMonthYearPicker Condition="$(PackageJsonDependenciesReactNativeMonthYearPicker) == ''">^1.9.0</PackageJsonDependenciesReactNativeMonthYearPicker>
     <PackageJsonDependenciesReactNativeNavigationMode Condition="$(PackageJsonDependenciesReactNativeNavigationMode) == ''">^1.2.3</PackageJsonDependenciesReactNativeNavigationMode>
-    <PackageJsonDependenciesReactNativeSafeAreaContext Condition="$(PackageJsonDependenciesReactNativeSafeAreaContext) == ''">^5.6.0</PackageJsonDependenciesReactNativeSafeAreaContext>
+    <PackageJsonDependenciesReactNativePaper Condition="$(PackageJsonDependenciesReactNativePaper) == ''">^5.14.5</PackageJsonDependenciesReactNativePaper>
+    <PackageJsonDependenciesReactNativeSafeAreaContext Condition="$(PackageJsonDependenciesReactNativeSafeAreaContext) == ''">^5.6.1</PackageJsonDependenciesReactNativeSafeAreaContext>
     <PackageJsonDependenciesReactNativeScreens Condition="$(PackageJsonDependenciesReactNativeScreens) == ''">~4.16.0</PackageJsonDependenciesReactNativeScreens>
     <PackageJsonDependenciesReactNativeToastMessage Condition="$(PackageJsonDependenciesReactNativeToastMessage) == ''">^2.3.3</PackageJsonDependenciesReactNativeToastMessage>
     <PackageJsonDependenciesReactNativeWeb Condition="$(PackageJsonDependenciesReactNativeWeb) == ''">~0.21.0</PackageJsonDependenciesReactNativeWeb>

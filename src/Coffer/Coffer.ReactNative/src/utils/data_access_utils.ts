@@ -170,3 +170,12 @@ export function updateItemAttributeValue(
       return attr;
   }
 }
+
+// helper to split array into chunks of N items
+export const chunkArray = <T>(array: T[], size: number): T[][] => {
+  const chunked: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunked.push(array.slice(i, i + size));
+  }
+  return chunked;
+};

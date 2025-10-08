@@ -30,6 +30,8 @@ function CollectionInfoCard() {
           borderColor: customTheme.colors.primary,
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
+          marginHorizontal: 10,
+          marginBottom: 20,
         }}
       >
         <View

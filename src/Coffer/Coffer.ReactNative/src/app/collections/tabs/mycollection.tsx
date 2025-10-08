@@ -1,9 +1,4 @@
-import CollectionInfoCard from "@/src/components/collections/tabs/mycollection/collection_info/collection_info_card";
-import CollectionItemListCard from "@/src/components/collections/tabs/mycollection/collection_item_list/collection_item_list_card";
-import CollectionListItemFilterWrapper from "@/src/components/collections/tabs/mycollection/collection_item_list/collection_item_list_filter_wrapper";
-import CollectionItemList from "@/src/components/collections/tabs/mycollection/collection_item_list/collection_item_title";
-import CustomText from "@/src/components/custom_ui/custom_text";
-import { Loading } from "@/src/components/custom_ui/loading";
+import CollectionSectionList from "@/src/components/collections/tabs/mycollection/collection_item_list/collection_sectionlist";
 import rootViewStyle from "@/src/components/custom_ui/root_view";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
@@ -13,7 +8,7 @@ import Attribute from "@/src/types/entities/attribute";
 import Item from "@/src/types/entities/item";
 import { QueryOptions } from "@/src/types/helpers/query_data";
 import { useEffect, useState } from "react";
-import { FlatList, View } from "react-native";
+import { View } from "react-native";
 
 function MyCollection() {
   const { collectionType, collection } = useCollectionStore();
@@ -73,51 +68,14 @@ function MyCollection() {
     <View
       style={[
         rootViewStyle({ color: collectionType.color }),
-        { flex: 1, paddingVertical: 0 },
+        { flex: 1, padding: 0 },
       ]}
     >
-      <FlatList
-        data={items}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        renderItem={(item) => (
-          <CollectionItemListCard item={item} collectionType={collectionType} />
-        )}
-        contentContainerStyle={{
-          paddingTop: 20,
-          paddingBottom: 100,
-        }}
-        ListHeaderComponent={
-          <>
-            <CollectionInfoCard />
-            <CollectionItemList />
-            {allLoading ? <Loading /> : null}
-          </>
-        }
-        ListEmptyComponent={
-          <View
-            style={{
-              justifyContent: "center",
-              alignItems: "center",
-              marginTop: 20,
-            }}
-          >
-            <CustomText style={{ fontFamily: "VendSansBold", fontSize: 20 }}>
-              No item found
-            </CustomText>
-            <CustomText style={{ textAlign: "center" }}>
-              {queryOptions.filters
-                ? `Adjust your filter to see different results`
-                : "Let's start adding items to your collection, by pressing the + button on the bottom left."}
-            </CustomText>
-          </View>
-        }
-        columnWrapperStyle={{ justifyContent: "center", gap: 10 }}
-        ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-      />
-      <CollectionListItemFilterWrapper
+      <CollectionSectionList
+        collectionType={collectionType}
         items={items}
         attributes={attributes}
+        allLoading={allLoading}
         queryOptions={{ value: queryOptions, set: setQueryOptions }}
       />
     </View>
