@@ -1,8 +1,32 @@
 from PIL import Image
 import numpy as np
+import torch.nn.functional as F
 import torch
-from torchvision import transforms
+from torchvision import models, transforms
 from torch import nn
+
+# ✅ Import or redefine the same model class used during training
+class ResNetEmbeddingWithClassifier(nn.Module):
+    def __init__(self, num_classes: int):
+        super().__init__()
+        base = models.resnet18(weights=None)  # no pretrained weights here for loading
+        num_feats = base.fc.in_features
+        base.fc = nn.Identity()
+
+        self.backbone = base
+        self.embedding_head = nn.Sequential(
+            nn.Linear(num_feats, 256),
+            nn.ReLU(),
+            nn.Dropout(0.4),
+            nn.Linear(256, 256)
+        )
+        self.classifier = nn.Linear(256, num_classes)
+
+    def forward(self, x):
+        feats = self.backbone(x)
+        embedding = F.normalize(self.embedding_head(feats), p=2, dim=1)
+        logits = self.classifier(embedding)
+        return embedding, logits
 
 def image_to_cnn_embedding(model: nn.Module, image_array: np.ndarray, device: str = "cpu") -> np.ndarray:
     """
@@ -36,7 +60,7 @@ def image_to_cnn_embedding(model: nn.Module, image_array: np.ndarray, device: st
     # --- Encode with trained model ---
     model.eval()
     with torch.no_grad():
-        embedding = model(image_tensor)
+        embedding, _ = model(image_tensor)
 
     # --- Normalize the embedding ---
     embedding = embedding.cpu().numpy().flatten()

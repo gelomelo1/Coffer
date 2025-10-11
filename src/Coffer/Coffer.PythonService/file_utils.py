@@ -2,7 +2,7 @@ from fastapi import UploadFile
 import numpy as np
 import cv2
 import os
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 async def uploadfile_to_numpy(upload_file: UploadFile) -> np.ndarray:
     # Read bytes from UploadFile
@@ -62,3 +62,16 @@ def save_dicts_to_txt(data: List[Dict], file_path: str) -> None:
         for item in data:
             row = [str(item[h]) for h in headers]
             f.write("\t".join(row) + "\n")
+
+
+
+def find_file_containing(directory: str, substring: str) -> Optional[str]:
+    """
+    Search for the first file in `directory` whose name contains `substring`.
+    
+    Returns the filename with extension if found, or None if no match exists.
+    """
+    for filename in os.listdir(directory):
+        if substring in filename:
+            return filename  # just the name, not full path
+    return None

@@ -1,5 +1,6 @@
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import messagebox, filedialog
+from similarity_check_training.create_vector_database import create_vector_database
 from similarity_check_training.crop_images import crop_images
 from similarity_check_training.training import train_similarity_model
 
@@ -15,6 +16,10 @@ class SimilarityCheckTrainingView(tk.Frame):
 
         self.similarity_trainer_source_var = tk.StringVar()
         self.similarity_trainer_dest_var = tk.StringVar()
+        self.similarity_model_name_var = tk.StringVar()
+
+        self.vector_database_dest_var = tk.StringVar()
+        self.vector_database_name_var  = tk.StringVar()
 
         # Create a frame to hold all form widgets
         container = tk.Frame(self)
@@ -76,8 +81,36 @@ class SimilarityCheckTrainingView(tk.Frame):
         tk.Entry(train_frame, textvariable=self.similarity_trainer_dest_var, width=60).pack(pady=5)
         tk.Button(train_frame, text="Browse", command=self.select_similarity_trainer_destination).pack(pady=5)
 
+        # Similarity trainer model name
+        tk.Label(train_frame, text="Model name:").pack(anchor="center", pady=(10,0))
+        tk.Entry(train_frame, textvariable=self.similarity_model_name_var, width=60).pack(pady=5)
+
         # Run similarity trainer button
         tk.Button(train_frame, text="Train model", command=self.handle_train_similarity_model, bg="green", fg="white").pack(pady=20)
+
+        # Vector database frame right
+        vector_database_frame = tk.Frame(container, padx=30)
+        vector_database_frame.pack(side="left", anchor="n")
+
+        # === Vector database Title ===
+        tk.Label(
+            vector_database_frame,
+            text="Vector database",
+            font=("Helvetica", 16, "bold"),
+            fg="#2E86C1"
+        ).pack(pady=(0, 15))
+
+        # Vector database destination directory
+        tk.Label(vector_database_frame, text="Destination Directory:").pack(anchor="center", pady=(10,0))
+        tk.Entry(vector_database_frame, textvariable=self.vector_database_dest_var, width=60).pack(pady=5)
+        tk.Button(vector_database_frame, text="Browse", command=self.select_vector_database_destination).pack(pady=5)
+
+        # Vector database name
+        tk.Label(vector_database_frame, text="Database name:").pack(anchor="center", pady=(10,0))
+        tk.Entry(vector_database_frame, textvariable=self.vector_database_name_var, width=60).pack(pady=5)
+
+        # Create vector database button
+        tk.Button(vector_database_frame, text="Create vector database", command=self.handle_create_vector_database, bg="green", fg="white").pack(pady=20)
 
     # Crop tool browse methods
     def select_crop_tool_source(self):
@@ -102,13 +135,17 @@ class SimilarityCheckTrainingView(tk.Frame):
     def handle_crop_images(self):
         source = self.crop_tool_source_var.get()
         dest = self.crop_tool_dest_var.get()
-        model_path = self.crop_tool_model_var()
-        recursive = self.crop_tool_recursive_var()
-        crop_images(source, dest, model_path, recursive)
+        model_path = self.crop_tool_model_var.get()
+        recursive = self.crop_tool_recursive_var.get()
+        try:
+            crop_images(source, dest, model_path, recursive)
+            messagebox.showinfo("Done", f"All detected objects cropped and saved to:\n{dest}")
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
         self.crop_tool_source_var.set("")
         self.crop_tool_dest_var.set("")
-        self.crop_tool_model_var("")
-        self.crop_tool_recursive_var(False)
+        self.crop_tool_model_var.set("")
+        self.crop_tool_recursive_var.set(False)
 
     # Similarity trainer tool browse methods
     def select_similarity_trainer_soruce(self):
@@ -121,10 +158,27 @@ class SimilarityCheckTrainingView(tk.Frame):
         if path:
             self.similarity_trainer_dest_var.set(path)
 
+    def select_vector_database_destination(self):
+        path = filedialog.askdirectory(title="Select Destination Directory")
+        if path:
+            self.vector_database_dest_var.set(path)
+
     # Similarity trainer start method
     def handle_train_similarity_model(self):
         source = self.similarity_trainer_source_var.get()
         dest = self.similarity_trainer_dest_var.get()
-        train_similarity_model(source, dest, 30)
+        name = self.similarity_model_name_var.get()
+        train_similarity_model(source, dest, name)
+        messagebox.showinfo("Done", f"✅ Training complete. Model {name} saved to: {dest}")
         self.similarity_trainer_source_var.set("")
         self.similarity_trainer_dest_var.set("")
+        self.similarity_model_name_var.set("")
+
+    def handle_create_vector_database(self):
+        dest = self.vector_database_dest_var.get()
+        name = self.vector_database_name_var.get()
+        create_vector_database(dest, name)
+        messagebox.showinfo("Done", f"✅ Collection {name} created or loaded at {dest}")
+        self.vector_database_dest_var.set("")
+        self.vector_database_name_var.set("")
+

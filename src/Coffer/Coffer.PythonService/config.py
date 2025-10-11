@@ -1,7 +1,9 @@
 import torch
 
 # --- Config ---
-UPLOAD_DIR = "E:\\Homework\\Programming\\AI\\szakdolgozat\\apitest"
-YOLO_MODEL = "models\\1.pt"
+TEST_UPLOAD_DIR = "E:\\Homework\\Programming\\AI\\szakdolgozat\\apitest"
+DOTENV_PATH = "../../.env"
+VECTOR_COLLECTION_NAME = "itemvectors"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-CNN_MODEL = "E:\\Homework\\Programming\\AI\\szakdolgozat\\training\\ObjectSimilarity\\Model\\cap_similarity_model.pt"
+OBJECT_DETECTION_THRESHOLD = 0.9
+SIMILARITY_THRESHOLD = 0.95
