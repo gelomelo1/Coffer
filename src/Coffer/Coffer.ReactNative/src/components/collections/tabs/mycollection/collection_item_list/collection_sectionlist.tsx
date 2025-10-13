@@ -36,7 +36,7 @@ function CollectionSectionList({
 }: CollectionSectionListProps) {
   const chunkedItems = chunkArray(items, 2); // 2 columns
 
-  const sections = chunkedItems.length > 0 ? [{ data: chunkedItems }] : []; // no sections if no items
+  const sections = [{ data: chunkedItems.length > 0 ? chunkedItems : [[]] }];
 
   const [isStickyShadow, setIsStickyShadow] = useState(false);
 
@@ -65,6 +65,30 @@ function CollectionSectionList({
             isStickyShadow={isStickyShadow}
           />
           {allLoading && <Loading />}
+
+          {!allLoading && items.length === 0 ? (
+            <>
+              <View
+                style={{
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginHorizontal: 10,
+                  marginTop: 20,
+                }}
+              >
+                <CustomText
+                  style={{ fontFamily: "VendSansBold", fontSize: 20 }}
+                >
+                  No item found
+                </CustomText>
+                <CustomText style={{ textAlign: "center" }}>
+                  {queryOptions.value.filters
+                    ? `Adjust your filter to see different results`
+                    : "Let's start adding items to your collection, by pressing the + button on the bottom left."}
+                </CustomText>
+              </View>
+            </>
+          ) : null}
         </>
       )}
       renderItem={({ item }) => (
@@ -86,27 +110,6 @@ function CollectionSectionList({
         </View>
       )}
       stickySectionHeadersEnabled
-      ListEmptyComponent={
-        !allLoading ? (
-          <View
-            style={{
-              justifyContent: "center",
-              alignItems: "center",
-              marginHorizontal: 10,
-              marginTop: 20,
-            }}
-          >
-            <CustomText style={{ fontFamily: "VendSansBold", fontSize: 20 }}>
-              No item found
-            </CustomText>
-            <CustomText style={{ textAlign: "center" }}>
-              {queryOptions.value.filters
-                ? `Adjust your filter to see different results`
-                : "Let's start adding items to your collection, by pressing the + button on the bottom left."}
-            </CustomText>
-          </View>
-        ) : null
-      }
       ListFooterComponent={
         <CustomText
           style={{

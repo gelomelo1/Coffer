@@ -49,12 +49,7 @@ function MyCollection() {
             field: "collectionTypeId",
             value: collectionType.id,
           },
-          ...(queryOptions.filters ?? []),
         ],
-        sort: queryOptions.sort,
-        page: queryOptions.page,
-        pageSize: queryOptions.pageSize,
-        filterConjunction: queryOptions.filterConjunction,
       }
     );
 

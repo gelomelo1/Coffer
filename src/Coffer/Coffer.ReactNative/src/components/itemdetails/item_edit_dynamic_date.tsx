@@ -25,7 +25,7 @@ function ItemEditDynamicDate({
 
   const checkInput = (newValue: Date | undefined | null) => {
     let errorMessage = "";
-    if (attribute.primary && !newValue) {
+    if (!newValue) {
       errorMessage = stringResource.requiredError;
     }
     setErrorMessage(errorMessage);

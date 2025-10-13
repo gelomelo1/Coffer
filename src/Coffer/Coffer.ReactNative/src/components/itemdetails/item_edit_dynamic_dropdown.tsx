@@ -33,7 +33,7 @@ function ItemEditDynamicDropdown({
 
   const checkInput = (newValue: string | null) => {
     let errorMessage = "";
-    if (attribute.primary && newValue === null) {
+    if (newValue === null) {
       errorMessage = stringResource.requiredError;
     }
     setErrorMessage(errorMessage);
@@ -41,8 +41,9 @@ function ItemEditDynamicDropdown({
   };
 
   useEffect(() => {
-    const value = defaultValue?.split(";")[0] ?? null;
+    const value = defaultValue?.split(";")[0] || null;
     setSelectValue(value);
+    console.log(typeof value);
     checkInput(value);
   }, [defaultValue]);
 

@@ -1,11 +1,21 @@
 import { useNavigationModeStore } from "@/src/hooks/navigation_mode_store";
 import { customTheme } from "@/src/theme/theme";
+import { Collection } from "@/src/types/entities/collection";
+import CollectionType from "@/src/types/entities/collectiontype";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import { FAB, Portal } from "react-native-paper";
-import ItemRegisterOverlay from "./ItemRegisterOverlay";
+import ItemRegisterOverlay from "./item_register_overlay";
 
-function ItemRegisterActionButton() {
+interface ItemRegisterActionButtonProps {
+  collectionType: CollectionType;
+  collection: Collection;
+}
+
+function ItemRegisterActionButton({
+  collectionType,
+  collection,
+}: ItemRegisterActionButtonProps) {
   const { navigationMode } = useNavigationModeStore();
 
   const [open, setOpen] = useState(false);
@@ -95,6 +105,8 @@ function ItemRegisterActionButton() {
         />
       </Portal>
       <ItemRegisterOverlay
+        collectionType={collectionType}
+        collection={collection}
         isImagePickerLoading={isImagePickerLoading}
         isItemRegisterOverlayOpen={{
           value: isItemRegisterOverlayOpen,

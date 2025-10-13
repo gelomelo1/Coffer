@@ -65,9 +65,11 @@ function buildFilter(filter: QueryFilterData): string {
       const firstDayOfMonth = `DateTime(${date.getFullYear()}, ${
         date.getMonth() + 1
       }, 1, 0, 0, 0, DateTimeKind.Utc)`;
-      const lastDayOfMonth = `DateTime(${date.getFullYear()}, ${
-        date.getMonth() + 2
-      }, 1, 0, 0, 0, DateTimeKind.Utc)`;
+      const month = date.getMonth() + 2;
+      const year = month > 12 ? date.getFullYear() + 1 : date.getFullYear();
+      const adjustedMonth = month > 12 ? 1 : month;
+
+      const lastDayOfMonth = `DateTime(${year}, ${adjustedMonth}, 1, 0, 0, 0, DateTimeKind.Utc)`;
       filterString += `${filter.filter}${
         filter.filter === ">" || filter.filter === ">="
           ? lastDayOfMonth

@@ -6,15 +6,22 @@ using System.Text;
 using System.Threading.Tasks;
 using Coffer.DataAccess.Extensions.IncludeProviders.Interfaces;
 using Coffer.DataAccess.Repositories.Generic;
+using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Coffer.DataAccess.Repositories
 {
-    public class ItemsRepository : GenericRepository<Guid, ItemProvided, ItemProvided, ItemRequired>
+    public class ItemsRepository : GenericRepository<Guid, ItemProvided, ItemProvided, ItemRequired>, IItemsRepository
     {
         public ItemsRepository(CofferDbContext dbContext, IIncludeProvider<ItemProvided> includeProvider) : base(dbContext, includeProvider)
         {
+        }
+
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            return await _dbContext.Database.BeginTransactionAsync();
         }
 
         protected override ItemProvided MapToEntity(ItemRequired required, ItemProvided? entity = null)

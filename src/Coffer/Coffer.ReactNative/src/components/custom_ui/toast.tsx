@@ -5,7 +5,7 @@ function showToast(type: ToastType, title: string, description?: string) {
     type,
     text1: title,
     text2: description,
-    visibilityTime: type === "success" ? 2000 : 4000,
+    visibilityTime: type === "success" || type === "info" ? 2000 : 4000,
     position: "bottom",
   });
 }

@@ -2,7 +2,7 @@ from typing import List, Dict, Tuple
 import numpy as np
 
 from save_temp_files import save_temp_files
-from vector_db_utils import query_chromadb
+from vector_db_utils import query_vectordb
 
 def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
     """Compute cosine similarity between two vectors."""
@@ -64,7 +64,7 @@ def build_image_check_response(
                 used_indices.add(j)  # mark as duplicate
 
         # Step 2: Query vector DB for top 3 similar items
-        db_results = query_chromadb(
+        db_results = query_vectordb(
             vector_db_collection,
             item_i["embedding"],
             metadata_filters=metadata_filters,

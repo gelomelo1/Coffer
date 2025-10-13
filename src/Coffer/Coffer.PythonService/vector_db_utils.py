@@ -1,7 +1,7 @@
 from typing import List, Dict, Tuple
 import numpy as np
 
-def query_chromadb(
+def query_vectordb(
     collection,
     query_embedding: np.ndarray,
     metadata_filters: List[Tuple[str, str]] = [],
@@ -40,3 +40,32 @@ def query_chromadb(
         })
 
     return top_results
+
+def save_item_to_vectordb(
+    collection,
+    id: str,
+    embedding: np.ndarray,
+    metadata: List[Tuple[str, str]] = []
+):
+    """
+    Save an item to a ChromaDB collection.
+
+    Args:
+        collection: ChromaDB collection object.
+        id (str): Unique ID for the item.
+        embedding (np.ndarray): The vector embedding to store.
+        metadata (List[Tuple[str, str]]): Optional list of key-value metadata pairs.
+    """
+
+    # Convert metadata list of tuples to dict
+    metadata_dict: Dict[str, str] = dict(metadata) if metadata else {}
+
+    # ChromaDB expects embeddings as lists
+    embedding_list = embedding.tolist() if isinstance(embedding, np.ndarray) else embedding
+
+    # Add the item to the collection
+    collection.add(
+        ids=[id],
+        embeddings=[embedding_list],
+        metadatas=[metadata_dict]
+    )

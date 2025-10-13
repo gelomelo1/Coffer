@@ -1,12 +1,18 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Body
 import os
 from dotenv import load_dotenv
 from build_image_check_response import build_image_check_response
 from config import DOTENV_PATH, OBJECT_DETECTION_THRESHOLD, SIMILARITY_THRESHOLD, TEST_UPLOAD_DIR
+from delete_embedding_from_vectordb import delete_embedding_from_vectordb
 from file_utils import find_file_containing, save_dicts_to_txt, save_images, uploadfile_to_numpy
 from initialize import initialize_models
+from itemids import ItemIds
 from object_detection_similarity_pipeline import object_detection_similarity_pipeline
 from object_detection_similarity_pipeline_test import object_detection_similarity_pipeline_test
+from pydantic import BaseModel
+from uuid import UUID
+from typing import List
+from save_embeddings_to_vectordb import save_embeddings_to_vectordb
 
 
 load_dotenv(DOTENV_PATH)
@@ -45,14 +51,14 @@ async def image_check(file: UploadFile = File(...)):
     except Exception as e:
         return {"status": "error", "message": str(e)}
     
-@app.post("/image_check/{collectionTypeId}/{collectionId}")
+@app.post("/image_check/{collection_type_id}/{collection_id}")
 async def image_check(
-    collectionTypeId: str,
-    collectionId: str,
+    collection_type_id: str,
+    collection_id: str,
     file: UploadFile = File(...)):
     try:
 
-        object_detection_model, similarity_model, collection = initialize_models(f"{collectionTypeId}_detection.pt", find_file_containing(os.getenv("MODELS_PATH"), f"{collectionTypeId}_similarity"))
+        object_detection_model, similarity_model, collection = initialize_models(f"{collection_type_id}_detection.pt", find_file_containing(os.getenv("MODELS_PATH"), f"{collection_type_id}_similarity"))
 
         # Convert uploadfile to in-memory image
         image_array = await uploadfile_to_numpy(file)
@@ -69,11 +75,46 @@ async def image_check(
             vector_db_collection=collection,
             main_threshold=SIMILARITY_THRESHOLD,
             save_path=os.getenv("IMAGECHECK_TEMP_PATH"),
-            metadata_filters=[("collection_id", collectionId)]
+            metadata_filters=[("collection_id", collection_id)]
         )
 
         # Here you could run validation, ML model, etc.
         # For now, just return a success message
         return {"status": "ok", "response": response}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@app.post("/save_embeddings/{collection_id}")        
+async def save_embeddings(
+    collection_id: str,
+    items: List[ItemIds] = Body(...)
+):
+
+    try:
+
+        object_detection_model, similarity_model, collection = initialize_models()
+
+        save_embeddings_to_vectordb(
+            collection,
+            collection_id,
+            os.getenv("IMAGECHECK_TEMP_PATH"),
+            items
+        )
+
+        return {"status": "ok"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+    
+@app.delete("/delete_embeddings/{item_id}")        
+async def save_embeddings(
+    item_id: str,
+):
+    try:
+
+        object_detection_model, similarity_model, collection = initialize_models()
+
+        delete_embedding_from_vectordb(collection, item_id)
+
+        return {"status": "ok"}
     except Exception as e:
         return {"status": "error", "message": str(e)}

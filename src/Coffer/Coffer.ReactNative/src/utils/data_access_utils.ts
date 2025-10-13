@@ -155,7 +155,6 @@ export function updateItemAttributeValue(
   attr: ItemAttribute,
   newValue: any
 ): ItemAttribute {
-  console.log("ltsggooo");
   switch (attr.attribute.dataType) {
     case "string":
     case "select":
@@ -179,3 +178,22 @@ export const chunkArray = <T>(array: T[], size: number): T[][] => {
   }
   return chunked;
 };
+
+export function getDefaultAttributeValue(
+  attribute: Attribute
+): string | number | boolean | null {
+  switch (attribute.dataType) {
+    case "string":
+      return "";
+    case "number":
+      return 0;
+    case "boolean":
+      return false;
+    case "date":
+      return new Date().toISOString();
+    case "select":
+      return "";
+    default:
+      return null;
+  }
+}

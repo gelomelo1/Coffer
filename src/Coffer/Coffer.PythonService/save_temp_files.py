@@ -13,7 +13,7 @@ def save_temp_files(
 
     # Schedule deletion
     def delete_files():
-        time.sleep(300)  # 5 minutes
+        time.sleep(600)  # 10 minutes
         try:
             os.remove(os.path.join(path, f"{item['id']}.npy"))
             os.remove(os.path.join(path, f"{item['id']}.jpg"))

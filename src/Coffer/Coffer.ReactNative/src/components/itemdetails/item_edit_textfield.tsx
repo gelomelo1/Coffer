@@ -22,7 +22,7 @@ function ItemEditTextField<T extends string | number>({
 
   const checkInput = (newValue: string) => {
     let errorMessage = "";
-    if (attribute.primary && newValue === "") {
+    if (newValue === "") {
       errorMessage = stringResource.requiredError;
     } else if (!textInputRegex.test(newValue)) {
       errorMessage = stringResource.textInputRegexError;

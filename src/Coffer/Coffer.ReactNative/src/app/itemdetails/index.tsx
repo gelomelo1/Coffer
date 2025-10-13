@@ -55,7 +55,9 @@ function ItemDetails() {
         >
           <Image
             source={{
-              uri: `${endpoints.itemsCoverImage}/${item.image}`,
+              uri: item.image
+                ? `${endpoints.itemsCoverImage}/${item.image}`
+                : `${endpoints.icons}/${collectionType.icon}`,
             }}
             style={{
               aspectRatio: "1/1",
