@@ -32,7 +32,7 @@ namespace Coffer.BusinessLogic.Services
             return (result["access_token"]);
         }
 
-        public async Task<(string Id, string Email, string Name)> GetGithubUser(string accessToken)
+        public async Task<(string Id, string Email, string Name, string? AvatarUrl)> GetGithubUser(string accessToken)
         {
             using var client = new HttpClient();
             client.DefaultRequestHeaders.Authorization =
@@ -71,7 +71,13 @@ namespace Coffer.BusinessLogic.Services
                 }
             }
 
-            return (user["id"].ToString(), email, user["login"].ToString());
+            string? avatarUrl = null;
+            if (user.ContainsKey("avatar_url") && user["avatar_url"] != null)
+            {
+                avatarUrl = user["avatar_url"].ToString();
+            }
+
+            return (user["id"].ToString(), email, user["login"].ToString(), avatarUrl);
         }
     }
 }

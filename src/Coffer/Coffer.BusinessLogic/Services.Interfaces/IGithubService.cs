@@ -9,6 +9,6 @@ namespace Coffer.BusinessLogic.Services.Interfaces
     public interface IGithubService
     {
         public Task<string> ExchangeCodeForToken(string code, string codeVerifier);
-        public Task<(string Id, string Email, string Name)> GetGithubUser(string accessToken);
+        public Task<(string Id, string Email, string Name, string? AvatarUrl)> GetGithubUser(string accessToken);
     }
 }

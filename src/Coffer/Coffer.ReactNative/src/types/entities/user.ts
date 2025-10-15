@@ -3,6 +3,9 @@ interface User {
   name: string;
   email: string;
   createdAt: string;
+  country: string;
+  avatar: string;
+  provider: string;
 }
 
 export default User;

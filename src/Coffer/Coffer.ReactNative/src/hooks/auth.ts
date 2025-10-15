@@ -1,10 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  GoogleSignin,
+  SignInResponse,
+} from "@react-native-google-signin/google-signin";
 import * as AuthSession from "expo-auth-session";
-import * as Google from "expo-auth-session/providers/google";
 import { navigate } from "expo-router/build/global-state/routing";
 import { useEffect, useState } from "react";
+import { asyncstoragekeys } from "../const/async_storage_keys";
 import {
-  androidGoogleClientId,
   githubClientId,
   redirectUriScheme,
   webGoogleClientId,
@@ -28,31 +31,48 @@ export function useGoogleAuth({
   onSuccessfulRegistration,
   onSuccessfulLogin,
 }: useGoogleAuthProps) {
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    webClientId: webGoogleClientId,
-    androidClientId: androidGoogleClientId,
-    responseType: "id_token",
-    redirectUri: reidrectUri,
+  GoogleSignin.configure({
+    webClientId: webGoogleClientId, // Your web client ID from Google Developer Console
+    offlineAccess: true, // Optional: if you need to access Google APIs
+    scopes: ["profile", "email"],
   });
 
+  const [googleResponse, setGoogleResponse] = useState<SignInResponse | null>(
+    null
+  );
   const [tempId, setTempId] = useState<string | null>(null);
 
-  // Handle Google response
+  const googlePrompt = async () => {
+    try {
+      const userInfo = await GoogleSignin.signIn();
+      setGoogleResponse(userInfo);
+      return userInfo;
+    } catch (error) {
+      console.error("Google Sign-In Error:", error);
+      return null;
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      await GoogleSignin.revokeAccess();
+      await GoogleSignin.signOut();
+    } catch (error) {
+      console.error("Error signing out from Google:", error);
+    }
+  };
+
   useEffect(() => {
     const handleGoogleResponse = async () => {
-      if (response?.type === "success") {
-        const token = response.params?.id_token;
-        if (!token) return;
-
+      if (googleResponse?.data?.idToken) {
         try {
           const validation = await postData<
             { idToken: string },
             { exists: boolean; token?: string; tempId: string }
-          >(endpoints.googleValidate, { idToken: token });
+          >(endpoints.googleValidate, { idToken: googleResponse.data.idToken });
 
           onUserExistsChange?.(validation.exists);
 
-          // If user exists, login automatically
           if (validation.exists && validation.token) {
             await AsyncStorage.setItem("jwt", validation.token);
             onSuccessfulLogin?.();
@@ -67,16 +87,15 @@ export function useGoogleAuth({
     };
 
     handleGoogleResponse();
-  }, [response]);
+  }, [googleResponse, onSuccessfulLogin, onUserExistsChange]);
 
-  // Submit registration manually with username
-  const submitRegistration = async (username: string) => {
+  const submitRegistration = async (username: string, country: string) => {
     if (!tempId) return;
     try {
       const jwtResp = await postData<
-        { tempId: string; username: string },
+        { tempId: string; username: string; country: string },
         { token: string }
-      >(endpoints.googleRegister, { tempId, username });
+      >(endpoints.googleRegister, { tempId, username, country });
       await AsyncStorage.setItem("jwt", jwtResp.token);
       onSuccessfulRegistration?.();
       navigate(ROUTES.ROOT);
@@ -85,7 +104,7 @@ export function useGoogleAuth({
     }
   };
 
-  return { promptAsync, submitRegistration };
+  return { promptAsync: googlePrompt, submitRegistration, signOut };
 }
 
 export function useGitHubAuth({
@@ -130,7 +149,7 @@ export function useGitHubAuth({
           onUserExistsChange?.(validation.exists);
 
           if (validation.exists && validation.token) {
-            await AsyncStorage.setItem("jwt", validation.token);
+            await AsyncStorage.setItem(asyncstoragekeys.jwt, validation.token);
             onSuccessfulLogin?.();
             navigate(ROUTES.ROOT);
           } else if (!validation.exists && validation.tempId) {
@@ -142,17 +161,17 @@ export function useGitHubAuth({
       }
     };
     handleGitHubResponse();
-  }, [response]);
+  }, [onSuccessfulLogin, onUserExistsChange, request?.codeVerifier, response]);
 
   // Manual registration
-  const submitRegistration = async (username: string) => {
+  const submitRegistration = async (username: string, country: string) => {
     if (!tempId) return;
     try {
       const jwtResp = await postData<
-        { tempId: string; username: string },
+        { tempId: string; username: string; country: string },
         { token: string }
-      >(endpoints.githubRegister, { tempId, username });
-      await AsyncStorage.setItem("jwt", jwtResp.token);
+      >(endpoints.githubRegister, { tempId, username, country });
+      await AsyncStorage.setItem(asyncstoragekeys.jwt, jwtResp.token);
       onSuccessfulRegistration?.();
       navigate(ROUTES.ROOT);
     } catch (error) {

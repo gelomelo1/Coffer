@@ -1,3 +1,4 @@
+import { FlagType, getAllCountries } from "react-native-country-picker-modal";
 import {
   itemSortDefaultOptions,
   nestedAttributeFilterQuery,
@@ -196,4 +197,21 @@ export function getDefaultAttributeValue(
     default:
       return null;
   }
+}
+
+export async function getCountryByCode(countryCode: string) {
+  const value = await getAllCountries(
+    FlagType.FLAT,
+    undefined,
+    undefined,
+    undefined,
+    [countryCode as any],
+    undefined,
+    undefined,
+    undefined
+  );
+
+  if (value.length === 0) return null;
+
+  return value[0];
 }

@@ -16,13 +16,17 @@ namespace Coffer.Domain.Entities
         public string ProviderUserId { get; set; }
         public string Name { get; set; }
         public string Email { get; set; }
+        public string Country { get; set; }
+        public string? Avatar { get; set; }
 
-        public UserRequired(string provider, string providerUserId, string name, string email)
+        public UserRequired(string provider, string providerUserId, string name, string email, string country, string? avatar = null)
         {
             Provider = provider;
             ProviderUserId = providerUserId;
             Name = name;
             Email = email;
+            Country = country;
+            Avatar = avatar;
         }
     }
 
@@ -32,21 +36,26 @@ namespace Coffer.Domain.Entities
         public string Name { get; set; }
         public string Email { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string Provider { get; set; }
+        public string Country { get; set; }
+        public string? Avatar { get; set; }
 
-        public UserProvided(string name, string email)
+        public UserProvided(string name, string email, string provider, string country, string? avatar)
         {
             Name = name;
             Email = email;
             CreatedAt = DateTime.UtcNow;
+            Provider = provider;
+            Country = country;
+            Avatar = avatar;
         }
     }
 
     public class User: UserProvided
     {
-        public string Provider { get; set; }
         public string ProviderUserId { get; set; }
 
-        public User(string name, string email, string provider, string providerUserId) : base(name, email)
+        public User(string name, string email, string provider, string country, string providerUserId, string? avatar = null) : base(name, email, provider, country, avatar)
         {
             Provider = provider;
             ProviderUserId = providerUserId;

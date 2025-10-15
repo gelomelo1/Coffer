@@ -24,7 +24,7 @@ namespace Coffer.DataAccess.Repositories
 
         public async Task<User> InsertUserAsync(UserRequired newUser)
         {
-            var user = new User(newUser.Name, newUser.Email, newUser.Provider, newUser.ProviderUserId);
+            var user = new User(newUser.Name, newUser.Email, newUser.Provider, newUser.Country, newUser.ProviderUserId, newUser.Avatar);
             _dbSet.Add(user);
             await _dbContext.SaveChangesAsync();
             return user;
@@ -34,13 +34,15 @@ namespace Coffer.DataAccess.Repositories
         {
             if(entity == null)
             {
-                return new User(required.Name, required.Email, required.Provider, required.ProviderUserId);
+                return new User(required.Name, required.Email, required.Provider, required.Country, required.ProviderUserId, required.Avatar);
             }
 
             entity.Name = required.Name;
             entity.Email = required.Email;
             entity.Provider = required.Provider;
             entity.ProviderUserId = required.ProviderUserId;
+            entity.Country = required.Country;
+            entity.Avatar = required.Avatar;
 
             return entity;
         }

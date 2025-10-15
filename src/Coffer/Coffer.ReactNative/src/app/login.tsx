@@ -29,6 +29,7 @@ function Login() {
   const {
     promptAsync: googlePrompt,
     submitRegistration: googleSubmitRegistration,
+    signOut: googleSignOut,
   } = useGoogleAuth({
     onUserExistsChange: handleUserNotExists,
     onSuccessfulRegistration: handleSuccessfulRegistration,
@@ -54,12 +55,21 @@ function Login() {
     githubPrompt();
   };
 
-  const handleSubmitRegistration = async (username: string) => {
+  const handleSubmitRegistration = async (
+    username: string,
+    country: string
+  ) => {
     if (provider === "google") {
-      await googleSubmitRegistration(username);
+      await googleSubmitRegistration(username, country);
     } else if (provider === "github") {
-      await githubSubmitRegistration(username);
+      await githubSubmitRegistration(username, country);
     }
+  };
+
+  const handleCloseRegistrationModal = async () => {
+    console.log("Signing out from provider:", provider);
+    if (provider === "google") await googleSignOut();
+    setIsUsernameModalOpen(false);
   };
 
   return (
@@ -108,7 +118,7 @@ function Login() {
       </View>
       <Modal
         visible={isUsernameModalOpen}
-        onRequestClose={() => setIsUsernameModalOpen(false)}
+        onRequestClose={handleCloseRegistrationModal}
       >
         <RegisterForm submitRegistration={handleSubmitRegistration} />
       </Modal>

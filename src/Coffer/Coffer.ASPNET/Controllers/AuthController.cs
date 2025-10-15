@@ -38,6 +38,8 @@ namespace Coffer.ASPNET.Controllers
             {
                 var payload = await GoogleJsonWebSignature.ValidateAsync(req.IdToken);
 
+                Console.WriteLine(payload);
+
                 var user = await _usersRepository.GetUserByLogin("google", payload.Subject);
 
                 if (user != null)
@@ -55,7 +57,7 @@ namespace Coffer.ASPNET.Controllers
             }
         }
 
-        public record RegisterRequest(string TempId, string Username);
+        public record RegisterRequest(string TempId, string Username, string Country);
         [HttpPost("google/register")]
         public async Task<IActionResult> GoogleRegister([FromBody] RegisterRequest req)
         {
@@ -75,7 +77,7 @@ namespace Coffer.ASPNET.Controllers
                     return BadRequest("User already exists");
                 }
 
-                var user = await _usersRepository.InsertUserAsync(new UserRequired("google", payload.Subject, req.Username, payload.Email));
+                var user = await _usersRepository.InsertUserAsync(new UserRequired("google", payload.Subject, req.Username, payload.Email, req.Country, payload.Picture));
 
                 var jwt = _jwtService.GenerateToken(user);
 
@@ -116,7 +118,7 @@ namespace Coffer.ASPNET.Controllers
             }
         }
 
-        public record RegisterRequestGithub(string TempId, string Username);
+        public record RegisterRequestGithub(string TempId, string Username, string Country);
         [HttpPost("github/register")]
         public async Task<IActionResult> GithubRegister([FromBody] RegisterRequestGithub req)
         {
@@ -133,7 +135,7 @@ namespace Coffer.ASPNET.Controllers
                 if (existingUser != null) return BadRequest("User already exists");
 
                 var user = await _usersRepository.InsertUserAsync(
-                    new UserRequired("github", githubUser.Id, req.Username, githubUser.Email)
+                    new UserRequired("github", githubUser.Id, req.Username, githubUser.Email, req.Country, githubUser.AvatarUrl)
                 );
 
                 var jwt = _jwtService.GenerateToken(user);
