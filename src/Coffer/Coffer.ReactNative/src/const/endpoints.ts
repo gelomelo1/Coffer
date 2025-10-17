@@ -19,4 +19,5 @@ export const endpoints = {
   itemOptions: "api/ItemOptions",
   itemsImageCheck: "api/Collections/ImageCheck",
   attributes: "api/Attributes",
+  feed: "api/Feed",
 };

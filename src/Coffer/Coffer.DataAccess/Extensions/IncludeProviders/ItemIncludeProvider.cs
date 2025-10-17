@@ -16,7 +16,8 @@ namespace Coffer.DataAccess.Extensions.IncludeProviders
             return new[]
             {
                 "ItemAttributes.Attribute",
-                "ItemTags"
+                "ItemTags",
+                "Reactions"
             };
         }
     }

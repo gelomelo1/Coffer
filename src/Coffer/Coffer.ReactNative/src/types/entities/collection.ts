@@ -1,3 +1,5 @@
+import { Follow } from "./follow";
+
 export interface CollectionRequired {
   userId: string;
   collectionTypeId: number;
@@ -8,4 +10,5 @@ export interface Collection extends CollectionRequired {
   id: string;
   image: string;
   createdAt: string;
+  follows: Follow[];
 }

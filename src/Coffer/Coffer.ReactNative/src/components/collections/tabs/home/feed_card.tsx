@@ -1,0 +1,205 @@
+import CustomText from "@/src/components/custom_ui/custom_text";
+import { endpoints } from "@/src/const/endpoints";
+import { customTheme } from "@/src/theme/theme";
+import CollectionType from "@/src/types/entities/collectiontype";
+import Feed from "@/src/types/entities/feed";
+import User from "@/src/types/entities/user";
+import {
+  getCountryByCode,
+  getItemPrimaryAttributeValue,
+} from "@/src/utils/data_access_utils";
+import { adjustColor } from "@/src/utils/frontend_utils";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { useEffect, useState } from "react";
+import { Image, View } from "react-native";
+import { Country } from "react-native-country-picker-modal";
+import { Avatar } from "react-native-elements";
+
+interface FeedCardProps {
+  user: User;
+  collectionType: CollectionType;
+  feed: Feed;
+}
+
+function FeedCard({ user, collectionType, feed }: FeedCardProps) {
+  const [country, setCountry] = useState<Country | null>(null);
+
+  useEffect(() => {
+    const fetchCountry = async () => {
+      if (feed.user.country) {
+        const countryData = await getCountryByCode(feed.user.country);
+        setCountry(countryData);
+      }
+    };
+
+    fetchCountry();
+  }, [feed.user.country]);
+
+  const isCollectionFollwed = !!feed.collection.follows.find(
+    (follow) => follow.userId === user.id
+  );
+
+  const primaryAttribute = getItemPrimaryAttributeValue(
+    feed.item.itemAttributes
+  );
+
+  const darkContrastColor = adjustColor(
+    collectionType.color,
+    customTheme.colorChangePercent.dark
+  );
+
+  return (
+    <View
+      style={{
+        width: "100%",
+        backgroundColor: customTheme.colors.primary,
+        borderRadius: 20,
+      }}
+    >
+      <View style={{ margin: 10 }}>
+        <View style={{ justifyContent: "space-between", flexDirection: "row" }}>
+          <View
+            style={{
+              justifyContent: "flex-start",
+              alignItems: "center",
+              flexShrink: 1,
+              flexDirection: "row",
+              gap: 10,
+            }}
+          >
+            <Avatar
+              size={32}
+              rounded
+              source={feed.user.avatar ? { uri: feed.user.avatar } : undefined}
+              icon={
+                !feed.user?.avatar
+                  ? {
+                      name: "user",
+                      type: "feather",
+                      color: customTheme.colors.primary,
+                    }
+                  : undefined
+              }
+              containerStyle={{ backgroundColor: customTheme.colors.secondary }}
+            />
+            <CustomText
+              style={{
+                color: customTheme.colors.secondary,
+                flexShrink: 1,
+              }}
+              numberOfLines={1}
+              lineBreakMode="tail"
+            >
+              {feed.user.name}
+            </CustomText>
+          </View>
+          <View>
+            <View
+              style={{
+                justifyContent: "flex-start",
+                alignItems: "center",
+                flexDirection: "row",
+              }}
+            >
+              <MaterialIcons
+                name="place"
+                size={24}
+                color={customTheme.colors.secondary}
+              />
+              <CustomText style={{ color: customTheme.colors.secondary }}>
+                {country ? country.name.toString() : ""}
+              </CustomText>
+            </View>
+            <CustomText
+              style={{
+                fontSize: 12,
+                color: customTheme.colors.secondary,
+                textAlign: "right",
+              }}
+            >
+              {new Date(feed.item.acquiredAt).toLocaleDateString()}
+            </CustomText>
+          </View>
+        </View>
+        <View
+          style={{
+            justifyContent: "flex-start",
+            alignItems: "center",
+            flexDirection: "row",
+          }}
+        >
+          <CustomText
+            style={{
+              fontFamily: "VendSansItalic",
+              color: customTheme.colors.secondary,
+            }}
+          >
+            {feed.collection.name}
+          </CustomText>
+          {isCollectionFollwed ? (
+            <>
+              <CustomText style={{ color: customTheme.colors.secondary }}>
+                {" "}
+                -{" "}
+              </CustomText>
+              <CustomText
+                style={{
+                  fontFamily: "VendSansBold",
+                  color: customTheme.colors.secondary,
+                }}
+              >
+                Followed
+              </CustomText>
+            </>
+          ) : null}
+        </View>
+      </View>
+      <View
+        style={{
+          justifyContent: "center",
+          alignItems: "center",
+          borderRadius: 20,
+          backgroundColor: collectionType.color,
+          padding: 10,
+          borderWidth: 2,
+          borderColor: customTheme.colors.secondary,
+        }}
+      >
+        <View
+          style={{
+            width: "40%",
+            alignSelf: "center",
+            borderWidth: 2,
+            borderColor: darkContrastColor,
+            borderRadius: 5,
+            boxShadow: `2px 2px 2px ${darkContrastColor}`,
+          }}
+        >
+          <Image
+            source={{
+              uri: feed.item.image
+                ? `${endpoints.itemsCoverImage}/${feed.item.image}`
+                : `${endpoints.icons}/${collectionType.icon}`,
+            }}
+            style={{
+              aspectRatio: "1/1",
+            }}
+          />
+        </View>
+        <CustomText
+          style={{
+            alignSelf: "center",
+            marginTop: 10,
+            fontSize: 20,
+            borderBottomWidth: 1,
+            borderColor: customTheme.colors.primary,
+          }}
+        >
+          {primaryAttribute?.itemAttribute.attribute.name}
+        </CustomText>
+      </View>
+    </View>
+  );
+}
+
+export default FeedCard;

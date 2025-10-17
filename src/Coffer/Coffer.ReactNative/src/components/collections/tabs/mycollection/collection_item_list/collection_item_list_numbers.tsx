@@ -1,12 +1,12 @@
 import CustomText from "@/src/components/custom_ui/custom_text";
 import { customTheme } from "@/src/theme/theme";
-import Item from "@/src/types/entities/item";
+import { ItemProvided } from "@/src/types/entities/item";
 import { QueryOptions } from "@/src/types/helpers/query_data";
 import { getItemsQuantity } from "@/src/utils/data_access_utils";
 import { View } from "react-native";
 
 interface CollectionItemListNumbersProps {
-  items: Item[];
+  items: ItemProvided[];
   queryOptions: QueryOptions;
 }
 

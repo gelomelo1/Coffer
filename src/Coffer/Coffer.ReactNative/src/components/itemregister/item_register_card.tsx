@@ -7,7 +7,7 @@ import Attribute from "@/src/types/entities/attribute";
 import { Collection } from "@/src/types/entities/collection";
 import CollectionType from "@/src/types/entities/collectiontype";
 import ImageCheck from "@/src/types/entities/imagecheck";
-import Item from "@/src/types/entities/item";
+import { Item } from "@/src/types/entities/item";
 import { ItemsCreate } from "@/src/types/helpers/items_create";
 import {
   getDefaultAttributeValue,

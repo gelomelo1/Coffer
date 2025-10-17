@@ -24,6 +24,39 @@ namespace Coffer.DataAccess.Repositories
             return await _dbContext.Database.BeginTransactionAsync();
         }
 
+        public async Task<IEnumerable<ItemProvided>> GetFeedItemsAsync(User user)
+        {
+            var oneWeekAgo = DateTime.UtcNow.AddDays(-7);
+            var random = new Random();
+
+            var query = _dbSet
+                .Include(i => i.Reactions)
+                .Include(i => i.ItemAttributes)
+                .ThenInclude(ia => ia.Attribute)
+                .Include(i => i.ItemTags)
+                .Include(i => i.Collection)
+                .Include(i => i.Collection.Follows)
+                .Where(i =>
+                    i.Collection.UserId != user.Id &&
+                    i.AcquiredAt >= oneWeekAgo)
+                .Select(i => new
+                {
+                    Item = i,
+                    Score =
+                        (i.Collection.Follows.Any(f => f.UserId == user.Id) ? 100 : 0) +   // followed = big weight
+                        (i.Collection.User.Country == user.Country ? 50 : 0) + // same country = medium weight
+                        random.NextDouble() * 20 // small random for soft mixing
+                });
+
+            var items = await query
+                .OrderByDescending(x => x.Score)
+                .ThenByDescending(x => x.Item.AcquiredAt)
+                .Select(x => x.Item)
+                .ToListAsync();
+
+            return items;
+        }
+
         protected override ItemProvided MapToEntity(ItemRequired required, ItemProvided? entity = null)
         {
             if (entity == null)
@@ -131,6 +164,9 @@ namespace Coffer.DataAccess.Repositories
                     provided.Image
                 );
 
+                // Add collection
+                newEntity.Collection = provided.Collection;
+
                 // Add attributes
                 foreach (var attr in provided.ItemAttributes)
                 {
@@ -141,6 +177,12 @@ namespace Coffer.DataAccess.Repositories
                 foreach (var tag in provided.ItemTags)
                 {
                     newEntity.ItemTags.Add(tag);
+                }
+
+                // Add reactions
+                foreach (var reaction in provided.Reactions)
+                {
+                    newEntity.Reactions.Add(reaction);
                 }
 
                 return newEntity;

@@ -105,7 +105,7 @@ function ItemDetails() {
               </CustomText>
             </View>
             <CustomText style={{ fontFamily: "VendSansItalic", fontSize: 12 }}>
-              {"Acquisition date of the last piece"}
+              {"Acquisition date of the first piece"}
             </CustomText>
           </View>
           <CustomText

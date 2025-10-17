@@ -1,12 +1,12 @@
 import { NavigationModeInfo } from "react-native-navigation-mode";
 import { Collection } from "../entities/collection";
 import CollectionType from "../entities/collectiontype";
-import Item from "../entities/item";
+import { ItemProvided } from "../entities/item";
 import User from "../entities/user";
 
 export interface ItemStore {
-  item: Item;
-  setItem: (item: Item) => void;
+  item: ItemProvided;
+  setItem: (item: ItemProvided) => void;
 }
 
 export interface NavigationModeStore {

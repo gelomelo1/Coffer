@@ -4,14 +4,14 @@ import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { initItemStore } from "@/src/hooks/item_store";
 import { customTheme } from "@/src/theme/theme";
 import CollectionType from "@/src/types/entities/collectiontype";
-import Item from "@/src/types/entities/item";
+import { ItemProvided } from "@/src/types/entities/item";
 import { getItemPrimaryAttributeValue } from "@/src/utils/data_access_utils";
 import { adjustColor } from "@/src/utils/frontend_utils";
 import { navigate } from "expo-router/build/global-state/routing";
 import { Image, TouchableOpacity, View } from "react-native";
 
 interface CollectionItemListCardProps {
-  item: Item;
+  item: ItemProvided;
   collectionType: CollectionType;
 }
 

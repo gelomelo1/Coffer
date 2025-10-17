@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Coffer.DataAccess.Extensions.IncludeProviders.Interfaces;
 using Coffer.DataAccess.Repositories.Generic;
 using Coffer.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +12,7 @@ namespace Coffer.DataAccess.Repositories
 {
     public class CollectionsRepository : GenericRepository<Guid, CollectionProvided, CollectionProvided, CollectionRequired>
     {
-        public CollectionsRepository(CofferDbContext dbContext) : base(dbContext)
+        public CollectionsRepository(CofferDbContext dbContext, IIncludeProvider<CollectionProvided> includeProvider) : base(dbContext, includeProvider)
         {
         }
 
@@ -33,7 +34,7 @@ namespace Coffer.DataAccess.Repositories
         {
             if (entity == null)
             {
-                return new CollectionProvided(provided.UserId, provided.CollectionTypeId, provided.Name, provided.Image);
+                return new CollectionProvided(provided.UserId, provided.CollectionTypeId, provided.Name, provided.User, provided.Image);
             }
 
             return provided;

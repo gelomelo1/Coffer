@@ -14,16 +14,18 @@ namespace Coffer.ASPNET.Controllers
     public class ItemsController : GenericController<Guid, ItemProvided, ItemProvided, ItemRequired>
     {
         private readonly IItemsRepository _itemsRepository;
+        private readonly IUsersRepository _usersRepositry;
         private readonly IImageService _imageService;
         private readonly string imageFolder =
             Path.Combine(Env.GetString("IMAGESTORE_PATH") ?? throw new InvalidOperationException("IMAGESTORE_PATH envionmental variable is not set"), "items");
         private readonly string tempFolder = Env.GetString("IMAGECHECK_TEMP_PATH") ?? throw new InvalidOperationException("IMAGECHECK_TEMP_PATH envionmental variable is not set");
         private readonly HttpClient _httpClient;
-        public ItemsController(IItemsRepository repository, IImageService imageService, HttpClient httpClient) : base(repository)
+        public ItemsController(IItemsRepository repository, IUsersRepository usersRepository, IImageService imageService, HttpClient httpClient) : base(repository)
         {
             _itemsRepository = repository;
             _imageService = imageService;
             _httpClient = httpClient;
+            _usersRepositry = usersRepository;
         }
 
         [HttpGet("CoverImage/{fileName}")]

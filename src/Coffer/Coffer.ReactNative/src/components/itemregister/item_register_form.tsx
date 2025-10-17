@@ -6,7 +6,7 @@ import { useGetData } from "@/src/hooks/data_hooks";
 import { customTheme } from "@/src/theme/theme";
 import Attribute from "@/src/types/entities/attribute";
 import CollectionType from "@/src/types/entities/collectiontype";
-import Item from "@/src/types/entities/item";
+import { Item } from "@/src/types/entities/item";
 import ItemAttribute from "@/src/types/entities/item_attribute";
 import {
   getDefaultAttributeValue,

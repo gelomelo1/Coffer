@@ -8,7 +8,7 @@ import { useUpdateData } from "@/src/hooks/data_hooks";
 import { useItemStore } from "@/src/hooks/item_store";
 import { useResetNavigation } from "@/src/hooks/navigation";
 import { customTheme } from "@/src/theme/theme";
-import Item from "@/src/types/entities/item";
+import { Item, ItemProvided } from "@/src/types/entities/item";
 import {
   getItemAttributeValue,
   getItemPrimaryAttributeValue,
@@ -35,7 +35,7 @@ function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
   const resetNavigate = useResetNavigation();
   const { collection } = useCollectionStore();
   const { mutateAsync: updateItem, isPending: isItemUpdatePending } =
-    useUpdateData<Item, Item>(
+    useUpdateData<Item, ItemProvided>(
       endpoints.items,
       `${querykeys.itemsData}${collection.id}`
     );

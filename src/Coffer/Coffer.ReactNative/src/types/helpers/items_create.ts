@@ -1,4 +1,4 @@
-import Item from "../entities/item";
+import { Item } from "../entities/item";
 
 export interface ItemsCreate {
   id: string;

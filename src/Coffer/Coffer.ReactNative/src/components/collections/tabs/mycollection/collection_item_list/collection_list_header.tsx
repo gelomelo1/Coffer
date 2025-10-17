@@ -2,7 +2,7 @@ import CustomText from "@/src/components/custom_ui/custom_text";
 import { useCollectionStore } from "@/src/hooks/collection_store";
 import { customTheme } from "@/src/theme/theme";
 import Attribute from "@/src/types/entities/attribute";
-import Item from "@/src/types/entities/item";
+import { ItemProvided } from "@/src/types/entities/item";
 import { QueryOptions } from "@/src/types/helpers/query_data";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import React, { useState } from "react";
@@ -11,7 +11,7 @@ import CollectionItemListNumbers from "./collection_item_list_numbers";
 import CollectionListFilterBottomSheet from "./collection_list_filter_bottomsheet";
 
 interface CollectionItemHeaderProps {
-  items: Item[];
+  items: ItemProvided[];
   attributes: Attribute[];
   queryOptions: {
     value: QueryOptions;

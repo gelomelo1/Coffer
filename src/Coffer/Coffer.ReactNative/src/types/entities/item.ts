@@ -1,7 +1,8 @@
 import ItemAttribute from "./item_attribute";
 import ItemTag from "./item_tag";
+import Reaction from "./reaction";
 
-interface Item {
+export interface Item {
   id: string;
   collectionId: string;
   description: string;
@@ -12,4 +13,6 @@ interface Item {
   itemTags: ItemTag[];
 }
 
-export default Item;
+export interface ItemProvided extends Item {
+  reactions: Reaction[];
+}

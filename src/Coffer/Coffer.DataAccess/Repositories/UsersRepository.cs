@@ -16,6 +16,11 @@ namespace Coffer.DataAccess.Repositories
         {
         }
 
+        public async Task<User?> GetUserById(Guid userId)
+        {
+            return await _dbSet.FirstOrDefaultAsync(user => user.Id == userId);
+        }
+
         public async Task<User?> GetUserByLogin(string provider, string providerUserId)
         {
             return await _dbSet

@@ -2,7 +2,7 @@ import CustomText from "@/src/components/custom_ui/custom_text";
 import { Loading } from "@/src/components/custom_ui/loading";
 import Attribute from "@/src/types/entities/attribute";
 import CollectionType from "@/src/types/entities/collectiontype";
-import Item from "@/src/types/entities/item";
+import { ItemProvided } from "@/src/types/entities/item";
 import { QueryOptions } from "@/src/types/helpers/query_data";
 import { chunkArray } from "@/src/utils/data_access_utils";
 import { useState } from "react";
@@ -18,7 +18,7 @@ import CollectionItemHeader from "./collection_list_header";
 
 interface CollectionSectionListProps {
   collectionType: CollectionType;
-  items: Item[];
+  items: ItemProvided[];
   attributes: Attribute[];
   allLoading: boolean;
   queryOptions: {

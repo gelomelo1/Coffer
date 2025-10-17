@@ -1,17 +1,31 @@
 import CustomText from "@/src/components/custom_ui/custom_text";
 import CustomTextInput from "@/src/components/custom_ui/custom_text_input";
 import { Loading } from "@/src/components/custom_ui/loading";
+import { endpoints } from "@/src/const/endpoints";
+import { querykeys } from "@/src/const/querykeys";
+import { useCollectionStore } from "@/src/hooks/collection_store";
+import { useGetData } from "@/src/hooks/data_hooks";
+import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
+import Feed from "@/src/types/entities/feed";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import React, { useRef } from "react";
 import { Animated, StyleSheet, View } from "react-native";
+import FeedCard from "./feed_card";
 
 const HEADER_HEIGHT = 200;
 const INPUT_HEIGHT = 60;
 
 function FeedList() {
+  const { collectionType } = useCollectionStore();
+  const { user } = useUserStore();
+
+  const { data: feedListData, isFetching } = useGetData<Feed>(
+    `${endpoints.feed}/${user!.id}`,
+    querykeys.feedListData
+  );
+
   const scrollY = useRef(new Animated.Value(0)).current;
-  const data = [...Array(100).keys()];
 
   // Input moves up until it hits top
   const translateY = scrollY.interpolate({
@@ -131,24 +145,56 @@ function FeedList() {
         }}
       >
         <Animated.FlatList
-          data={data}
-          keyExtractor={(item) => item.toString()}
+          data={feedListData}
+          keyExtractor={(item) => item.item.id}
           renderItem={({ item }) => (
-            <View style={{ padding: 16 }}>
-              <CustomText>{item}</CustomText>
-            </View>
+            <FeedCard
+              user={user!}
+              collectionType={collectionType}
+              feed={item}
+            />
           )}
           contentContainerStyle={{
+            gap: 50,
             backgroundColor: customTheme.colors.background,
             marginTop: HEADER_HEIGHT, // initial space below image
             paddingBottom: HEADER_HEIGHT + 2 * INPUT_HEIGHT,
+            paddingHorizontal: 10,
+            paddingTop: 10,
           }}
           scrollEventThrottle={16}
           onScroll={Animated.event(
             [{ nativeEvent: { contentOffset: { y: scrollY } } }],
             { useNativeDriver: true } // safe now, no height/padding animation
           )}
-          ListEmptyComponent={<Loading />}
+          ListEmptyComponent={
+            isFetching ? (
+              <Loading />
+            ) : (
+              <CustomText
+                style={{
+                  fontFamily: "VendSansItalic",
+                  marginTop: 50,
+                  textAlign: "center",
+                }}
+              >
+                No recent activity! See what’s new later
+              </CustomText>
+            )
+          }
+          ListFooterComponent={
+            feedListData && feedListData.length > 0 ? (
+              <CustomText
+                style={{
+                  fontFamily: "VendSansItalic",
+                  marginTop: 50,
+                  textAlign: "center",
+                }}
+              >
+                All caught up! See what’s new later
+              </CustomText>
+            ) : null
+          }
         />
       </Animated.View>
     </View>

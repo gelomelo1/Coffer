@@ -54,6 +54,7 @@ namespace Coffer.Infrastructure
             #region AddIncludes
             services.AddScoped<IIncludeProvider<CollectionTypeProvided>, CollectionTypeProvidedIncludeProvider>();
             services.AddScoped<IIncludeProvider<ItemProvided>, ItemIncludeProvider>();
+            services.AddScoped<IIncludeProvider<CollectionProvided>, CollectionIncludeProvider>();
             #endregion
 
             #region AddRepositories
@@ -63,6 +64,8 @@ namespace Coffer.Infrastructure
             services.AddScoped<IItemsRepository, ItemsRepository>();
             services.AddScoped<IReadOnlyGenericRepository<int, ItemOptions, ItemOptions>, ItemOptionsRepository>();
             services.AddScoped<IReadOnlyGenericRepository<int, Attribute, Attribute>, AttributesRepository>();
+            services.AddScoped<IGenericRepository<Guid, ReactionProvided, ReactionProvided, ReactionRequired>, ReactionsRepository>();
+            services.AddScoped<IGenericRepository<Guid, FollowProvided, FollowProvided, FollowRequired>, FollowsRepository>();
             #endregion
 
             return services;

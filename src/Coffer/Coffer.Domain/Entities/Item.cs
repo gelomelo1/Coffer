@@ -45,6 +45,9 @@ namespace Coffer.Domain.Entities
         public string Image { get; set; }
         public ICollection<ItemAttribute> ItemAttributes { get; set; } = new List<ItemAttribute>();
         public ICollection<ItemTags> ItemTags { get; set; } = new List<ItemTags>();
+        public ICollection<ReactionProvided> Reactions { get; set; } = new List<ReactionProvided>();
+        [JsonIgnore]
+        public CollectionProvided Collection;
         public DateTime AcquiredAt { get; set; }
 
         public ItemProvided(Guid collectionId, string description, int quantity, string image)
@@ -56,7 +59,7 @@ namespace Coffer.Domain.Entities
             AcquiredAt = DateTime.UtcNow;
         }
 
-        public ItemProvided(Guid collectionId, string description, int quantity, string image, ICollection<ItemAttribute> itemAttributes, ICollection<ItemTags> itemTags)
+        public ItemProvided(Guid collectionId, string description, int quantity, string image, DateTime acquiredAt, ICollection<ItemAttribute> itemAttributes, ICollection<ItemTags> itemTags)
         {
             CollectionId = collectionId;
             Description = description;
@@ -64,7 +67,20 @@ namespace Coffer.Domain.Entities
             Image = image;
             ItemAttributes = itemAttributes;
             ItemTags = itemTags;
-            AcquiredAt = DateTime.UtcNow;
+            AcquiredAt = acquiredAt;
+        }
+
+        public ItemProvided(Guid collectionId, string description, int quantity, string image, DateTime acquiredAt, ICollection<ItemAttribute> itemAttributes, ICollection<ItemTags> itemTags, ICollection<ReactionProvided> reactions, CollectionProvided collection)
+        {
+            CollectionId = collectionId;
+            Description = description;
+            Quantity = quantity;
+            Image = image;
+            ItemAttributes = itemAttributes;
+            ItemTags = itemTags;
+            AcquiredAt = acquiredAt;
+            Reactions = reactions;
+            Collection = collection;
         }
     }
 }

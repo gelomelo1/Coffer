@@ -10,7 +10,7 @@ import {
 } from "@/src/const/filter";
 import { customTheme } from "@/src/theme/theme";
 import Attribute from "@/src/types/entities/attribute";
-import Item from "@/src/types/entities/item";
+import { ItemProvided } from "@/src/types/entities/item";
 import { QueryFilterDataItem } from "@/src/types/helpers/attribute_data";
 import { QueryOptions } from "@/src/types/helpers/query_data";
 import {
@@ -29,7 +29,7 @@ interface CollectionListFilterBottomSheetProps {
     value: boolean;
     set: React.Dispatch<React.SetStateAction<boolean>>;
   };
-  items: Item[];
+  items: ItemProvided[];
   attributes: Attribute[];
   setQueryOptions: React.Dispatch<React.SetStateAction<QueryOptions>>;
 }

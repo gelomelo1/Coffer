@@ -5,7 +5,7 @@ import { querykeys } from "@/src/const/querykeys";
 import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useGetData } from "@/src/hooks/data_hooks";
 import Attribute from "@/src/types/entities/attribute";
-import Item from "@/src/types/entities/item";
+import { ItemProvided } from "@/src/types/entities/item";
 import { QueryOptions } from "@/src/types/helpers/query_data";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
@@ -19,7 +19,7 @@ function MyCollection() {
     data: items = [],
     isFetching: isItemsFetching,
     refetch,
-  } = useGetData<Item>(
+  } = useGetData<ItemProvided>(
     endpoints.items,
     `${querykeys.itemsData}${collection.id}`,
     {

@@ -11,5 +11,6 @@ namespace Coffer.DataAccess.Repositories.Interfaces
     public interface IItemsRepository : IGenericRepository<Guid, ItemProvided, ItemProvided, ItemRequired>
     {
         Task<IDbContextTransaction> BeginTransactionAsync();
+        public Task<IEnumerable<ItemProvided>> GetFeedItemsAsync(User user);
     }
 }

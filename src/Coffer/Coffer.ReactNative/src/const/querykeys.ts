@@ -5,4 +5,5 @@ export const querykeys = {
   itemsData: "itemsData",
   itemOptionsData: "itemOptionsData",
   attributesData: "attributesData",
+  feedListData: "feedListData",
 };

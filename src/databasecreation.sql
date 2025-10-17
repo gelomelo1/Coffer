@@ -1,5 +1,17 @@
 
 -- KOLLEKCIÓ TÍPUSOK
+
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    provider TEXT NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+    provider_user_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT now(),
+    country VARCHAR(20) NOT NULL,
+    avatar TEXT
+);
+
 CREATE TABLE collection_types (
     id SERIAL PRIMARY KEY,
     name VARCHAR NOT NULL,
@@ -57,4 +69,21 @@ CREATE TABLE item_options (
     id SERIAL PRIMARY KEY,                 -- unique id for this set of options
     option_ids TEXT NOT NULL,              -- e.g. "1;2;3"
     option_labels TEXT NOT NULL            -- e.g. "Red;Green;Blue"
+);
+
+CREATE TABLE reactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    item_id UUID NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+    liked BOOLEAN NOT NULL DEFAULT FALSE,
+    rarity INT CHECK (rarity BETWEEN 1 AND 5),
+    UNIQUE (user_id, item_id) -- prevent duplicate reactions per user-item pair
+);
+
+CREATE TABLE follows (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    collection_id UUID NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+    followed_at TIMESTAMP DEFAULT now(),
+    UNIQUE (user_id, collection_id) -- prevent duplicate follows
 );
