@@ -14,6 +14,8 @@ import { useEffect, useState } from "react";
 import { Image, View } from "react-native";
 import { Country } from "react-native-country-picker-modal";
 import { Avatar } from "react-native-elements";
+import FeedLike from "./feed_like";
+import FeedRarity from "./feed_rarity";
 
 interface FeedCardProps {
   user: User;
@@ -49,156 +51,206 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
   );
 
   return (
-    <View
-      style={{
-        width: "100%",
-        backgroundColor: customTheme.colors.primary,
-        borderRadius: 20,
-      }}
-    >
-      <View style={{ margin: 10 }}>
-        <View style={{ justifyContent: "space-between", flexDirection: "row" }}>
+    <>
+      <View
+        style={{
+          width: "100%",
+          backgroundColor: customTheme.colors.primary,
+          borderRadius: 20,
+        }}
+      >
+        <View style={{ margin: 10 }}>
           <View
-            style={{
-              justifyContent: "flex-start",
-              alignItems: "center",
-              flexShrink: 1,
-              flexDirection: "row",
-              gap: 10,
-            }}
+            style={{ justifyContent: "space-between", flexDirection: "row" }}
           >
-            <Avatar
-              size={32}
-              rounded
-              source={feed.user.avatar ? { uri: feed.user.avatar } : undefined}
-              icon={
-                !feed.user?.avatar
-                  ? {
-                      name: "user",
-                      type: "feather",
-                      color: customTheme.colors.primary,
-                    }
-                  : undefined
-              }
-              containerStyle={{ backgroundColor: customTheme.colors.secondary }}
-            />
-            <CustomText
-              style={{
-                color: customTheme.colors.secondary,
-                flexShrink: 1,
-              }}
-              numberOfLines={1}
-              lineBreakMode="tail"
-            >
-              {feed.user.name}
-            </CustomText>
-          </View>
-          <View>
             <View
               style={{
                 justifyContent: "flex-start",
                 alignItems: "center",
+                flexShrink: 1,
                 flexDirection: "row",
+                gap: 10,
               }}
             >
-              <MaterialIcons
-                name="place"
-                size={24}
-                color={customTheme.colors.secondary}
+              <Avatar
+                size={32}
+                rounded
+                source={
+                  feed.user.avatar ? { uri: feed.user.avatar } : undefined
+                }
+                icon={
+                  !feed.user?.avatar
+                    ? {
+                        name: "user",
+                        type: "feather",
+                        color: customTheme.colors.primary,
+                      }
+                    : undefined
+                }
+                containerStyle={{
+                  backgroundColor: customTheme.colors.secondary,
+                }}
               />
-              <CustomText style={{ color: customTheme.colors.secondary }}>
-                {country ? country.name.toString() : ""}
+              <CustomText
+                style={{
+                  color: customTheme.colors.secondary,
+                  flexShrink: 1,
+                }}
+                numberOfLines={1}
+                lineBreakMode="tail"
+              >
+                {feed.user.name}
               </CustomText>
             </View>
+            <View>
+              <View
+                style={{
+                  justifyContent: "flex-start",
+                  alignItems: "center",
+                  flexDirection: "row",
+                }}
+              >
+                <MaterialIcons
+                  name="place"
+                  size={24}
+                  color={customTheme.colors.secondary}
+                />
+                <CustomText style={{ color: customTheme.colors.secondary }}>
+                  {country ? country.name.toString() : ""}
+                </CustomText>
+              </View>
+              <CustomText
+                style={{
+                  fontSize: 12,
+                  color: customTheme.colors.secondary,
+                  textAlign: "right",
+                }}
+              >
+                {new Date(feed.item.acquiredAt).toLocaleDateString()}
+              </CustomText>
+            </View>
+          </View>
+          <View
+            style={{
+              justifyContent: "flex-start",
+              alignItems: "center",
+              flexDirection: "row",
+            }}
+          >
             <CustomText
               style={{
-                fontSize: 12,
+                fontFamily: "VendSansItalic",
                 color: customTheme.colors.secondary,
-                textAlign: "right",
               }}
             >
-              {new Date(feed.item.acquiredAt).toLocaleDateString()}
+              {feed.collection.name}
             </CustomText>
+            {isCollectionFollwed ? (
+              <>
+                <CustomText style={{ color: customTheme.colors.secondary }}>
+                  {" "}
+                  -{" "}
+                </CustomText>
+                <CustomText
+                  style={{
+                    fontFamily: "VendSansBold",
+                    color: customTheme.colors.secondary,
+                  }}
+                >
+                  Followed
+                </CustomText>
+              </>
+            ) : null}
+          </View>
+        </View>
+        <View
+          style={{
+            justifyContent: "center",
+            alignItems: "center",
+            borderRadius: 20,
+            backgroundColor: collectionType.color,
+            padding: 10,
+            borderWidth: 2,
+            borderColor: customTheme.colors.secondary,
+          }}
+        >
+          <View
+            style={{
+              width: "40%",
+              alignSelf: "center",
+              borderWidth: 2,
+              borderColor: darkContrastColor,
+              borderRadius: 5,
+              boxShadow: `2px 2px 2px ${darkContrastColor}`,
+            }}
+          >
+            <Image
+              source={{
+                uri: feed.item.image
+                  ? `${endpoints.itemsCoverImage}/${feed.item.image}`
+                  : `${endpoints.icons}/${collectionType.icon}`,
+              }}
+              style={{
+                aspectRatio: "1/1",
+              }}
+            />
+          </View>
+          <CustomText
+            style={{
+              alignSelf: "center",
+              color: darkContrastColor,
+              fontFamily: "VendSansBold",
+              fontSize: 24,
+              marginTop: 5,
+            }}
+            numberOfLines={1}
+            lineBreakMode="tail"
+          >
+            {primaryAttribute?.value?.toString()}
+          </CustomText>
+          <View
+            style={{
+              width: "100%",
+              justifyContent: "flex-start",
+              alignItems: "center",
+              flexDirection: "row",
+              gap: 5,
+              flexWrap: "wrap",
+            }}
+          >
+            {feed.item.itemTags.map((tag) => (
+              <CustomText
+                key={tag.id}
+                style={{ color: darkContrastColor, fontSize: 14 }}
+              >{`#${tag.tag}`}</CustomText>
+            ))}
           </View>
         </View>
         <View
           style={{
             justifyContent: "flex-start",
-            alignItems: "center",
             flexDirection: "row",
+            gap: 20,
+            margin: 10,
           }}
         >
-          <CustomText
+          <FeedLike user={user} feed={feed} />
+
+          <View
             style={{
-              fontFamily: "VendSansItalic",
-              color: customTheme.colors.secondary,
+              justifyContent: "flex-start",
+              flexDirection: "row",
+              gap: 5,
             }}
           >
-            {feed.collection.name}
-          </CustomText>
-          {isCollectionFollwed ? (
-            <>
-              <CustomText style={{ color: customTheme.colors.secondary }}>
-                {" "}
-                -{" "}
-              </CustomText>
-              <CustomText
-                style={{
-                  fontFamily: "VendSansBold",
-                  color: customTheme.colors.secondary,
-                }}
-              >
-                Followed
-              </CustomText>
-            </>
-          ) : null}
+            <CustomText style={{ color: customTheme.colors.secondary }}>
+              Rarity Rating:
+            </CustomText>
+            <FeedRarity user={user} feed={feed} />
+          </View>
         </View>
       </View>
-      <View
-        style={{
-          justifyContent: "center",
-          alignItems: "center",
-          borderRadius: 20,
-          backgroundColor: collectionType.color,
-          padding: 10,
-          borderWidth: 2,
-          borderColor: customTheme.colors.secondary,
-        }}
-      >
-        <View
-          style={{
-            width: "40%",
-            alignSelf: "center",
-            borderWidth: 2,
-            borderColor: darkContrastColor,
-            borderRadius: 5,
-            boxShadow: `2px 2px 2px ${darkContrastColor}`,
-          }}
-        >
-          <Image
-            source={{
-              uri: feed.item.image
-                ? `${endpoints.itemsCoverImage}/${feed.item.image}`
-                : `${endpoints.icons}/${collectionType.icon}`,
-            }}
-            style={{
-              aspectRatio: "1/1",
-            }}
-          />
-        </View>
-        <CustomText
-          style={{
-            alignSelf: "center",
-            marginTop: 10,
-            fontSize: 20,
-            borderBottomWidth: 1,
-            borderColor: customTheme.colors.primary,
-          }}
-        >
-          {primaryAttribute?.itemAttribute.attribute.name}
-        </CustomText>
-      </View>
-    </View>
+    </>
   );
 }
 

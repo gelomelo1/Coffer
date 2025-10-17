@@ -1,9 +1,10 @@
-interface Reaction {
-  id: string;
+export interface ReactionRequired {
   userId: string;
   itemId: string;
   liked: boolean;
-  rarity: number;
+  rarity: number | null;
 }
 
-export default Reaction;
+export interface Reaction extends ReactionRequired {
+  id: string;
+}

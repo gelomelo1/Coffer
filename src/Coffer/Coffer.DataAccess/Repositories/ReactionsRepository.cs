@@ -5,15 +5,22 @@ using System.Text;
 using System.Threading.Tasks;
 using Coffer.DataAccess.Extensions.IncludeProviders.Interfaces;
 using Coffer.DataAccess.Repositories.Generic;
+using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Coffer.DataAccess.Repositories
 {
-    public class ReactionsRepository : GenericRepository<Guid, ReactionProvided, ReactionProvided, ReactionRequired>
+    public class ReactionsRepository : GenericRepository<Guid, ReactionProvided, ReactionProvided, ReactionRequired>, IReactionsRepository
     {
         public ReactionsRepository(CofferDbContext dbContext, IIncludeProvider<ReactionProvided>? includeProvider = null) : base(dbContext, includeProvider)
         {
+        }
+
+        public async Task<ReactionProvided?> FindReactionByUserItemIdAsync(Guid userId, Guid itemId)
+        {
+            var reaction = await _dbSet.SingleOrDefaultAsync(reaction => reaction.UserId == userId && reaction.ItemId == itemId);
+            return reaction;
         }
 
         protected override ReactionProvided MapToEntity(ReactionRequired required, ReactionProvided? entity = null)
@@ -35,7 +42,7 @@ namespace Coffer.DataAccess.Repositories
         {
             if (entity == null)
             {
-                return new ReactionProvided(provided.UserId, provided.ItemId, provided.Liked, provided.Rarity, provided.User, provided.Item);
+                return new ReactionProvided(provided.UserId, provided.ItemId, provided.Liked, provided.User, provided.Item, provided.Rarity);
             }
 
             return provided;

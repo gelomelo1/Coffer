@@ -3,14 +3,17 @@ import {
   itemSortDefaultOptions,
   nestedAttributeFilterQuery,
 } from "../const/filter";
+import rarityVariants from "../const/rarity_variants";
 import Attribute from "../types/entities/attribute";
-import Item from "../types/entities/item";
+import { Item } from "../types/entities/item";
 import ItemAttribute from "../types/entities/item_attribute";
 import ItemOptions from "../types/entities/itemoptions";
+import { Reaction } from "../types/entities/reaction";
 import AttributeValue, {
   AttributeTypes,
 } from "../types/helpers/attribute_data";
 import { QuerySortData } from "../types/helpers/query_data";
+import RarityValue from "../types/helpers/rarity_value";
 
 export function getItemAttributeValue(
   itemAttribute: ItemAttribute
@@ -214,4 +217,36 @@ export async function getCountryByCode(countryCode: string) {
   if (value.length === 0) return null;
 
   return value[0];
+}
+
+export function getReactionsLikeCount(reactions: Reaction[]) {
+  let likeCount = 0;
+  reactions.forEach((reactions) => {
+    if (reactions.liked) likeCount += 1;
+  });
+
+  return likeCount;
+}
+
+export function getRarityVariantByValue(
+  reactions: Reaction[]
+): RarityValue | null {
+  if (!reactions.length) return null;
+
+  const validRarities = reactions
+    .map((r) => r.rarity)
+    .filter((r): r is number => r !== null);
+
+  if (!validRarities.length) return null;
+
+  const averageRarity =
+    validRarities.reduce((sum, r) => sum + r, 0) / validRarities.length;
+
+  // Add 0.5 and round down (same as rounding to nearest integer)
+  const roundedRarity = Math.floor(averageRarity + 0.5);
+
+  // Clamp to 1–4 range to avoid invalid keys
+  const clampedRarity = Math.min(Math.max(roundedRarity, 1), 4);
+
+  return rarityVariants[clampedRarity];
 }

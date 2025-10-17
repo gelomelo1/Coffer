@@ -84,7 +84,7 @@ function CollectionSectionList({
                 <CustomText style={{ textAlign: "center" }}>
                   {queryOptions.value.filters
                     ? `Adjust your filter to see different results`
-                    : "Let's start adding items to your collection, by pressing the + button on the bottom left."}
+                    : "Let's start adding items to your collection, by pressing the + button on the bottom right."}
                 </CustomText>
               </View>
             </>

@@ -87,6 +87,9 @@ function CollectionInfoCard() {
             <CustomText>
               {new Date(collection.createdAt).toLocaleDateString()}
             </CustomText>
+            <CustomText style={{ fontFamily: "VendSansBold" }}>
+              {collection.follows.length} <CustomText>follower</CustomText>
+            </CustomText>
           </View>
         </View>
         <View

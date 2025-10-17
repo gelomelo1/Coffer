@@ -1,5 +1,5 @@
 import { Filter } from "profanity-check";
-import Item from "../types/entities/item";
+import { Item } from "../types/entities/item";
 import { AttributeTypes } from "../types/helpers/attribute_data";
 
 export const quantityItemFilterKey = "quantity";

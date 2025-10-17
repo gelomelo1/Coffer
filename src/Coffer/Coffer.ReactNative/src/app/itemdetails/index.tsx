@@ -11,8 +11,11 @@ import { customTheme } from "@/src/theme/theme";
 import {
   getItemAttributeValue,
   getItemPrimaryAttributeValue,
+  getRarityVariantByValue,
+  getReactionsLikeCount,
 } from "@/src/utils/data_access_utils";
 import { adjustColor } from "@/src/utils/frontend_utils";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 import Fontisto from "@expo/vector-icons/Fontisto";
 import { useState } from "react";
 import { Image, ScrollView, View } from "react-native";
@@ -39,6 +42,8 @@ function ItemDetails() {
   );
 
   const primaryAttribute = getItemPrimaryAttributeValue(item.itemAttributes);
+
+  const rarityVariant = getRarityVariantByValue(item.reactions);
 
   return (
     <>
@@ -90,6 +95,46 @@ function ItemDetails() {
         >
           {primaryAttribute?.valueString}
         </CustomText>
+        <View style={{ justifyContent: "space-between", flexDirection: "row" }}>
+          <View
+            style={{
+              justifyContent: "flex-start",
+              alignItems: "center",
+              flexDirection: "row",
+              gap: 10,
+            }}
+          >
+            <CustomText style={{ fontSize: 18 }}>Rarity:</CustomText>
+            <CustomText
+              style={{
+                fontFamily: "VendSansBold",
+                fontSize: 24,
+                color: rarityVariant?.color ?? customTheme.colors.primary,
+              }}
+            >
+              {rarityVariant?.title ?? "None"}
+            </CustomText>
+          </View>
+          <View
+            style={{
+              justifyContent: "flex-end",
+              alignItems: "center",
+              flexDirection: "row",
+              gap: 5,
+            }}
+          >
+            <FontAwesome name={"heart"} size={24} color={"red"} />
+            <CustomText
+              style={{
+                fontFamily: "VendSansBold",
+                color: customTheme.colors.primary,
+                fontSize: 24,
+              }}
+            >
+              {getReactionsLikeCount(item.reactions)}
+            </CustomText>
+          </View>
+        </View>
         <View style={{ justifyContent: "space-between", flexDirection: "row" }}>
           <View>
             <View

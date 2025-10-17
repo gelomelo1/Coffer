@@ -1,6 +1,6 @@
 import ItemAttribute from "./item_attribute";
 import ItemTag from "./item_tag";
-import Reaction from "./reaction";
+import { Reaction } from "./reaction";
 
 export interface Item {
   id: string;

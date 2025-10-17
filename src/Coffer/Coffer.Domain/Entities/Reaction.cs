@@ -13,9 +13,9 @@ namespace Coffer.Domain.Entities
         public Guid UserId { get; set; }
         public Guid ItemId { get; set; }
         public bool Liked { get; set; }
-        public int Rarity { get; set; }
+        public int? Rarity { get; set; }
 
-        public ReactionRequired(Guid userId, Guid itemId, bool liked, int rarity)
+        public ReactionRequired(Guid userId, Guid itemId, bool liked, int? rarity = null)
         {
             UserId = userId;
             ItemId = itemId;
@@ -24,7 +24,7 @@ namespace Coffer.Domain.Entities
         }
     }
 
-    public class ReactionProvided(Guid userId, Guid itemId, bool liked, int rarity) : ReactionRequired(userId, itemId, liked, rarity), IGenericEntity<Guid>
+    public class ReactionProvided(Guid userId, Guid itemId, bool liked, int? rarity = null) : ReactionRequired(userId, itemId, liked, rarity), IGenericEntity<Guid>
     {
         public Guid Id { get; set; }
         [JsonIgnore]
@@ -32,7 +32,7 @@ namespace Coffer.Domain.Entities
         [JsonIgnore]
         public ItemProvided Item { get; set; }
 
-        public ReactionProvided(Guid userId, Guid itemId, bool liked, int rarity, User user, ItemProvided itemProvided) : this(userId, itemId, liked, rarity)
+        public ReactionProvided(Guid userId, Guid itemId, bool liked, User user, ItemProvided itemProvided, int? rarity = null) : this(userId, itemId, liked, rarity)
         {
             User = user;
             Item = itemProvided;
