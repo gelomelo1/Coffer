@@ -4,6 +4,7 @@ import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import { parseParams } from "@/src/utils/navigation_utils";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { ParamListBase, RouteProp } from "@react-navigation/native";
 import { navigate } from "expo-router/build/global-state/routing";
 import { Image, TouchableOpacity, View } from "react-native";
@@ -16,8 +17,10 @@ function IndexCollectionCustomLayout(route: RouteProp<ParamListBase, string>) {
   const params = parseParams(route);
 
   let screenTitle = null;
+  let title = null;
   if (params) {
     if (params.screenTitle) screenTitle = params.screenTitle;
+    if (params.title) title = params.title;
   }
 
   return {
@@ -85,7 +88,7 @@ function IndexCollectionCustomLayout(route: RouteProp<ParamListBase, string>) {
             numberOfLines={1}
             ellipsizeMode="tail"
           >
-            {collection.name}
+            {title ? title : collection.name}
           </CustomText>
           {screenTitle ? (
             <CustomText
@@ -103,16 +106,33 @@ function IndexCollectionCustomLayout(route: RouteProp<ParamListBase, string>) {
       </View>
     ),
     headerRight: () => (
-      <TouchableOpacity
-        onPress={() =>
-          navigate({
-            pathname: ROUTES.SETTINGS.ROOT,
-            params: pageParams.settings,
-          })
-        }
-      >
-        <Icon name="settings" color={customTheme.colors.primary} />
-      </TouchableOpacity>
+      <>
+        <TouchableOpacity
+          style={{ marginRight: 16 }}
+          onPress={() =>
+            navigate({
+              pathname: ROUTES.COLLECTIONS.HOME,
+              params: pageParams.home,
+            })
+          }
+        >
+          <MaterialIcons
+            name="arrow-back"
+            size={24}
+            color={customTheme.colors.primary}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() =>
+            navigate({
+              pathname: ROUTES.SETTINGS.ROOT,
+              params: pageParams.settings,
+            })
+          }
+        >
+          <Icon name="settings" color={customTheme.colors.primary} />
+        </TouchableOpacity>
+      </>
     ),
   };
 }

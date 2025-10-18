@@ -3,6 +3,7 @@ import { useCollectionStore } from "@/src/hooks/collection_store";
 import { customTheme } from "@/src/theme/theme";
 import Attribute from "@/src/types/entities/attribute";
 import { ItemProvided } from "@/src/types/entities/item";
+import User from "@/src/types/entities/user";
 import { QueryOptions } from "@/src/types/helpers/query_data";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import React, { useState } from "react";
@@ -18,6 +19,7 @@ interface CollectionItemHeaderProps {
     set: React.Dispatch<React.SetStateAction<QueryOptions>>;
   };
   isStickyShadow: boolean;
+  user?: User;
 }
 
 function CollectionItemHeader({
@@ -25,6 +27,7 @@ function CollectionItemHeader({
   attributes,
   queryOptions,
   isStickyShadow,
+  user = undefined,
 }: CollectionItemHeaderProps) {
   const { collectionType } = useCollectionStore();
 
@@ -52,18 +55,25 @@ function CollectionItemHeader({
       <View
         style={{
           width: "100%",
-          justifyContent: "space-between",
           flexDirection: "row",
           alignItems: "center",
+          justifyContent: "space-between",
         }}
       >
-        <CustomText
+        <View
           style={{
-            fontSize: 20,
+            flexShrink: 1,
           }}
         >
-          Your{" "}
-          <View style={{ transform: [{ translateY: 5 }] }}>
+          <CustomText
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            style={{
+              fontSize: 20,
+              flexShrink: 1,
+            }}
+          >
+            {user ? `${user.name}'s ` : "Your "}
             <CustomText
               style={{
                 fontSize: 24,
@@ -72,12 +82,19 @@ function CollectionItemHeader({
               }}
             >
               {collectionType.name}
-            </CustomText>
-          </View>{" "}
-          collection
-        </CustomText>
+            </CustomText>{" "}
+            collection
+          </CustomText>
+        </View>
+
         <TouchableOpacity
-          style={{ justifyContent: "center", flexDirection: "row", gap: 10 }}
+          style={{
+            justifyContent: "center",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 10,
+            marginLeft: 10,
+          }}
           onPress={() => setIsCollectionListFilterBottemSheetOpen(true)}
         >
           <CustomText style={{ fontSize: 20 }}>Filter</CustomText>

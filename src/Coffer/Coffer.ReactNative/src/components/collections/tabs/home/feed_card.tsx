@@ -1,5 +1,7 @@
 import CustomText from "@/src/components/custom_ui/custom_text";
 import { endpoints } from "@/src/const/endpoints";
+import { pageParams, ROUTES } from "@/src/const/navigation_params";
+import { useOtherUserStore } from "@/src/hooks/other_user_store";
 import { customTheme } from "@/src/theme/theme";
 import CollectionType from "@/src/types/entities/collectiontype";
 import Feed from "@/src/types/entities/feed";
@@ -10,8 +12,9 @@ import {
 } from "@/src/utils/data_access_utils";
 import { adjustColor } from "@/src/utils/frontend_utils";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { navigate } from "expo-router/build/global-state/routing";
 import { useEffect, useState } from "react";
-import { Image, View } from "react-native";
+import { Image, TouchableOpacity, View } from "react-native";
 import { Country } from "react-native-country-picker-modal";
 import { Avatar } from "react-native-elements";
 import FeedLike from "./feed_like";
@@ -24,6 +27,7 @@ interface FeedCardProps {
 }
 
 function FeedCard({ user, collectionType, feed }: FeedCardProps) {
+  const { setValues, setUser, setCollection } = useOtherUserStore();
   const [country, setCountry] = useState<Country | null>(null);
 
   useEffect(() => {
@@ -50,6 +54,34 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
     customTheme.colorChangePercent.dark
   );
 
+  const handleUserPress = () => {
+    setUser(feed.user);
+    navigate({
+      pathname: ROUTES.OTHERUSER,
+      params: pageParams.otheruser(feed.user.name),
+    });
+  };
+
+  const handleCollectionPress = () => {
+    setUser(feed.user);
+    setCollection(feed.collection);
+    navigate({
+      pathname: ROUTES.OTHERUSERCOLLECTION,
+      params: pageParams.otherusercollection(
+        feed.user.name,
+        feed.collection.name
+      ),
+    });
+  };
+
+  const handleItemPress = () => {
+    setValues(feed.user, feed.collection, feed.item);
+    navigate({
+      pathname: ROUTES.OTHERUSERITEMDETAILS,
+      params: pageParams.otheruseritemdetails(feed.collection.name),
+    });
+  };
+
   return (
     <>
       <View
@@ -63,7 +95,7 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
           <View
             style={{ justifyContent: "space-between", flexDirection: "row" }}
           >
-            <View
+            <TouchableOpacity
               style={{
                 justifyContent: "flex-start",
                 alignItems: "center",
@@ -71,6 +103,7 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
                 flexDirection: "row",
                 gap: 10,
               }}
+              onPress={handleUserPress}
             >
               <Avatar
                 size={32}
@@ -101,7 +134,7 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
               >
                 {feed.user.name}
               </CustomText>
-            </View>
+            </TouchableOpacity>
             <View>
               <View
                 style={{
@@ -137,14 +170,16 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
               flexDirection: "row",
             }}
           >
-            <CustomText
-              style={{
-                fontFamily: "VendSansItalic",
-                color: customTheme.colors.secondary,
-              }}
-            >
-              {feed.collection.name}
-            </CustomText>
+            <TouchableOpacity onPress={handleCollectionPress}>
+              <CustomText
+                style={{
+                  fontFamily: "VendSansItalic",
+                  color: customTheme.colors.secondary,
+                }}
+              >
+                {feed.collection.name}
+              </CustomText>
+            </TouchableOpacity>
             {isCollectionFollwed ? (
               <>
                 <CustomText style={{ color: customTheme.colors.secondary }}>
@@ -174,7 +209,7 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
             borderColor: customTheme.colors.secondary,
           }}
         >
-          <View
+          <TouchableOpacity
             style={{
               width: "40%",
               alignSelf: "center",
@@ -183,6 +218,7 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
               borderRadius: 5,
               boxShadow: `2px 2px 2px ${darkContrastColor}`,
             }}
+            onPress={handleItemPress}
           >
             <Image
               source={{
@@ -194,7 +230,7 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
                 aspectRatio: "1/1",
               }}
             />
-          </View>
+          </TouchableOpacity>
           <CustomText
             style={{
               alignSelf: "center",

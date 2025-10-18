@@ -86,7 +86,16 @@ export function useCreateData<TData, TResponse = void>(
       if (customSucessText !== "")
         showToast("success", customSucessText ?? "Successfully created");
       if (queryKey) {
-        queryClient.invalidateQueries({ queryKey: [queryKey] });
+        const keys = queryKey.includes(";")
+          ? queryKey
+              .split(";")
+              .map((k) => k.trim())
+              .filter(Boolean)
+          : [queryKey.trim()];
+
+        keys.forEach((key) => {
+          queryClient.invalidateQueries({ queryKey: [key] });
+        });
       }
     },
     onError: () => {

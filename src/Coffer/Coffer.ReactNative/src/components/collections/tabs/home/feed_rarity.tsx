@@ -5,6 +5,7 @@ import rarityVariants from "@/src/const/rarity_variants";
 import { useCreateData } from "@/src/hooks/data_hooks";
 import { customTheme } from "@/src/theme/theme";
 import Feed from "@/src/types/entities/feed";
+import { ItemProvided } from "@/src/types/entities/item";
 import { ReactionRequired } from "@/src/types/entities/reaction";
 import User from "@/src/types/entities/user";
 import { useEffect, useState } from "react";
@@ -13,10 +14,19 @@ import FeedRaritySelector from "./feed_rarity_selector";
 
 interface FeedRarityProps {
   user: User;
-  feed: Feed;
+  feed?: Feed;
+  item?: ItemProvided;
+  onItemUpdate?: (updatedItem: ItemProvided) => void;
+  fontSize?: number;
 }
 
-function FeedRarity({ user, feed }: FeedRarityProps) {
+function FeedRarity({
+  user,
+  feed,
+  item,
+  onItemUpdate,
+  fontSize,
+}: FeedRarityProps) {
   const { mutateAsync: postRarity, isSuccess: isRarityPostSuccess } =
     useCreateData<ReactionRequired>(
       endpoints.reactions,
@@ -25,23 +35,29 @@ function FeedRarity({ user, feed }: FeedRarityProps) {
     );
 
   const rarityScaleAnim = useState(new Animated.Value(1))[0];
-  const [isFeedRaritySelectorVisible, setIsFeedRaritySelectorVisible] =
-    useState(false);
+  const [isSelectorVisible, setIsSelectorVisible] = useState(false);
 
-  // Optimistic local rarity (null = no local override)
+  // Local state for item (used only when `item` is passed)
+  const [localItem, setLocalItem] = useState<ItemProvided | null>(item ?? null);
   const [localRarity, setLocalRarity] = useState<number | null | undefined>(
     null
   );
 
-  const reaction = feed.item.reactions.find(
-    (reaction) => reaction.userId === user.id
-  );
+  // Determine current item
+  const currentItem = feed ? feed.item : localItem;
 
-  // Pick local rarity if exists, otherwise from backend
+  // Find current user's reaction
+  const reaction = currentItem!.reactions.find((r) => r.userId === user.id);
+
+  const userLiked = feed
+    ? feed.item.reactions.find((reaction) => reaction.userId === user.id)?.liked
+    : item!.reactions.find((reaction) => reaction.userId === user.id)?.liked;
+
+  // Pick local rarity if exists, otherwise use backend data
   const rarityValue =
     localRarity !== null ? localRarity : reaction?.rarity ?? null;
 
-  // Animate rarity text when mutation succeeds
+  // Animate rarity text on mutation success
   useEffect(() => {
     if (isRarityPostSuccess) {
       Animated.sequence([
@@ -61,34 +77,53 @@ function FeedRarity({ user, feed }: FeedRarityProps) {
     }
   }, [isRarityPostSuccess]);
 
-  // Reset optimistic state when feed updates
+  // Reset local rarity when feed or item changes
   useEffect(() => {
     setLocalRarity(null);
-  }, [feed]);
+  }, [feed, item]);
 
   const handleRaritySelect = async (rarity: number | null | undefined) => {
-    // instant UI update (optimistic)
+    // Optimistic UI update
     setLocalRarity(rarity);
 
-    let newReaction: ReactionRequired = {
+    const newReaction: ReactionRequired = {
       userId: user.id,
-      itemId: feed.item.id,
-      liked: reaction?.liked ?? false,
+      itemId: currentItem!.id,
+      liked: userLiked ?? false,
       rarity: rarity ?? null,
     };
 
-    await postRarity({ value: newReaction });
+    try {
+      const response = await postRarity({ value: newReaction });
+
+      // If we’re dealing with an item, update local item with server’s response
+      if (item && response) {
+        const updatedItem = response as unknown as ItemProvided;
+        setLocalItem(updatedItem);
+        onItemUpdate?.(updatedItem);
+
+        // Update local rarity to match server value (in case backend adjusted it)
+        const updatedUserReaction = updatedItem.reactions.find(
+          (r) => r.userId === user.id
+        );
+        setLocalRarity(updatedUserReaction?.rarity ?? null);
+      }
+    } catch {
+      // Rollback on failure
+      setLocalRarity(reaction?.rarity ?? null);
+    }
   };
 
   return (
     <>
-      <TouchableOpacity onPress={() => setIsFeedRaritySelectorVisible(true)}>
+      <TouchableOpacity onPress={() => setIsSelectorVisible(true)}>
         <Animated.View style={{ transform: [{ scale: rarityScaleAnim }] }}>
           {rarityValue ? (
             <CustomText
               style={{
                 fontFamily: "VendSansItalic",
                 color: rarityVariants[rarityValue].color,
+                fontSize: fontSize ?? 16,
               }}
             >
               {rarityVariants[rarityValue].title}
@@ -98,6 +133,7 @@ function FeedRarity({ user, feed }: FeedRarityProps) {
               style={{
                 fontFamily: "VendSansItalic",
                 color: customTheme.colors.secondary,
+                fontSize: fontSize ?? 16,
               }}
             >
               Not rated
@@ -108,8 +144,8 @@ function FeedRarity({ user, feed }: FeedRarityProps) {
 
       <FeedRaritySelector
         isFeedRaritySelectorVisible={{
-          value: isFeedRaritySelectorVisible,
-          set: setIsFeedRaritySelectorVisible,
+          value: isSelectorVisible,
+          set: setIsSelectorVisible,
         }}
         selectedRarity={rarityValue}
         onRaritySelect={handleRaritySelect}

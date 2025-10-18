@@ -2,10 +2,12 @@ import CustomText from "@/src/components/custom_ui/custom_text";
 import { endpoints } from "@/src/const/endpoints";
 import { ROUTES, pageParams } from "@/src/const/navigation_params";
 import { useCollectionStore } from "@/src/hooks/collection_store";
+import { useResetNavigation } from "@/src/hooks/navigation";
 import { useNavigationModeStore } from "@/src/hooks/navigation_mode_store";
 import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import { parseParams } from "@/src/utils/navigation_utils";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
 import { ParamListBase, RouteProp } from "@react-navigation/native";
 import { navigate } from "expo-router/build/global-state/routing";
@@ -19,6 +21,7 @@ function CollectionTabsCustomLayout(
   const { collectionType, collection } = useCollectionStore();
   const { navigationMode } = useNavigationModeStore();
   const params = parseParams(route);
+  const resetNavigate = useResetNavigation();
 
   let screenTitle = null;
   if (params) {
@@ -116,17 +119,34 @@ function CollectionTabsCustomLayout(
       </View>
     ),
     headerRight: () => (
-      <TouchableOpacity
-        style={{ marginRight: 16 }}
-        onPress={() =>
-          navigate({
-            pathname: ROUTES.SETTINGS.ROOT,
-            params: pageParams.settings,
-          })
-        }
-      >
-        <Icon name="settings" color={customTheme.colors.primary} />
-      </TouchableOpacity>
+      <>
+        <TouchableOpacity
+          style={{ marginRight: 16 }}
+          onPress={() =>
+            resetNavigate({
+              pathname: ROUTES.COLLECTIONS.ROOT,
+              params: pageParams.collections,
+            })
+          }
+        >
+          <MaterialIcons
+            name="arrow-back"
+            size={24}
+            color={customTheme.colors.primary}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={{ marginRight: 16 }}
+          onPress={() =>
+            navigate({
+              pathname: ROUTES.SETTINGS.ROOT,
+              params: pageParams.settings,
+            })
+          }
+        >
+          <Icon name="settings" color={customTheme.colors.primary} />
+        </TouchableOpacity>
+      </>
     ),
   };
 }

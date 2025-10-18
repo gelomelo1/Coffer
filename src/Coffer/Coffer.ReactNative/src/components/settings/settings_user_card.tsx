@@ -9,9 +9,10 @@ import CustomText from "../custom_ui/custom_text";
 
 export interface SettingsUserCardProps {
   user: User | null;
+  otherUser?: boolean;
 }
 
-function SettingsUserCard({ user }: SettingsUserCardProps) {
+function SettingsUserCard({ user, otherUser = false }: SettingsUserCardProps) {
   const providerIcon =
     user?.provider === "google"
       ? require("../../../assets/images/googlesignin.png")
@@ -72,20 +73,37 @@ function SettingsUserCard({ user }: SettingsUserCardProps) {
       >
         {/* Provider section */}
         <View style={{ flex: 1, alignItems: "center" }}>
+          {otherUser ? null : (
+            <>
+              <CustomText
+                style={{ fontFamily: "VendSansItalic", fontSize: 14 }}
+              >
+                Logged in with
+              </CustomText>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 5,
+                  justifyContent: "center",
+                }}
+              >
+                <Image
+                  source={providerIcon}
+                  style={{ width: 16, height: 16 }}
+                />
+                <CustomText style={{ fontSize: 18 }}>
+                  {user?.provider}
+                </CustomText>
+              </View>
+            </>
+          )}
           <CustomText style={{ fontFamily: "VendSansItalic", fontSize: 14 }}>
-            Logged in with
+            Member since
           </CustomText>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 5,
-              justifyContent: "center",
-            }}
-          >
-            <Image source={providerIcon} style={{ width: 16, height: 16 }} />
-            <CustomText style={{ fontSize: 18 }}>{user?.provider}</CustomText>
-          </View>
+          <CustomText style={{ fontSize: 18 }}>
+            {new Date(user?.createdAt ?? "").toLocaleDateString()}
+          </CustomText>
         </View>
 
         {/* Vertical divider */}

@@ -4,6 +4,7 @@ import { querykeys } from "@/src/const/querykeys";
 import { useCreateData } from "@/src/hooks/data_hooks";
 import { customTheme } from "@/src/theme/theme";
 import Feed from "@/src/types/entities/feed";
+import { ItemProvided } from "@/src/types/entities/item";
 import { ReactionRequired } from "@/src/types/entities/reaction";
 import User from "@/src/types/entities/user";
 import { getReactionsLikeCount } from "@/src/utils/data_access_utils";
@@ -13,10 +14,21 @@ import { Animated, Easing, TouchableOpacity, View } from "react-native";
 
 interface FeedLikeProps {
   user: User;
-  feed: Feed;
+  feed?: Feed; // optional
+  item?: ItemProvided; // optional
+  onItemUpdate?: (updatedItem: ItemProvided) => void; // callback to sync updated item externally
+  color?: string;
+  fontSize?: number;
 }
 
-function FeedLike({ user, feed }: FeedLikeProps) {
+function FeedLike({
+  user,
+  feed,
+  item,
+  onItemUpdate,
+  color,
+  fontSize,
+}: FeedLikeProps) {
   const { mutateAsync: postLike, isSuccess: isLikePostSuccess } =
     useCreateData<ReactionRequired>(
       endpoints.reactions,
@@ -25,40 +37,63 @@ function FeedLike({ user, feed }: FeedLikeProps) {
     );
 
   const scaleAnim = useState(new Animated.Value(1))[0];
-
-  // Instead of toggling a local boolean, we store the "optimistic" value.
   const [localLiked, setLocalLiked] = useState<boolean | null>(null);
+  const [localItem, setLocalItem] = useState<ItemProvided | null>(item ?? null);
 
-  const isLiked = feed.item.reactions.find(
-    (reaction) => reaction.userId === user.id
-  )?.liked;
+  // Determine working item
+  const currentItem = feed ? feed.item : localItem;
 
-  const reaction = feed.item.reactions.find(
+  const userReaction = currentItem!.reactions.find(
     (reaction) => reaction.userId === user.id
   );
 
-  const effectiveLiked = localLiked !== null ? localLiked : isLiked ?? false;
+  const userRarity = feed
+    ? feed.item.reactions.find((reaction) => reaction.userId === user.id)
+        ?.rarity
+    : item!.reactions.find((reaction) => reaction.userId === user.id)?.rarity;
+
+  const effectiveLiked =
+    localLiked !== null ? localLiked : userReaction?.liked ?? false;
 
   const handleLikePress = async () => {
     const newValue = !effectiveLiked;
-    setLocalLiked(newValue); // instant UI feedback
+    setLocalLiked(newValue); // ✅ optimistic UI
 
-    let newReaction: ReactionRequired = {
+    const newReaction: ReactionRequired = {
       userId: user.id,
-      itemId: feed.item.id,
+      itemId: currentItem!.id,
       liked: newValue,
-      rarity: reaction?.rarity ?? null,
+      rarity: userRarity ?? null,
     };
 
-    await postLike({ value: newReaction });
+    try {
+      // The API returns updated item only when type = item
+      const response = await postLike({ value: newReaction });
+
+      // If this is an item, server returns updated item → replace local state
+      if (item && response) {
+        const updatedItem = response as unknown as ItemProvided;
+        setLocalItem(updatedItem);
+        onItemUpdate?.(updatedItem);
+
+        // update optimistic liked state to match server (in case backend logic differs)
+        const updatedUserReaction = updatedItem.reactions.find(
+          (r) => r.userId === user.id
+        );
+        setLocalLiked(updatedUserReaction?.liked ?? false);
+      }
+    } catch {
+      // rollback on failure
+      setLocalLiked(userReaction?.liked ?? false);
+    }
   };
 
-  // reset local state once feed updates from the server
+  // Reset optimistic state when feed or item changes
   useEffect(() => {
     setLocalLiked(null);
-  }, [feed]);
+  }, [feed, item]);
 
-  // animate on success
+  // Animate heart on success
   useEffect(() => {
     if (isLikePostSuccess) {
       Animated.sequence([
@@ -82,6 +117,7 @@ function FeedLike({ user, feed }: FeedLikeProps) {
     <View
       style={{
         justifyContent: "flex-start",
+        alignItems: "center",
         flexDirection: "row",
         gap: 5,
       }}
@@ -91,7 +127,9 @@ function FeedLike({ user, feed }: FeedLikeProps) {
           <FontAwesome
             name={effectiveLiked ? "heart" : "heart-o"}
             size={24}
-            color={effectiveLiked ? "red" : customTheme.colors.secondary}
+            color={
+              effectiveLiked ? "red" : color ?? customTheme.colors.secondary
+            }
           />
         </TouchableOpacity>
       </Animated.View>
@@ -99,10 +137,11 @@ function FeedLike({ user, feed }: FeedLikeProps) {
       <CustomText
         style={{
           fontFamily: "VendSansBold",
-          color: customTheme.colors.secondary,
+          color: color ?? customTheme.colors.secondary,
+          fontSize: fontSize ?? 16,
         }}
       >
-        {getReactionsLikeCount(feed.item.reactions)}
+        {getReactionsLikeCount(currentItem!.reactions)}
       </CustomText>
     </View>
   );

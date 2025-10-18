@@ -21,4 +21,5 @@ export const endpoints = {
   attributes: "api/Attributes",
   feed: "api/Feed",
   reactions: "api/Reactions",
+  follows: "api/Follows",
 };

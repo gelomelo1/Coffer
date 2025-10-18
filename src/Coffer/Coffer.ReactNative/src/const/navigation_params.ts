@@ -14,6 +14,9 @@ export const ROUTES = {
     DEVELOPER: "settings/developer" as any,
   },
   ITEMDETAILS: "itemdetails" as any,
+  OTHERUSER: "otheruser" as any,
+  OTHERUSERCOLLECTION: "otherusercollection" as any,
+  OTHERUSERITEMDETAILS: "otheruseritemdetails" as any,
 } as const;
 
 export const pageParams = {
@@ -39,4 +42,18 @@ export const pageParams = {
   itemdetails: buildNavigationData({
     screenTitle: `Item Details`,
   }),
+  otheruser: (username: string) =>
+    buildNavigationData({
+      title: username,
+    }),
+  otherusercollection: (username: string, collectionName: string) =>
+    buildNavigationData({
+      title: username,
+      screenTitle: collectionName,
+    }),
+  otheruseritemdetails: (collectionName: string) =>
+    buildNavigationData({
+      title: collectionName,
+      screenTitle: "Item Details",
+    }),
 };

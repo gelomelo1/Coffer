@@ -19,7 +19,7 @@ namespace Coffer.ASPNET.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ReactionProvided>> PostReaction(ReactionRequired reactionRequired)
+        public async Task<ActionResult<ItemProvided>> PostReaction(ReactionRequired reactionRequired)
         {
             try
             {
@@ -39,23 +39,20 @@ namespace Coffer.ASPNET.Controllers
                 // No existing reaction → create new one
                 if (existingReaction == null)
                 {
-                    var createdReaction = await _reactionsRepository.InsertItemAsync(reactionRequired);
-                    return CreatedAtAction(nameof(GetById), new { id = createdReaction.Id }, createdReaction);
+                    await _reactionsRepository.InsertItemAsync(reactionRequired);
                 }
-
                 // Existing reaction → delete if unliked and rarity is null
-                if (!reactionRequired.Liked && reactionRequired.Rarity == null)
+                else if (!reactionRequired.Liked && reactionRequired.Rarity == null)
                 {
                     await _reactionsRepository.DeleteItemAsync(existingReaction.Id);
-                    return NoContent();
+                }
+                else
+                {
+                     await _reactionsRepository.UpdateItemAsync(existingReaction.Id, reactionRequired);
                 }
 
-                // Otherwise update
-                var updatedReaction = await _reactionsRepository.UpdateItemAsync(existingReaction.Id, reactionRequired);
-                if (updatedReaction == null)
-                    return NotFound();
-
-                return Ok(updatedReaction);
+                var updatedItem = await _itemsRepository.GetItemByIdAsync(reactionRequired.ItemId);
+                return Ok(updatedItem);
             }
             catch (Exception ex)
             {

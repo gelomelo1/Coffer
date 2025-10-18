@@ -65,7 +65,7 @@ namespace Coffer.Infrastructure
             services.AddScoped<IReadOnlyGenericRepository<int, ItemOptions, ItemOptions>, ItemOptionsRepository>();
             services.AddScoped<IReadOnlyGenericRepository<int, Attribute, Attribute>, AttributesRepository>();
             services.AddScoped<IReactionsRepository, ReactionsRepository>();
-            services.AddScoped<IGenericRepository<Guid, FollowProvided, FollowProvided, FollowRequired>, FollowsRepository>();
+            services.AddScoped<IFollowsRepository, FollowsRepository>();
             #endregion
 
             return services;

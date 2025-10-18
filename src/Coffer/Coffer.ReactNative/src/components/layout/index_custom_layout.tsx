@@ -16,7 +16,10 @@ function IndexCustomLayout(
   if (
     route.name === (ROUTES.COLLECTIONS.HOME as string) ||
     route.name === (ROUTES.LOGIN as string) ||
-    route.name === (ROUTES.ITEMDETAILS as string)
+    route.name === (ROUTES.ITEMDETAILS as string) ||
+    route.name === (ROUTES.OTHERUSER as string) ||
+    route.name === (ROUTES.OTHERUSERCOLLECTION as string) ||
+    route.name === (ROUTES.OTHERUSERITEMDETAILS as string)
   )
     return {
       headerShown: false,

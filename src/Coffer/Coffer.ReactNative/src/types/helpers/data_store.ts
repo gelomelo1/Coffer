@@ -23,3 +23,17 @@ export interface UserStore {
   user: User | null;
   setUser: (user: User | null) => void;
 }
+
+export interface OtherUserStore {
+  user: User | null;
+  collection: Collection | null;
+  item: ItemProvided | null;
+  setValues: (
+    user?: User | null,
+    collection?: Collection | null,
+    item?: ItemProvided | null
+  ) => void;
+  setUser: (user: User | null) => void;
+  setCollection: (collection: Collection | null) => void;
+  setItem: (item: ItemProvided | null) => void;
+}

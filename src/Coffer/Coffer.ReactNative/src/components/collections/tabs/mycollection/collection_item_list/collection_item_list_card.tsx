@@ -13,11 +13,13 @@ import { Image, TouchableOpacity, View } from "react-native";
 interface CollectionItemListCardProps {
   item: ItemProvided;
   collectionType: CollectionType;
+  onCardPress?: () => void;
 }
 
 function CollectionItemListCard({
   item,
   collectionType,
+  onCardPress,
 }: CollectionItemListCardProps) {
   console.log(item.itemAttributes[0].valueString);
   const darkContrastColor = adjustColor(
@@ -31,11 +33,15 @@ function CollectionItemListCard({
   const primaryValue = getItemPrimaryAttributeValue(item.itemAttributes);
 
   const handleCardPress = () => {
-    initItemStore(item);
-    navigate({
-      pathname: ROUTES.ITEMDETAILS,
-      params: pageParams.itemdetails,
-    });
+    if (onCardPress) {
+      onCardPress();
+    } else {
+      initItemStore(item);
+      navigate({
+        pathname: ROUTES.ITEMDETAILS,
+        params: pageParams.itemdetails,
+      });
+    }
   };
 
   return (

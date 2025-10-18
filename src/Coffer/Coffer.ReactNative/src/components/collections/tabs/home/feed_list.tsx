@@ -10,7 +10,13 @@ import { customTheme } from "@/src/theme/theme";
 import Feed from "@/src/types/entities/feed";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import React, { useRef } from "react";
-import { Animated, StyleSheet, View } from "react-native";
+import {
+  ActivityIndicator,
+  Animated,
+  FlatList,
+  StyleSheet,
+  View,
+} from "react-native";
 import FeedCard from "./feed_card";
 
 const HEADER_HEIGHT = 200;
@@ -24,6 +30,8 @@ function FeedList() {
     `${endpoints.feed}/${user!.id}`,
     querykeys.feedListData
   );
+
+  const flatListRef = useRef<FlatList<Feed>>(null);
 
   const scrollY = useRef(new Animated.Value(0)).current;
 
@@ -61,6 +69,43 @@ function FeedList() {
         <Animated.View
           style={{ position: "relative", width: "100%", height: "100%" }}
         >
+          <Animated.View
+            style={{
+              position: "absolute",
+              top: "40%",
+              right: 10,
+              justifyContent: "center",
+              opacity: textOpacity,
+              zIndex: 1,
+            }}
+          >
+            <CustomText
+              style={{
+                fontFamily: "VendSansBold",
+                color: customTheme.colors.background,
+                fontSize: 14,
+              }}
+            >
+              Recent posts
+            </CustomText>
+            {isFetching ? (
+              <ActivityIndicator
+                size={"small"}
+                color={customTheme.colors.background}
+              />
+            ) : (
+              <CustomText
+                style={{
+                  fontFamily: "VendSansBold",
+                  color: customTheme.colors.background,
+                  fontSize: 14,
+                  textAlign: "center",
+                }}
+              >
+                {feedListData?.length}
+              </CustomText>
+            )}
+          </Animated.View>
           <Animated.View
             style={{
               position: "absolute",
@@ -146,6 +191,7 @@ function FeedList() {
       >
         <Animated.FlatList
           data={feedListData}
+          ref={flatListRef}
           keyExtractor={(item) => item.item.id}
           renderItem={({ item }) => (
             <FeedCard
