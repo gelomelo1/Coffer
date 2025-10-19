@@ -8,4 +8,6 @@ export const querykeys = {
   feedListData: "feedListData",
   otherUserCollectionsData: "otherUserCollectionsData",
   otherUserItemsData: "otherUsersItemsData",
+  itemTagsSearchData: "itemTagsSearchData",
+  mixedSearchData: "mixedSearchData",
 };

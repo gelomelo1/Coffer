@@ -32,11 +32,12 @@ export async function getData<TResponse>(
   url: string,
   headers?: Record<string, string>
 ): Promise<TResponse[]> {
+  console.log(url);
   const response = await backendAxios.get<TResponse[]>(url, { headers });
   return response.data;
 }
 
-export async function getDataById<TResponse>(
+export async function getSingleData<TResponse>(
   url: string,
   id?: string | number,
   headers?: Record<string, string>

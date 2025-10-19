@@ -35,6 +35,7 @@ namespace Coffer.Domain.Entities
         {
             User = user;
             Collection = collectionProvided;
+            FollowedAt = DateTime.UtcNow;
         }
     }
 }

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Coffer.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1d21af0b2d4f1e1df5307f6bbb57e638a7a51778")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+da96a3889532e82f699524f43ec119a2d284830d")]
 [assembly: System.Reflection.AssemblyProductAttribute("Coffer.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Coffer.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

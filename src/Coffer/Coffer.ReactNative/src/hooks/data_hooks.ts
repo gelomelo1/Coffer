@@ -15,7 +15,7 @@ import {
 import {
   deleteData,
   getData,
-  getDataById,
+  getSingleData,
   postData,
   updateData,
 } from "../utils/backend_access";
@@ -46,14 +46,15 @@ export function useGetSingleData<TData>(
   id?: string,
   options?: QueryOptions,
   headers?: Record<string, string>,
-  queryOptions?: UseQueryOptions<TData, AxiosError, TData, QueryKey>
+  queryOptions?: UseQueryOptions<TData, AxiosError, TData, QueryKey>,
+  singleResponse?: boolean
 ) {
   return useQuery<TData, AxiosError>({
     ...queryOptions,
     queryKey: [queryKey],
     queryFn: () => {
-      if (id) {
-        return getDataById(apiPath, id, headers);
+      if (id || singleResponse) {
+        return getSingleData(apiPath, id, headers);
       }
 
       const data = getData<TData>(

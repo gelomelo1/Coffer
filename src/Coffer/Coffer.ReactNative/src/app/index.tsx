@@ -8,7 +8,7 @@ import { pageParams, ROUTES } from "../const/navigation_params";
 import { useResetNavigation } from "../hooks/navigation";
 import { useUserStore } from "../hooks/user_store";
 import User from "../types/entities/user";
-import { getDataById } from "../utils/backend_access";
+import { getSingleData } from "../utils/backend_access";
 
 export default function Index() {
   const resetNavigate = useResetNavigation();
@@ -20,7 +20,7 @@ export default function Index() {
         navigate(ROUTES.LOGIN);
       } else {
         try {
-          const currentUser = await getDataById<User>(
+          const currentUser = await getSingleData<User>(
             endpoints.currentUser,
             undefined,
             { Authorization: `Bearer ${token}` }

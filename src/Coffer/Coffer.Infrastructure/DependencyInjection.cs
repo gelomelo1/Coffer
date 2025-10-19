@@ -60,12 +60,13 @@ namespace Coffer.Infrastructure
             #region AddRepositories
             services.AddScoped<IUsersRepository, UsersRepository>();
             services.AddScoped<IReadOnlyGenericRepository<int, CollectionTypeProvided, CollectionTypeProvided>, CollectionTypesRepository>();
-            services.AddScoped<IGenericRepository<Guid, CollectionProvided, CollectionProvided, CollectionRequired>, CollectionsRepository>();
+            services.AddScoped<ICollectionsRepository, CollectionsRepository>();
             services.AddScoped<IItemsRepository, ItemsRepository>();
             services.AddScoped<IReadOnlyGenericRepository<int, ItemOptions, ItemOptions>, ItemOptionsRepository>();
             services.AddScoped<IReadOnlyGenericRepository<int, Attribute, Attribute>, AttributesRepository>();
             services.AddScoped<IReactionsRepository, ReactionsRepository>();
             services.AddScoped<IFollowsRepository, FollowsRepository>();
+            services.AddScoped<IItemTagsRepository, ItemTagsRepository>();
             #endregion
 
             return services;

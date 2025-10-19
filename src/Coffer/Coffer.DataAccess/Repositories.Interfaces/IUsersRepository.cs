@@ -13,5 +13,6 @@ namespace Coffer.DataAccess.Repositories.Interfaces
         Task<User?> GetUserByLogin(string provider, string providerUserId);
         Task<User> InsertUserAsync(UserRequired newUser);
         Task<User?> GetUserById(Guid userId);
+        Task<IEnumerable<User>> SearchUsersAsync(string searchText);
     }
 }

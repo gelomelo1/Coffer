@@ -35,6 +35,23 @@ namespace Coffer.DataAccess.Repositories
             return user;
         }
 
+        public async Task<IEnumerable<User>> SearchUsersAsync(string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                return new List<User>();
+
+            searchText = searchText.Trim().ToLower();
+
+            // Query users whose Name contains the search text
+            var users = await _dbSet
+                .Where(u => u.Name.ToLower().Contains(searchText))
+                .OrderBy(u => u.Name) // simple ordering; can be replaced with more advanced similarity scoring
+                .Take(10)
+                .ToListAsync();
+
+            return users;
+        }
+
         protected override User MapToEntity(UserRequired required, User? entity = null)
         {
             if(entity == null)

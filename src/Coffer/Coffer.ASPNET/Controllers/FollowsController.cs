@@ -9,8 +9,8 @@ namespace Coffer.ASPNET.Controllers
     public class FollowsController : ControllerBase
     {
         private readonly IFollowsRepository _followsRepository;
-        private readonly IGenericRepository<Guid, CollectionProvided, CollectionProvided, CollectionRequired> _collectionRepository;
-        public FollowsController(IFollowsRepository followsRepository, IGenericRepository<Guid, CollectionProvided, CollectionProvided, CollectionRequired> collectionRepository)
+        private readonly ICollectionsRepository _collectionRepository;
+        public FollowsController(IFollowsRepository followsRepository, ICollectionsRepository collectionRepository)
         {
             _followsRepository = followsRepository;
             _collectionRepository = collectionRepository;

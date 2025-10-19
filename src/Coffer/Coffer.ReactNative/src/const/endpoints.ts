@@ -20,6 +20,8 @@ export const endpoints = {
   itemsImageCheck: "api/Collections/ImageCheck",
   attributes: "api/Attributes",
   feed: "api/Feed",
+  feedSearch: "api/Feed/Search",
+  feedSearchTag: "api/Feed/SearchTag",
   reactions: "api/Reactions",
   follows: "api/Follows",
 };

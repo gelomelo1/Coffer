@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Text;
 using System.Threading.Tasks;
+using Coffer.DataAccess.Extensions.IncludeProviders;
 using Coffer.DataAccess.Extensions.IncludeProviders.Interfaces;
 using Coffer.DataAccess.Repositories.Generic;
 using Coffer.DataAccess.Repositories.Interfaces;
@@ -15,8 +16,10 @@ namespace Coffer.DataAccess.Repositories
 {
     public class ItemsRepository : GenericRepository<Guid, ItemProvided, ItemProvided, ItemRequired>, IItemsRepository
     {
+        private readonly IIncludeProvider<ItemProvided> includeProvider;
         public ItemsRepository(CofferDbContext dbContext, IIncludeProvider<ItemProvided> includeProvider) : base(dbContext, includeProvider)
         {
+            this.includeProvider = includeProvider;
         }
 
         public async Task<IDbContextTransaction> BeginTransactionAsync()
@@ -55,6 +58,73 @@ namespace Coffer.DataAccess.Repositories
                 .ToListAsync();
 
             return items;
+        }
+
+        private static string? GetPrimaryAttributeValueAsString(ItemProvided item)
+        {
+            var primaryAttr = item.ItemAttributes
+                .FirstOrDefault(ia => ia.Attribute?.Primary == true);
+
+            if (primaryAttr == null) return null;
+
+            // Convert the correct value to string
+            if (!string.IsNullOrEmpty(primaryAttr.ValueString))
+                return primaryAttr.ValueString;
+            if (primaryAttr.ValueNumber.HasValue)
+                return primaryAttr.ValueNumber.Value.ToString();
+            if (primaryAttr.ValueDate.HasValue)
+                return primaryAttr.ValueDate.Value.ToString("o"); // ISO string
+            if (primaryAttr.ValueBoolean.HasValue)
+                return primaryAttr.ValueBoolean.Value ? "true" : "false";
+
+            return null;
+        }
+
+        public async Task<IEnumerable<ItemProvided>> SearchItems(int collectionTypeId, string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                return Enumerable.Empty<ItemProvided>();
+
+            searchText = searchText.Trim().ToLower();
+
+            // Get default includes from the provider
+            var includes = includeProvider.GetDefaultIncludes();
+
+            IQueryable<ItemProvided> query = _dbContext.Set<ItemProvided>();
+
+            // Apply includes dynamically
+            if (includes != null)
+            {
+                foreach (var include in includes)
+                {
+                    query = query.Include(include); // supports dot-separated paths like "ItemAttributes.Attribute"
+                }
+            }
+
+            // Include the related Collection (so we can filter by CollectionTypeId)
+            query = query.Include(i => i.Collection);
+
+            // Filter items based on collection type
+            query = query.Where(i => i.Collection.CollectionTypeId == collectionTypeId);
+
+            // Load items into memory for text filtering
+            var items = await query.ToListAsync();
+
+            // Filter items by primary attribute value
+            var filtered = items
+                .Select(item =>
+                {
+                    var primaryValue = GetPrimaryAttributeValueAsString(item);
+                    return (Item: item, PrimaryValue: primaryValue);
+                })
+                .Where(x => !string.IsNullOrEmpty(x.PrimaryValue) &&
+                            x.PrimaryValue!.ToLower().Contains(searchText))
+                .OrderBy(x => x.PrimaryValue)
+                .Take(10)
+                .Select(x => x.Item)
+                .ToList();
+
+            return filtered;
         }
 
         protected override ItemProvided MapToEntity(ItemRequired required, ItemProvided? entity = null)

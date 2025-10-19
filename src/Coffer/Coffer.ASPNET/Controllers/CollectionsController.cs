@@ -22,7 +22,7 @@ namespace Coffer.ASPNET.Controllers
         private readonly string imageFolder = 
             Path.Combine(Env.GetString("IMAGESTORE_PATH") ?? throw new InvalidOperationException("IMAGESTORE_PATH envionmental variable is not set"), "collectioncovers");
         private readonly HttpClient _httpClient;
-        public CollectionsController(IGenericRepository<Guid, CollectionProvided, CollectionProvided, CollectionRequired> genericRepository, IItemsRepository itemsRepository, IImageService imageService, HttpClient httpClient) : base(genericRepository)
+        public CollectionsController(ICollectionsRepository collectionsRepository, IItemsRepository itemsRepository, IImageService imageService, HttpClient httpClient) : base(collectionsRepository)
         {
             _imageService = imageService;
             _httpClient = httpClient;

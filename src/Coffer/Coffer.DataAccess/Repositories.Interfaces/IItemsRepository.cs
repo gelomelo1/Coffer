@@ -12,5 +12,6 @@ namespace Coffer.DataAccess.Repositories.Interfaces
     {
         Task<IDbContextTransaction> BeginTransactionAsync();
         public Task<IEnumerable<ItemProvided>> GetFeedItemsAsync(User user);
+        public Task<IEnumerable<ItemProvided>> SearchItems(int collectionTypeId, string searchText);
     }
 }
