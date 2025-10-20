@@ -5,6 +5,7 @@ import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
 import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useGetData, useGetSingleData } from "@/src/hooks/data_hooks";
+import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import CollectionSearch from "@/src/types/entities/collection_search";
 import ItemSearch from "@/src/types/entities/item_search";
@@ -47,6 +48,7 @@ interface FeedSection {
 function FeedSearchOverlay({
   isFeedSearchOverlayVisible,
 }: FeedSearchOverlayProps) {
+  const { user } = useUserStore();
   const { collectionType } = useCollectionStore();
 
   const [searchText, setSearchText] = useState("");
@@ -209,7 +211,11 @@ function FeedSearchOverlay({
                 data={itemTagsSearchData}
                 keyExtractor={(item, index) => `${item.value}-${index}`}
                 renderItem={({ item }) => (
-                  <FeedSearchItemTagCard itemTagsSearch={item} />
+                  <FeedSearchItemTagCard
+                    currentUser={user!}
+                    itemTagsSearch={item}
+                    closeOverlay={() => isFeedSearchOverlayVisible.set(false)}
+                  />
                 )}
                 ListHeaderComponent={
                   <View
@@ -299,12 +305,24 @@ function FeedSearchOverlay({
                       case "collection":
                         return (
                           <FeedSearchCollectionCard
+                            currentUser={user!}
                             collectionType={collectionType}
                             collectionSearch={item.data}
+                            closeOverlay={() =>
+                              isFeedSearchOverlayVisible.set(false)
+                            }
                           />
                         );
                       case "item":
-                        return <FeedSearchItemCard itemSearch={item.data} />;
+                        return (
+                          <FeedSearchItemCard
+                            currentUser={user!}
+                            itemSearch={item.data}
+                            closeOverlay={() =>
+                              isFeedSearchOverlayVisible.set(false)
+                            }
+                          />
+                        );
                     }
                   }}
                   renderSectionHeader={({ section }) => (
@@ -404,8 +422,10 @@ function FeedSearchOverlay({
                   keyExtractor={(item) => item.collection.id}
                   renderItem={({ item }) => (
                     <FeedSearchCollectionCard
+                      currentUser={user!}
                       collectionType={collectionType}
                       collectionSearch={item}
+                      closeOverlay={() => isFeedSearchOverlayVisible.set(false)}
                     />
                   )}
                   ListHeaderComponent={
@@ -452,7 +472,11 @@ function FeedSearchOverlay({
                 data={mixedSearchData.foundItems}
                 keyExtractor={(item) => item.item.id.toString()}
                 renderItem={({ item }) => (
-                  <FeedSearchItemCard itemSearch={item} />
+                  <FeedSearchItemCard
+                    currentUser={user!}
+                    itemSearch={item}
+                    closeOverlay={() => isFeedSearchOverlayVisible.set(false)}
+                  />
                 )}
                 ListHeaderComponent={
                   <View

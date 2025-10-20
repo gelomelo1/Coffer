@@ -1,25 +1,45 @@
 import CustomText from "@/src/components/custom_ui/custom_text";
 import { endpoints } from "@/src/const/endpoints";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
+import { useCollectionStore } from "@/src/hooks/collection_store";
+import { initItemStore } from "@/src/hooks/item_store";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
 import ItemSearch from "@/src/types/entities/item_search";
+import User from "@/src/types/entities/user";
 import { getItemPrimaryAttributeValue } from "@/src/utils/data_access_utils";
 import { navigate } from "expo-router/build/global-state/routing";
 import { Image, TouchableOpacity, View } from "react-native";
 
 interface FeedSearchItemCardProps {
+  currentUser: User;
   itemSearch: ItemSearch;
+  closeOverlay: () => void;
 }
 
-function FeedSearchItemCard({ itemSearch }: FeedSearchItemCardProps) {
+function FeedSearchItemCard({
+  currentUser,
+  itemSearch,
+  closeOverlay,
+}: FeedSearchItemCardProps) {
   const { setValues } = useOtherUserStore();
+  const { setCollection } = useCollectionStore();
 
   const handleNavigation = () => {
-    setValues(itemSearch.user, itemSearch.collection, itemSearch.item);
-    navigate({
-      pathname: ROUTES.OTHERUSERITEMDETAILS,
-      params: pageParams.otheruseritemdetails(itemSearch.collection.name),
-    });
+    if (currentUser.id === itemSearch.user.id) {
+      setCollection(itemSearch.collection);
+      initItemStore(itemSearch.item);
+      navigate({
+        pathname: ROUTES.ITEMDETAILS,
+        params: pageParams.itemdetails,
+      });
+    } else {
+      setValues(itemSearch.user, itemSearch.collection, itemSearch.item);
+      navigate({
+        pathname: ROUTES.OTHERUSERITEMDETAILS,
+        params: pageParams.otheruseritemdetails(itemSearch.collection.name),
+      });
+    }
+    closeOverlay();
   };
 
   const primaryAttribute = getItemPrimaryAttributeValue(

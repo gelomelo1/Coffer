@@ -1,5 +1,6 @@
 import { endpoints } from "@/src/const/endpoints";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
+import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
 import { customTheme } from "@/src/theme/theme";
 import { Collection } from "@/src/types/entities/collection";
@@ -11,12 +12,14 @@ import { Image, TouchableOpacity, View } from "react-native";
 import CustomText from "../custom_ui/custom_text";
 
 interface OtherUserCollectionCardProps {
+  currentUser: User;
   user: User;
   collection: Collection;
   collectionType: CollectionType;
 }
 
 function OtherUserCollectionCard({
+  currentUser,
   user,
   collection,
   collectionType,
@@ -27,13 +30,22 @@ function OtherUserCollectionCard({
   );
 
   const { setCollection } = useOtherUserStore();
+  const { setCollection: setCurrentUserCollection } = useCollectionStore();
 
   const handleNavigation = () => {
-    setCollection(collection);
-    navigate({
-      pathname: ROUTES.OTHERUSERCOLLECTION,
-      params: pageParams.otherusercollection(user.name, collection.name),
-    });
+    if (currentUser.id === user.id) {
+      setCurrentUserCollection(collection);
+      navigate({
+        pathname: ROUTES.COLLECTIONS.MYCOLLECTION,
+        params: pageParams.mycollection,
+      });
+    } else {
+      setCollection(collection);
+      navigate({
+        pathname: ROUTES.OTHERUSERCOLLECTION,
+        params: pageParams.otherusercollection(user.name, collection.name),
+      });
+    }
   };
 
   return (

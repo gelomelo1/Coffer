@@ -5,10 +5,12 @@ import { querykeys } from "@/src/const/querykeys";
 import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useGetData } from "@/src/hooks/data_hooks";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
+import { useUserStore } from "@/src/hooks/user_store";
 import { Collection } from "@/src/types/entities/collection";
 import { View } from "react-native";
 
 function OtherUser() {
+  const { user: currentUser } = useUserStore();
   const { collectionType } = useCollectionStore();
   const { user } = useOtherUserStore();
 
@@ -40,6 +42,7 @@ function OtherUser() {
       ]}
     >
       <OtherUserCollectionSectionList
+        currentUser={currentUser!}
         user={user!}
         collectionType={collectionType}
         collections={otherUserCollectionsData}

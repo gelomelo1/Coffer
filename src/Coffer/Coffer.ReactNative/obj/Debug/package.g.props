@@ -23,6 +23,7 @@
     <PackageJsonDependenciesExpoAuthSession Condition="$(PackageJsonDependenciesExpoAuthSession) == ''">^7.0.8</PackageJsonDependenciesExpoAuthSession>
     <PackageJsonDependenciesExpoConstants Condition="$(PackageJsonDependenciesExpoConstants) == ''">~18.0.8</PackageJsonDependenciesExpoConstants>
     <PackageJsonDependenciesExpoCrypto Condition="$(PackageJsonDependenciesExpoCrypto) == ''">^15.0.7</PackageJsonDependenciesExpoCrypto>
+    <PackageJsonDependenciesExpoDevClient Condition="$(PackageJsonDependenciesExpoDevClient) == ''">~6.0.15</PackageJsonDependenciesExpoDevClient>
     <PackageJsonDependenciesExpoFont Condition="$(PackageJsonDependenciesExpoFont) == ''">~14.0.8</PackageJsonDependenciesExpoFont>
     <PackageJsonDependenciesExpoHaptics Condition="$(PackageJsonDependenciesExpoHaptics) == ''">~15.0.7</PackageJsonDependenciesExpoHaptics>
     <PackageJsonDependenciesExpoImage Condition="$(PackageJsonDependenciesExpoImage) == ''">~3.0.8</PackageJsonDependenciesExpoImage>

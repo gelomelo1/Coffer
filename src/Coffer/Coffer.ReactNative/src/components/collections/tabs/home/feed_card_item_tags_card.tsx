@@ -1,6 +1,7 @@
 import CustomText from "@/src/components/custom_ui/custom_text";
 import { customTheme } from "@/src/theme/theme";
 import ItemTagSearch from "@/src/types/entities/item_tags_search";
+import User from "@/src/types/entities/user";
 import { useState } from "react";
 import { FlatList, TouchableOpacity, View } from "react-native";
 import { Overlay } from "react-native-elements";
@@ -8,11 +9,22 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import FeedSearchItemCard from "./feed_seach_item_card";
 
 interface FeedSearchItemTagCardProps {
+  currentUser: User;
   itemTagsSearch: ItemTagSearch;
+  closeOverlay: () => void;
 }
 
-function FeedSearchItemTagCard({ itemTagsSearch }: FeedSearchItemTagCardProps) {
+function FeedSearchItemTagCard({
+  currentUser,
+  itemTagsSearch,
+  closeOverlay,
+}: FeedSearchItemTagCardProps) {
   const [isItemTagsOverlayOpen, setIsItemTagsOverlayOpen] = useState(false);
+
+  const handleCloseItemOverlay = () => {
+    closeOverlay();
+    setIsItemTagsOverlayOpen(false);
+  };
 
   return (
     <>
@@ -45,7 +57,13 @@ function FeedSearchItemTagCard({ itemTagsSearch }: FeedSearchItemTagCardProps) {
           <FlatList
             data={itemTagsSearch.foundItems}
             keyExtractor={(item) => item.item.id.toString()}
-            renderItem={({ item }) => <FeedSearchItemCard itemSearch={item} />}
+            renderItem={({ item }) => (
+              <FeedSearchItemCard
+                currentUser={currentUser}
+                itemSearch={item}
+                closeOverlay={handleCloseItemOverlay}
+              />
+            )}
             ListHeaderComponent={
               <View
                 style={{

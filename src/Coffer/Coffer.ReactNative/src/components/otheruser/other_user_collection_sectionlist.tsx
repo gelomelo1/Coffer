@@ -16,6 +16,7 @@ import SettingsUserCard from "../settings/settings_user_card";
 import OtherUserCollectionCard from "./other_user_collection_card";
 
 interface OtherUserCollectionSectionListProps {
+  currentUser: User;
   user: User;
   collectionType: CollectionType;
   collections: Collection[];
@@ -23,6 +24,7 @@ interface OtherUserCollectionSectionListProps {
 }
 
 function OtherUserCollectionSectionList({
+  currentUser,
   user,
   collectionType,
   collections,
@@ -106,6 +108,7 @@ function OtherUserCollectionSectionList({
           {item.map((i) => (
             <OtherUserCollectionCard
               key={i.id}
+              currentUser={currentUser}
               user={user}
               collection={i}
               collectionType={collectionType}
