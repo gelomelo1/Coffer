@@ -18,6 +18,12 @@ namespace Coffer.DataAccess
         public DbSet<ItemOptions> ItemOptions { get; set; }
         public DbSet<ReactionProvided> Reactions { get; set; }
         public DbSet<FollowProvided> Follows { get; set; }
+        public DbSet<UserContactProvided> UserContacts { get; set; }
+        public DbSet<TradeProvided> Trades { get; set; }
+        public DbSet<TradeItem> TradeItems { get; set; }
+        public DbSet<OfferProvided> Offers { get; set; }
+        public DbSet<OfferItem> OfferItems { get; set; }
+        public DbSet<TradeReviewProvided> TradeReviews { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -98,6 +104,76 @@ namespace Coffer.DataAccess
                    .WithMany()
                    .HasForeignKey(c => c.UserId);
 
+            //UserContact
+            modelBuilder.Entity<UserContactProvided>()
+                .HasOne(u => u.User)
+                .WithMany(u => u.Contacts)
+                .HasForeignKey(u => u.UserId);
+
+            //TradeProvided
+            modelBuilder.Entity<TradeProvided>()
+                .HasOne(t => t.User)
+                .WithMany()
+                .HasForeignKey(t => t.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TradeProvided>()
+                .HasMany(t => t.TradeItems)
+                .WithOne()
+                .HasForeignKey(t => t.TradeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TradeProvided>()
+                .HasMany(t => t.Offers)
+                .WithOne(o => o.Trade)
+                .HasForeignKey(o => o.TradeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            //TradeItem
+            modelBuilder.Entity<TradeItem>()
+                .HasOne(t => t.Item)
+                .WithMany()
+                .HasForeignKey(t => t.ItemId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            //OfferProvided
+            modelBuilder.Entity<OfferProvided>()
+                .HasOne(o => o.Trade)
+                .WithMany(t => t.Offers)
+                .HasForeignKey(o => o.TradeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<OfferProvided>()
+                .HasOne(o => o.User)
+                .WithMany()
+                .HasForeignKey(o => o.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<OfferProvided>()
+                .HasMany(o => o.OfferItems)
+                .WithOne()
+                .HasForeignKey(o => o.OfferId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            //OfferItem
+            modelBuilder.Entity<OfferItem>()
+                .HasOne(o => o.Item)
+                .WithMany()
+                .HasForeignKey(o => o.ItemId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            //TradeReviewProvided
+            modelBuilder.Entity<TradeReviewProvided>()
+                .HasOne(t => t.ReviewerUser)
+                .WithMany()
+                .HasForeignKey(t => t.ReviewerId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<TradeReviewProvided>()
+                .HasOne(t => t.RevieweeUser)
+                .WithMany()
+                .HasForeignKey(t => t.RevieweeId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 

@@ -1,0 +1,4 @@
+AndroidManifest.xml
+application
+
+android:usesCleartextTraffic="true"

@@ -20,6 +20,12 @@
       "android": {
         "buildType": "app-bundle"
       }
+    },
+    "standalone": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
     }
   }
 }

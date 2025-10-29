@@ -87,3 +87,64 @@ CREATE TABLE follows (
     followed_at TIMESTAMP DEFAULT now(),
     UNIQUE (user_id, collection_id) -- prevent duplicate follows
 );
+
+CREATE TABLE user_contacts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    platform VARCHAR(20) NOT NULL CHECK (
+        platform IN ('Phone', 'Facebook', 'Instagram')
+    ),
+    value TEXT NOT NULL,
+    link TEXT,
+    created_at TIMESTAMP DEFAULT now(),
+    UNIQUE (user_id, platform)
+);
+
+CREATE TABLE trades (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    want_description TEXT,               -- what they want in return (text)
+    money_requested NUMERIC(10,2),       -- optional money value
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE trade_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    trade_id UUID NOT NULL REFERENCES trades(id) ON DELETE CASCADE,
+    item_id UUID REFERENCES items(id) ON DELETE SET NULL,
+    UNIQUE (trade_id, item_id)
+);
+
+CREATE TABLE offers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    trade_id UUID NOT NULL REFERENCES trades(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    money_offer NUMERIC(10,2),
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (
+        status IN ('pending', 'rejected', 'accepted', 'revertByCreator', 'revertByOfferer', 'traded')
+    ),
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
+    UNIQUE (trade_id, user_id)             -- one offer per user per trade
+);
+
+CREATE TABLE offer_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    offer_id UUID NOT NULL REFERENCES offers(id) ON DELETE CASCADE,
+    item_id UUID REFERENCES items(id) ON DELETE SET NULL,
+    UNIQUE (offer_id, item_id)
+);
+
+CREATE TABLE trade_reviews (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    trade_id UUID NOT NULL REFERENCES trades(id) ON DELETE CASCADE,
+    reviewer_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    reviewee_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    rating BOOLEAN NOT NULL,  -- true = good, false = bad
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT now(),
+    UNIQUE (trade_id, reviewer_id)
+);

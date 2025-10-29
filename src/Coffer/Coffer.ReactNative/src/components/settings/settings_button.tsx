@@ -18,39 +18,41 @@ function SettingsButton({
   isLastInList = false,
 }: SettingsButtonProps) {
   return (
-    <TouchableOpacity style={{ width: "95%" }} onPress={() => onPress()}>
-      <View
-        style={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexDirection: "row",
-          marginBottom: 15,
-        }}
-      >
+    <View style={{ width: "95%", marginBottom: 5 }}>
+      <TouchableOpacity onPress={() => onPress()}>
         <View
           style={{
+            width: "100%",
             display: "flex",
-            justifyContent: "flex-start",
+            justifyContent: "space-between",
             alignItems: "center",
             flexDirection: "row",
-            gap: 20,
-            marginLeft: 10,
+            marginBottom: 5,
           }}
         >
-          {icon}
-          <CustomText style={{ fontSize: 20 }}>{title}</CustomText>
+          <View
+            style={{
+              display: "flex",
+              justifyContent: "flex-start",
+              alignItems: "center",
+              flexDirection: "row",
+              gap: 20,
+              marginLeft: 10,
+            }}
+          >
+            {icon}
+            <CustomText style={{ fontSize: 20 }}>{title}</CustomText>
+          </View>
+          <AntDesign
+            name="right"
+            size={20}
+            color={customTheme.colors.primary}
+            style={{ marginRight: 10 }}
+          />
         </View>
-        <AntDesign
-          name="right"
-          size={20}
-          color={customTheme.colors.primary}
-          style={{ marginRight: 10 }}
-        />
-      </View>
+      </TouchableOpacity>
       {!isLastInList ? <Divider color={customTheme.colors.secondary} /> : null}
-    </TouchableOpacity>
+    </View>
   );
 }
 

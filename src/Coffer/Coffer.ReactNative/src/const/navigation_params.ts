@@ -12,6 +12,7 @@ export const ROUTES = {
   SETTINGS: {
     ROOT: "settings" as any,
     DEVELOPER: "settings/developer" as any,
+    USER: "settings/user" as any,
   },
   ITEMDETAILS: "itemdetails" as any,
   OTHERUSER: "otheruser" as any,
@@ -56,4 +57,8 @@ export const pageParams = {
       title: collectionName,
       screenTitle: "Item Details",
     }),
+  user: buildNavigationData({
+    title: `User settings`,
+    isSettingsShown: false,
+  }),
 };

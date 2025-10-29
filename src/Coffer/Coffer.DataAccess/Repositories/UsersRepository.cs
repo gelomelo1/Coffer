@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Coffer.DataAccess.Extensions.IncludeProviders.Interfaces;
 using Coffer.DataAccess.Repositories.Generic;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
@@ -12,18 +13,21 @@ namespace Coffer.DataAccess.Repositories
 {
     public class UsersRepository : GenericRepository<Guid, User, UserProvided, UserRequired>, IUsersRepository
     {
-        public UsersRepository(CofferDbContext dbContext) : base(dbContext)
+        public UsersRepository(CofferDbContext dbContext, IIncludeProvider<User> includeProvider) : base(dbContext, includeProvider)
         {
         }
 
         public async Task<User?> GetUserById(Guid userId)
         {
-            return await _dbSet.FirstOrDefaultAsync(user => user.Id == userId);
+            return await _dbSet
+                .Include(u => u.Contacts)
+                .FirstOrDefaultAsync(user => user.Id == userId);
         }
 
         public async Task<User?> GetUserByLogin(string provider, string providerUserId)
         {
             return await _dbSet
+                .Include(u => u.Contacts)
                 .FirstOrDefaultAsync(u => u.Provider == provider && u.ProviderUserId == providerUserId);
         }
 
@@ -44,6 +48,7 @@ namespace Coffer.DataAccess.Repositories
 
             // Query users whose Name contains the search text
             var users = await _dbSet
+                .Include(u => u.Contacts)
                 .Where(u => u.Name.ToLower().Contains(searchText))
                 .OrderBy(u => u.Name) // simple ordering; can be replaced with more advanced similarity scoring
                 .Take(10)

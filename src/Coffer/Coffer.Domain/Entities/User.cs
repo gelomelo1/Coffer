@@ -40,6 +40,8 @@ namespace Coffer.Domain.Entities
         public string Country { get; set; }
         public string? Avatar { get; set; }
 
+        public ICollection<UserContactProvided> Contacts { get; set; } = new List<UserContactProvided>();
+
         public UserProvided(string name, string email, string provider, string country, string? avatar)
         {
             Name = name;

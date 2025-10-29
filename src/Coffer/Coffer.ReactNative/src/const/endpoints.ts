@@ -24,4 +24,5 @@ export const endpoints = {
   feedSearchTag: "api/Feed/SearchTag",
   reactions: "api/Reactions",
   follows: "api/Follows",
+  userContact: "api/UserContact",
 };

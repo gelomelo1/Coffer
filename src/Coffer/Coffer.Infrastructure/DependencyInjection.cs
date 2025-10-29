@@ -55,6 +55,10 @@ namespace Coffer.Infrastructure
             services.AddScoped<IIncludeProvider<CollectionTypeProvided>, CollectionTypeProvidedIncludeProvider>();
             services.AddScoped<IIncludeProvider<ItemProvided>, ItemIncludeProvider>();
             services.AddScoped<IIncludeProvider<CollectionProvided>, CollectionIncludeProvider>();
+            services.AddScoped<IIncludeProvider<User>, UserIncludeProvider>();
+            services.AddScoped<IIncludeProvider<TradeProvided>, TradeIncludeProvider>();
+            services.AddScoped<IIncludeProvider<OfferProvided>, OfferIncludeProvider>();
+            services.AddScoped<IIncludeProvider<TradeReviewProvided>, TradeReviewIncludeProvider>();
             #endregion
 
             #region AddRepositories
@@ -67,6 +71,10 @@ namespace Coffer.Infrastructure
             services.AddScoped<IReactionsRepository, ReactionsRepository>();
             services.AddScoped<IFollowsRepository, FollowsRepository>();
             services.AddScoped<IItemTagsRepository, ItemTagsRepository>();
+            services.AddScoped<IGenericRepository<Guid, UserContactProvided, UserContactProvided, UserContactRequired>, UserContactsRepository>();
+            services.AddScoped<ITradesRepository, TradesRepository>();
+            services.AddScoped<IOffersRepository, OffersRepository>();
+            services.AddScoped<IGenericRepository<Guid, TradeReviewProvided, TradeReviewProvided, TradeReviewRequired>, TradeReviewsRepository>();
             #endregion
 
             return services;

@@ -29,3 +29,12 @@ export const nestedTagFilterQuery = (value: string) => {
 export const textInputRegex = /^[a-zA-Z0-9 .-]+$/;
 
 export const languageFilter = new Filter();
+
+export const phoneRegex = /^\+?\d{7,15}$/;
+
+export const facebookRegex = /^(https?:\/\/)?(www\.)?facebook\.com\/.+$/i;
+
+export const instagramRegex = /^@[a-z0-9._]{1,29}[a-z0-9_]$/;
+
+export const instagramDomainRegex =
+  /^(https?:\/\/)?(www\.)?instagram\.com\/.+$/i;

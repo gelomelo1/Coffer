@@ -79,7 +79,12 @@ function Settings() {
         icon={
           <AntDesign name="user" size={20} color={customTheme.colors.primary} />
         }
-        onPress={() => console.log("user settings")}
+        onPress={() =>
+          navigate({
+            pathname: ROUTES.SETTINGS.USER,
+            params: pageParams.user,
+          })
+        }
       />
       <SettingsButton
         title="Logout"

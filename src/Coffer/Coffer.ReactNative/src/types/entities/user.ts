@@ -1,3 +1,5 @@
+import { UserContact } from "./user_contact";
+
 interface User {
   id: string;
   name: string;
@@ -6,6 +8,7 @@ interface User {
   country: string;
   avatar: string;
   provider: string;
+  contacts: UserContact[];
 }
 
 export default User;
