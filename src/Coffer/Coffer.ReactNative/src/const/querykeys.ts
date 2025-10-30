@@ -10,4 +10,6 @@ export const querykeys = {
   otherUserItemsData: "otherUsersItemsData",
   itemTagsSearchData: "itemTagsSearchData",
   mixedSearchData: "mixedSearchData",
+  myTradesData: "myTradesData",
+  myOffersData: "myOffersData",
 };

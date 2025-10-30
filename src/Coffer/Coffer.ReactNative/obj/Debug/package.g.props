@@ -39,6 +39,7 @@
     <PackageJsonDependenciesReact Condition="$(PackageJsonDependenciesReact) == ''">19.1.0</PackageJsonDependenciesReact>
     <PackageJsonDependenciesReactDom Condition="$(PackageJsonDependenciesReactDom) == ''">19.1.0</PackageJsonDependenciesReactDom>
     <PackageJsonDependenciesReactNative Condition="$(PackageJsonDependenciesReactNative) == ''">0.81.4</PackageJsonDependenciesReactNative>
+    <PackageJsonDependenciesReactNativeColorMatrixImageFilters Condition="$(PackageJsonDependenciesReactNativeColorMatrixImageFilters) == ''">^7.0.2</PackageJsonDependenciesReactNativeColorMatrixImageFilters>
     <PackageJsonDependenciesReactNativeCountryPickerModal Condition="$(PackageJsonDependenciesReactNativeCountryPickerModal) == ''">^2.0.0</PackageJsonDependenciesReactNativeCountryPickerModal>
     <PackageJsonDependenciesReactNativeDropdownPicker Condition="$(PackageJsonDependenciesReactNativeDropdownPicker) == ''">^5.4.6</PackageJsonDependenciesReactNativeDropdownPicker>
     <PackageJsonDependenciesReactNativeElements Condition="$(PackageJsonDependenciesReactNativeElements) == ''">^3.0.0</PackageJsonDependenciesReactNativeElements>

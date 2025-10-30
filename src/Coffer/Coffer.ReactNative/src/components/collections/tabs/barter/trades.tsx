@@ -1,12 +1,12 @@
 import CustomText from "@/src/components/custom_ui/custom_text";
 import { View } from "react-native";
 
-function Sales() {
+function Trades() {
   return (
     <View>
-      <CustomText>Sales</CustomText>
+      <CustomText>Trades</CustomText>
     </View>
   );
 }
 
-export default Sales;
+export default Trades;

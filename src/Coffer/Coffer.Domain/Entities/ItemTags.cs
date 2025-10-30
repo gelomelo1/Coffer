@@ -17,6 +17,6 @@ namespace Coffer.Domain.Entities
     public class ItemTags : ItemTagsRequired
     {
         [JsonIgnore]
-        public ItemProvided Item { get; set; }
+        public ItemProvided? Item { get; set; }
     }
 }

@@ -14,6 +14,7 @@ namespace Coffer.Domain.Entities
         public string Description { get; set; }
         public string? WantDescription { get; set; }
         public int? MoneyRequested { get; set; }
+        public ICollection<TradeItem> TradeItems { get; set; } = new List<TradeItem>();
 
         public TradeRequired(Guid userId, string title, string description, string? wantDescription = null, int? moneyRequested = null)
         {
@@ -28,13 +29,12 @@ namespace Coffer.Domain.Entities
     public class TradeProvided : TradeRequired, IGenericEntity<Guid>
     {
         public Guid Id { get; set; }
-        public UserProvided User { get; set; }
-        public ICollection<TradeItem> TradeItems { get; set; } = new List<TradeItem>();
+        public User User { get; set; }
         public ICollection<OfferProvided> Offers { get; set; } = new List<OfferProvided>();
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
-        public TradeProvided(Guid userId, string title, string description, string? wantDesctription = null, int? moneyRequested = null) : base(userId, title, description, wantDesctription, moneyRequested)
+        public TradeProvided(Guid userId, string title, string description, string? wantDescription = null, int? moneyRequested = null) : base(userId, title, description, wantDescription, moneyRequested)
         {
             CreatedAt = DateTime.UtcNow;
             UpdatedAt = DateTime.UtcNow;

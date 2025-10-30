@@ -15,7 +15,7 @@ import {
   UserContactRequired,
 } from "@/src/types/entities/user_contact";
 import { CONTACT_TYPES, ContactType } from "@/src/types/helpers/contact_type";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Overlay } from "react-native-elements";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomButton from "../../custom_ui/custom_button";
@@ -46,17 +46,23 @@ function AddContactOverlay({
 
   const [selectedContactPlatform, setSelectedContactPlatform] =
     useState<ContactType | null>(null);
-
   const [isPlatformDropdownOpen, setIsPlatformDropdownOpen] = useState(false);
 
   const [contactValue, setContactValue] = useState("");
   const [linkValue, setLinkValue] = useState<string | null>(null);
 
-  // Track focus for showing errors only when input is blurred
   const [isContactFocused, setIsContactFocused] = useState(false);
   const [isLinkFocused, setIsLinkFocused] = useState(false);
 
-  // Only show platforms not already added by the user
+  const [contactError, setContactError] = useState<string | undefined>();
+  const [linkError, setLinkError] = useState<string | undefined>();
+
+  const contactDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+  const linkDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Available platforms user has not added yet
   const availablePlatforms = CONTACT_TYPES.filter(
     (type) => !user?.contacts.some((c) => c.platform === type)
   );
@@ -72,6 +78,8 @@ function AddContactOverlay({
     setLinkValue(null);
     setIsContactFocused(false);
     setIsLinkFocused(false);
+    setContactError(undefined);
+    setLinkError(undefined);
     isAddContactOverlayVisible.set(false);
   };
 
@@ -83,8 +91,11 @@ function AddContactOverlay({
     setLinkValue(null);
     setIsContactFocused(false);
     setIsLinkFocused(false);
+    setContactError(undefined);
+    setLinkError(undefined);
   };
 
+  // --- Error functions ---
   const getPhoneNumberFieldError = () => {
     if (contactValue === "") return stringResource.requiredError;
     if (languageFilter.isProfane(contactValue))
@@ -121,7 +132,6 @@ function AddContactOverlay({
       return stringResource.notValidInstagramLink;
   };
 
-  // Determine the error for the current platform (used for button disabling)
   const getCurrentFieldError = () => {
     switch (selectedContactPlatform) {
       case "Phone":
@@ -134,6 +144,64 @@ function AddContactOverlay({
         return undefined;
     }
   };
+
+  // --- Debounce error messages ---
+  useEffect(() => {
+    if (contactDebounceTimer.current)
+      clearTimeout(contactDebounceTimer.current);
+    if (!isContactFocused) {
+      switch (selectedContactPlatform) {
+        case "Phone":
+          setContactError(getPhoneNumberFieldError());
+          break;
+        case "Facebook":
+          setContactError(getFacebookNameFieldError());
+          break;
+        case "Instagram":
+          setContactError(getInstagramNameFieldError());
+          break;
+      }
+    } else {
+      contactDebounceTimer.current = setTimeout(() => {
+        switch (selectedContactPlatform) {
+          case "Phone":
+            setContactError(getPhoneNumberFieldError());
+            break;
+          case "Facebook":
+            setContactError(getFacebookNameFieldError());
+            break;
+          case "Instagram":
+            setContactError(getInstagramNameFieldError());
+            break;
+        }
+      }, 1000);
+    }
+  }, [contactValue, selectedContactPlatform, isContactFocused]);
+
+  useEffect(() => {
+    if (linkDebounceTimer.current) clearTimeout(linkDebounceTimer.current);
+    if (!isLinkFocused) {
+      switch (selectedContactPlatform) {
+        case "Facebook":
+          setLinkError(getFacebookLinkFieldError());
+          break;
+        case "Instagram":
+          setLinkError(getInstagramLinkFieldError());
+          break;
+      }
+    } else {
+      linkDebounceTimer.current = setTimeout(() => {
+        switch (selectedContactPlatform) {
+          case "Facebook":
+            setLinkError(getFacebookLinkFieldError());
+            break;
+          case "Instagram":
+            setLinkError(getInstagramLinkFieldError());
+            break;
+        }
+      }, 1000);
+    }
+  }, [linkValue, selectedContactPlatform, isLinkFocused]);
 
   const handleAddContactPressed = async () => {
     if (!selectedContactPlatform || !user) return;
@@ -187,9 +255,7 @@ function AddContactOverlay({
             onFocus={() => setIsContactFocused(true)}
             onBlur={() => setIsContactFocused(false)}
             onChangeText={(newValue) => setContactValue(newValue)}
-            errorMessage={
-              !isContactFocused ? getPhoneNumberFieldError() : undefined
-            }
+            errorMessage={contactError}
           />
         )}
 
@@ -201,9 +267,7 @@ function AddContactOverlay({
               onFocus={() => setIsContactFocused(true)}
               onBlur={() => setIsContactFocused(false)}
               onChangeText={(newValue) => setContactValue(newValue)}
-              errorMessage={
-                !isContactFocused ? getFacebookNameFieldError() : undefined
-              }
+              errorMessage={contactError}
             />
             <CustomTextInput
               label="Facebook link"
@@ -211,9 +275,7 @@ function AddContactOverlay({
               onFocus={() => setIsLinkFocused(true)}
               onBlur={() => setIsLinkFocused(false)}
               onChangeText={(newValue) => setLinkValue(newValue)}
-              errorMessage={
-                !isLinkFocused ? getFacebookLinkFieldError() : undefined
-              }
+              errorMessage={linkError}
             />
           </>
         )}
@@ -226,9 +288,7 @@ function AddContactOverlay({
               onFocus={() => setIsContactFocused(true)}
               onBlur={() => setIsContactFocused(false)}
               onChangeText={(newValue) => setContactValue(newValue)}
-              errorMessage={
-                !isContactFocused ? getInstagramNameFieldError() : undefined
-              }
+              errorMessage={contactError}
             />
             <CustomTextInput
               label="Instagram link"
@@ -236,15 +296,13 @@ function AddContactOverlay({
               onFocus={() => setIsLinkFocused(true)}
               onBlur={() => setIsLinkFocused(false)}
               onChangeText={(newValue) => setLinkValue(newValue)}
-              errorMessage={
-                !isLinkFocused ? getInstagramLinkFieldError() : undefined
-              }
+              errorMessage={linkError}
             />
           </>
         )}
 
         <CustomButton
-          title={"Add"}
+          title="Add"
           containerStyle={{ marginTop: 10 }}
           loading={isPending}
           disabled={!!getCurrentFieldError()}

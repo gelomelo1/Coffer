@@ -9,5 +9,6 @@ namespace Coffer.DataAccess.Repositories.Interfaces
 {
     public interface ITradesRepository : IGenericRepository<Guid, TradeProvided, TradeProvided, TradeRequired>
     {
+
     }
 }

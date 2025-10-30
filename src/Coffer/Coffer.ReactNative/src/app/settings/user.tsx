@@ -44,6 +44,11 @@ function User() {
             />
           </TouchableOpacity>
         </View>
+        {user!.contacts.length === 0 ? (
+          <CustomText style={{ fontFamily: "VendSansItalic" }}>
+            No contact info added yet
+          </CustomText>
+        ) : null}
         {user!.contacts.map((contact) => (
           <ContactCard
             key={contact.id}

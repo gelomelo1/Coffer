@@ -25,4 +25,6 @@ export const endpoints = {
   reactions: "api/Reactions",
   follows: "api/Follows",
   userContact: "api/UserContact",
+  trades: "api/Trades",
+  offers: "api/Offers",
 };

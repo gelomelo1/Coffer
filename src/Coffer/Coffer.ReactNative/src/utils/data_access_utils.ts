@@ -5,13 +5,16 @@ import {
 } from "../const/filter";
 import rarityVariants from "../const/rarity_variants";
 import Attribute from "../types/entities/attribute";
-import { Item } from "../types/entities/item";
+import { Item, ItemProvided } from "../types/entities/item";
 import ItemAttribute from "../types/entities/item_attribute";
 import ItemOptions from "../types/entities/itemoptions";
+import { Offer } from "../types/entities/offer";
 import { Reaction } from "../types/entities/reaction";
+import { Trade } from "../types/entities/trade";
 import AttributeValue, {
   AttributeTypes,
 } from "../types/helpers/attribute_data";
+import { TradeStatus } from "../types/helpers/barter_status";
 import { QuerySortData } from "../types/helpers/query_data";
 import RarityValue from "../types/helpers/rarity_value";
 
@@ -249,4 +252,55 @@ export function getRarityVariantByValue(
   const clampedRarity = Math.min(Math.max(roundedRarity, 1), 4);
 
   return rarityVariants[clampedRarity];
+}
+
+function getTradeStatus(offers: Offer[]): TradeStatus {
+  let isLocked = false;
+  for (const offer of offers) {
+    if (offer.status === "traded") return "traded";
+    if (
+      offer.status === "accepted" ||
+      offer.status === "revertByCreator" ||
+      offer.status === "revertByOfferer"
+    )
+      isLocked = true;
+  }
+
+  if (isLocked) return "locked";
+
+  return "open";
+}
+
+export function isItemAvailableForTrade(
+  item: ItemProvided,
+  trades: Trade[],
+  offers: Offer[],
+  excludeTrade?: Trade,
+  excludeOffer?: Offer
+) {
+  if (item.quantity <= 1) return false;
+
+  let itemsInTradeCount = 0;
+
+  trades.forEach((trade) => {
+    if (
+      trade !== excludeTrade &&
+      getTradeStatus(trade.offers) !== "traded" &&
+      trade.tradeItems.find((tradeItem) => tradeItem.itemId === item.id)
+    ) {
+      itemsInTradeCount++;
+    }
+  });
+
+  offers.forEach((offer) => {
+    if (
+      offer !== excludeOffer &&
+      offer.status !== "traded" &&
+      offer.offerItems.find((offerItem) => offerItem.itemId === item.id)
+    ) {
+      itemsInTradeCount++;
+    }
+  });
+
+  return item.quantity - itemsInTradeCount > 1;
 }

@@ -20,7 +20,62 @@ namespace Coffer.DataAccess.Repositories
 
         protected override TradeProvided MapToEntity(TradeRequired required, TradeProvided? entity = null)
         {
-            throw new NotImplementedException();
+            if(entity == null)
+            {
+                var newEntity = new TradeProvided(required.UserId, required.Title, required.Description, required.WantDescription, required.MoneyRequested);
+
+                foreach(var tradeItem in required.TradeItems)
+                {
+                    newEntity.TradeItems.Add(new TradeItem
+                    {
+                        TradeId = tradeItem.TradeId,
+                        ItemId = tradeItem.ItemId,
+                    });
+                }
+                return newEntity;
+            }
+
+            entity.UserId = required.UserId;
+            entity.Title = required.Title;
+            entity.Description = required.Description;
+            entity.WantDescription = required.WantDescription;
+            entity.MoneyRequested = required.MoneyRequested;
+            entity.UpdatedAt = DateTime.UtcNow;
+
+            // Merge TradeItems
+            foreach (var tradeItem in required.TradeItems)
+            {
+                // Match only by Id if available
+                var existing = tradeItem.Id != Guid.Empty
+                    ? entity.TradeItems.FirstOrDefault(x => x.Id == tradeItem.Id)
+                    : null;
+
+                if (existing != null)
+                {
+                    // Update existing fields
+                    existing.TradeId = tradeItem.Id;
+                    existing.ItemId = tradeItem.ItemId;
+                    existing.Item = tradeItem.Item;
+                }
+                else
+                {
+                    // Add new TradeItem
+                    entity.TradeItems.Add(new TradeItem
+                    {
+                        TradeId = entity.Id,
+                        ItemId = tradeItem.ItemId,
+                        Item = tradeItem.Item
+                    });
+                }
+            }
+
+            // Remove TradeItems that are no longer present (match only those with valid Id)
+            entity.TradeItems
+                .Where(x => x.Id != Guid.Empty && !required.TradeItems.Any(t => t.Id == x.Id))
+                .ToList()
+                .ForEach(x => entity.TradeItems.Remove(x));
+
+            return entity;
         }
 
         protected override TradeProvided MapToEntity(TradeProvided provided, TradeProvided? entity = null)

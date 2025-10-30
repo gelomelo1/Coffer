@@ -1,19 +1,47 @@
-import History from "@/src/components/collections/tabs/barter/history";
 import MyOffers from "@/src/components/collections/tabs/barter/myoffers";
-import MySales from "@/src/components/collections/tabs/barter/mysales";
-import Sales from "@/src/components/collections/tabs/barter/sales";
+import MyTrades from "@/src/components/collections/tabs/barter/mytrades";
+import Trades from "@/src/components/collections/tabs/barter/trades";
 import CustomText from "@/src/components/custom_ui/custom_text";
 import rootViewStyle from "@/src/components/custom_ui/root_view";
+import { endpoints } from "@/src/const/endpoints";
+import { querykeys } from "@/src/const/querykeys";
 import { useCollectionStore } from "@/src/hooks/collection_store";
+import { useGetData } from "@/src/hooks/data_hooks";
+import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
+import { Offer } from "@/src/types/entities/offer";
+import { Trade } from "@/src/types/entities/trade";
 import { useState } from "react";
 import { SafeAreaView, ScrollView, TouchableOpacity, View } from "react-native";
 import { Divider } from "react-native-elements";
 
 function Barter() {
+  const { user } = useUserStore();
   const { collectionType } = useCollectionStore();
 
   const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+
+  const { data: myTradesData = [], isFetching: isMyTradesFetching } =
+    useGetData<Trade>(endpoints.trades, querykeys.myTradesData, {
+      filters: [
+        {
+          filter: "Match",
+          field: "userId",
+          value: user!.id,
+        },
+      ],
+    });
+
+  const { data: myOffersData = [], isFetching: isMyOffersFetching } =
+    useGetData<Offer>(endpoints.offers, querykeys.myOffersData, {
+      filters: [
+        {
+          filter: "Match",
+          field: "userId",
+          value: user!.id,
+        },
+      ],
+    });
 
   return (
     <View
@@ -30,50 +58,53 @@ function Barter() {
             contentContainerStyle={{
               flexDirection: "row",
               alignItems: "center",
+              justifyContent: "center",
               paddingHorizontal: 10,
+              minWidth: "100%", // <-- ensures the content container takes full width
             }}
           >
-            <View style={{ flexDirection: "row" }}>
-              {["SALES", "MY SALES", "MY OFFERS", "HISTORY"].map((title, i) => (
-                <TouchableOpacity
-                  key={title}
-                  onPress={() => setSelectedTabIndex(i)}
+            {["TRADES", "MY TRADES", "MY OFFERS"].map((title, i) => (
+              <TouchableOpacity
+                key={title}
+                onPress={() => setSelectedTabIndex(i)}
+                style={{
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                  borderBottomWidth: selectedTabIndex === i ? 3 : 0,
+                  borderBottomColor: customTheme.colors.secondary,
+                  marginRight: 16,
+                }}
+              >
+                <CustomText
                   style={{
-                    paddingHorizontal: 16,
-                    paddingVertical: 8,
-                    borderBottomWidth: selectedTabIndex === i ? 3 : 0,
-                    borderBottomColor: customTheme.colors.secondary,
-                    marginRight: 16, // space evenly between tabs
+                    fontFamily: "VendSansBold",
+                    color:
+                      selectedTabIndex === i
+                        ? customTheme.colors.secondary
+                        : customTheme.colors.primary,
+                    fontSize: 14,
+                    textAlign: "center",
                   }}
                 >
-                  <CustomText
-                    style={{
-                      fontFamily: "VendSansBold",
-                      color:
-                        selectedTabIndex === i
-                          ? customTheme.colors.secondary
-                          : customTheme.colors.primary,
-                      fontSize: 14,
-                      textAlign: "center",
-                    }}
-                  >
-                    {title}
-                  </CustomText>
-                </TouchableOpacity>
-              ))}
-            </View>
+                  {title}
+                </CustomText>
+              </TouchableOpacity>
+            ))}
           </ScrollView>
         </View>
         <Divider width={2} color={customTheme.colors.primary} />
         <View style={{ padding: 10 }}>
           {selectedTabIndex === 0 ? (
-            <Sales />
+            <Trades />
           ) : selectedTabIndex === 1 ? (
-            <MySales />
-          ) : selectedTabIndex === 2 ? (
-            <MyOffers />
+            <MyTrades
+              myTradesData={myTradesData}
+              isMyTradesFetching={isMyTradesFetching}
+              myOffersData={myOffersData}
+              isMyOffersFetching={isMyOffersFetching}
+            />
           ) : (
-            <History />
+            <MyOffers />
           )}
         </View>
       </SafeAreaView>

@@ -22,20 +22,30 @@ namespace Coffer.Domain.Entities
             Liked = liked;
             Rarity = rarity;
         }
+
+        public ReactionRequired() { }
     }
 
-    public class ReactionProvided(Guid userId, Guid itemId, bool liked, int? rarity = null) : ReactionRequired(userId, itemId, liked, rarity), IGenericEntity<Guid>
+    public class ReactionProvided : ReactionRequired, IGenericEntity<Guid>
     {
         public Guid Id { get; set; }
         [JsonIgnore]
-        public User User { get; set; }
+        public User? User { get; set; }
         [JsonIgnore]
-        public ItemProvided Item { get; set; }
+        public ItemProvided? Item { get; set; }
 
-        public ReactionProvided(Guid userId, Guid itemId, bool liked, User user, ItemProvided itemProvided, int? rarity = null) : this(userId, itemId, liked, rarity)
+        public ReactionProvided(Guid userId, Guid itemId, bool liked, int? rarity = null)
+            : base(userId, itemId, liked, rarity)
+        {
+        }
+
+        public ReactionProvided(Guid userId, Guid itemId, bool liked, User user, ItemProvided itemProvided, int? rarity = null)
+            : this(userId, itemId, liked, rarity)
         {
             User = user;
             Item = itemProvided;
         }
+
+        public ReactionProvided() { }
     }
 }

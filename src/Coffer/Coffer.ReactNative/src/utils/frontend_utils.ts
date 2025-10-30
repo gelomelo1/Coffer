@@ -30,3 +30,15 @@ export function adjustColor(hex: string, percent: number): string {
   // Convert back to hex
   return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
 }
+
+export function convertToGrayScaleColor(color: string) {
+  // convert hex or named color to grayscale manually
+  // simple approximation
+  if (!color.startsWith("#")) return "gray";
+  const r = parseInt(color.substr(1, 2), 16);
+  const g = parseInt(color.substr(3, 2), 16);
+  const b = parseInt(color.substr(5, 2), 16);
+  const avg = Math.round((r + g + b) / 3);
+  const hex = avg.toString(16).padStart(2, "0");
+  return `#${hex}${hex}${hex}`;
+}

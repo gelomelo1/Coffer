@@ -82,5 +82,7 @@ namespace Coffer.Domain.Entities
             Reactions = reactions;
             Collection = collection;
         }
+
+        public ItemProvided() { }
     }
 }

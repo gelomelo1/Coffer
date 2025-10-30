@@ -22,6 +22,6 @@ namespace Coffer.Domain.Entities
     {
         public Attribute Attribute { get; set; }
         [JsonIgnore]
-        public ItemProvided ItemProvided { get; set; }
+        public ItemProvided? ItemProvided { get; set; }
     }
 }

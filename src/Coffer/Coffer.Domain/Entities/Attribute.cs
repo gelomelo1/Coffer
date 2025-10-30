@@ -18,10 +18,10 @@ namespace Coffer.Domain.Entities
         public int? ItemOptionsId { get; set; }
 
         [JsonIgnore]
-        public CollectionTypeProvided CollectionTypeProvided { get; set; }
+        public CollectionTypeProvided? CollectionTypeProvided { get; set; }
 
         [JsonIgnore]
-        public ICollection<ItemAttribute> ItemAttributes { get; set; }
+        public ICollection<ItemAttribute>? ItemAttributes { get; set; }
 
         [JsonIgnore]
         public ItemOptions? ItemOptions { get; set; }
