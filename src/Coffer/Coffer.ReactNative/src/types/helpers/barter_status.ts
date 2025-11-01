@@ -6,4 +6,9 @@ export type OfferStatus =
   | "revertByOfferer"
   | "traded";
 
-export type TradeStatus = "open" | "locked" | "traded";
+export type TradeStatus =
+  | "offerRevertByOfferer"
+  | "offerRevertByCreator"
+  | "offerAccepted"
+  | "open"
+  | "traded";

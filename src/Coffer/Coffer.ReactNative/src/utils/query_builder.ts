@@ -6,7 +6,7 @@ export default function buildQuery(options: QueryOptions): string {
   }
   let url = "?";
   if (options.filters) {
-    url += "Filter=";
+    url += "filter=";
   }
   options.filters?.forEach((filter, index) => {
     if (index > 0) {
@@ -15,7 +15,7 @@ export default function buildQuery(options: QueryOptions): string {
     url += buildFilter(filter);
   });
   if (options.sort) {
-    url += (options.filters ? "&" : "") + "OrderBy=";
+    url += (options.filters ? "&" : "") + "orderBy=";
   }
   options.sort?.forEach((sort, index) => {
     if (index > 0) {
@@ -27,19 +27,42 @@ export default function buildQuery(options: QueryOptions): string {
     url += "&";
   }
   if (options.page) {
-    url += `Page=${options.page}`;
+    url += `page=${options.page}`;
   }
   if (options.pageSize) {
-    url += (options.page ? "&" : "") + `PageSize=${options.pageSize}`;
+    url += (options.page ? "&" : "") + `pageSize=${options.pageSize}`;
   }
 
   console.log(url);
 
-  return encodeURI(url);
+  let encoded = encodeURI(url)
+    .replace(/\(/g, "%28")
+    .replace(/\)/g, "%29")
+    .replace(/&&/g, "%26%26");
+
+  encoded = encoded.replace(/(?<=[^?&]+)=/g, (match, offset, str) => {
+    const prev = str[offset - 1];
+    if (
+      /filter|orderBy|page|pageSize/i.test(
+        str.slice(0, offset).split(/[?&]/).pop() || ""
+      )
+    ) {
+      return match;
+    }
+    return "%3D";
+  });
+
+  return encoded;
 }
 
 function buildFilter(filter: QueryFilterData): string {
   let filterString = String(filter.field);
+
+  const isCaseInSensitive = (filter as any).isCaseInSensitive ? true : false;
+
+  if (isCaseInSensitive) {
+    filterString += ".ToLower()";
+  }
 
   if (filter.filter === "None") {
     // raw LINQ support
@@ -79,9 +102,17 @@ function buildFilter(filter: QueryFilterData): string {
   } else {
     // string filters
     if (filter.filter === "Match") {
-      filterString += `=="${filter.value}"`;
+      if (isCaseInSensitive) {
+        filterString += `=="${filter.value.toLocaleLowerCase()}"`;
+      } else {
+        filterString += `=="${filter.value}"`;
+      }
     } else {
-      filterString += `.${filter.filter}("${filter.value}")`;
+      if (isCaseInSensitive) {
+        filterString += `.${filter.filter}("${filter.value.toLocaleString()}")`;
+      } else {
+        filterString += `.${filter.filter}("${filter.value}")`;
+      }
     }
   }
 

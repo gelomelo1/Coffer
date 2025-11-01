@@ -14,7 +14,7 @@ import CustomText from "../../custom_ui/custom_text";
 
 interface ContactCardProps {
   user: User;
-  setUser: (user: User | null) => void;
+  setUser?: (user: User | null) => void;
   contact: UserContact;
   isSettings: boolean;
 }
@@ -27,7 +27,7 @@ function ContactCard({ user, setUser, contact, isSettings }: ContactCardProps) {
   const handleDeleteContact = async () => {
     try {
       await deleteContact(contact.id);
-      setUser({
+      setUser!({
         ...user,
         contacts: user.contacts.filter((c) => c.id !== contact.id),
       });

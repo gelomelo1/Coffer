@@ -122,7 +122,16 @@ export function useUpdateData<TData, TResponse = void>(
       if (customSucessText !== "")
         showToast("success", customSucessText ?? "Successfully updated");
       if (queryKey) {
-        queryClient.invalidateQueries({ queryKey: [queryKey] });
+        const keys = queryKey.includes(";")
+          ? queryKey
+              .split(";")
+              .map((k) => k.trim())
+              .filter(Boolean)
+          : [queryKey.trim()];
+
+        keys.forEach((key) => {
+          queryClient.invalidateQueries({ queryKey: [key] });
+        });
       }
     },
     onError: () => {
@@ -148,7 +157,16 @@ export function useDeleteData(
       if (customSucessText !== "")
         showToast("success", customSucessText ?? "Successfully deleted");
       if (queryKey) {
-        queryClient.invalidateQueries({ queryKey: [queryKey] });
+        const keys = queryKey.includes(";")
+          ? queryKey
+              .split(";")
+              .map((k) => k.trim())
+              .filter(Boolean)
+          : [queryKey.trim()];
+
+        keys.forEach((key) => {
+          queryClient.invalidateQueries({ queryKey: [key] });
+        });
       }
     },
     onError: () => {

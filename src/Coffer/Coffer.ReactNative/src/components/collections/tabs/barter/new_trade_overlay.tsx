@@ -15,6 +15,7 @@ import {
   useUpdateData,
 } from "@/src/hooks/data_hooks";
 import { useNavigationModeStore } from "@/src/hooks/navigation_mode_store";
+import { useTradeStore } from "@/src/hooks/trade_store";
 import { customTheme } from "@/src/theme/theme";
 import Attribute from "@/src/types/entities/attribute";
 import { Collection } from "@/src/types/entities/collection";
@@ -69,6 +70,7 @@ function NewTradeOverlay({
   isOffersFetching,
   trade,
 }: NewTradeOverlayProps) {
+  const { setTrade } = useTradeStore();
   const { navigationMode } = useNavigationModeStore();
   const [queryOptions, setQueryOptions] = useState<QueryOptions>({});
   const contactDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(
@@ -298,18 +300,26 @@ function NewTradeOverlay({
     !!getInstantError("moneyRequested") ||
     draftTrade.tradeItems.length === 0;
 
+  const handleOverlayClose = () => {
+    if (isTradesFetching || isOffersFetching) return;
+
+    isNewTradeOverlayVisible.set(false);
+  };
+
   const handleUploadTrade = async () => {
     console.log(JSON.stringify(draftTrade));
     try {
       if (trade) {
-        await updateTrade({ id: trade.id, value: draftTrade });
+        const response = await updateTrade({ id: trade.id, value: draftTrade });
+        console.log(JSON.stringify(response));
+        setTrade(response);
       } else {
         await createTrade({ value: draftTrade });
       }
     } catch (e) {
       console.error(e);
     }
-    isNewTradeOverlayVisible.set(false);
+    handleOverlayClose();
   };
 
   return (
@@ -321,7 +331,7 @@ function NewTradeOverlay({
         margin: 0,
       }}
       isVisible={isNewTradeOverlayVisible.value}
-      onBackdropPress={() => isNewTradeOverlayVisible.set(false)}
+      onBackdropPress={handleOverlayClose}
     >
       <SafeAreaView>
         <SectionList
@@ -427,7 +437,7 @@ function NewTradeOverlay({
                       collectionType={collectionType}
                       item={item}
                       onRemoveButtonPressed={(item) =>
-                        handleRemoveBarterItemFromSelected(item)
+                        handleRemoveBarterItemFromSelected(item as TradeItem)
                       }
                     />
                   )}

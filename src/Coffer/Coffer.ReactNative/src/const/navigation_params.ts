@@ -18,6 +18,7 @@ export const ROUTES = {
   OTHERUSER: "otheruser" as any,
   OTHERUSERCOLLECTION: "otherusercollection" as any,
   OTHERUSERITEMDETAILS: "otheruseritemdetails" as any,
+  TRADEDETAILS: "tradedetails" as any,
 } as const;
 
 export const pageParams = {
@@ -61,4 +62,8 @@ export const pageParams = {
     title: `User settings`,
     isSettingsShown: false,
   }),
+  tradeDetails: (username: string) =>
+    buildNavigationData({
+      title: username,
+    }),
 };

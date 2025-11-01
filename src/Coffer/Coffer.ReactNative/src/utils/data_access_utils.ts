@@ -254,19 +254,13 @@ export function getRarityVariantByValue(
   return rarityVariants[clampedRarity];
 }
 
-function getTradeStatus(offers: Offer[]): TradeStatus {
-  let isLocked = false;
+export function getTradeStatus(offers: Offer[]): TradeStatus {
   for (const offer of offers) {
     if (offer.status === "traded") return "traded";
-    if (
-      offer.status === "accepted" ||
-      offer.status === "revertByCreator" ||
-      offer.status === "revertByOfferer"
-    )
-      isLocked = true;
+    if (offer.status === "accepted") return "offerAccepted";
+    if (offer.status === "revertByCreator") return "offerRevertByCreator";
+    if (offer.status === "revertByOfferer") return "offerRevertByOfferer";
   }
-
-  if (isLocked) return "locked";
 
   return "open";
 }

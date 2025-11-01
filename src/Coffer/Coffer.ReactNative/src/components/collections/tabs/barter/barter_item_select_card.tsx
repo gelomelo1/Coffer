@@ -28,6 +28,7 @@ interface BarterItemSelectCardProps {
   trades: Trade[];
   offers: Offer[];
   trade?: Trade;
+  offer?: Offer;
 }
 
 function BarterItemSelectCard({
@@ -37,6 +38,7 @@ function BarterItemSelectCard({
   trades,
   offers,
   trade,
+  offer,
 }: BarterItemSelectCardProps) {
   const [isDisabledTextOverlayVisible, setIsDisabledTextOverlayVisible] =
     useState(false);
@@ -57,7 +59,13 @@ function BarterItemSelectCard({
     convertToGrayScaleColor(lightContrastColor);
   const primaryValue = getItemPrimaryAttributeValue(item.itemAttributes);
 
-  const isItemDisabled = !isItemAvailableForTrade(item, trades, offers, trade);
+  const isItemDisabled = !isItemAvailableForTrade(
+    item,
+    trades,
+    offers,
+    trade,
+    offer
+  );
 
   const handleCardPress = () => {
     if (isItemDisabled) {

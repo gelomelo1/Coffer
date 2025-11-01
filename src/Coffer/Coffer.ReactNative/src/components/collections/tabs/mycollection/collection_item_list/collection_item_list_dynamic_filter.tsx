@@ -1,7 +1,10 @@
 import CustomTextInput from "@/src/components/custom_ui/custom_text_input";
 import { nestedAttributeFilterQuery } from "@/src/const/filter";
 import Attribute from "@/src/types/entities/attribute";
-import { QueryFilterDataItem } from "@/src/types/helpers/attribute_data";
+import {
+  AttributeTypes,
+  QueryFilterDataItem,
+} from "@/src/types/helpers/attribute_data";
 import { QueryFilterData } from "@/src/types/helpers/query_data";
 import CollectionItemListBooleanFilter from "./collection_item_list_boolean_filter";
 import CollectionItemListDateFilter from "./collection_item_list_date_filter";
@@ -15,6 +18,11 @@ interface CollectionItemListDynamicFilterProps {
     id?: string | number
   ) => void;
   draftQueryFilterData: QueryFilterDataItem[];
+  filterQuery?: (
+    id: number,
+    attributeName: AttributeTypes,
+    value: any
+  ) => string;
 }
 
 function CollectionItemListDynamicFilter({
@@ -22,6 +30,7 @@ function CollectionItemListDynamicFilter({
   isBottomSheetVisible,
   onQueryFilterDataChange,
   draftQueryFilterData,
+  filterQuery,
 }: CollectionItemListDynamicFilterProps) {
   switch (attribute.dataType) {
     case "select":
@@ -45,8 +54,14 @@ function CollectionItemListDynamicFilter({
           defaultValue={(draftQueryFilterData[0]?.value.value as string) ?? ""}
           onChangeText={(newValue) =>
             onQueryFilterDataChange({
-              filter: "Contains",
-              field: nestedAttributeFilterQuery(attribute.id, "valueString"),
+              filter: filterQuery ? "None" : "Contains",
+              field: filterQuery
+                ? filterQuery(
+                    attribute.id,
+                    "valueString",
+                    newValue.toLocaleLowerCase()
+                  )
+                : nestedAttributeFilterQuery(attribute.id, "valueString"),
               value: newValue.toLocaleLowerCase(),
             })
           }
@@ -62,11 +77,20 @@ function CollectionItemListDynamicFilter({
             (draftQueryFilterData[0]?.value.value as string).toString() ?? ""
           }
           onChangeText={(newValue) =>
-            onQueryFilterDataChange({
-              filter: "==",
-              field: nestedAttributeFilterQuery(attribute.id, "valueNumber"),
-              value: Number(newValue),
-            })
+            filterQuery
+              ? onQueryFilterDataChange({
+                  filter: "None",
+                  field: filterQuery(attribute.id, "valueNumber", newValue),
+                  value: newValue,
+                })
+              : onQueryFilterDataChange({
+                  filter: "==",
+                  field: nestedAttributeFilterQuery(
+                    attribute.id,
+                    "valueNumber"
+                  ),
+                  value: Number(newValue),
+                })
           }
           keyboardType="numeric"
         />
@@ -82,6 +106,7 @@ function CollectionItemListDynamicFilter({
               ? draftQueryFilterData[0]
               : undefined
           }
+          filterQuery={filterQuery}
         />
       );
     }
@@ -92,6 +117,7 @@ function CollectionItemListDynamicFilter({
           isBottomSheetVisible={isBottomSheetVisible}
           onQueryFilterDataChange={onQueryFilterDataChange}
           draftQueryFilterData={draftQueryFilterData}
+          filterQuery={filterQuery}
         />
       );
   }

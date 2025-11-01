@@ -12,4 +12,6 @@ export const querykeys = {
   mixedSearchData: "mixedSearchData",
   myTradesData: "myTradesData",
   myOffersData: "myOffersData",
+  collectionForItemData: "collectionForItemData",
+  tradesData: "tradesData",
 };

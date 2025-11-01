@@ -27,4 +27,5 @@ export const endpoints = {
   userContact: "api/UserContact",
   trades: "api/Trades",
   offers: "api/Offers",
+  tradeSearch: "api/Trades/Search",
 };

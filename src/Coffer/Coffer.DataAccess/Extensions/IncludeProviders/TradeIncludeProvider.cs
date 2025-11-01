@@ -15,9 +15,14 @@ namespace Coffer.DataAccess.Extensions.IncludeProviders
             return new[]
 {
                 "User.Contacts",
-                "TradeItems.Item",
                 "Offers.User",
-                "Offers.OfferItems"
+                "Offers.User.Contacts",
+                "Offers.OfferItems.Item.ItemAttributes.Attribute",
+                "Offers.OfferItems.Item.ItemTags",
+                "Offers.OfferItems.Item.Reactions",
+                "TradeItems.Item.ItemAttributes.Attribute",
+                "TradeItems.Item.ItemTags",
+                "TradeItems.Item.Reactions"
             };
         }
     }

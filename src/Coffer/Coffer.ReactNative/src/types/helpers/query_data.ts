@@ -14,6 +14,7 @@ export type QueryFilterData =
       filter: "Match" | "Contains" | "StartsWith" | "EndsWith";
       field: string;
       value: string;
+      isCaseInSensitive?: boolean;
     }
   | {
       filter: "==" | "<" | "<=" | ">" | ">=" | "!=";

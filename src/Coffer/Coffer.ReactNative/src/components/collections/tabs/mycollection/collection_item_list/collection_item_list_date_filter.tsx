@@ -2,7 +2,10 @@ import CustomText from "@/src/components/custom_ui/custom_text";
 import CustomTextInput from "@/src/components/custom_ui/custom_text_input";
 import { nestedAttributeFilterQuery } from "@/src/const/filter";
 import Attribute from "@/src/types/entities/attribute";
-import { QueryFilterDataItem } from "@/src/types/helpers/attribute_data";
+import {
+  AttributeTypes,
+  QueryFilterDataItem,
+} from "@/src/types/helpers/attribute_data";
 import { QueryFilterData } from "@/src/types/helpers/query_data";
 import { useEffect, useState } from "react";
 import { TouchableOpacity, View } from "react-native";
@@ -16,6 +19,11 @@ interface CollectionItemListDateFilterProps {
     id?: string | number
   ) => void;
   draftQueryFilterData: QueryFilterDataItem[];
+  filterQuery?: (
+    id: number,
+    attributeName: AttributeTypes,
+    value: any
+  ) => string;
 }
 
 function CollectionItemListDateFilter({
@@ -23,6 +31,7 @@ function CollectionItemListDateFilter({
   isBottomSheetVisible,
   onQueryFilterDataChange,
   draftQueryFilterData,
+  filterQuery,
 }: CollectionItemListDateFilterProps) {
   const [acquiredAtBeforeDate, setAcquiredAtBeforeDate] = useState<Date | null>(
     null
@@ -67,11 +76,23 @@ function CollectionItemListDateFilter({
       if (datePickerId === "before") setAcquiredAtBeforeDate(newValue);
       else setAcquiredAtAfterDate(newValue);
       onQueryFilterDataChange(
-        {
-          filter: datePickerId === "before" ? "<" : ">",
-          field: nestedAttributeFilterQuery(attribute.id, "valueDate"),
-          value: newValue,
-        },
+        filterQuery
+          ? {
+              filter: "None",
+              field: filterQuery(
+                attribute.id,
+                "valueDate",
+                `DateTime(${newValue.getFullYear()}, ${
+                  newValue.getMonth() + 1
+                }, 1, 0, 0, 0, DateTimeKind.Utc)`
+              ),
+              value: "",
+            }
+          : {
+              filter: datePickerId === "before" ? "<" : ">",
+              field: nestedAttributeFilterQuery(attribute.id, "valueDate"),
+              value: newValue,
+            },
         `${attribute.id}_${datePickerId}`
       );
     }

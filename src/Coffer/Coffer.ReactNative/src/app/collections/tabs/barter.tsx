@@ -59,7 +59,6 @@ function Barter() {
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
-              paddingHorizontal: 10,
               minWidth: "100%", // <-- ensures the content container takes full width
             }}
           >
@@ -93,7 +92,7 @@ function Barter() {
           </ScrollView>
         </View>
         <Divider width={2} color={customTheme.colors.primary} />
-        <View style={{ padding: 10 }}>
+        <View style={{ paddingVertical: 10 }}>
           {selectedTabIndex === 0 ? (
             <Trades />
           ) : selectedTabIndex === 1 ? (

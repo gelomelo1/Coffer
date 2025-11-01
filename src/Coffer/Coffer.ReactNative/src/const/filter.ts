@@ -38,3 +38,20 @@ export const instagramRegex = /^@[a-z0-9._]{1,29}[a-z0-9_]$/;
 
 export const instagramDomainRegex =
   /^(https?:\/\/)?(www\.)?instagram\.com\/.+$/i;
+
+export const titleTradeFilterKey = "title";
+
+export const tradeUsernameFilterQuery = (value: string) => {
+  return `user.name.ToLower().Contains("${value.toLowerCase()}")`;
+};
+
+export const nestedTradeItemAttributeFilterQuery = (
+  id: number,
+  attributeName: string,
+  value: string
+) => {
+  const lowerValue = value.toLowerCase();
+  return `TradeItems.Any(ti => ti.Item.ItemAttributes.Any(a => a.AttributeId == ${id} && a.${
+    attributeName.charAt(0).toUpperCase() + attributeName.slice(1)
+  }.ToLower().Contains("${lowerValue}")))`;
+};
