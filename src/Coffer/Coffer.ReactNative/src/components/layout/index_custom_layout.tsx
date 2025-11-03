@@ -20,7 +20,8 @@ function IndexCustomLayout(
     route.name === (ROUTES.OTHERUSER as string) ||
     route.name === (ROUTES.OTHERUSERCOLLECTION as string) ||
     route.name === (ROUTES.OTHERUSERITEMDETAILS as string) ||
-    route.name === (ROUTES.TRADEDETAILS as string)
+    route.name === (ROUTES.TRADEDETAILS as string) ||
+    route.name === (ROUTES.OFFERDETAILS as string)
   )
     return {
       headerShown: false,

@@ -1,5 +1,5 @@
 import { customTheme } from "../theme/theme";
-import { TradeStatus } from "../types/helpers/barter_status";
+import { OfferStatus, TradeStatus } from "../types/helpers/barter_status";
 
 export const tradeStatusRecord: Record<
   TradeStatus,
@@ -19,6 +19,36 @@ export const tradeStatusRecord: Record<
   },
   offerRevertByOfferer: {
     label: "Accepted offer reverted by offerer (waiting on creator)",
+    color: "red",
+  },
+  traded: {
+    label: "Traded",
+    color: customTheme.colors.primary,
+  },
+};
+
+export const offerStatusRecord: Record<
+  OfferStatus,
+  { label: string; color: string }
+> = {
+  pending: {
+    label: "Pending",
+    color: "green",
+  },
+  rejected: {
+    label: "Rejected",
+    color: "red",
+  },
+  accepted: {
+    label: "Accepted",
+    color: customTheme.colors.secondary,
+  },
+  revertByCreator: {
+    label: "This offer reverted by creator (waiting on offerer)",
+    color: "red",
+  },
+  revertByOfferer: {
+    label: "This offer reverted by offerer (waiting on creator)",
     color: "red",
   },
   traded: {

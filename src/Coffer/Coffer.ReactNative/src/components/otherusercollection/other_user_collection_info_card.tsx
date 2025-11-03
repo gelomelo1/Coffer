@@ -33,7 +33,7 @@ function OtherUserCollectionInfoCard({
     Collection
   >(
     endpoints.follows,
-    `${querykeys.feedListData};${querykeys.otherUserCollectionsData}`,
+    `${querykeys.feedListData};${querykeys.otherUserCollectionsData};${querykeys.followsData}`,
     follow
       ? "You stopped following this collection"
       : "You started following this collection"

@@ -19,11 +19,15 @@ namespace Coffer.ASPNET.Controllers
     {
         private readonly IItemsRepository _itemsRepository;
         private readonly IImageService _imageService;
+        private readonly ICollectionsRepository _collectionsRepository;
         private readonly string imageFolder = 
             Path.Combine(Env.GetString("IMAGESTORE_PATH") ?? throw new InvalidOperationException("IMAGESTORE_PATH envionmental variable is not set"), "collectioncovers");
+        private readonly string itemImageFolder =
+    Path.Combine(Env.GetString("IMAGESTORE_PATH") ?? throw new InvalidOperationException("IMAGESTORE_PATH envionmental variable is not set"), "items");
         private readonly HttpClient _httpClient;
         public CollectionsController(ICollectionsRepository collectionsRepository, IItemsRepository itemsRepository, IImageService imageService, HttpClient httpClient) : base(collectionsRepository)
         {
+            _collectionsRepository = collectionsRepository;
             _imageService = imageService;
             _httpClient = httpClient;
             _itemsRepository = itemsRepository;
@@ -175,16 +179,82 @@ namespace Coffer.ASPNET.Controllers
             }
         }
 
+        public record ItemImage(
+            byte[] Bytes,
+            string ContentType,
+            Guid id,
+            string fileName
+            );
+
         [HttpDelete("{id}")]
         public override async Task<ActionResult> Delete(Guid id)
         {
-            var collection = await _repository.GetItemByIdAsync(id);
+            var collection = await _collectionsRepository.GetCollectionByIdForDelete(id);
             if (collection == null) return NotFound();
 
-            if (!string.IsNullOrEmpty(collection.Image))
-                await _imageService.DeleteImageAsync(collection.Image, imageFolder);
+            (byte[] Bytes, string ContentType)? deletedCollectionImage = null;
+            if (collection.Image != null)
+            {
+                deletedCollectionImage = await _imageService.GetImageAsync(collection.Image, imageFolder);
+            }
 
-            return await base.Delete(id);
+            var items = await _itemsRepository.GetItemsByCollectionAsync(id);
+
+            List<ItemImage> deletedItemImages = new List<ItemImage>();
+            foreach(var item in items)
+            {
+                var deletedImage = await _imageService.GetImageAsync(item.Image, itemImageFolder);
+                deletedItemImages.Add(new ItemImage(deletedImage.Bytes, deletedImage.ContentType, item.Id, item.Image));
+            }
+
+            using var transaction = await _collectionsRepository.BeginTransactionAsync();
+            try
+            {
+                if (!string.IsNullOrEmpty(collection.Image))
+                {
+                    await _imageService.DeleteImageAsync(collection.Image, imageFolder);
+                }
+
+                foreach (var image in deletedItemImages)
+                {
+                    await _imageService.DeleteImageAsync(image.fileName, itemImageFolder);
+                }
+
+                await _repository.DeleteItemAsync(id);
+
+                var response = await _httpClient.DeleteAsync($"http://localhost:8000/delete_collection_embeddings/{id}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Failed to delete embedding via FastAPI: {errorContent}");
+                }
+
+                await transaction.CommitAsync();
+                return Ok();
+            }
+            catch(Exception ex)
+            {
+                await transaction.RollbackAsync();
+                try
+                {
+                    if(deletedCollectionImage.HasValue)
+                    {
+                        await _imageService.SaveImageAsync(deletedCollectionImage.Value.Bytes, id, imageFolder, collection.Image);
+                    }
+
+                    foreach(var image in deletedItemImages)
+                    {
+                        await _imageService.SaveImageAsync(image.Bytes, image.id, itemImageFolder, image.fileName);
+                    }
+                }
+                catch
+                {
+
+                }
+
+                return StatusCode(500, $"Failed to delete item: {ex.Message}");
+            }
         }
     }
 }

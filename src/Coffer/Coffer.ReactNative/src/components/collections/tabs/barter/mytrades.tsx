@@ -11,7 +11,7 @@ import { TradeStatus } from "@/src/types/helpers/barter_status";
 import { getTradeStatus } from "@/src/utils/data_access_utils";
 import { useState } from "react";
 import { FlatList, View } from "react-native";
-import { Icon, Overlay } from "react-native-elements";
+import { Chip, Icon, Overlay } from "react-native-elements";
 import NewTradeOverlay from "./new_trade_overlay";
 import TradeCard from "./trade_card";
 
@@ -31,6 +31,10 @@ function MyTrades({
   const { user } = useUserStore();
   const { navigationMode } = useNavigationModeStore();
   const { collection, collectionType } = useCollectionStore();
+
+  const [selectedTradesData, setSelectedTradesData] = useState<
+    "ongoing" | "ended"
+  >("ongoing");
 
   const [isNewTradeOverlayVisible, setIsNewTradeOverlayVisible] =
     useState(false);
@@ -78,7 +82,11 @@ function MyTrades({
         onPress={handleCreateNewTradePress}
       />
       <FlatList
-        data={ongoingTradesData()}
+        data={
+          selectedTradesData === "ongoing"
+            ? ongoingTradesData()
+            : endedTradesData()
+        }
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{
           width: "100%",
@@ -99,11 +107,45 @@ function MyTrades({
               style={{
                 width: "100%",
                 backgroundColor: customTheme.colors.background,
-                marginHorizontal: 10,
+                paddingHorizontal: 10,
               }}
             >
+              <View
+                style={{
+                  justifyContent: "space-evenly",
+                  alignItems: "center",
+                  flexDirection: "row",
+                }}
+              >
+                <Chip
+                  key={`ongoing-${selectedTradesData}`}
+                  title={"Ongoing"}
+                  titleStyle={{ color: customTheme.colors.primary }}
+                  buttonStyle={{
+                    backgroundColor:
+                      selectedTradesData === "ongoing"
+                        ? customTheme.colors.secondary
+                        : "transparent",
+                  }}
+                  onPress={() => setSelectedTradesData("ongoing")}
+                />
+                <Chip
+                  key={`ended-${selectedTradesData}`}
+                  title={"Ended"}
+                  titleStyle={{ color: customTheme.colors.primary }}
+                  buttonStyle={{
+                    backgroundColor:
+                      selectedTradesData === "ended"
+                        ? customTheme.colors.secondary
+                        : "transparent",
+                  }}
+                  onPress={() => setSelectedTradesData("ended")}
+                />
+              </View>
               <CustomText style={{ fontSize: 18, marginBottom: 5 }}>
-                {`${myTradesData.length} active trades`}
+                {selectedTradesData === "ongoing"
+                  ? `${ongoingTradesData().length} active trades`
+                  : `${endedTradesData().length} ended trades`}
               </CustomText>
             </View>
             {isMyTradesFetching ? <Loading /> : null}

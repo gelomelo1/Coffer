@@ -14,4 +14,7 @@ export const querykeys = {
   myOffersData: "myOffersData",
   collectionForItemData: "collectionForItemData",
   tradesData: "tradesData",
+  tradeData: "tradeData",
+  followsData: "followsData",
+  tradeReviewData: "tradeReviewData",
 };

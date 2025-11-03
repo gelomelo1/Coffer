@@ -8,6 +8,7 @@ export const ROUTES = {
     HOME: "collections/tabs" as any,
     BARTER: "collections/tabs/barter" as any,
     MYCOLLECTION: "collections/tabs/mycollection" as any,
+    MYFOLLOWS: "collections/tabs/myfollows" as any,
   },
   SETTINGS: {
     ROOT: "settings" as any,
@@ -19,6 +20,7 @@ export const ROUTES = {
   OTHERUSERCOLLECTION: "otherusercollection" as any,
   OTHERUSERITEMDETAILS: "otheruseritemdetails" as any,
   TRADEDETAILS: "tradedetails" as any,
+  OFFERDETAILS: "offerdetails" as any,
 } as const;
 
 export const pageParams = {
@@ -66,4 +68,11 @@ export const pageParams = {
     buildNavigationData({
       title: username,
     }),
+  offerDetails: (username: string) =>
+    buildNavigationData({
+      title: username,
+    }),
+  myfollows: buildNavigationData({
+    screenTitle: "My Follows",
+  }),
 };

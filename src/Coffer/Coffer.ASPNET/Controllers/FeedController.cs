@@ -13,13 +13,15 @@ namespace Coffer.ASPNET.Controllers
         private readonly IUsersRepository _usersRepository;
         private readonly IItemTagsRepository _itemTagsRepository;
         private readonly ICollectionsRepository _collectionRepository;
+        private readonly IFollowsRepository _followsRepository;
 
-        public FeedController(IItemsRepository itemsRepository, IUsersRepository usersRepository, IItemTagsRepository itemTagsRepository, ICollectionsRepository collectionRepository)
+        public FeedController(IItemsRepository itemsRepository, IUsersRepository usersRepository, IItemTagsRepository itemTagsRepository, ICollectionsRepository collectionRepository, IFollowsRepository followsRepository)
         {
             _itemsRepository = itemsRepository;
             _usersRepository = usersRepository;
             _itemTagsRepository = itemTagsRepository;
             _collectionRepository = collectionRepository;
+            _followsRepository = followsRepository;
         }
 
         [HttpGet("{userId}")]
@@ -155,6 +157,33 @@ namespace Coffer.ASPNET.Controllers
 
 
                 return Ok(new MixedResponse(foundUsers, foundCollections, foundItems));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("UserFollows/{userId}")]
+        public async Task<ActionResult<IEnumerable<CollectionResult>>> UserFollows(Guid userId)
+        {
+            try
+            {
+                 var user = await _usersRepository.GetUserById(userId);
+                 if (user == null)
+                     return NotFound();
+
+                 var follows = await _followsRepository.FindFollowsOfUser(userId);
+
+                 List<CollectionResult> followedResults = new List<CollectionResult>();
+
+                 foreach(var follow in follows)
+                 {
+                     followedResults.Add(new CollectionResult(follow.Collection.User, follow.Collection));
+                 }
+
+
+                return Ok(followedResults);
             }
             catch (Exception ex)
             {

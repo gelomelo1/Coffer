@@ -49,6 +49,8 @@ namespace Coffer.Infrastructure
             services.AddMemoryCache();
             services.AddSingleton<ITempTokenService, TempTokenService>();
             services.AddHttpClient();
+            services.AddHostedService<TradeCleanupService>();
+            services.AddScoped<ITradeCleanupService, TradeCleanupService>();
             #endregion
 
             #region AddIncludes
@@ -74,7 +76,7 @@ namespace Coffer.Infrastructure
             services.AddScoped<IGenericRepository<Guid, UserContactProvided, UserContactProvided, UserContactRequired>, UserContactsRepository>();
             services.AddScoped<ITradesRepository, TradesRepository>();
             services.AddScoped<IOffersRepository, OffersRepository>();
-            services.AddScoped<IGenericRepository<Guid, TradeReviewProvided, TradeReviewProvided, TradeReviewRequired>, TradeReviewsRepository>();
+            services.AddScoped<ITradeReviewRepository, TradeReviewsRepository>();
             #endregion
 
             return services;

@@ -8,13 +8,18 @@ import { Avatar } from "react-native-elements";
 interface TradeUserContactsProps {
   user: User;
   onUserPressed: () => void;
+  isOffer?: boolean;
 }
 
-function TradeUserContacts({ user, onUserPressed }: TradeUserContactsProps) {
+function TradeUserContacts({
+  user,
+  onUserPressed,
+  isOffer = false,
+}: TradeUserContactsProps) {
   return (
     <View style={{ width: "100%" }}>
       <CustomText style={{ fontFamily: "VendSansBold", fontSize: 18 }}>
-        {"Trader's contact infos"}
+        {isOffer ? "Offerer's contact infos" : "Trader's contact infos"}
       </CustomText>
       <View
         style={{

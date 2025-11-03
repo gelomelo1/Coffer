@@ -1,13 +1,14 @@
 import { endpoints } from "@/src/const/endpoints";
 import { customTheme } from "@/src/theme/theme";
 import CollectionType from "@/src/types/entities/collectiontype";
+import OfferItem from "@/src/types/entities/offer_item";
 import TradeItem from "@/src/types/entities/trade_item";
 import { adjustColor } from "@/src/utils/frontend_utils";
 import React, { useEffect, useMemo, useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
 
 interface BarterMozaicGalleryProps {
-  items: TradeItem[];
+  items: TradeItem[] | OfferItem[];
   collectionType: CollectionType;
 }
 

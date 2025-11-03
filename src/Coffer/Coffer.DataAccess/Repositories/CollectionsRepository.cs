@@ -9,6 +9,7 @@ using Coffer.DataAccess.Repositories.Generic;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Coffer.DataAccess.Repositories
 {
@@ -18,6 +19,17 @@ namespace Coffer.DataAccess.Repositories
         public CollectionsRepository(CofferDbContext dbContext, IIncludeProvider<CollectionProvided> includeProvider) : base(dbContext, includeProvider)
         {
             this.includeProvider = includeProvider;
+        }
+
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            return await _dbContext.Database.BeginTransactionAsync();
+        }
+
+        public async Task<CollectionProvided?> GetCollectionByIdForDelete(Guid id)
+        {
+            return await _dbSet
+                .FirstOrDefaultAsync(collection => collection.Id == id);
         }
 
         public async Task<IEnumerable<CollectionProvided>> SearchCollections(int collectionTypeId, string searchText)

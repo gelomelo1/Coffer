@@ -199,3 +199,6 @@ E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.ASPNET\obj\Debug\net8.0\refi
 E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.ASPNET\obj\Debug\net8.0\Coffer.ASPNET.pdb
 E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.ASPNET\obj\Debug\net8.0\Coffer.ASPNET.genruntimeconfig.cache
 E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.ASPNET\obj\Debug\net8.0\ref\Coffer.ASPNET.dll
+E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.ASPNET\bin\Debug\net8.0\Microsoft.Extensions.Diagnostics.Abstractions.dll
+E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.ASPNET\bin\Debug\net8.0\Microsoft.Extensions.FileProviders.Abstractions.dll
+E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.ASPNET\bin\Debug\net8.0\Microsoft.Extensions.Hosting.Abstractions.dll

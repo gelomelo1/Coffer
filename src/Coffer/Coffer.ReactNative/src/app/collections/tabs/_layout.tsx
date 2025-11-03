@@ -38,6 +38,30 @@ function CollectionLayout() {
           }}
         />
         <Tabs.Screen
+          name="myfollows"
+          options={() => {
+            return {
+              title: "My Follows",
+              tabBarIcon: () => (
+                <AnimatedTabIcon
+                  focused={pathname === `/${ROUTES.COLLECTIONS.MYFOLLOWS}`}
+                  title="My Follows"
+                  icon={{
+                    library: "materialcommunityicons",
+                    name: "emoticon-plus",
+                  }}
+                  navigate={() => {
+                    navigate({
+                      pathname: ROUTES.COLLECTIONS.MYFOLLOWS,
+                      params: pageParams.myfollows,
+                    });
+                  }}
+                />
+              ),
+            };
+          }}
+        />
+        <Tabs.Screen
           name="barter"
           options={() => {
             return {

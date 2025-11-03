@@ -42,7 +42,6 @@ namespace Coffer.DataAccess.Repositories
             entity.Description = required.Description;
             entity.WantDescription = required.WantDescription;
             entity.MoneyRequested = required.MoneyRequested;
-            entity.UpdatedAt = DateTime.UtcNow;
 
             // --- Update TradeItems ---
             var incomingItemIds = required.TradeItems
@@ -121,7 +120,6 @@ namespace Coffer.DataAccess.Repositories
         {
             IQueryable<TradeProvided> query = _dbSet;
 
-            // Apply default includes dynamically
             var includes = _includeProvider?.GetDefaultIncludes();
             if (includes != null && includes.Length > 0)
             {
@@ -129,24 +127,23 @@ namespace Coffer.DataAccess.Repositories
                     query = query.Include(include);
             }
 
-            // Exclude trades created by the current user
             query = query.Where(t => t.UserId != userId);
 
-            // Apply optional filter (e.g., Dynamic LINQ)
+            var excludedStatuses = new[] { "accepted", "revertByCreator", "revertByOfferer", "traded" };
+
+            query = query.Where(t => !t.Offers.Any(o => excludedStatuses.Contains(o.Status)));
+
             if (!string.IsNullOrWhiteSpace(filter))
                 query = query.Where(filter);
 
-            // Apply optional custom ordering, otherwise default by CreatedAt descending
             if (!string.IsNullOrWhiteSpace(orderBy))
                 query = query.OrderBy(orderBy);
             else
                 query = query.OrderByDescending(t => t.CreatedAt);
 
-            // Apply pagination if provided
             if (page.HasValue && pageSize.HasValue)
                 query = query.Skip((page.Value - 1) * pageSize.Value).Take(pageSize.Value);
 
-            // Execute the query
             var list = await query.ToListAsync();
 
             return list;

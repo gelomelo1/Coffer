@@ -1,10 +1,13 @@
 import { OfferRequired } from "../types/entities/offer";
 
-export const emptyOfferRequired = (userId: string): OfferRequired => {
+export const emptyOfferRequired = (
+  userId: string,
+  tradeId: string
+): OfferRequired => {
   return {
-    tradeId: "",
+    tradeId: tradeId,
     userId: userId,
-    status: "traded",
+    status: "pending",
     offerItems: [],
   };
 };

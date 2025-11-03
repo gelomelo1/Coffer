@@ -9,6 +9,7 @@ namespace Coffer.DataAccess.Repositories.Interfaces
 {
     public interface IOffersRepository : IGenericRepository<Guid, OfferProvided, OfferProvided, OfferRequired>
     {
-       public Task<OfferProvided?> ChangeOfferStatus(Guid id, string offerStatus);
+        public Task<OfferProvided> UpdateOfferAsync(Guid offerId, OfferRequired updated);
+        public Task<OfferProvided?> ChangeOfferStatus(Guid id, string offerStatus);
     }
 }

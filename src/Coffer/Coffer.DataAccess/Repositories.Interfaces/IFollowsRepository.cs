@@ -10,5 +10,6 @@ namespace Coffer.DataAccess.Repositories.Interfaces
     public interface IFollowsRepository : IGenericRepository<Guid, FollowProvided, FollowProvided, FollowRequired>
     {
         public Task<FollowProvided?> FindFollowByUserCollectionIdAsync(Guid userId, Guid collectionId);
+        public Task<IEnumerable<FollowProvided>> FindFollowsOfUser(Guid userId);
     }
 }

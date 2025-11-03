@@ -1,6 +1,5 @@
 import { OfferStatus } from "../helpers/barter_status";
 import OfferItem from "./offer_item";
-import { Trade } from "./trade";
 import User from "./user";
 
 export interface OfferRequired {
@@ -13,7 +12,6 @@ export interface OfferRequired {
 
 export interface Offer extends OfferRequired {
   id: string;
-  trade: Trade;
   user: User;
   createdAt: string;
   updatedAt: string;

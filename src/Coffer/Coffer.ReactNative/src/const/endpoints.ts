@@ -28,4 +28,8 @@ export const endpoints = {
   trades: "api/Trades",
   offers: "api/Offers",
   tradeSearch: "api/Trades/Search",
+  offersChangeStatus: "api/Offers/ChangeStatus",
+  feedUserFollows: "api/Feed/UserFollows",
+  tradeReviews: "api/TradeReviews",
+  tradeReviewsTrade: "api/TradeReviews/Trade",
 };

@@ -23,6 +23,18 @@ namespace Coffer.DataAccess.Repositories
             return follow;
         }
 
+        public async Task<IEnumerable<FollowProvided>> FindFollowsOfUser(Guid userId)
+        {
+            return await _dbSet
+                .Where(f => f.UserId == userId)
+                .Include(f => f.Collection)
+                .ThenInclude(c => c.Follows)
+                .Include(f => f.Collection)
+                .ThenInclude(c => c.User)
+                .ThenInclude(u => u.Contacts)
+                .ToListAsync();
+        }
+
         protected override FollowProvided MapToEntity(FollowRequired required, FollowProvided? entity = null)
         {
             if(entity == null)

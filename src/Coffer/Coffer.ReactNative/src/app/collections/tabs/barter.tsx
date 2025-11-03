@@ -103,7 +103,10 @@ function Barter() {
               isMyOffersFetching={isMyOffersFetching}
             />
           ) : (
-            <MyOffers />
+            <MyOffers
+              myOffersData={myOffersData}
+              isMyOffersFetching={isMyOffersFetching}
+            />
           )}
         </View>
       </SafeAreaView>

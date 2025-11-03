@@ -1,6 +1,8 @@
 import BarterItemSelectedCard from "@/src/components/collections/tabs/barter/barter_item_selected_card";
 import DeleteTradeOverlay from "@/src/components/collections/tabs/barter/delete_trade_overlay";
+import NewOfferOverlay from "@/src/components/collections/tabs/barter/new_offer_overlay";
 import NewTradeOverlay from "@/src/components/collections/tabs/barter/new_trade_overlay";
+import OfferCard from "@/src/components/collections/tabs/barter/offer_card";
 import TradeUserContacts from "@/src/components/collections/tabs/barter/trade_user_contacts";
 import CustomButton from "@/src/components/custom_ui/custom_button";
 import CustomText from "@/src/components/custom_ui/custom_text";
@@ -17,6 +19,7 @@ import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import { Offer } from "@/src/types/entities/offer";
 import { Trade } from "@/src/types/entities/trade";
+import { OfferStatus } from "@/src/types/helpers/barter_status";
 import { getTradeStatus } from "@/src/utils/data_access_utils";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
@@ -54,9 +57,12 @@ function TradeDetails() {
       ],
     });
 
-  const isMyTrade = false; //trade!.userId === user!.id;
+  const isMyTrade = trade!.userId === user!.id;
 
   const [isNewTradeOverlayVisible, setIsNewTradeOverlayVisible] =
+    useState(false);
+
+  const [isNewOfferOverlayVisible, setIsNewOfferOverlayVisible] =
     useState(false);
 
   const [
@@ -66,6 +72,11 @@ function TradeDetails() {
 
   const [isDeleteTradeOverlayVisible, setIsDeleteTradeOveralyVisible] =
     useState(false);
+
+  const [
+    noContactInfoWarningOverlayVisible,
+    setNoContactInfoWarningOverlayVisible,
+  ] = useState(false);
 
   const handleUserPressed = () => {
     setUser(trade!.user);
@@ -94,6 +105,46 @@ function TradeDetails() {
     }
   };
 
+  const getOffers = (): Offer[] => {
+    if (isMyTrade) {
+      if (tradeStatus === "traded") {
+        const tradedOffer = trade!.offers.find(
+          (offer) => offer.status === "traded"
+        );
+        return [tradedOffer!];
+      } else {
+        const sortedOffers = trade!.offers
+          .filter((o) => o.status !== "rejected")
+          .sort((a, b) => {
+            const order: OfferStatus[] = [
+              "revertByOfferer",
+              "revertByCreator",
+              "accepted",
+              "pending",
+              "traded",
+            ];
+
+            return order.indexOf(a.status) - order.indexOf(b.status);
+          });
+        return sortedOffers;
+      }
+    } else {
+      const myOffer = trade!.offers.find((offer) => offer.userId === user!.id);
+
+      if (myOffer) return [myOffer];
+
+      return [];
+    }
+  };
+
+  const handleCreateNewOffer = () => {
+    if (user!.contacts.length === 0) {
+      setNoContactInfoWarningOverlayVisible(true);
+    } else {
+      setIsNewOfferOverlayVisible(true);
+    }
+  };
+
   return (
     <>
       <View
@@ -103,7 +154,7 @@ function TradeDetails() {
         ]}
       >
         <FlatList
-          data={trade!.offers}
+          data={getOffers()}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={{
             width: "100%",
@@ -111,7 +162,12 @@ function TradeDetails() {
           }}
           renderItem={({ item }) => (
             <View style={{ marginHorizontal: 10 }}>
-              <CustomText>{item.id}</CustomText>
+              <OfferCard
+                trade={trade!}
+                offer={item}
+                collectionType={collectionType}
+                isMyOffer={!isMyTrade}
+              />
             </View>
           )}
           ListHeaderComponent={
@@ -235,7 +291,7 @@ function TradeDetails() {
               >
                 {"Money Request"}
               </CustomText>
-              {trade!.wantDescription ? (
+              {trade!.moneyRequested ? (
                 <View
                   style={{
                     justifyContent: "flex-start",
@@ -315,6 +371,7 @@ function TradeDetails() {
                 <CustomButton
                   title={"Make an offer"}
                   containerStyle={{ marginHorizontal: 10 }}
+                  onPress={handleCreateNewOffer}
                 />
               )}
             </>
@@ -357,6 +414,35 @@ function TradeDetails() {
           set: setIsDeleteTradeOveralyVisible,
         }}
       />
+      <NewOfferOverlay
+        isNewOfferOverlayVisible={{
+          value: isNewOfferOverlayVisible,
+          set: setIsNewOfferOverlayVisible,
+        }}
+        user={user!}
+        collection={collection}
+        collectionType={collectionType}
+        trades={myTradesData}
+        offers={myOffersData}
+        isTradesFetching={isMyTradesFetching}
+        isOffersFetching={isMyOffersFetching}
+        trade={trade!}
+        offer={undefined}
+      />
+      <Overlay
+        overlayStyle={{
+          width: "90%",
+          backgroundColor: customTheme.colors.background,
+        }}
+        isVisible={noContactInfoWarningOverlayVisible}
+        onBackdropPress={() => setNoContactInfoWarningOverlayVisible(false)}
+      >
+        <CustomText style={{ textAlign: "center" }}>
+          {" "}
+          You can’t make an offer because you haven’t added any contact info. Go
+          to Settings and create at least one contact so others can reach you.
+        </CustomText>
+      </Overlay>
     </>
   );
 }

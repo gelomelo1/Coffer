@@ -12,10 +12,12 @@ import { stringResource } from "@/src/const/resource";
 import {
   useCreateData,
   useGetData,
+  useGetSingleData,
   useUpdateData,
 } from "@/src/hooks/data_hooks";
 import { useNavigationModeStore } from "@/src/hooks/navigation_mode_store";
 import { useOfferStore } from "@/src/hooks/offer_store";
+import { useTradeStore } from "@/src/hooks/trade_store";
 import { customTheme } from "@/src/theme/theme";
 import Attribute from "@/src/types/entities/attribute";
 import { Collection } from "@/src/types/entities/collection";
@@ -56,6 +58,7 @@ interface NewOfferOverlayProps {
   offers: Offer[];
   isTradesFetching: boolean;
   isOffersFetching: boolean;
+  trade: Trade;
   offer?: Offer;
 }
 
@@ -68,8 +71,10 @@ function NewOfferOverlay({
   offers,
   isTradesFetching,
   isOffersFetching,
+  trade,
   offer,
 }: NewOfferOverlayProps) {
+  const { setTrade } = useTradeStore();
   const { setOffer } = useOfferStore();
   const { navigationMode } = useNavigationModeStore();
   const [queryOptions, setQueryOptions] = useState<QueryOptions>({});
@@ -88,6 +93,15 @@ function NewOfferOverlay({
       endpoints.offers,
       `${querykeys.myOffersData};${querykeys.tradesData}`
     );
+
+  const { refetch: refetchTrade } = useGetSingleData<Trade>(
+    endpoints.trades,
+    querykeys.tradeData,
+    trade.id,
+    undefined,
+    undefined,
+    { enabled: false, queryKey: [querykeys.tradeData] }
+  );
 
   const {
     data: items = [],
@@ -137,7 +151,9 @@ function NewOfferOverlay({
     refetch();
   }, [queryOptions, refetch]);
 
-  const [draftOffer, setDraftOffer] = useState(emptyOfferRequired(user.id));
+  const [draftOffer, setDraftOffer] = useState(
+    emptyOfferRequired(user.id, trade.id)
+  );
 
   const availableItems = items.filter(
     (item) =>
@@ -172,9 +188,9 @@ function NewOfferOverlay({
     if (isNewOfferOverlayVisible.value === true) {
       setSelectedBarterItemId(null);
       if (offer) {
-        setDraftOffer(offer);
+        setDraftOffer({ ...offer, status: "pending" });
       } else {
-        setDraftOffer(emptyOfferRequired(user.id));
+        setDraftOffer(emptyOfferRequired(user.id, trade.id));
       }
     }
   }, [isNewOfferOverlayVisible.value]);
@@ -260,6 +276,11 @@ function NewOfferOverlay({
       } else {
         await createOffer({ value: draftOffer });
       }
+
+      const tradeResponse = (await refetchTrade()).data;
+      if (tradeResponse) {
+        setTrade(tradeResponse);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -290,7 +311,7 @@ function NewOfferOverlay({
               <CustomTextInput
                 label="Money request (optional)"
                 placeholder="Enter amount if money offer"
-                value={draftOffer.moneyOffer}
+                value={draftOffer.moneyOffer?.toString() ?? ""}
                 onChangeText={(val) => {
                   const value =
                     val === "" ? undefined : val.replace(/[^0-9]/g, "");
@@ -456,7 +477,13 @@ function NewOfferOverlay({
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
         />
         <CustomButton
-          title={offer ? "Edit offer" : "Create new offer"}
+          title={
+            offer
+              ? offer.status === "rejected"
+                ? "Resend offer"
+                : "Edit offer"
+              : "Create new offer"
+          }
           containerStyle={{
             position: "absolute",
             bottom: navigationMode.navigationBarHeight + 10,

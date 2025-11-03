@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from build_image_check_response import build_image_check_response
 from config import DOTENV_PATH, OBJECT_DETECTION_THRESHOLD, SIMILARITY_THRESHOLD, TEST_UPLOAD_DIR
 from delete_embedding_from_vectordb import delete_embedding_from_vectordb
+from delete_embeddings_from_vectordb import delete_embeddings_from_vectordb
 from file_utils import find_file_containing, save_dicts_to_txt, save_images, uploadfile_to_numpy
 from initialize import initialize_models
 from itemids import ItemIds
@@ -114,6 +115,20 @@ async def save_embeddings(
         object_detection_model, similarity_model, collection = initialize_models()
 
         delete_embedding_from_vectordb(collection, item_id)
+
+        return {"status": "ok"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+    
+@app.delete("/delete_collection_embeddings/{collection_id}")        
+async def save_embeddings(
+    collection_id: str,
+):
+    try:
+
+        object_detection_model, similarity_model, collection = initialize_models()
+
+        delete_embeddings_from_vectordb(collection, collection_id)
 
         return {"status": "ok"}
     except Exception as e:

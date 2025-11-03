@@ -259,5 +259,12 @@ namespace Coffer.DataAccess.Repositories
             }
             return provided;
         }
+
+        public async Task<IEnumerable<ItemProvided>> GetItemsByCollectionAsync(Guid collectionId)
+        {
+            return await _dbSet
+                .Where(i => i.CollectionId == collectionId)
+                .ToListAsync();
+        }
     }
 }

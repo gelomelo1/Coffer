@@ -1,4 +1,5 @@
 ﻿using Coffer.ASPNET.Controllers.Generic;
+using Coffer.DataAccess.Repositories;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -14,14 +15,27 @@ namespace Coffer.ASPNET.Controllers
             _offersRepository = repository;
         }
 
-        [HttpPost("ChangeStatus/{id}")]
-        public async Task<ActionResult<OfferProvided>> ChangeStatus(Guid id, [FromBody]string status)
+        public record OfferStatusChangeRequest
         {
-            var entity = await _offersRepository.ChangeOfferStatus(id, status);
+            public string Status { get; set; }
+        }
+
+        [HttpPost("ChangeStatus/{id}")]
+        public async Task<ActionResult<OfferProvided>> ChangeStatus(Guid id, [FromBody] OfferStatusChangeRequest request)
+        {
+            var entity = await _offersRepository.ChangeOfferStatus(id, request.Status);
             if(entity == null)
                 return NotFound();
 
             return Ok(entity);
+        }
+
+        [HttpPut("{id}")]
+        public override async Task<ActionResult<OfferProvided>> Update(Guid id, [FromBody] OfferRequired required)
+        {
+            var item = await _offersRepository.UpdateOfferAsync(id, required);
+            if (item == null) return NotFound();
+            return Ok(item);
         }
     }
 }

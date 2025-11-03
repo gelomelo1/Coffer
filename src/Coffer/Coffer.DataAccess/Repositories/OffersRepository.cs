@@ -24,69 +24,130 @@ namespace Coffer.DataAccess.Repositories
             {
                 return null;
             }
+
             entity.Status = offerStatus;
             entity.UpdatedAt = DateTime.UtcNow;
             await _dbContext.SaveChangesAsync();
-            return entity;
+
+            // If the offer was marked as "traded", delete all other offers
+            if (string.Equals(offerStatus, "traded", StringComparison.OrdinalIgnoreCase))
+            {
+                var otherOffers = await _dbSet
+                    .Where(x => x.TradeId == entity.TradeId && x.Id != id)
+                    .ToListAsync();
+
+                if (otherOffers.Count > 0)
+                {
+                    _dbSet.RemoveRange(otherOffers);
+                    await _dbContext.SaveChangesAsync();
+                }
+            }
+
+            IQueryable<OfferProvided> query = _dbSet;
+
+            var includes = _includeProvider?.GetDefaultIncludes();
+            if (includes != null && includes.Length > 0)
+            {
+                foreach (var include in includes)
+                    query = query.Include(include);
+            }
+
+            var reloaded = await query.FirstOrDefaultAsync(o => o.Id == id);
+
+            return reloaded;
+        }
+
+        public async Task<OfferProvided> UpdateOfferAsync(Guid offerId, OfferRequired updated)
+        {
+            var existing = await _dbSet
+                .Include(o => o.OfferItems)
+                    .ThenInclude(oi => oi.Item)
+                .FirstOrDefaultAsync(o => o.Id == offerId);
+
+            if (existing == null)
+                throw new InvalidOperationException($"Offer {offerId} not found.");
+
+            // Apply updates
+            existing = MapToEntity(updated, existing);
+
+            await _dbContext.SaveChangesAsync();
+
+            // Detach to avoid tracking conflicts
+            _dbContext.Entry(existing).State = EntityState.Detached;
+
+            // Reload fresh with includes
+            IQueryable<OfferProvided> query = _dbSet.AsNoTracking();
+
+            var includes = _includeProvider?.GetDefaultIncludes();
+            if (includes != null && includes.Length > 0)
+            {
+                foreach (var include in includes)
+                    query = query.Include(include);
+            }
+
+            // Ensure OfferItems + Item are always included
+            query = query
+                .Include(o => o.OfferItems)
+                    .ThenInclude(oi => oi.Item);
+
+            var reloaded = await query.FirstOrDefaultAsync(o => o.Id == offerId);
+
+            if (reloaded == null)
+                throw new InvalidOperationException($"Offer {offerId} could not be reloaded.");
+
+            return reloaded;
         }
 
         protected override OfferProvided MapToEntity(OfferRequired required, OfferProvided? entity = null)
         {
-            if(entity == null)
+            if (entity == null)
             {
                 var newEntity = new OfferProvided(required.TradeId, required.UserId, required.MoneyOffer, required.Status);
 
-                foreach(var offerItems in required.OfferItems)
+                foreach (var offerItem in required.OfferItems)
                 {
-                    var newOfferItems = new OfferItem
+                    newEntity.OfferItems.Add(new OfferItem
                     {
-                        OfferId = offerItems.OfferId,
-                        ItemId = offerItems.ItemId,
-                    };
-                    newEntity.OfferItems.Add(newOfferItems);
+                        OfferId = newEntity.Id,
+                        ItemId = offerItem.ItemId
+                    });
                 }
 
                 return newEntity;
             }
 
+            // --- Update existing entity fields ---
             entity.TradeId = required.TradeId;
             entity.UserId = required.UserId;
             entity.MoneyOffer = required.MoneyOffer;
             entity.Status = required.Status;
-            entity.UpdatedAt = DateTime.UtcNow;
 
-            // Merge offerItems
-            foreach (var offerItem in required.OfferItems)
+            // --- Sync OfferItems ---
+            var incomingItemIds = required.OfferItems
+                .Where(oi => oi.ItemId.HasValue)
+                .Select(oi => oi.ItemId!.Value)
+                .ToHashSet();
+
+            // Remove missing
+            var toRemove = entity.OfferItems
+                .Where(oi => !oi.ItemId.HasValue || !incomingItemIds.Contains(oi.ItemId.Value))
+                .ToList();
+
+            foreach (var oi in toRemove)
+                entity.OfferItems.Remove(oi);
+
+            // Add new
+            foreach (var incoming in required.OfferItems)
             {
-                // Match only by Id if available
-                var existing = offerItem.Id != Guid.Empty
-                    ? entity.OfferItems.FirstOrDefault(x => x.Id == offerItem.Id)
-                    : null;
-
-                if (existing != null)
+                if (!entity.OfferItems.Any(oi => oi.ItemId == incoming.ItemId))
                 {
-                    // Update existing fields
-                    existing.OfferId = offerItem.Id;
-                    existing.ItemId = offerItem.ItemId;
-                    existing.Item = offerItem.Item;
-                }
-                else
-                {
-                    // Add new offerItem
                     entity.OfferItems.Add(new OfferItem
                     {
                         OfferId = entity.Id,
-                        ItemId = offerItem.ItemId,
-                        Item = offerItem.Item
+                        ItemId = incoming.ItemId
                     });
                 }
             }
-
-            // Remove offerItems that are no longer present (match only those with valid Id)
-            entity.OfferItems
-                .Where(x => x.Id != Guid.Empty && !required.OfferItems.Any(t => t.Id == x.Id))
-                .ToList()
-                .ForEach(x => entity.OfferItems.Remove(x));
 
             return entity;
         }
