@@ -10,7 +10,9 @@ import { customTheme } from "@/src/theme/theme";
 import CollectionType from "@/src/types/entities/collectiontype";
 import { Offer } from "@/src/types/entities/offer";
 import { Trade } from "@/src/types/entities/trade";
+import TradeReivewPack from "@/src/types/entities/trade_review_pack";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { navigate } from "expo-router/build/global-state/routing";
 import { TouchableOpacity, View } from "react-native";
 import BarterMozaicGallery from "./barter_mozaic_gallery";
@@ -29,6 +31,13 @@ function MyOfferCard({ offer, collectionType }: MyOfferCardProps) {
     querykeys.tradeData,
     offer.tradeId
   );
+
+  const { data: tradeReviewData, isFetching: isTradeReviewFetching } =
+    useGetSingleData<TradeReivewPack>(
+      endpoints.tradeReviewsTrade,
+      querykeys.tradeReviewData,
+      offer.tradeId
+    );
 
   const handleOfferDetailsPress = () => {
     if (tradeData) {
@@ -54,6 +63,17 @@ function MyOfferCard({ offer, collectionType }: MyOfferCardProps) {
         borderRadius: 10,
       }}
     >
+      {(offer.status === "traded" &&
+        !isTradeReviewFetching &&
+        tradeReviewData?.offerer === null) ||
+      offer.status === "revertByCreator" ? (
+        <MaterialIcons
+          name="report-gmailerrorred"
+          size={24}
+          color="red"
+          style={{ position: "absolute", bottom: 0, right: 0 }}
+        />
+      ) : null}
       <CustomText style={{ fontSize: 20 }}>Belong to trade:</CustomText>
       <CustomText
         style={{

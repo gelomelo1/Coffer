@@ -37,7 +37,7 @@ function NewReviewOverlay({
   const { mutateAsync: createReview, isPending: isCreateReviewPending } =
     useCreateData<TradeReviewRequired, TradeReview>(
       endpoints.tradeReviews,
-      `${querykeys.tradeReviewData}`
+      `${querykeys.tradeReviewData};${querykeys.userReviewsData}/${reviewerId};${querykeys.userReviewsData}/${revieweeId}`
     );
 
   const [draftReview, setDraftReview] = useState<TradeReviewRequired>(

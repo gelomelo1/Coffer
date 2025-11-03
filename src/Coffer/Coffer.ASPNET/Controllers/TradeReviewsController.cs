@@ -24,7 +24,7 @@ namespace Coffer.ASPNET.Controllers
         [HttpGet("User/{userId}")]
         public async Task<ActionResult<IEnumerable<TradeReviewPack>>> GetTradeReviewsForUser(Guid userId)
         {
-            var results = await _tradeReviewRepository.GetTradeReviewByTrade(userId);
+            var results = await _tradeReviewRepository.GetTradeReviewsForUser(userId);
             return Ok(results);
         }
     }

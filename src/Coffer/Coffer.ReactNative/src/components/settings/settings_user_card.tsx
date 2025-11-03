@@ -6,6 +6,7 @@ import { Image, View } from "react-native";
 import { Country } from "react-native-country-picker-modal";
 import { Avatar } from "react-native-elements";
 import CustomText from "../custom_ui/custom_text";
+import TradeReviewsRating from "../otheruser/trade_review_rating";
 
 export interface SettingsUserCardProps {
   user: User | null;
@@ -128,6 +129,7 @@ function SettingsUserCard({ user, otherUser = false }: SettingsUserCardProps) {
           </CustomText>
         </View>
       </View>
+      {user ? <TradeReviewsRating userId={user.id} /> : null}
     </View>
   );
 }

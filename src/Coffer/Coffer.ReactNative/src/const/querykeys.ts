@@ -17,4 +17,5 @@ export const querykeys = {
   tradeData: "tradeData",
   followsData: "followsData",
   tradeReviewData: "tradeReviewData",
+  userReviewsData: "userReviewsData",
 };

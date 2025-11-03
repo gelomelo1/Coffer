@@ -1,4 +1,5 @@
 import BarterItemSelectedCard from "@/src/components/collections/tabs/barter/barter_item_selected_card";
+import BarterNotification from "@/src/components/collections/tabs/barter/barter_notification";
 import DeleteOfferOverlay from "@/src/components/collections/tabs/barter/delete_offer_overlay";
 import NewOfferOverlay from "@/src/components/collections/tabs/barter/new_offer_overlay";
 import NewReviewOverlay from "@/src/components/collections/tabs/barter/new_review_overlay";
@@ -258,6 +259,24 @@ function OfferDetails() {
           { paddingVertical: 10, paddingHorizontal: 10 },
         ]}
       >
+        {!isMyOffer && tradeStatus === "offerRevertByOfferer" ? (
+          <BarterNotification title="The offerer wants to revert an accepted offer. Please decide if you accept the reversion. Go to your offers." />
+        ) : null}
+        {isMyOffer && tradeStatus === "offerRevertByCreator" ? (
+          <BarterNotification title="The trader wants to revert an accepted offer. Please decide if you accept the reversion. Go to your offer." />
+        ) : null}
+        {!isMyOffer &&
+        tradeStatus === "traded" &&
+        !isTradeReviewFetching &&
+        tradeReviewData?.trader === null ? (
+          <BarterNotification title="Please review your experience with the offerer you traded with." />
+        ) : null}
+        {isMyOffer &&
+        tradeStatus === "traded" &&
+        !isTradeReviewFetching &&
+        tradeReviewData?.offerer === null ? (
+          <BarterNotification title="Please review your experience with the trader you traded with." />
+        ) : null}
         {isMyOffer ? (
           <>
             <CustomText style={{ fontSize: 20 }}>Belong to trade:</CustomText>
@@ -684,13 +703,13 @@ function OfferDetails() {
                   ).toLocaleDateString()}
                 </CustomText>
               </View>
-            ) : (
+            ) : offer!.status === "traded" ? (
               <CustomButton
                 title={"Create a review"}
                 onPress={() => setIsNewReviewOverlayVisible(true)}
                 containerStyle={{ marginBottom: 10 }}
               />
-            )}
+            ) : null}
             {tradeReviewData!.trader ? (
               <View
                 style={{
@@ -860,13 +879,13 @@ function OfferDetails() {
                   ).toLocaleDateString()}
                 </CustomText>
               </View>
-            ) : (
+            ) : offer!.status === "traded" ? (
               <CustomButton
                 title={"Create a review"}
                 onPress={() => setIsNewReviewOverlayVisible(true)}
                 containerStyle={{ marginBottom: 10 }}
               />
-            )}
+            ) : null}
             {tradeReviewData!.offerer ? (
               <View
                 style={{
@@ -913,7 +932,7 @@ function OfferDetails() {
                   </CustomText>
                   <CustomText>-</CustomText>
                   <CustomText style={{ fontFamily: "VendSansItalic" }}>
-                    trader
+                    offerer
                   </CustomText>
                 </TouchableOpacity>
                 <View

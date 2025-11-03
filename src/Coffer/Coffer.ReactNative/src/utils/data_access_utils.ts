@@ -11,12 +11,14 @@ import ItemOptions from "../types/entities/itemoptions";
 import { Offer } from "../types/entities/offer";
 import { Reaction } from "../types/entities/reaction";
 import { Trade } from "../types/entities/trade";
+import TradeReivewPack from "../types/entities/trade_review_pack";
 import AttributeValue, {
   AttributeTypes,
 } from "../types/helpers/attribute_data";
 import { TradeStatus } from "../types/helpers/barter_status";
 import { QuerySortData } from "../types/helpers/query_data";
 import RarityValue from "../types/helpers/rarity_value";
+import ReviewSide from "../types/helpers/review_side";
 
 export function getItemAttributeValue(
   itemAttribute: ItemAttribute
@@ -297,4 +299,62 @@ export function isItemAvailableForTrade(
   });
 
   return item.quantity - itemsInTradeCount > 1;
+}
+
+export function getTradeReviewsRating(
+  type: "like" | "dislike",
+  tradeReviews: TradeReivewPack[],
+  userId: string
+) {
+  let count = 0;
+
+  for (const pack of tradeReviews) {
+    // Check if the user is the reviewee in the trader review
+    if (pack.trader?.revieweeId === userId) {
+      const isLike = pack.trader.rating === true;
+      if ((type === "like" && isLike) || (type === "dislike" && !isLike)) {
+        count++;
+      }
+    }
+
+    // Check if the user is the reviewee in the offerer review
+    if (pack.offerer?.revieweeId === userId) {
+      const isLike = pack.offerer.rating === true;
+      if ((type === "like" && isLike) || (type === "dislike" && !isLike)) {
+        count++;
+      }
+    }
+  }
+
+  return count;
+}
+
+export function getCurrentUserReview(
+  tradeReviews: TradeReivewPack,
+  userId: string
+): ReviewSide | null {
+  if (tradeReviews.trader?.reviewerId === userId) {
+    return { side: "trader", review: tradeReviews.trader };
+  }
+
+  if (tradeReviews.offerer?.reviewerId === userId) {
+    return { side: "offerer", review: tradeReviews.offerer };
+  }
+
+  return null;
+}
+
+export function getCurrentUserReviewer(
+  tradeReviews: TradeReivewPack,
+  userId: string
+): ReviewSide | null {
+  if (tradeReviews.offerer?.reviewerId !== userId && tradeReviews.offerer) {
+    return { side: "offerer", review: tradeReviews.offerer };
+  }
+
+  if (tradeReviews.trader?.reviewerId !== userId && tradeReviews.trader) {
+    return { side: "trader", review: tradeReviews.trader };
+  }
+
+  return null;
 }

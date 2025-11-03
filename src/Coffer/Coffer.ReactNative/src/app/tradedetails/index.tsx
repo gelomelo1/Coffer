@@ -1,6 +1,8 @@
 import BarterItemSelectedCard from "@/src/components/collections/tabs/barter/barter_item_selected_card";
+import BarterNotification from "@/src/components/collections/tabs/barter/barter_notification";
 import DeleteTradeOverlay from "@/src/components/collections/tabs/barter/delete_trade_overlay";
 import NewOfferOverlay from "@/src/components/collections/tabs/barter/new_offer_overlay";
+import NewReviewOverlay from "@/src/components/collections/tabs/barter/new_review_overlay";
 import NewTradeOverlay from "@/src/components/collections/tabs/barter/new_trade_overlay";
 import OfferCard from "@/src/components/collections/tabs/barter/offer_card";
 import TradeUserContacts from "@/src/components/collections/tabs/barter/trade_user_contacts";
@@ -12,22 +14,28 @@ import { ROUTES, pageParams } from "@/src/const/navigation_params";
 import { querykeys } from "@/src/const/querykeys";
 import { tradeStatusRecord } from "@/src/const/trade_status";
 import { useCollectionStore } from "@/src/hooks/collection_store";
-import { useGetData } from "@/src/hooks/data_hooks";
+import { useGetData, useGetSingleData } from "@/src/hooks/data_hooks";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
 import { useTradeStore } from "@/src/hooks/trade_store";
 import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import { Offer } from "@/src/types/entities/offer";
 import { Trade } from "@/src/types/entities/trade";
+import TradeReivewPack from "@/src/types/entities/trade_review_pack";
 import { OfferStatus } from "@/src/types/helpers/barter_status";
 import { getTradeStatus } from "@/src/utils/data_access_utils";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { navigate } from "expo-router/build/global-state/routing";
-import { useState } from "react";
-import { FlatList, TouchableOpacity, View } from "react-native";
-import { Button, Overlay } from "react-native-elements";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { Avatar, Button, Overlay } from "react-native-elements";
 
 function TradeDetails() {
   const { trade } = useTradeStore();
@@ -57,6 +65,13 @@ function TradeDetails() {
       ],
     });
 
+  const { data: tradeReviewData, isFetching: isTradeReviewFetching } =
+    useGetSingleData<TradeReivewPack>(
+      endpoints.tradeReviewsTrade,
+      querykeys.tradeReviewData,
+      trade!.id
+    );
+
   const isMyTrade = trade!.userId === user!.id;
 
   const [isNewTradeOverlayVisible, setIsNewTradeOverlayVisible] =
@@ -77,6 +92,9 @@ function TradeDetails() {
     noContactInfoWarningOverlayVisible,
     setNoContactInfoWarningOverlayVisible,
   ] = useState(false);
+
+  const [isNewReviewOverlayVisible, setIsNewReviewOverlayVisible] =
+    useState(false);
 
   const handleUserPressed = () => {
     setUser(trade!.user);
@@ -145,6 +163,26 @@ function TradeDetails() {
     }
   };
 
+  const handleReviewUserPressed = () => {
+    if (isMyTrade) {
+      setUser(getOffers()[0]!.user);
+      navigate({
+        pathname: ROUTES.OTHERUSER,
+        params: pageParams.otheruser(getOffers()[0]!.user.name),
+      });
+    } else {
+      setUser(trade!.user);
+      navigate({
+        pathname: ROUTES.OTHERUSER,
+        params: pageParams.otheruser(trade!.user.name),
+      });
+    }
+  };
+
+  useEffect(() => {
+    console.log(tradeReviewData?.trader);
+  }, [tradeReviewData]);
+
   return (
     <>
       <View
@@ -172,6 +210,24 @@ function TradeDetails() {
           )}
           ListHeaderComponent={
             <View style={{ marginHorizontal: 10 }}>
+              {isMyTrade && tradeStatus === "offerRevertByOfferer" ? (
+                <BarterNotification title="The offerer wants to revert an accepted offer. Please decide if you accept the reversion. Go to your offers." />
+              ) : null}
+              {!isMyTrade && tradeStatus === "offerRevertByCreator" ? (
+                <BarterNotification title="The trader wants to revert an accepted offer. Please decide if you accept the reversion. Go to your offer." />
+              ) : null}
+              {isMyTrade &&
+              tradeStatus === "traded" &&
+              !isTradeReviewFetching &&
+              tradeReviewData?.trader === null ? (
+                <BarterNotification title="Please review your experience with the offerer you traded with." />
+              ) : null}
+              {!isMyTrade &&
+              tradeStatus === "traded" &&
+              !isTradeReviewFetching &&
+              tradeReviewData?.offerer === null ? (
+                <BarterNotification title="Please review your experience with the trader you traded with." />
+              ) : null}
               <CustomText
                 style={{
                   fontFamily: "VendSansBold",
@@ -376,6 +432,411 @@ function TradeDetails() {
               )}
             </>
           }
+          ListFooterComponent={
+            <View style={{ paddingHorizontal: 10, marginTop: 20 }}>
+              {isTradeReviewFetching ? (
+                <ActivityIndicator color={customTheme.colors.primary} />
+              ) : !isMyTrade ? (
+                <View>
+                  {tradeReviewData!.offerer ? (
+                    <View
+                      style={{
+                        width: "100%",
+                        backgroundColor: customTheme.colors.secondary,
+                        borderWidth: 2,
+                        borderColor: customTheme.colors.primary,
+                        padding: 10,
+                        marginBottom: 10,
+                      }}
+                    >
+                      <CustomText>Your review</CustomText>
+                      <View
+                        style={{
+                          justifyContent: "center",
+                          alignItems: "center",
+                          gap: 10,
+                        }}
+                      >
+                        <View
+                          style={{
+                            justifyContent: "center",
+                            alignItems: "center",
+                            flexDirection: "row",
+                          }}
+                        >
+                          {tradeReviewData!.offerer.rating ? (
+                            <>
+                              <CustomText
+                                style={{
+                                  fontFamily: "VendSansBold",
+                                  color: "green",
+                                  fontSize: 20,
+                                }}
+                              >
+                                Liked
+                              </CustomText>
+                              <AntDesign
+                                name="arrow-up"
+                                size={20}
+                                color="green"
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <CustomText
+                                style={{
+                                  fontFamily: "VendSansBold",
+                                  color: "red",
+                                  fontSize: 20,
+                                }}
+                              >
+                                Disliked
+                              </CustomText>
+                              <AntDesign
+                                name="arrow-up"
+                                size={20}
+                                color="red"
+                              />
+                            </>
+                          )}
+                        </View>
+                        <CustomText>
+                          {tradeReviewData!.offerer.comment}
+                        </CustomText>
+                      </View>
+                      <CustomText
+                        style={{ fontFamily: "VendSansItalic", fontSize: 12 }}
+                      >
+                        {new Date(
+                          tradeReviewData!.offerer.createdAt
+                        ).toLocaleDateString()}
+                      </CustomText>
+                    </View>
+                  ) : tradeStatus === "traded" ? (
+                    <CustomButton
+                      title={"Create a review"}
+                      onPress={() => setIsNewReviewOverlayVisible(true)}
+                      containerStyle={{ marginBottom: 10 }}
+                    />
+                  ) : null}
+                  {tradeReviewData!.trader ? (
+                    <View
+                      style={{
+                        width: "100%",
+                        backgroundColor: customTheme.colors.secondary,
+                        borderWidth: 2,
+                        borderColor: customTheme.colors.primary,
+                        padding: 10,
+                      }}
+                    >
+                      <TouchableOpacity
+                        style={{
+                          justifyContent: "flex-start",
+                          alignItems: "center",
+                          flexDirection: "row",
+                          gap: 10,
+                        }}
+                        onPress={handleReviewUserPressed}
+                      >
+                        <Avatar
+                          size={16}
+                          rounded
+                          source={
+                            tradeReviewData!.trader.reviewerUser?.avatar
+                              ? {
+                                  uri: tradeReviewData!.trader.reviewerUser
+                                    ?.avatar,
+                                }
+                              : undefined
+                          }
+                          icon={
+                            tradeReviewData!.trader.reviewerUser?.avatar
+                              ? {
+                                  name: "user",
+                                  type: "feather",
+                                  color: customTheme.colors.secondary,
+                                }
+                              : undefined
+                          }
+                          containerStyle={{
+                            backgroundColor: customTheme.colors.primary,
+                          }}
+                        />
+                        <CustomText>
+                          {tradeReviewData!.trader.reviewerUser?.name ??
+                            "Deleted user"}
+                        </CustomText>
+                        <CustomText>-</CustomText>
+                        <CustomText style={{ fontFamily: "VendSansItalic" }}>
+                          trader
+                        </CustomText>
+                      </TouchableOpacity>
+                      <View
+                        style={{
+                          justifyContent: "center",
+                          alignItems: "center",
+                          gap: 10,
+                        }}
+                      >
+                        <View
+                          style={{
+                            justifyContent: "center",
+                            alignItems: "center",
+                            flexDirection: "row",
+                          }}
+                        >
+                          {tradeReviewData!.trader.rating ? (
+                            <>
+                              <CustomText
+                                style={{
+                                  fontFamily: "VendSansBold",
+                                  color: "green",
+                                  fontSize: 20,
+                                }}
+                              >
+                                Liked
+                              </CustomText>
+                              <AntDesign
+                                name="arrow-up"
+                                size={20}
+                                color="green"
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <CustomText
+                                style={{
+                                  fontFamily: "VendSansBold",
+                                  color: "red",
+                                  fontSize: 20,
+                                }}
+                              >
+                                Disliked
+                              </CustomText>
+                              <AntDesign
+                                name="arrow-up"
+                                size={20}
+                                color="red"
+                              />
+                            </>
+                          )}
+                        </View>
+                        <CustomText>
+                          {tradeReviewData!.trader.comment}
+                        </CustomText>
+                      </View>
+                      <CustomText
+                        style={{ fontFamily: "VendSansItalic", fontSize: 12 }}
+                      >
+                        {new Date(
+                          tradeReviewData!.trader.createdAt
+                        ).toLocaleDateString()}
+                      </CustomText>
+                    </View>
+                  ) : null}
+                </View>
+              ) : (
+                <View>
+                  {tradeReviewData!.trader ? (
+                    <View
+                      style={{
+                        width: "100%",
+                        backgroundColor: customTheme.colors.secondary,
+                        borderWidth: 2,
+                        borderColor: customTheme.colors.primary,
+                        padding: 10,
+                        marginBottom: 10,
+                      }}
+                    >
+                      <CustomText>Your review</CustomText>
+                      <View
+                        style={{
+                          justifyContent: "center",
+                          alignItems: "center",
+                          gap: 10,
+                        }}
+                      >
+                        <View
+                          style={{
+                            justifyContent: "center",
+                            alignItems: "center",
+                            flexDirection: "row",
+                          }}
+                        >
+                          {tradeReviewData!.trader.rating ? (
+                            <>
+                              <CustomText
+                                style={{
+                                  fontFamily: "VendSansBold",
+                                  color: "green",
+                                  fontSize: 20,
+                                }}
+                              >
+                                Liked
+                              </CustomText>
+                              <AntDesign
+                                name="arrow-up"
+                                size={20}
+                                color="green"
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <CustomText
+                                style={{
+                                  fontFamily: "VendSansBold",
+                                  color: "red",
+                                  fontSize: 20,
+                                }}
+                              >
+                                Disliked
+                              </CustomText>
+                              <AntDesign
+                                name="arrow-up"
+                                size={20}
+                                color="red"
+                              />
+                            </>
+                          )}
+                        </View>
+                        <CustomText>
+                          {tradeReviewData!.trader.comment}
+                        </CustomText>
+                      </View>
+                      <CustomText
+                        style={{ fontFamily: "VendSansItalic", fontSize: 12 }}
+                      >
+                        {new Date(
+                          tradeReviewData!.trader.createdAt
+                        ).toLocaleDateString()}
+                      </CustomText>
+                    </View>
+                  ) : tradeStatus === "traded" ? (
+                    <CustomButton
+                      title={"Create a review"}
+                      onPress={() => setIsNewReviewOverlayVisible(true)}
+                      containerStyle={{ marginBottom: 10 }}
+                    />
+                  ) : null}
+                  {tradeReviewData!.offerer ? (
+                    <View
+                      style={{
+                        width: "100%",
+                        backgroundColor: customTheme.colors.secondary,
+                        borderWidth: 2,
+                        borderColor: customTheme.colors.primary,
+                        padding: 10,
+                      }}
+                    >
+                      <TouchableOpacity
+                        style={{
+                          justifyContent: "flex-start",
+                          alignItems: "center",
+                          flexDirection: "row",
+                          gap: 10,
+                        }}
+                        onPress={handleReviewUserPressed}
+                      >
+                        <Avatar
+                          size={16}
+                          rounded
+                          source={
+                            tradeReviewData!.offerer.reviewerUser?.avatar
+                              ? {
+                                  uri: tradeReviewData!.offerer.reviewerUser
+                                    ?.avatar,
+                                }
+                              : undefined
+                          }
+                          icon={
+                            tradeReviewData!.offerer.reviewerUser?.avatar
+                              ? {
+                                  name: "user",
+                                  type: "feather",
+                                  color: customTheme.colors.secondary,
+                                }
+                              : undefined
+                          }
+                          containerStyle={{
+                            backgroundColor: customTheme.colors.primary,
+                          }}
+                        />
+                        <CustomText>
+                          {tradeReviewData!.offerer.reviewerUser?.name ??
+                            "Deleted user"}
+                        </CustomText>
+                        <CustomText>-</CustomText>
+                        <CustomText style={{ fontFamily: "VendSansItalic" }}>
+                          offerer
+                        </CustomText>
+                      </TouchableOpacity>
+                      <View
+                        style={{
+                          justifyContent: "center",
+                          alignItems: "center",
+                          gap: 10,
+                        }}
+                      >
+                        <View
+                          style={{
+                            justifyContent: "center",
+                            alignItems: "center",
+                            flexDirection: "row",
+                          }}
+                        >
+                          {tradeReviewData!.offerer.rating ? (
+                            <>
+                              <CustomText
+                                style={{
+                                  fontFamily: "VendSansBold",
+                                  color: "green",
+                                  fontSize: 20,
+                                }}
+                              >
+                                Liked
+                              </CustomText>
+                              <AntDesign
+                                name="arrow-up"
+                                size={20}
+                                color="green"
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <CustomText
+                                style={{
+                                  fontFamily: "VendSansBold",
+                                  color: "red",
+                                  fontSize: 20,
+                                }}
+                              >
+                                Disliked
+                              </CustomText>
+                              <AntDesign
+                                name="arrow-up"
+                                size={20}
+                                color="red"
+                              />
+                            </>
+                          )}
+                        </View>
+                        <CustomText>
+                          {tradeReviewData!.offerer.comment}
+                        </CustomText>
+                      </View>
+                      <CustomText
+                        style={{ fontFamily: "VendSansItalic", fontSize: 12 }}
+                      >
+                        {new Date(
+                          tradeReviewData!.offerer.createdAt
+                        ).toLocaleDateString()}
+                      </CustomText>
+                    </View>
+                  ) : null}
+                </View>
+              )}
+            </View>
+          }
         />
       </View>
       <NewTradeOverlay
@@ -443,6 +904,17 @@ function TradeDetails() {
           to Settings and create at least one contact so others can reach you.
         </CustomText>
       </Overlay>
+      {tradeStatus === "traded" && getOffers().length >= 1 ? (
+        <NewReviewOverlay
+          isNewReviewOverlayVisible={{
+            value: isNewReviewOverlayVisible,
+            set: setIsNewReviewOverlayVisible,
+          }}
+          tradeId={trade!.id}
+          reviewerId={isMyTrade ? trade!.userId : getOffers()[0]!.userId}
+          revieweeId={isMyTrade ? getOffers()[0]!.userId : trade!.userId}
+        />
+      ) : null}
     </>
   );
 }
