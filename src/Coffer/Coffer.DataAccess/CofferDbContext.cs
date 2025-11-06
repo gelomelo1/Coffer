@@ -35,7 +35,6 @@ namespace Coffer.DataAccess
                 .WithOne(at => at.CollectionTypeProvided)
                 .HasForeignKey(at => at.CollectionTypeId);
 
-
             // Attributes
             modelBuilder.Entity<Attribute>()
                 .HasMany(a => a.ItemAttributes)
