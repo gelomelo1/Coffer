@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Coffer.ASPNET")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+10332b70bc1e66695287ae706d5379f987c1a740")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bf759f82374670c628e06fd11dec482eabad9c46")]
 [assembly: System.Reflection.AssemblyProductAttribute("Coffer.ASPNET")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Coffer.ASPNET")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
