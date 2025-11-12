@@ -98,8 +98,7 @@ function RegisterForm({ submitRegistration }: RegisterFormProps) {
       >
         <CustomText>You have not have a registered account yet.</CustomText>
         <CustomText style={{ textAlign: "center" }}>
-          Please enter a username and choose your country to finnish
-          registration
+          Please enter a username and choose your country to finish registration
         </CustomText>
         <CustomTextInput
           placeholder="Enter Username"
