@@ -4,7 +4,7 @@ from similarity_check_training.list_collection import list_collection
 from similarity_check_training.insert_to_collection import insert_to_collection
 from similarity_check_training.create_vector_database import create_vector_database
 from similarity_check_training.crop_images import crop_images
-from similarity_check_training.training import train_similarity_model
+from similarity_check_training.training_best_try import train_similarity_model
 
 class SimilarityCheckTrainingView(tk.Frame):
     def __init__(self, parent):
@@ -213,7 +213,7 @@ class SimilarityCheckTrainingView(tk.Frame):
         source = self.similarity_trainer_source_var.get()
         dest = self.similarity_trainer_dest_var.get()
         name = self.similarity_model_name_var.get()
-        train_similarity_model(source, dest, name)
+        train_similarity_model(source, dest)
         messagebox.showinfo("Done", f"✅ Training complete. Model {name} saved to: {dest}")
         self.similarity_trainer_source_var.set("")
         self.similarity_trainer_dest_var.set("")
