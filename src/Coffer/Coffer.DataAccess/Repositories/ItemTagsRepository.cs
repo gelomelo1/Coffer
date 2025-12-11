@@ -30,30 +30,24 @@ namespace Coffer.DataAccess.Repositories
 
             searchText = searchText.Trim().ToLower();
 
-            // Start base query on ItemTags
             IQueryable<ItemTags> query = _dbSet;
 
-            // Apply dynamic includes from the ItemIncludeProvider
             var includes = includeProvider.GetDefaultIncludes();
             if (includes != null)
             {
                 foreach (var include in includes)
                 {
-                    // Include paths relative to Item
                     query = query.Include($"Item.{include}");
                 }
             }
 
-            // Always include the Item's Collection explicitly
             query = query.Include(t => t.Item.Collection);
 
-            // Filter by search text and collectionTypeId
             query = query.Where(t =>
                 t.Tag.ToLower().Contains(searchText) &&
                 t.Item.Collection.CollectionTypeId == collectionTypeId
             );
 
-            // Group, sort, and take top 10 most frequent tags
             var result = await query
                 .GroupBy(t => t.Tag)
                 .Select(g => new

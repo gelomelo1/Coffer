@@ -29,7 +29,6 @@ namespace Coffer.DataAccess.Repositories
             entity.UpdatedAt = DateTime.UtcNow;
             await _dbContext.SaveChangesAsync();
 
-            // If the offer was marked as "traded", delete all other offers
             if (string.Equals(offerStatus, "traded", StringComparison.OrdinalIgnoreCase))
             {
                 var otherOffers = await _dbSet
@@ -67,15 +66,12 @@ namespace Coffer.DataAccess.Repositories
             if (existing == null)
                 throw new InvalidOperationException($"Offer {offerId} not found.");
 
-            // Apply updates
             existing = MapToEntity(updated, existing);
 
             await _dbContext.SaveChangesAsync();
 
-            // Detach to avoid tracking conflicts
             _dbContext.Entry(existing).State = EntityState.Detached;
 
-            // Reload fresh with includes
             IQueryable<OfferProvided> query = _dbSet.AsNoTracking();
 
             var includes = _includeProvider?.GetDefaultIncludes();
@@ -85,7 +81,6 @@ namespace Coffer.DataAccess.Repositories
                     query = query.Include(include);
             }
 
-            // Ensure OfferItems + Item are always included
             query = query
                 .Include(o => o.OfferItems)
                     .ThenInclude(oi => oi.Item);
@@ -116,19 +111,16 @@ namespace Coffer.DataAccess.Repositories
                 return newEntity;
             }
 
-            // --- Update existing entity fields ---
             entity.TradeId = required.TradeId;
             entity.UserId = required.UserId;
             entity.MoneyOffer = required.MoneyOffer;
             entity.Status = required.Status;
 
-            // --- Sync OfferItems ---
             var incomingItemIds = required.OfferItems
                 .Where(oi => oi.ItemId.HasValue)
                 .Select(oi => oi.ItemId!.Value)
                 .ToHashSet();
 
-            // Remove missing
             var toRemove = entity.OfferItems
                 .Where(oi => !oi.ItemId.HasValue || !incomingItemIds.Contains(oi.ItemId.Value))
                 .ToList();
@@ -136,7 +128,6 @@ namespace Coffer.DataAccess.Repositories
             foreach (var oi in toRemove)
                 entity.OfferItems.Remove(oi);
 
-            // Add new
             foreach (var incoming in required.OfferItems)
             {
                 if (!entity.OfferItems.Any(oi => oi.ItemId == incoming.ItemId))

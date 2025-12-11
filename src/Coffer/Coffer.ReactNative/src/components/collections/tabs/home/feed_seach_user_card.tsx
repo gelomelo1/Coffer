@@ -21,7 +21,7 @@ function FeedSearchUserCard({ user }: FeedSearchUserCardProps) {
   useEffect(() => {
     const getCountry = async () => {
       const countryByCode = await getCountryByCode(user.country);
-      setCountry(countryByCode?.name?.toString() ?? null); // <-- fallback to null
+      setCountry(countryByCode?.name?.toString() ?? null);
     };
 
     getCountry();

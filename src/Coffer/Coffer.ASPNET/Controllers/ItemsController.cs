@@ -70,7 +70,7 @@ namespace Coffer.ASPNET.Controllers
                 return BadRequest("No items provided.");
 
             List<string> savedImages = new();
-            var collectionId = request[0].Item.CollectionId; // Use first item's collection
+            var collectionId = request[0].Item.CollectionId;
 
             using var transaction = await _itemsRepository.BeginTransactionAsync();
             try
@@ -191,7 +191,7 @@ namespace Coffer.ASPNET.Controllers
                     }
                     catch
                     {
-                        // Log error if restore fails, but don't mask original exception
+
                     }
 
                 return StatusCode(500, $"Failed to delete item: {ex.Message}");

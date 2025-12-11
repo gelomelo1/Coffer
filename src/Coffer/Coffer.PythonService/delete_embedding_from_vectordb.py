@@ -11,5 +11,4 @@ def delete_embedding_from_vectordb(
         id (str): The unique ID of the item to delete.
     """
 
-    # ChromaDB delete expects a list of IDs
     collection.delete(ids=[id]) 

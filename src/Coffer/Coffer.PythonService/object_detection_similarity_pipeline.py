@@ -32,10 +32,8 @@ def object_detection_similarity_pipeline(
             }
     """
 
-    # 1️⃣ Detect and crop objects
     crops = crop_objects_from_image(yolo_model, image_array, conf_threshold=conf_threshold)
 
-    # 2️⃣ Generate embeddings and pair with crops
     results = []
     for crop in crops:
         crop_id = str(uuid.uuid4())

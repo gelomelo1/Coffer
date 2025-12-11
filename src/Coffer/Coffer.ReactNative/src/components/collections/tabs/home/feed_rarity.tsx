@@ -37,27 +37,22 @@ function FeedRarity({
   const rarityScaleAnim = useState(new Animated.Value(1))[0];
   const [isSelectorVisible, setIsSelectorVisible] = useState(false);
 
-  // Local state for item (used only when `item` is passed)
   const [localItem, setLocalItem] = useState<ItemProvided | null>(item ?? null);
   const [localRarity, setLocalRarity] = useState<number | null | undefined>(
     null
   );
 
-  // Determine current item
   const currentItem = feed ? feed.item : localItem;
 
-  // Find current user's reaction
   const reaction = currentItem!.reactions.find((r) => r.userId === user.id);
 
   const userLiked = feed
     ? feed.item.reactions.find((reaction) => reaction.userId === user.id)?.liked
     : item!.reactions.find((reaction) => reaction.userId === user.id)?.liked;
 
-  // Pick local rarity if exists, otherwise use backend data
   const rarityValue =
     localRarity !== null ? localRarity : reaction?.rarity ?? null;
 
-  // Animate rarity text on mutation success
   useEffect(() => {
     if (isRarityPostSuccess) {
       Animated.sequence([
@@ -77,13 +72,11 @@ function FeedRarity({
     }
   }, [isRarityPostSuccess]);
 
-  // Reset local rarity when feed or item changes
   useEffect(() => {
     setLocalRarity(null);
   }, [feed, item]);
 
   const handleRaritySelect = async (rarity: number | null | undefined) => {
-    // Optimistic UI update
     setLocalRarity(rarity);
 
     const newReaction: ReactionRequired = {
@@ -96,20 +89,17 @@ function FeedRarity({
     try {
       const response = await postRarity({ value: newReaction });
 
-      // If we’re dealing with an item, update local item with server’s response
       if (item && response) {
         const updatedItem = response as unknown as ItemProvided;
         setLocalItem(updatedItem);
         onItemUpdate?.(updatedItem);
 
-        // Update local rarity to match server value (in case backend adjusted it)
         const updatedUserReaction = updatedItem.reactions.find(
           (r) => r.userId === user.id
         );
         setLocalRarity(updatedUserReaction?.rarity ?? null);
       }
     } catch {
-      // Rollback on failure
       setLocalRarity(reaction?.rarity ?? null);
     }
   };

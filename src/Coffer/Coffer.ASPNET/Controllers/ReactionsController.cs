@@ -36,12 +36,10 @@ namespace Coffer.ASPNET.Controllers
                     reactionRequired.ItemId
                 );
 
-                // No existing reaction → create new one
                 if (existingReaction == null)
                 {
                     await _reactionsRepository.InsertItemAsync(reactionRequired);
                 }
-                // Existing reaction → delete if unliked and rarity is null
                 else if (!reactionRequired.Liked && reactionRequired.Rarity == null)
                 {
                     await _reactionsRepository.DeleteItemAsync(existingReaction.Id);
@@ -56,7 +54,6 @@ namespace Coffer.ASPNET.Controllers
             }
             catch (Exception ex)
             {
-                // Better to log exception here before returning
                 return StatusCode(500, $"An error occurred while processing the request: {ex.Message}");
             }
         }

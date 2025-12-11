@@ -32,8 +32,8 @@ export function useGoogleAuth({
   onSuccessfulLogin,
 }: useGoogleAuthProps) {
   GoogleSignin.configure({
-    webClientId: webGoogleClientId, // Your web client ID from Google Developer Console
-    offlineAccess: true, // Optional: if you need to access Google APIs
+    webClientId: webGoogleClientId,
+    offlineAccess: true,
     scopes: ["profile", "email"],
   });
 
@@ -128,7 +128,6 @@ export function useGitHubAuth({
 
   const [tempId, setTempId] = useState<string | null>(null);
 
-  // Handle GitHub response
   useEffect(() => {
     const handleGitHubResponse = async () => {
       if (response?.type === "success") {
@@ -137,7 +136,6 @@ export function useGitHubAuth({
         if (!codeFromGitHub || !githubCodeVerifier) return;
 
         try {
-          // Send code to your backend to exchange for token & check user
           const validation = await postData<
             { code: string; codeVerifier: string },
             { exists: boolean; token?: string; tempId?: string }
@@ -163,7 +161,6 @@ export function useGitHubAuth({
     handleGitHubResponse();
   }, [onSuccessfulLogin, onUserExistsChange, request?.codeVerifier, response]);
 
-  // Manual registration
   const submitRegistration = async (username: string, country: string) => {
     if (!tempId) return;
     try {

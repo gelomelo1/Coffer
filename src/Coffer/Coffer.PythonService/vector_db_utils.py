@@ -20,19 +20,16 @@ def query_vectordb(
         List[Dict]: List of top results, each with 'id', 'metadata', and 'distance' fields.
     """
 
-    # Convert list of tuples into a dict for ChromaDB
     where_filter = {k: v for k, v in metadata_filters} if metadata_filters else None
 
-    # Query ChromaDB
     results = collection.query(
         query_embeddings=[query_embedding.tolist()],
         n_results=top_n,
         where=where_filter
     )
 
-    # Format results
     top_results = []
-    for idx in range(len(results["ids"][0])):  # results["ids"] is nested
+    for idx in range(len(results["ids"][0])): 
         top_results.append({
             "id": results["ids"][0][idx],
             "metadata": results["metadatas"][0][idx],
@@ -57,13 +54,10 @@ def save_item_to_vectordb(
         metadata (List[Tuple[str, str]]): Optional list of key-value metadata pairs.
     """
 
-    # Convert metadata list of tuples to dict
     metadata_dict: Dict[str, str] = dict(metadata) if metadata else {}
 
-    # ChromaDB expects embeddings as lists
     embedding_list = embedding.tolist() if isinstance(embedding, np.ndarray) else embedding
 
-    # Add the item to the collection
     collection.add(
         ids=[id],
         embeddings=[embedding_list],

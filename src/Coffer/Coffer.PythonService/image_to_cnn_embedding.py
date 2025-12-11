@@ -41,28 +41,23 @@ def image_to_cnn_embedding(model: nn.Module, image_array: np.ndarray, device: st
         np.ndarray: Normalized embedding vector (float32).
     """
 
-    # --- Validate input ---
     if image_array.ndim != 3 or image_array.shape[-1] != 3:
         raise ValueError("Input image must be an RGB NumPy array with shape (H, W, 3).")
 
-    # --- Preprocessing (same as training) ---
     preprocess = transforms.Compose([
-        transforms.Resize((224, 224)),  # Must match training input size
+        transforms.Resize((224, 224)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406],
                              [0.229, 0.224, 0.225]),
     ])
 
-    # --- Convert image ---
     image_pil = Image.fromarray(image_array.astype(np.uint8))
     image_tensor = preprocess(image_pil).unsqueeze(0).to(device)
 
-    # --- Encode with trained model ---
     model.eval()
     with torch.no_grad():
         embedding, _ = model(image_tensor)
 
-    # --- Normalize the embedding ---
     embedding = embedding.cpu().numpy().flatten()
     embedding = embedding / np.linalg.norm(embedding)
 

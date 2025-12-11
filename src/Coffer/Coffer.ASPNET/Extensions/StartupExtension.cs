@@ -7,10 +7,8 @@ namespace Coffer.ASPNET.Extensions
     {
         public static WebApplicationBuilder SetupServices(this WebApplicationBuilder builder)
         {
-            // Add services to the container.
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -19,14 +17,41 @@ namespace Coffer.ASPNET.Extensions
                 options.AddPolicy("AllowFrontend", policy =>
                 {
                     policy.WithOrigins(
-                        "http://localhost:8081" // Expo dev server (React Native)
+                        "http://localhost:8081"
                     )
                     .AllowAnyHeader()
                     .AllowAnyMethod();
                 });
             });
 
-            Env.Load("../../.env");
+            var env = builder.Environment;
+
+            Console.WriteLine($"Current ASP.NET Core environment: {env.EnvironmentName}");
+
+            bool envLoaded = false;
+
+            try
+            {
+                if (env.IsProduction())
+                {
+                    Env.Load("/var/www/coffer/.env.production");
+                    envLoaded = true;
+                }
+                else
+                {
+                    Env.Load("../../.env");
+                    envLoaded = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to load environment file: {ex.Message}");
+            }
+
+            Console.WriteLine(envLoaded
+                ? "Environment file loaded successfully."
+                : "Environment file was not loaded.");
+
             builder.Services.AddInfrastructure();
 
             return builder;
@@ -37,7 +62,6 @@ namespace Coffer.ASPNET.Extensions
             app.UseDefaultFiles();
             app.UseStaticFiles();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();

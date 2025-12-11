@@ -16,8 +16,8 @@ import { View } from "react-native";
 
 function Settings() {
   GoogleSignin.configure({
-    webClientId: webGoogleClientId, // Your web client ID from Google Developer Console
-    offlineAccess: true, // Optional: if you need to access Google APIs
+    webClientId: webGoogleClientId,
+    offlineAccess: true,
     scopes: ["profile", "email"],
   });
 

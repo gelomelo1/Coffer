@@ -66,11 +66,9 @@ function ItemRegisterCard({
     customTheme.colorChangePercent.light
   );
 
-  // compute defaultIndex normally (for when itemsCreate is undefined)
   const baseDefaultIndex =
     imageCheck.similars.length >= 1 && imageCheck.state === "found" ? 1 : 0;
 
-  // compute index override if itemsCreate is defined
   const overrideIndex = itemsCreate
     ? (() => {
         const foundIndex = imageCheck.similars.findIndex(
@@ -80,7 +78,6 @@ function ItemRegisterCard({
       })()
     : undefined;
 
-  // choose which defaultIndex to use
   const defaultIndex = overrideIndex ?? baseDefaultIndex;
 
   const [selectedIndex, setSelectedIndex] = useState(defaultIndex);
@@ -101,7 +98,6 @@ function ItemRegisterCard({
 
   useEffect(() => {
     if (itemsCreate) {
-      // When itemsCreate changes, recompute based on its item.id
       const foundIndex = imageCheck.similars.findIndex(
         (similar) => similar.id === itemsCreate.item.id
       );
@@ -114,7 +110,6 @@ function ItemRegisterCard({
           version: new Date(),
         });
     } else {
-      // Default imageCheck-driven logic
       if (baseDefaultIndex > imageCheck.similars.length) {
         setSelectedIndex(0);
       } else {
@@ -289,7 +284,6 @@ function ItemRegisterCard({
             marginBottom: 20,
           }}
         >
-          {/* Add as new */}
           <View style={{ flex: 1 }}>
             <CustomText style={{ fontSize: 12 }}>Add as new</CustomText>
             <TouchableOpacity
@@ -310,7 +304,6 @@ function ItemRegisterCard({
             </TouchableOpacity>
           </View>
 
-          {/* Similars: group the three squares in one row */}
           <View style={{ flex: 3 }}>
             <CustomText style={{ fontSize: 12 }}>
               Similars

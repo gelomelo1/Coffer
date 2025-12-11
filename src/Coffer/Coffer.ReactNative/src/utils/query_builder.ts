@@ -65,12 +65,10 @@ function buildFilter(filter: QueryFilterData): string {
   }
 
   if (filter.filter === "None") {
-    // raw LINQ support
     return filter.field;
   }
 
   if (filter.filter === undefined) {
-    // boolean
     filterString += `==${filter.value}`;
   } else if (
     filter.filter === "==" ||
@@ -80,7 +78,6 @@ function buildFilter(filter: QueryFilterData): string {
     filter.filter === ">=" ||
     filter.filter === "!="
   ) {
-    // number or date
     if (typeof filter.value === "number") {
       filterString += `${filter.filter}${filter.value}`;
     } else {
@@ -100,7 +97,6 @@ function buildFilter(filter: QueryFilterData): string {
       }`;
     }
   } else {
-    // string filters
     if (filter.filter === "Match") {
       if (isCaseInSensitive) {
         filterString += `=="${filter.value.toLocaleLowerCase()}"`;

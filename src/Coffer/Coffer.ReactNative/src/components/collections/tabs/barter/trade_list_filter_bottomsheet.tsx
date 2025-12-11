@@ -58,10 +58,8 @@ function TradeListFilterBottomSheet({
     setDraftFilterDatas((prev) => {
       const existingIndex = prev.findIndex((item) => item.id === newItem.id);
       if (existingIndex === -1) {
-        // new entry
         return [...prev, newItem];
       } else {
-        // overwrite existing one
         const updated = [...prev];
         updated[existingIndex] = newItem;
         return updated;

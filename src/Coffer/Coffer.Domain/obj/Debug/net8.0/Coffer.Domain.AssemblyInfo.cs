@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Coffer.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+431dd73660678516de2d2d2d3894b330a81810fb")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b198ede95c347cec2854ff09a5c0c79ea4d76d81")]
 [assembly: System.Reflection.AssemblyProductAttribute("Coffer.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Coffer.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

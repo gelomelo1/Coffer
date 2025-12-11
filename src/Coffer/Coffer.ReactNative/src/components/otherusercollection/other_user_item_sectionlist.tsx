@@ -50,7 +50,7 @@ function OtherUserItemSectionList({
 }: OtherUserItemSectionListProps) {
   const { setItem } = useOtherUserStore();
 
-  const chunkedItems = chunkArray(items, 2); // 2 columns
+  const chunkedItems = chunkArray(items, 2);
 
   const sections = [{ data: chunkedItems.length > 0 ? chunkedItems : [[]] }];
 
@@ -59,7 +59,6 @@ function OtherUserItemSectionList({
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
 
-    // if scrolled past header (adjust 0 depending on your header height)
     setIsStickyShadow(offsetY > 260);
   };
 
@@ -80,12 +79,12 @@ function OtherUserItemSectionList({
 
   return (
     <SectionList
-      sections={sections} // one section
+      sections={sections}
       keyExtractor={(item, index) =>
         item.map((i) => i.id).join("_") ?? index.toString()
       }
       onScroll={onScroll}
-      scrollEventThrottle={16} // smooth tracking
+      scrollEventThrottle={16}
       ListHeaderComponent={
         <>
           <CustomButton

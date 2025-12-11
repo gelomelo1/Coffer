@@ -43,7 +43,6 @@ const BarterMozaicGallery: React.FC<BarterMozaicGalleryProps> = ({
     customTheme.colorChangePercent.dark
   );
 
-  // --- Cycle logic for >6 images ---
   useEffect(() => {
     if (imageUris.length === 0) return;
 
@@ -126,7 +125,6 @@ const BarterMozaicGallery: React.FC<BarterMozaicGalleryProps> = ({
         );
 
       case 5:
-        // 2 vertical + 2 vertical + 1 big
         return (
           <View style={styles.row}>
             <View style={styles.col}>
@@ -151,7 +149,6 @@ const BarterMozaicGallery: React.FC<BarterMozaicGalleryProps> = ({
 
       case 6:
       default:
-        // 2 rows × 3 columns
         return (
           <View style={styles.sixGrid}>
             {imagesToShow.slice(0, 6).map((uri, i) => (
@@ -209,7 +206,6 @@ const styles = StyleSheet.create({
     width: "50%",
     height: "50%",
   },
-  // --- New styles for 6 images (2x3 grid) ---
   sixGrid: {
     flexDirection: "row",
     flexWrap: "wrap",

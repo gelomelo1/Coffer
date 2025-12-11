@@ -16,16 +16,13 @@ def crop_objects_from_image(model: YOLO, image_array: np.ndarray, conf_threshold
         List[np.ndarray]: A list of cropped image arrays (RGB format).
     """
 
-    # Run YOLO detection
     results = model.predict(source=image_array, imgsz=512, conf=conf_threshold, verbose=False)
     res = results[0]
     crops = []
 
-    # Extract crops based on bounding boxes
     for box in res.boxes:
         x1, y1, x2, y2 = map(int, box.xyxy[0])
 
-        # Crop the region (ensure valid slice)
         cropped = image_array[y1:y2, x1:x2]
         if cropped.size == 0:
             continue

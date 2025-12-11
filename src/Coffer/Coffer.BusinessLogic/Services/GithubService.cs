@@ -38,24 +38,20 @@ namespace Coffer.BusinessLogic.Services
             client.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", accessToken);
 
-            // GitHub requires User-Agent header
             client.DefaultRequestHeaders.Add("User-Agent", "CofferApp");
 
-            // Get basic user info
             var response = await client.GetAsync("https://api.github.com/user");
             response.EnsureSuccessStatusCode();
 
             var user = await response.Content.ReadFromJsonAsync<Dictionary<string, object>>();
             string email = "";
 
-            // If email is null, fetch primary email
             if (user.ContainsKey("email") && user["email"] != null)
             {
                 email = user["email"].ToString();
             }
             else
             {
-                // Some users don't have public email, fetch via /user/emails
                 var emailResponse = await client.GetAsync("https://api.github.com/user/emails");
                 emailResponse.EnsureSuccessStatusCode();
                 var emails = await emailResponse.Content.ReadFromJsonAsync<List<Dictionary<string, object>>>();

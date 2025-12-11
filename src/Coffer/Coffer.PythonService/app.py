@@ -18,7 +18,6 @@ from save_embeddings_to_vectordb import save_embeddings_to_vectordb
 
 load_dotenv(DOTENV_PATH)
 
-# --- Create FastAPI app ---
 app = FastAPI()
 
 
@@ -32,7 +31,6 @@ async def image_check(file: UploadFile = File(...)):
 
         object_detection_model, similarity_model, collection = initialize_models("1_detection.pt", "1_similarity_60.pt")
 
-        # Convert uploadfile to in-memory image
         image_array = await uploadfile_to_numpy(file)
 
         crops, embeddings, sims = object_detection_similarity_pipeline_test(
@@ -46,8 +44,6 @@ async def image_check(file: UploadFile = File(...)):
         save_dicts_to_txt(embeddings, os.path.join(TEST_UPLOAD_DIR, "embeddings.txt"))
         save_dicts_to_txt(sims, os.path.join(TEST_UPLOAD_DIR, "similarities.txt"))
 
-        # Here you could run validation, ML model, etc.
-        # For now, just return a success message
         return {"status": "ok", "message": "Image received"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
@@ -61,7 +57,6 @@ async def image_check(
 
         object_detection_model, similarity_model, collection = initialize_models(f"{collection_type_id}_detection.pt", find_file_containing(os.getenv("MODELS_PATH"), f"{collection_type_id}_similarity"))
 
-        # Convert uploadfile to in-memory image
         image_array = await uploadfile_to_numpy(file)
 
         results = object_detection_similarity_pipeline(
@@ -71,6 +66,8 @@ async def image_check(
             conf_threshold=OBJECT_DETECTION_THRESHOLD
             )
         
+        print(len(results))
+        
         response = build_image_check_response(
             results,
             vector_db_collection=collection,
@@ -79,8 +76,6 @@ async def image_check(
             metadata_filters=[("collection_id", collection_id)]
         )
 
-        # Here you could run validation, ML model, etc.
-        # For now, just return a success message
         return {"status": "ok", "response": response}
     except Exception as e:
         return {"status": "error", "message": str(e)}

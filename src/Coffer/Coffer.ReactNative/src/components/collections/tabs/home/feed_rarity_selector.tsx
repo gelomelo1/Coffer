@@ -34,7 +34,7 @@ function FeedRaritySelector({
         style={{
           width: "100%",
           justifyContent: "center",
-          alignItems: "flex-start", // ✅ align all boxes on the left
+          alignItems: "flex-start",
           gap: 10,
         }}
       >
@@ -43,7 +43,7 @@ function FeedRaritySelector({
           containerStyle={{
             backgroundColor: "transparent",
             borderWidth: 0,
-            width: "100%", // ✅ ensures consistent layout
+            width: "100%",
             alignItems: "flex-start",
             paddingVertical: 0,
           }}
@@ -63,8 +63,8 @@ function FeedRaritySelector({
             containerStyle={{
               backgroundColor: "transparent",
               borderWidth: 0,
-              width: "100%", // ✅ full width for alignment
-              alignItems: "flex-start", // ✅ aligns icon vertically with others
+              width: "100%",
+              alignItems: "flex-start",
               paddingVertical: 0,
             }}
             textStyle={{ color: rarity.color }}

@@ -46,11 +46,10 @@ namespace Coffer.DataAccess.Repositories
 
             searchText = searchText.Trim().ToLower();
 
-            // Query users whose Name contains the search text
             var users = await _dbSet
                 .Include(u => u.Contacts)
                 .Where(u => u.Name.ToLower().Contains(searchText))
-                .OrderBy(u => u.Name) // simple ordering; can be replaced with more advanced similarity scoring
+                .OrderBy(u => u.Name)
                 .Take(10)
                 .ToListAsync();
 

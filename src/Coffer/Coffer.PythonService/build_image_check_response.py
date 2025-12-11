@@ -42,10 +42,9 @@ def build_image_check_response(
 
     secondary_threshold = main_threshold - 0.1
     n = len(results)
-    used_indices = set()  # indices already counted as duplicates
+    used_indices = set() 
     response = []
 
-    # Step 1: Local duplicate check
     for i in range(n):
         if i in used_indices:
             continue
@@ -61,9 +60,8 @@ def build_image_check_response(
 
             if sim >= main_threshold:
                 quantity += 1
-                used_indices.add(j)  # mark as duplicate
+                used_indices.add(j) 
 
-        # Step 2: Query vector DB for top 3 similar items
         db_results = query_vectordb(
             vector_db_collection,
             item_i["embedding"],
@@ -71,10 +69,8 @@ def build_image_check_response(
             top_n=3
         )
 
-        # Only keep items with similarity >= secondary_threshold
         similars = [r["id"] for r in db_results if 1 - r["distance"] >= secondary_threshold]
 
-        # Step 3: Determine state
         top_similarity = 1 - db_results[0]["distance"] if db_results else 0
         state = "found" if top_similarity >= main_threshold else "not found"
 

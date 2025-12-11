@@ -100,7 +100,6 @@ function ItemRegisterForm({
             : getDefaultAttributeValue(primaryAttribute!)
         }
         onValueChange={(newValue) => {
-          // Update newItem.value via setter
           newItem.set((prev) => {
             const existingAttrIndex = prev.item.itemAttributes.findIndex(
               (ia) => ia.attributeId === primaryAttribute!.id
@@ -130,7 +129,6 @@ function ItemRegisterForm({
               } as ItemAttribute);
             }
 
-            // ✅ Return the new state
             return {
               item: { ...prev.item, itemAttributes: updatedItemAttributes },
               version: prev.version,
@@ -170,7 +168,6 @@ function ItemRegisterForm({
       {attributes
         .filter((attribute) => attribute.id !== primaryAttribute?.id)
         .map((attribute) => {
-          // find existing value for this attribute in draftItem
           const itemAttr = draftItem.itemAttributes.find(
             (ia) => ia.attributeId === attribute.id
           );
@@ -193,16 +190,14 @@ function ItemRegisterForm({
                   const updatedItemAttributes = [...prev.item.itemAttributes];
 
                   if (existingIndex > -1) {
-                    // update existing attribute
                     updatedItemAttributes[existingIndex] =
                       updateItemAttributeValue(
                         updatedItemAttributes[existingIndex],
                         newValue
                       );
                   } else {
-                    // add new attribute
                     updatedItemAttributes.push({
-                      id: 0, // placeholder, replace if you have a real id
+                      id: 0,
                       itemId: draftItem.id,
                       attributeId: attribute.id,
                       valueString:

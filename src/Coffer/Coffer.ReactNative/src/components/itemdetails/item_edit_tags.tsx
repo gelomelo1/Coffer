@@ -15,13 +15,11 @@ function ItemEditTags({
 }: ItemEditTagsProps) {
   const [internalText, setInternalText] = useState("");
 
-  // Update internal text when defaultValue changes
   useEffect(() => {
     const text = defaultValue.map((tag) => `#${tag.tag}`).join(" ");
     setInternalText(text);
   }, [defaultValue]);
 
-  // Format text into hashtags for display (keeps cursor stable)
   const formatText = (text: string) => {
     const tags = text
       .split(" ")
@@ -46,7 +44,6 @@ function ItemEditTags({
   const handleChangeText = (text: string) => {
     setInternalText(text);
 
-    // Split by space and remove empty strings for onValueChange
     const tags = text
       .split(" ")
       .map((t) => t.trim().replace(/^#/, ""))
@@ -63,8 +60,6 @@ function ItemEditTags({
 
     onValueChange(tagObjects);
 
-    // Only format hashtags if the last character is space
-    // But do not remove the trailing space from internalText
     if (text.endsWith(" ")) {
       const formatted = tags.map((t) => `#${t}`).join(" ") + " ";
       setInternalText(formatted);
@@ -76,7 +71,7 @@ function ItemEditTags({
       label="Tags"
       value={internalText}
       onChangeText={handleChangeText}
-      onBlur={() => formatText(internalText)} // format completely on blur
+      onBlur={() => formatText(internalText)}
       style={{ height: 100 }}
       inputContainerStyle={{ height: 100 }}
       multiline

@@ -14,9 +14,9 @@ import { Animated, Easing, TouchableOpacity, View } from "react-native";
 
 interface FeedLikeProps {
   user: User;
-  feed?: Feed; // optional
-  item?: ItemProvided; // optional
-  onItemUpdate?: (updatedItem: ItemProvided) => void; // callback to sync updated item externally
+  feed?: Feed;
+  item?: ItemProvided;
+  onItemUpdate?: (updatedItem: ItemProvided) => void;
   color?: string;
   fontSize?: number;
 }
@@ -40,7 +40,6 @@ function FeedLike({
   const [localLiked, setLocalLiked] = useState<boolean | null>(null);
   const [localItem, setLocalItem] = useState<ItemProvided | null>(item ?? null);
 
-  // Determine working item
   const currentItem = feed ? feed.item : localItem;
 
   const userReaction = currentItem!.reactions.find(
@@ -57,7 +56,7 @@ function FeedLike({
 
   const handleLikePress = async () => {
     const newValue = !effectiveLiked;
-    setLocalLiked(newValue); // ✅ optimistic UI
+    setLocalLiked(newValue);
 
     const newReaction: ReactionRequired = {
       userId: user.id,
@@ -67,33 +66,27 @@ function FeedLike({
     };
 
     try {
-      // The API returns updated item only when type = item
       const response = await postLike({ value: newReaction });
 
-      // If this is an item, server returns updated item → replace local state
       if (item && response) {
         const updatedItem = response as unknown as ItemProvided;
         setLocalItem(updatedItem);
         onItemUpdate?.(updatedItem);
 
-        // update optimistic liked state to match server (in case backend logic differs)
         const updatedUserReaction = updatedItem.reactions.find(
           (r) => r.userId === user.id
         );
         setLocalLiked(updatedUserReaction?.liked ?? false);
       }
     } catch {
-      // rollback on failure
       setLocalLiked(userReaction?.liked ?? false);
     }
   };
 
-  // Reset optimistic state when feed or item changes
   useEffect(() => {
     setLocalLiked(null);
   }, [feed, item]);
 
-  // Animate heart on success
   useEffect(() => {
     if (isLikePostSuccess) {
       Animated.sequence([

@@ -59,7 +59,7 @@ function Barter() {
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
-              minWidth: "100%", // <-- ensures the content container takes full width
+              minWidth: "100%",
             }}
           >
             {["TRADES", "MY TRADES", "MY OFFERS"].map((title, i) => (

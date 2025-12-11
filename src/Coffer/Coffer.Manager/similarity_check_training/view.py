@@ -10,7 +10,6 @@ class SimilarityCheckTrainingView(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
-        # Instance variables for entries
         self.crop_tool_source_var = tk.StringVar()
         self.crop_tool_dest_var = tk.StringVar()
         self.crop_tool_model_var = tk.StringVar()
@@ -27,15 +26,12 @@ class SimilarityCheckTrainingView(tk.Frame):
         self.vector_database_id_var = tk.StringVar()
         self.vector_database_metadata_var = tk.StringVar()
 
-        # Create a frame to hold all form widgets
         container = tk.Frame(self)
-        container.pack(side="top", anchor="w", pady=20)  # center horizontally, top vertically
+        container.pack(side="top", anchor="w", pady=20)
 
-        # Crop tool left
         crop_frame = tk.Frame(container, padx=20)
         crop_frame.pack(side="left", anchor="n")
 
-        # === Image cropper Title ===
         tk.Label(
             crop_frame,
             text="YOLOv8 Image Cropping Tool",
@@ -43,33 +39,26 @@ class SimilarityCheckTrainingView(tk.Frame):
             fg="#2E86C1"
         ).pack(pady=(0, 15))
 
-        # Crop tool source directory
         tk.Label(crop_frame, text="Source directory:").pack(anchor="center", pady=(10,0))
         tk.Entry(crop_frame, textvariable=self.crop_tool_source_var, width=60).pack(pady=5)
         tk.Button(crop_frame, text="Browse", command=self.select_crop_tool_source).pack(pady=5)
 
-        # Crop tool destination directory
         tk.Label(crop_frame, text="Destination directory:").pack(anchor="center", pady=(10,0))
         tk.Entry(crop_frame, textvariable=self.crop_tool_dest_var, width=60).pack(pady=5)
         tk.Button(crop_frame, text="Browse", command=self.select_crop_tool_destination).pack(pady=5)
 
-        # YOLOv8 model
         tk.Label(crop_frame, text="YOLOv8 model (.pt):").pack(anchor="center", pady=(10,0))
         tk.Entry(crop_frame, textvariable=self.crop_tool_model_var, width=60).pack(pady=5)
         tk.Button(crop_frame, text="Browse", command=self.select_crop_tool_model).pack(pady=5)
 
-        # Crop tool recursive
         tk.Label(crop_frame, text="Recursive").pack(anchor="center", pady=(10,0))
         tk.Checkbutton(crop_frame, variable=self.crop_tool_recursive_var).pack(pady=5)
 
-        # Run crop tool button
         tk.Button(crop_frame, text="Crop images", command=self.handle_crop_images, bg="green", fg="white").pack(pady=20)
 
-        # Train frame right
         train_frame = tk.Frame(container, padx=30)
         train_frame.pack(side="left", anchor="n")
 
-        # === Similarity Check Trainer Title ===
         tk.Label(
             train_frame,
             text="Tripple Loss and Transfer Learning Similarity Training",
@@ -77,28 +66,22 @@ class SimilarityCheckTrainingView(tk.Frame):
             fg="#2E86C1"
         ).pack(pady=(0, 15))
 
-        # Similarity trainer source directory
         tk.Label(train_frame, text="Source directory:").pack(anchor="center", pady=(10,0))
         tk.Entry(train_frame, textvariable=self.similarity_trainer_source_var, width=60).pack(pady=5)
         tk.Button(train_frame, text="Browse", command=self.select_similarity_trainer_soruce).pack(pady=5)
 
-        # Similarity trainer destionation directory
         tk.Label(train_frame, text="Destination directory:").pack(anchor="center", pady=(10,0))
         tk.Entry(train_frame, textvariable=self.similarity_trainer_dest_var, width=60).pack(pady=5)
         tk.Button(train_frame, text="Browse", command=self.select_similarity_trainer_destination).pack(pady=5)
 
-        # Similarity trainer model name
         tk.Label(train_frame, text="Model name:").pack(anchor="center", pady=(10,0))
         tk.Entry(train_frame, textvariable=self.similarity_model_name_var, width=60).pack(pady=5)
 
-        # Run similarity trainer button
         tk.Button(train_frame, text="Train model", command=self.handle_train_similarity_model, bg="green", fg="white").pack(pady=20)
 
-        # Vector database frame right
         vector_database_frame = tk.Frame(container, padx=30)
         vector_database_frame.pack(side="left", anchor="n")
 
-        # === Vector database Title ===
         tk.Label(
             vector_database_frame,
             text="Vector database",
@@ -106,53 +89,41 @@ class SimilarityCheckTrainingView(tk.Frame):
             fg="#2E86C1"
         ).pack(pady=(0, 15))
 
-        # Vector database destination directory
         tk.Label(vector_database_frame, text="Destination Directory:").pack(anchor="center", pady=(10,0))
         tk.Entry(vector_database_frame, textvariable=self.vector_database_dest_var, width=60).pack(pady=5)
         tk.Button(vector_database_frame, text="Browse", command=self.select_vector_database_destination).pack(pady=5)
 
-        # Vector database name
         tk.Label(vector_database_frame, text="Database name:").pack(anchor="center", pady=(10,0))
         tk.Entry(vector_database_frame, textvariable=self.vector_database_name_var, width=60).pack(pady=5)
 
-        # Create vector database button
         tk.Button(vector_database_frame, text="Create vector database", command=self.handle_create_vector_database, bg="green", fg="white").pack(pady=20)
 
 
         tk.Label(vector_database_frame, text="Insert to collection:").pack(anchor="center", pady=(10,0))
-        # Vector database destination directory
         tk.Label(vector_database_frame, text="Vector Database Destination Directory:").pack(anchor="center", pady=(10,0))
         tk.Entry(vector_database_frame, textvariable=self.vector_database_dest_var, width=60).pack(pady=5)
         tk.Button(vector_database_frame, text="Browse", command=self.select_vector_database_destination).pack(pady=5)
 
-        # Embedding file
         tk.Label(vector_database_frame, text="Embedding File:").pack(anchor="center", pady=(10,0))
         tk.Entry(vector_database_frame, textvariable=self.vector_database_embedding_var, width=60).pack(pady=5)
         tk.Button(vector_database_frame, text="Browse", command=self.select_vector_database_embedding).pack(pady=5)
 
-        # Collection
         tk.Label(vector_database_frame, text="Collection name:").pack(anchor="center", pady=(10,0))
         tk.Entry(vector_database_frame, textvariable=self.vector_database_name_var, width=60).pack(pady=5)
 
-        # Id
         tk.Label(vector_database_frame, text="Id:").pack(anchor="center", pady=(10,0))
         tk.Entry(vector_database_frame, textvariable=self.vector_database_id_var, width=60).pack(pady=5)
 
-        # Metadatas
         tk.Label(vector_database_frame, text="Metadata:").pack(anchor="center", pady=(10,0))
         tk.Entry(vector_database_frame, textvariable=self.vector_database_metadata_var, width=60).pack(pady=5)
 
-        # Create a frame to hold the buttons horizontally
         button_frame = tk.Frame(vector_database_frame)
         button_frame.pack(pady=20)
 
-        # Insert to collection button
         tk.Button(button_frame, text="Insert to collection", command=self.handle_insert_to_collection, bg="green", fg="white").pack(side=tk.LEFT, padx=10)
 
-        # List collection button
         tk.Button(button_frame, text="List collection", command=self.handle_list_collection, bg="green", fg="white").pack(side=tk.LEFT, padx=10)
 
-    # Crop tool browse methods
     def select_crop_tool_source(self):
         path = filedialog.askdirectory(title="Select Source Directory")
         if path:
@@ -171,7 +142,6 @@ class SimilarityCheckTrainingView(tk.Frame):
         if path:
             self.crop_tool_model_var.set(path)
 
-    # Crop tool start method
     def handle_crop_images(self):
         source = self.crop_tool_source_var.get()
         dest = self.crop_tool_dest_var.get()
@@ -187,7 +157,6 @@ class SimilarityCheckTrainingView(tk.Frame):
         self.crop_tool_model_var.set("")
         self.crop_tool_recursive_var.set(False)
 
-    # Similarity trainer tool browse methods
     def select_similarity_trainer_soruce(self):
         path = filedialog.askdirectory(title="Select Source Directory")
         if path:
@@ -208,7 +177,6 @@ class SimilarityCheckTrainingView(tk.Frame):
         if path:
             self.vector_database_embedding_var.set(path)
 
-    # Similarity trainer start method
     def handle_train_similarity_model(self):
         source = self.similarity_trainer_source_var.get()
         dest = self.similarity_trainer_dest_var.get()

@@ -4,7 +4,6 @@ def list_collection(dest: str, name: str):
     client = chromadb.PersistentClient(path=dest)
     collection = client.get_collection(name)
 
-    # Fetch all items (IDs are always included)
     all_items = collection.get(include=['metadatas', 'documents'])
 
     print(f"Collection '{name}' has {len(all_items['ids'])} items:")

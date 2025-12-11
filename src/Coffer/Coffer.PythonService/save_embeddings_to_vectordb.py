@@ -19,14 +19,12 @@ def save_embeddings_to_vectordb(
         npy_file = base_path / f"{item.temp_id}.npy"
         jpg_file = base_path / f"{item.temp_id}.jpg"
 
-        # Load embedding
         if not npy_file.exists():
             print(f"Warning: embedding file not found: {npy_file}")
             continue
 
         embedding = np.load(npy_file)
 
-        # Save to ChromaDB
         save_item_to_vectordb(
             collection,
             id=str(item.id),
@@ -34,13 +32,11 @@ def save_embeddings_to_vectordb(
             metadata=[("collection_id", collectionId)]
         )
 
-        # Delete .npy file
         try:
             npy_file.unlink()
         except Exception as e:
             print(f"Failed to delete {npy_file}: {e}")
 
-        # Delete .jpg file
         if jpg_file.exists():
             try:
                 jpg_file.unlink()

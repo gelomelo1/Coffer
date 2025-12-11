@@ -139,7 +139,6 @@ namespace Coffer.ASPNET.Controllers
 
             try
             {
-                // Point to your Python FastAPI endpoint
                 var response = await _httpClient.PostAsync($"http://localhost:8000/image_check/{collectionTypeId}/{collectionId}", formData);
 
                 response.EnsureSuccessStatusCode();

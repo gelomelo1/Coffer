@@ -43,7 +43,6 @@ namespace Coffer.BusinessLogic.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            // Then schedule to run every midnight
             while (!stoppingToken.IsCancellationRequested)
             {
                 var now = DateTime.Now;

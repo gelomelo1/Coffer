@@ -15,15 +15,12 @@ def crop_images(source, dest, model_path, recursive=False):
 
     model = YOLO(model_path)
 
-    # Walk through folders if recursive, otherwise just process source folder
     if recursive:
         for root_dir, _, files in os.walk(source):
-            # Filter only image files
             img_files = [f for f in files if f.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff'))]
             if not img_files:
                 continue
 
-            # Compute relative path to preserve folder structure
             rel_path = os.path.relpath(root_dir, source)
             dest_dir = os.path.join(dest, rel_path)
             os.makedirs(dest_dir, exist_ok=True)
@@ -41,7 +38,6 @@ def crop_images(source, dest, model_path, recursive=False):
                     crop_path = os.path.join(dest_dir, f"{base_name}_{j+1}_{conf:.2f}.jpg")
                     cv2.imwrite(crop_path, cropped)
     else:
-        # Non-recursive: process only the source folder
         os.makedirs(dest, exist_ok=True)
         img_files = [f for f in os.listdir(source) if f.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff'))]
         for img_file in img_files:

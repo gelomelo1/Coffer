@@ -12,7 +12,7 @@ import {
 export interface CustomPaginationProps {
   totalItems: number;
   pageSize: number;
-  currentPage?: number; // allow undefined
+  currentPage?: number;
   onPageChange: (page: number) => void;
   pagesToDisplay?: number;
   containerStyle?: StyleProp<ViewStyle>;
@@ -22,8 +22,8 @@ export interface CustomPaginationProps {
   activeTextStyle?: StyleProp<TextStyle>;
   pageChangeBtnStyle?: StyleProp<ViewStyle>;
   pageChangeTextStyle?: StyleProp<TextStyle>;
-  allowOverPrev?: boolean; // allow going below min
-  allowOverNext?: boolean; // allow going above max
+  allowOverPrev?: boolean;
+  allowOverNext?: boolean;
 }
 
 const CustomPagination: React.FC<CustomPaginationProps> = ({
@@ -86,18 +86,17 @@ const CustomPagination: React.FC<CustomPaginationProps> = ({
   const handlePrev = () => {
     if (!currentPage) return;
     if (currentPage > 1) onPageChange(currentPage - 1);
-    else if (allowOverPrev) onPageChange(currentPage - 1); // can send 0 or negative
+    else if (allowOverPrev) onPageChange(currentPage - 1);
   };
 
   const handleNext = () => {
     if (!currentPage) return;
     if (currentPage < totalPages) onPageChange(currentPage + 1);
-    else if (allowOverNext) onPageChange(currentPage + 1); // can send totalPages+1
+    else if (allowOverNext) onPageChange(currentPage + 1);
   };
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {/* Previous button */}
       <TouchableOpacity
         disabled={!currentPage || (!allowOverPrev && currentPage === 1)}
         onPress={handlePrev}
@@ -111,7 +110,6 @@ const CustomPagination: React.FC<CustomPaginationProps> = ({
         <Text style={[styles.text, pageChangeTextStyle]}>{"<"}</Text>
       </TouchableOpacity>
 
-      {/* Page buttons */}
       {pages.map((p, index) =>
         p === "..." ? (
           <Text
@@ -147,7 +145,6 @@ const CustomPagination: React.FC<CustomPaginationProps> = ({
         )
       )}
 
-      {/* Next button */}
       <TouchableOpacity
         disabled={
           !currentPage || (!allowOverNext && currentPage === totalPages)

@@ -122,7 +122,6 @@ function FeedSearchOverlay({
       setIsLoading(false);
     }, 1000);
 
-    // cleanup timeout on unmount or before next effect
     return () => {
       if (debounceTimeout.current) {
         clearTimeout(debounceTimeout.current);
@@ -178,7 +177,7 @@ function FeedSearchOverlay({
                       paddingVertical: 8,
                       borderBottomWidth: selectedTabIndex === i ? 3 : 0,
                       borderBottomColor: customTheme.colors.secondary,
-                      marginRight: 16, // space evenly between tabs
+                      marginRight: 16,
                     }}
                   >
                     <CustomText
@@ -255,8 +254,7 @@ function FeedSearchOverlay({
                 No results found
               </CustomText>
             )
-          ) : // Simple value search: switch by selectedTabIndex
-          mixedSearchData && !isTyping ? (
+          ) : mixedSearchData && !isTyping ? (
             selectedTabIndex === 0 ? (
               mixedSearchData.foundUsers.length === 0 &&
               mixedSearchData.foundCollections.length === 0 &&

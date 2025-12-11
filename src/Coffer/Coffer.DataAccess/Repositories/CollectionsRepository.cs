@@ -39,13 +39,10 @@ namespace Coffer.DataAccess.Repositories
 
             searchText = searchText.Trim().ToLower();
 
-            // Get default includes from the provider
             var includes = includeProvider.GetDefaultIncludes();
 
-            // Start query
             IQueryable<CollectionProvided> query = _dbSet;
 
-            // Apply includes dynamically
             if (includes != null)
             {
                 foreach (var include in includes)
@@ -54,13 +51,11 @@ namespace Coffer.DataAccess.Repositories
                 }
             }
 
-            // Filter by CollectionTypeId and search text
             query = query.Where(c =>
                 c.CollectionTypeId == collectionTypeId &&
                 c.Name.ToLower().Contains(searchText)
             );
 
-            // Order alphabetically and limit to 10 results
             var collections = await query
                 .OrderBy(c => c.Name)
                 .Take(10)

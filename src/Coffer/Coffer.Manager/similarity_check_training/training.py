@@ -15,16 +15,14 @@ class ResNetEmbeddingWithClassifier(nn.Module):
         super().__init__()
         base = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
 
-        # Freeze most layers for transfer learning
         for name, param in base.named_parameters():
             if "layer1" in name or "layer2" in name:
                 param.requires_grad = False
 
         num_feats = base.fc.in_features
-        base.fc = nn.Identity()  # remove final classification head
+        base.fc = nn.Identity() 
         self.backbone = base
 
-        # Embedding head
         self.embedding_head = nn.Sequential(
             nn.Linear(num_feats, 256),
             nn.ReLU(),
@@ -32,7 +30,6 @@ class ResNetEmbeddingWithClassifier(nn.Module):
             nn.Linear(256, 256)
         )
 
-        # Classification head
         self.classifier = nn.Linear(256, num_classes)
 
     def forward(self, x):
@@ -97,7 +94,6 @@ def train_similarity_model(input_dir: str, output_dir: str, name: str, epochs: i
 
     os.makedirs(output_dir, exist_ok=True)
 
-    # --- Data augmentation ---
     train_transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.RandomRotation(180),
@@ -110,28 +106,23 @@ def train_similarity_model(input_dir: str, output_dir: str, name: str, epochs: i
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
     ])
 
-    # --- Dataset ---
     dataset = datasets.ImageFolder(root=input_dir, transform=train_transform)
     num_classes = len(dataset.classes)
     labels = [label for _, label in dataset.imgs]
     sampler = MPerClassSampler(labels, m=4, batch_size=batch_size, length_before_new_iter=len(dataset))
     dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler, num_workers=2)
 
-    # --- Check distribution ---
     for imgs, lbls in dataloader:
         counts = Counter(lbls.tolist())
         print(f"Sample class distribution in first batch: {counts}")
         break
 
-    # --- Model ---
     model = ResNetEmbeddingWithClassifier(num_classes=num_classes)
 
-    # --- Losses ---
     ce_loss = nn.CrossEntropyLoss()
     triplet_loss = losses.TripletMarginLoss(margin=0.2)
     miner = miners.TripletMarginMiner(margin=0.2, type_of_triplets="semi-hard")
 
-    # --- Optimizer ---
     optimizer = torch.optim.AdamW([
         {"params": model.backbone.layer1.parameters(), "lr": 1e-5},
         {"params": model.backbone.layer2.parameters(), "lr": 1e-5},
@@ -143,11 +134,9 @@ def train_similarity_model(input_dir: str, output_dir: str, name: str, epochs: i
 
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-6)
 
-    # --- Device ---
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
-    # --- Training ---
     print(f"🚀 Starting training on {device} for {epochs} epochs...")
 
     for epoch in range(epochs):
@@ -163,7 +152,6 @@ def train_similarity_model(input_dir: str, output_dir: str, name: str, epochs: i
             metric_loss = triplet_loss(embeddings, labels, hard_triplets)
             class_loss = ce_loss(logits, labels)
 
-            # Combine losses (you can tune 0.5 weight)
             loss = 0.3 * class_loss + 0.7 * metric_loss
 
             optimizer.zero_grad()
@@ -177,7 +165,6 @@ def train_similarity_model(input_dir: str, output_dir: str, name: str, epochs: i
 
         scheduler.step(avg_loss)
 
-    # --- Save model ---
     model_path = os.path.join(output_dir, name)
     torch.save(model.state_dict(), model_path)
     print(f"✅ Training complete. Model saved to: {model_path}")

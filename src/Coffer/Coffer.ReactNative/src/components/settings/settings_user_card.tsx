@@ -64,7 +64,6 @@ function SettingsUserCard({ user, otherUser = false }: SettingsUserCardProps) {
         {user?.name}
       </CustomText>
 
-      {/* Row with equal sections and divider */}
       <View
         style={{
           width: "100%",
@@ -72,7 +71,6 @@ function SettingsUserCard({ user, otherUser = false }: SettingsUserCardProps) {
           alignItems: "center",
         }}
       >
-        {/* Provider section */}
         <View style={{ flex: 1, alignItems: "center" }}>
           {otherUser ? null : (
             <>
@@ -107,7 +105,6 @@ function SettingsUserCard({ user, otherUser = false }: SettingsUserCardProps) {
           </CustomText>
         </View>
 
-        {/* Vertical divider */}
         <View
           style={{
             width: 1,
@@ -116,7 +113,6 @@ function SettingsUserCard({ user, otherUser = false }: SettingsUserCardProps) {
           }}
         />
 
-        {/* Country section */}
         <View style={{ flex: 1, alignItems: "center" }}>
           {country?.flag && (
             <Image

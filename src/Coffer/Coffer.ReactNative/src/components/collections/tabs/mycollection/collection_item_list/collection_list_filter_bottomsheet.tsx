@@ -106,10 +106,8 @@ function CollectionListFilterBottomSheet({
     setDraftFilterDatas((prev) => {
       const existingIndex = prev.findIndex((item) => item.id === newItem.id);
       if (existingIndex === -1) {
-        // new entry
         return [...prev, newItem];
       } else {
-        // overwrite existing one
         const updated = [...prev];
         updated[existingIndex] = newItem;
         return updated;
@@ -219,7 +217,7 @@ function CollectionListFilterBottomSheet({
         <CustomDropdown
           open={isSortingDropdownOpen}
           label={"Sort by"}
-          value={draftSortId} // use draft state here
+          value={draftSortId}
           setOpen={setIsSortingDropdownOpen}
           setValue={setDraftSortId}
           items={generateSortRecordDataForItem(attributes)}
@@ -303,11 +301,11 @@ function CollectionListFilterBottomSheet({
             ) : null}
           </View>
           {attributes
-            .slice() // create a copy so we don’t mutate original
+            .slice()
             .sort((a, b) => {
-              if (a.primary && !b.primary) return -1; // a first
-              if (!a.primary && b.primary) return 1; // b first
-              return 0; // keep original order otherwise
+              if (a.primary && !b.primary) return -1;
+              if (!a.primary && b.primary) return 1;
+              return 0;
             })
             .map((attribute) => (
               <CollectionItemListDynamicFilter

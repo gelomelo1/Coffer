@@ -26,7 +26,6 @@ namespace Coffer.BusinessLogic.Services
             string fullSourcePath = sourcePath;
             var extension = Path.GetExtension(sourcePath)?.ToLower();
 
-            // If no extension was provided, try to find a matching file
             if (string.IsNullOrEmpty(extension))
             {
                 bool found = false;
@@ -47,7 +46,6 @@ namespace Coffer.BusinessLogic.Services
             }
             else
             {
-                // If extension exists, validate it
                 if (!allowedExtensions.Contains(extension))
                     throw new ArgumentException("Invalid file extension", nameof(sourcePath));
 
@@ -58,7 +56,6 @@ namespace Coffer.BusinessLogic.Services
             if (!Directory.Exists(destinationFolder))
                 Directory.CreateDirectory(destinationFolder);
 
-            // Delete old images for this ID
             var matchingFiles = Directory.GetFiles(destinationFolder, $"{id}_*");
             foreach (var file in matchingFiles)
             {
@@ -68,7 +65,6 @@ namespace Coffer.BusinessLogic.Services
             var fileName = $"{id}_{DateTime.UtcNow:yyyyMMddHHmmss}{extension}";
             var destinationPath = Path.Combine(destinationFolder, fileName);
 
-            // Copy the file asynchronously
             await using (var sourceStream = new FileStream(fullSourcePath, FileMode.Open, FileAccess.Read))
             await using (var destinationStream = new FileStream(destinationPath, FileMode.CreateNew))
             {
@@ -99,7 +95,6 @@ namespace Coffer.BusinessLogic.Services
 
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
 
-            // If no extension provided, try to find one
             string filePath;
             if (string.IsNullOrWhiteSpace(Path.GetExtension(fileName)))
             {
@@ -163,14 +158,11 @@ namespace Coffer.BusinessLogic.Services
             if (image == null || image.Length == 0)
                 throw new ArgumentException("No image data provided", nameof(image));
 
-            // Ensure folder exists
             if (!Directory.Exists(destinationFolder))
                 Directory.CreateDirectory(destinationFolder);
 
-            // Generate new file name
             var filePath = Path.Combine(destinationFolder, fileName);
 
-            // Save byte array as file
             await using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
             {
                 await stream.WriteAsync(image, 0, image.Length);

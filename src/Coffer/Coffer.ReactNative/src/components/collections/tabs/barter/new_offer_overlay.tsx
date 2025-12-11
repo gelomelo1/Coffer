@@ -171,7 +171,6 @@ function NewOfferOverlay({
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
 
-    // if scrolled past header (adjust 0 depending on your header height)
     setIsStickyShadow(offsetY > 620);
   };
 
@@ -236,15 +235,12 @@ function NewOfferOverlay({
       : undefined;
 
   const handleInputChange = (value: string | undefined) => {
-    // Update draftTrade instantly
     setDraftOffer((prev) => ({ ...prev, moneyOffer: value }));
 
-    // Clear previous timer
     const timerRef = moneyDebounceTimer;
 
     if (timerRef.current) clearTimeout(timerRef.current);
 
-    // Set new timer to update error after 1s
     timerRef.current = setTimeout(() => {
       setMoneyRequestedError(validateProfanity(value));
     }, 1000);
@@ -300,12 +296,12 @@ function NewOfferOverlay({
     >
       <SafeAreaView>
         <SectionList
-          sections={sections} // one section
+          sections={sections}
           keyExtractor={(item, index) =>
             item.map((i) => i.id).join("_") ?? index.toString()
           }
           onScroll={onScroll}
-          scrollEventThrottle={16} // smooth tracking
+          scrollEventThrottle={16}
           ListHeaderComponent={
             <View style={{ marginHorizontal: 10 }}>
               <CustomTextInput

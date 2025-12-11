@@ -39,7 +39,6 @@ namespace Coffer.ASPNET.Controllers
             }
             catch (Exception ex)
             {
-                // Better to log exception here before returning
                 return StatusCode(500, $"An error occurred while processing the request: {ex.Message}");
             }
         }

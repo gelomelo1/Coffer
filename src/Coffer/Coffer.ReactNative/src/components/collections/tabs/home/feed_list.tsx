@@ -40,28 +40,24 @@ function FeedList() {
 
   const scrollY = useRef(new Animated.Value(0)).current;
 
-  // Input moves up until it hits top
   const translateY = scrollY.interpolate({
     inputRange: [0, HEADER_HEIGHT - INPUT_HEIGHT],
     outputRange: [0, -(HEADER_HEIGHT - INPUT_HEIGHT - 20)],
     extrapolate: "clamp",
   });
 
-  // Optional: fade image
   const imageOpacity = scrollY.interpolate({
     inputRange: [0, HEADER_HEIGHT - INPUT_HEIGHT],
     outputRange: [0.6, 0.2],
     extrapolate: "clamp",
   });
 
-  // Optional: fade image
   const textOpacity = scrollY.interpolate({
     inputRange: [0, HEADER_HEIGHT - INPUT_HEIGHT],
     outputRange: [1, 0],
     extrapolate: "clamp",
   });
 
-  // Move list content up along with input
   const listTranslateY = scrollY.interpolate({
     inputRange: [0, HEADER_HEIGHT - INPUT_HEIGHT],
     outputRange: [0, HEADER_HEIGHT - 2 * INPUT_HEIGHT],
@@ -119,7 +115,7 @@ function FeedList() {
                 left: 10,
                 justifyContent: "center",
                 alignItems: "flex-start",
-                opacity: textOpacity, // animated separately
+                opacity: textOpacity,
                 zIndex: 1,
               }}
             >
@@ -151,7 +147,6 @@ function FeedList() {
                 finds!
               </CustomText>
             </Animated.View>
-            {/* Background image */}
             <Animated.Image
               source={require("../../../../../assets/images/home_background.jpg")}
               style={[
@@ -162,7 +157,6 @@ function FeedList() {
           </Animated.View>
         </View>
 
-        {/* Sticky Input */}
         <Animated.View
           style={[styles.inputContainer, { transform: [{ translateY }] }]}
         >
@@ -184,7 +178,6 @@ function FeedList() {
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Scrollable List */}
         <Animated.View
           style={{
             position: "absolute",
@@ -212,7 +205,7 @@ function FeedList() {
             contentContainerStyle={{
               gap: 50,
               backgroundColor: customTheme.colors.background,
-              marginTop: HEADER_HEIGHT, // initial space below image
+              marginTop: HEADER_HEIGHT,
               paddingBottom: HEADER_HEIGHT + 2 * INPUT_HEIGHT,
               paddingHorizontal: 10,
               paddingTop: 10,
@@ -220,7 +213,7 @@ function FeedList() {
             scrollEventThrottle={16}
             onScroll={Animated.event(
               [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-              { useNativeDriver: true } // safe now, no height/padding animation
+              { useNativeDriver: true }
             )}
             ListEmptyComponent={
               isFetching ? (

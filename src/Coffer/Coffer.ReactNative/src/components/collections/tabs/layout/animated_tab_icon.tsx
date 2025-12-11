@@ -20,7 +20,6 @@ function AnimatedTabIcon({
 }: AnimatedTabIconProps) {
   const translateY = useRef(new Animated.Value(0)).current;
 
-  // Animate down when focus changes (other tab selected)
   useEffect(() => {
     Animated.timing(translateY, {
       toValue: focused ? -2 : 0,

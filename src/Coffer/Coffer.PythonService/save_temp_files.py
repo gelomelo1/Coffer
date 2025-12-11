@@ -6,14 +6,11 @@ def save_temp_files(
         item,
         path: str
                     ):
-    # Save embedding
     np.save(os.path.join(path, f"{item['id']}.npy"), item["embedding"])
-    # Save image
     cv2.imwrite(os.path.join(path, f"{item['id']}.jpg"), cv2.cvtColor(item["image"], cv2.COLOR_RGB2BGR))
 
-    # Schedule deletion
     def delete_files():
-        time.sleep(600)  # 10 minutes
+        time.sleep(600)
         try:
             os.remove(os.path.join(path, f"{item['id']}.npy"))
             os.remove(os.path.join(path, f"{item['id']}.jpg"))

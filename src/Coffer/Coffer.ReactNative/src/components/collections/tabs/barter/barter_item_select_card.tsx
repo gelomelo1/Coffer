@@ -115,9 +115,7 @@ function BarterItemSelectCard({
             Not available
           </CustomText>
         ) : null}
-        <Grayscale
-          amount={isItemDisabled ? 1 : 0} // 1 = full grayscale, 0 = normal
-        >
+        <Grayscale amount={isItemDisabled ? 1 : 0}>
           <Image
             source={{
               uri: item.image

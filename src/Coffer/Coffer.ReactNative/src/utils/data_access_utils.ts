@@ -100,7 +100,6 @@ export function parseSortKeysToQuerySortData(keys: string[]): QuerySortData[] {
 export function generateSortRecordDataForItem(
   attributes: Attribute[]
 ): { value: string; label: string }[] {
-  // Generate default sort options
   const records = itemSortDefaultOptions.flatMap((option) => [
     {
       value: `${option}_asc`,
@@ -112,7 +111,6 @@ export function generateSortRecordDataForItem(
     },
   ]);
 
-  // Get primary attribute
   const primaryAttribute = attributes.find((attribute) => attribute.primary);
   if (primaryAttribute) {
     const id = primaryAttribute.id;
@@ -179,7 +177,6 @@ export function updateItemAttributeValue(
   }
 }
 
-// helper to split array into chunks of N items
 export const chunkArray = <T>(array: T[], size: number): T[][] => {
   const chunked: T[][] = [];
   for (let i = 0; i < array.length; i += size) {
@@ -247,10 +244,8 @@ export function getRarityVariantByValue(
   const averageRarity =
     validRarities.reduce((sum, r) => sum + r, 0) / validRarities.length;
 
-  // Add 0.5 and round down (same as rounding to nearest integer)
   const roundedRarity = Math.floor(averageRarity + 0.5);
 
-  // Clamp to 1–4 range to avoid invalid keys
   const clampedRarity = Math.min(Math.max(roundedRarity, 1), 4);
 
   return rarityVariants[clampedRarity];
@@ -309,7 +304,6 @@ export function getTradeReviewsRating(
   let count = 0;
 
   for (const pack of tradeReviews) {
-    // Check if the user is the reviewee in the trader review
     if (pack.trader?.revieweeId === userId) {
       const isLike = pack.trader.rating === true;
       if ((type === "like" && isLike) || (type === "dislike" && !isLike)) {
@@ -317,7 +311,6 @@ export function getTradeReviewsRating(
       }
     }
 
-    // Check if the user is the reviewee in the offerer review
     if (pack.offerer?.revieweeId === userId) {
       const isLike = pack.offerer.rating === true;
       if ((type === "like" && isLike) || (type === "dislike" && !isLike)) {

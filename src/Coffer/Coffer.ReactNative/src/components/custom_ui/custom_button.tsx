@@ -74,7 +74,6 @@ const CustomButton: React.FC<ButtonProps> = ({
         raised
       />
 
-      {/* Black overlay when disabled */}
       {isDisabled && (
         <View
           pointerEvents="none"

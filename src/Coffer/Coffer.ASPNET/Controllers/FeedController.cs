@@ -91,7 +91,6 @@ namespace Coffer.ASPNET.Controllers
             }
             catch (Exception ex)
             {
-                // Log exception in real code
                 return BadRequest(ex.Message);
             }
         }

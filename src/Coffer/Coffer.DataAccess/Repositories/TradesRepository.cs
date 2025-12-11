@@ -36,20 +36,17 @@ namespace Coffer.DataAccess.Repositories
                 return newEntity;
             }
 
-            // Update fields
             entity.UserId = required.UserId;
             entity.Title = required.Title;
             entity.Description = required.Description;
             entity.WantDescription = required.WantDescription;
             entity.MoneyRequested = required.MoneyRequested;
 
-            // --- Update TradeItems ---
             var incomingItemIds = required.TradeItems
                 .Where(ti => ti.ItemId.HasValue)
                 .Select(ti => ti.ItemId!.Value)
                 .ToHashSet();
 
-            // Remove missing
             var toRemove = entity.TradeItems
                 .Where(ti => !ti.ItemId.HasValue || !incomingItemIds.Contains(ti.ItemId.Value))
                 .ToList();
@@ -57,7 +54,6 @@ namespace Coffer.DataAccess.Repositories
             foreach (var ti in toRemove)
                 entity.TradeItems.Remove(ti);
 
-            // Add new
             foreach (var incoming in required.TradeItems)
             {
                 if (!entity.TradeItems.Any(ti => ti.ItemId == incoming.ItemId))
@@ -73,7 +69,6 @@ namespace Coffer.DataAccess.Repositories
             return entity;
         }
 
-        // This override is required by the generic repository but unused here
         protected override TradeProvided MapToEntity(TradeProvided provided, TradeProvided? entity = null)
         {
             throw new NotImplementedException();
@@ -88,14 +83,11 @@ namespace Coffer.DataAccess.Repositories
             if (existing == null)
                 throw new InvalidOperationException($"Trade {tradeId} not found.");
 
-            // Apply updates
             existing = MapToEntity(updated, existing);
             await _dbContext.SaveChangesAsync();
 
-            // --- Reload everything fresh from database ---
             _dbContext.Entry(existing).State = EntityState.Detached;
 
-            // Get includes dynamically from provider
             var includes = _includeProvider?.GetDefaultIncludes();
 
             IQueryable<TradeProvided> query = _dbSet.AsNoTracking();

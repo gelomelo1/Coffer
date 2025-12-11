@@ -45,7 +45,7 @@ export const Loading = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setDotCount((prev) => (prev + 1) % 4); // cycles 0 → 1 → 2 → 3
+      setDotCount((prev) => (prev + 1) % 4);
     }, 500);
 
     return () => clearInterval(interval);

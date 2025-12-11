@@ -46,9 +46,9 @@ namespace Coffer.DataAccess.Repositories
                 {
                     Item = i,
                     Score =
-                        (i.Collection.Follows.Any(f => f.UserId == user.Id) ? 100 : 0) +   // followed = big weight
-                        (i.Collection.User.Country == user.Country ? 50 : 0) + // same country = medium weight
-                        random.NextDouble() * 20 // small random for soft mixing
+                        (i.Collection.Follows.Any(f => f.UserId == user.Id) ? 100 : 0) +
+                        (i.Collection.User.Country == user.Country ? 50 : 0) +
+                        random.NextDouble() * 20
                 });
 
             var items = await query
@@ -67,13 +67,12 @@ namespace Coffer.DataAccess.Repositories
 
             if (primaryAttr == null) return null;
 
-            // Convert the correct value to string
             if (!string.IsNullOrEmpty(primaryAttr.ValueString))
                 return primaryAttr.ValueString;
             if (primaryAttr.ValueNumber.HasValue)
                 return primaryAttr.ValueNumber.Value.ToString();
             if (primaryAttr.ValueDate.HasValue)
-                return primaryAttr.ValueDate.Value.ToString("o"); // ISO string
+                return primaryAttr.ValueDate.Value.ToString("o");
             if (primaryAttr.ValueBoolean.HasValue)
                 return primaryAttr.ValueBoolean.Value ? "true" : "false";
 
@@ -87,30 +86,24 @@ namespace Coffer.DataAccess.Repositories
 
             searchText = searchText.Trim().ToLower();
 
-            // Get default includes from the provider
             var includes = includeProvider.GetDefaultIncludes();
 
             IQueryable<ItemProvided> query = _dbContext.Set<ItemProvided>();
 
-            // Apply includes dynamically
             if (includes != null)
             {
                 foreach (var include in includes)
                 {
-                    query = query.Include(include); // supports dot-separated paths like "ItemAttributes.Attribute"
+                    query = query.Include(include);
                 }
             }
 
-            // Include the related Collection (so we can filter by CollectionTypeId)
             query = query.Include(i => i.Collection);
 
-            // Filter items based on collection type
             query = query.Where(i => i.Collection.CollectionTypeId == collectionTypeId);
 
-            // Load items into memory for text filtering
             var items = await query.ToListAsync();
 
-            // Filter items by primary attribute value
             var filtered = items
                 .Select(item =>
                 {
@@ -131,7 +124,6 @@ namespace Coffer.DataAccess.Repositories
         {
             if (entity == null)
             {
-                // New entity
                 var newEntity = new ItemProvided(
                     required.CollectionId,
                     required.Description,
@@ -139,7 +131,6 @@ namespace Coffer.DataAccess.Repositories
                     required.Image
                 );
 
-                // Add attributes
                 foreach (var attr in required.ItemAttributes)
                 {
                     newEntity.ItemAttributes.Add(new ItemAttribute
@@ -152,7 +143,6 @@ namespace Coffer.DataAccess.Repositories
                     });
                 }
 
-                // Add tags
                 foreach (var tag in required.ItemTags)
                 {
                     newEntity.ItemTags.Add(new ItemTags
@@ -164,13 +154,11 @@ namespace Coffer.DataAccess.Repositories
                 return newEntity;
             }
 
-            // Update simple properties
             entity.CollectionId = required.CollectionId;
             entity.Description = required.Description;
             entity.Quantity = required.Quantity;
             entity.Image = required.Image;
 
-            // Merge ItemAttributes
             foreach (var attr in required.ItemAttributes)
             {
                 var existing = entity.ItemAttributes.FirstOrDefault(x => x.AttributeId == attr.AttributeId);
@@ -194,13 +182,11 @@ namespace Coffer.DataAccess.Repositories
                 }
             }
 
-            // Remove attributes that are no longer present
             entity.ItemAttributes
                 .Where(x => !required.ItemAttributes.Any(a => a.AttributeId == x.AttributeId))
                 .ToList()
                 .ForEach(x => entity.ItemAttributes.Remove(x));
 
-            // Merge ItemTags
             foreach (var tag in required.ItemTags)
             {
                 var existingTag = entity.ItemTags.FirstOrDefault(t => t.Tag == tag.Tag);
@@ -213,7 +199,6 @@ namespace Coffer.DataAccess.Repositories
                 }
             }
 
-            // Remove tags that are no longer present
             entity.ItemTags
                 .Where(t => !required.ItemTags.Any(rt => rt.Tag == t.Tag))
                 .ToList()
@@ -226,7 +211,6 @@ namespace Coffer.DataAccess.Repositories
         {
             if (entity == null)
             {
-                // New entity
                 var newEntity = new ItemProvided(
                     provided.CollectionId,
                     provided.Description,
@@ -234,22 +218,18 @@ namespace Coffer.DataAccess.Repositories
                     provided.Image
                 );
 
-                // Add collection
                 newEntity.Collection = provided.Collection;
 
-                // Add attributes
                 foreach (var attr in provided.ItemAttributes)
                 {
                     newEntity.ItemAttributes.Add(attr);
                 }
 
-                // Add tags
                 foreach (var tag in provided.ItemTags)
                 {
                     newEntity.ItemTags.Add(tag);
                 }
 
-                // Add reactions
                 foreach (var reaction in provided.Reactions)
                 {
                     newEntity.Reactions.Add(reaction);

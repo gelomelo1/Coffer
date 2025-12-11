@@ -62,7 +62,6 @@ function AddContactOverlay({
   );
   const linkDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Available platforms user has not added yet
   const availablePlatforms = CONTACT_TYPES.filter(
     (type) => !user?.contacts.some((c) => c.platform === type)
   );
@@ -95,7 +94,6 @@ function AddContactOverlay({
     setLinkError(undefined);
   };
 
-  // --- Error functions ---
   const getPhoneNumberFieldError = () => {
     if (contactValue === "") return stringResource.requiredError;
     if (languageFilter.isProfane(contactValue))
@@ -145,7 +143,6 @@ function AddContactOverlay({
     }
   };
 
-  // --- Debounce error messages ---
   useEffect(() => {
     if (contactDebounceTimer.current)
       clearTimeout(contactDebounceTimer.current);

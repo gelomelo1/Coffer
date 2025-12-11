@@ -30,19 +30,15 @@ def object_detection_similarity_pipeline_test(
             - similarities: List of dicts {"id1": str, "id2": str, "similarity": float}
     """
 
-    # 1️⃣ Detect and crop objects
     crops = crop_objects_from_image(yolo_model, image_array, conf_threshold=conf_threshold)
 
-    # Assign random UUIDs to each crop
     cropped_images = [{"id": str(uuid.uuid4()), "image": crop} for crop in crops]
 
-    # 2️⃣ Generate embeddings
     embeddings = []
     for item in cropped_images:
         emb = image_to_cnn_embedding(cnn_model, item["image"])
         embeddings.append({"id": item["id"], "embedding": emb})
 
-    # 3️⃣ Compute pairwise cosine similarities (unique pairs only)
     similarities = []
     n = len(embeddings)
     for i in range(n):

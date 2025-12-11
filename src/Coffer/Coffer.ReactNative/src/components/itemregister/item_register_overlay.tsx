@@ -246,7 +246,6 @@ function ItemRegisterOverlay({
                 }}
                 activeTextStyle={{ color: customTheme.colors.primary }}
               />
-              {/* Top-right Finish text */}
               <TouchableOpacity
                 style={{
                   alignSelf: "flex-end",
@@ -270,7 +269,6 @@ function ItemRegisterOverlay({
               </TouchableOpacity>
             </View>
 
-            {/* Centered success/error message */}
             <View
               style={{
                 flex: 1,

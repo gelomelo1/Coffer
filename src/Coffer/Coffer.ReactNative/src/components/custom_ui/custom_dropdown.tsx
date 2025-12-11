@@ -42,7 +42,6 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
 
   return (
     <View style={[{ width: "100%", position: "relative" }, containerStyle]}>
-      {/* Label */}
       <Text
         style={[
           {
@@ -58,7 +57,6 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
         {label}
       </Text>
 
-      {/* Dropdown */}
       <DropDownPicker<T>
         {...rest}
         open={open ?? uncontrolledOpen}
@@ -110,7 +108,6 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
         disabled={disabled}
       />
 
-      {/* Disabled overlay */}
       {disabled && (
         <View
           pointerEvents="none"
@@ -121,7 +118,7 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
             left: 0,
             right: 0,
             backgroundColor: customTheme.colors.disabledOverlay,
-            zIndex: 9999, // make sure overlay is above everything
+            zIndex: 9999,
           }}
         />
       )}
