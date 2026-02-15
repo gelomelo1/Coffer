@@ -6,6 +6,7 @@ using Coffer.BusinessLogic.Services.Interfaces;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
 using DotNetEnv;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using static Coffer.ASPNET.Controllers.CollectionsController;
@@ -33,6 +34,7 @@ namespace Coffer.ASPNET.Controllers
             _itemsRepository = itemsRepository;
         }
 
+        [Authorize]
         [HttpPost("CoverImage/Upload/{id}")]
         public async Task<IActionResult> UploadCoverImage(Guid id, IFormFile? file)
         {
@@ -65,6 +67,7 @@ namespace Coffer.ASPNET.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("CoverImage/{fileName}")]
         public async Task<IActionResult> GetCoverImage(string fileName)
         {
@@ -80,6 +83,7 @@ namespace Coffer.ASPNET.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("ImageCheck/Test")]
         public async Task<IActionResult> UploadImageCheckTest(IFormFile file)
         {
@@ -116,6 +120,7 @@ namespace Coffer.ASPNET.Controllers
 
         public record ImageCheckPythonServiceResponse(string Status, List<ImageCheckResult> Response);
 
+        [Authorize]
         [HttpPost("ImageCheck/{id}")]
         public async Task<ActionResult<IEnumerable<ImageCheckResponse>>> UploadImageCheckTest(Guid id, IFormFile file)
         {
@@ -185,6 +190,7 @@ namespace Coffer.ASPNET.Controllers
             string fileName
             );
 
+        [Authorize]
         [HttpDelete("{id}")]
         public override async Task<ActionResult> Delete(Guid id)
         {

@@ -1,6 +1,7 @@
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
 import { useCreateData, useGetData } from "@/src/hooks/data_hooks";
+import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import {
   Collection,
@@ -10,7 +11,7 @@ import CollectionType from "@/src/types/entities/collectiontype";
 import User from "@/src/types/entities/user";
 import { Filter } from "profanity-check";
 import React, { useRef, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, Image, View } from "react-native";
 import { Icon, Overlay } from "react-native-elements";
 import CustomButton from "../custom_ui/custom_button";
 import CustomDropdown from "../custom_ui/custom_dropdown";
@@ -30,6 +31,7 @@ function CreateCollectionForm({
   collectionTypes,
   user,
 }: CreateCollectionFormProps) {
+  const { token } = useUserStore();
   const [open, setOpen] = useState(false);
   const [collectionName, setCollectionName] = useState("");
   const [selectedCollectionTypeId, setSelectedCollectionTypeId] = useState<
@@ -43,6 +45,21 @@ function CreateCollectionForm({
   const dropdownItems = collectionTypes.map((type) => ({
     label: type.name,
     value: type.id,
+    additionalElement: (
+      <Image
+        source={{
+          uri: `${endpoints.icons}/${type.icon}`,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          cache: "reload",
+        }}
+        style={{
+          width: 28,
+          height: 28,
+        }}
+      />
+    ),
   }));
 
   const isSubmitDisabled =
@@ -69,7 +86,7 @@ function CreateCollectionForm({
     {
       enabled: false,
       queryKey: [querykeys.collectionsWithCurrentName],
-    }
+    },
   );
 
   const { mutateAsync, isPending } = useCreateData<

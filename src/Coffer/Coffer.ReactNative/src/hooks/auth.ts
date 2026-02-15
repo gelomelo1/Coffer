@@ -38,7 +38,7 @@ export function useGoogleAuth({
   });
 
   const [googleResponse, setGoogleResponse] = useState<SignInResponse | null>(
-    null
+    null,
   );
   const [tempId, setTempId] = useState<string | null>(null);
 
@@ -123,7 +123,7 @@ export function useGitHubAuth({
       redirectUri: reidrectUri,
       usePKCE: true,
     },
-    { authorizationEndpoint: "https://github.com/login/oauth/authorize" }
+    { authorizationEndpoint: "https://github.com/login/oauth/authorize" },
   );
 
   const [tempId, setTempId] = useState<string | null>(null);

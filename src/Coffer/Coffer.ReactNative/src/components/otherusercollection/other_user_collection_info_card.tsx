@@ -4,6 +4,7 @@ import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
 import { useCreateData } from "@/src/hooks/data_hooks";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
+import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import { Collection } from "@/src/types/entities/collection";
 import CollectionType from "@/src/types/entities/collectiontype";
@@ -24,8 +25,9 @@ function OtherUserCollectionInfoCard({
   collection,
   collectionType,
 }: OtherUserCollectionInfoCardProps) {
+  const { token } = useUserStore();
   const follow = collection.follows.find(
-    (follow) => follow.userId === currentUser.id
+    (follow) => follow.userId === currentUser.id,
   );
 
   const { mutateAsync: manageFollow, isPending } = useCreateData<
@@ -36,7 +38,7 @@ function OtherUserCollectionInfoCard({
     `${querykeys.feedListData};${querykeys.otherUserCollectionsData};${querykeys.followsData}`,
     follow
       ? "You stopped following this collection"
-      : "You started following this collection"
+      : "You started following this collection",
   );
 
   const { setCollection } = useOtherUserStore();
@@ -87,6 +89,9 @@ function OtherUserCollectionInfoCard({
               uri: collection.image
                 ? `${endpoints.collectionsCoverImage}/${collection.image}`
                 : `${endpoints.icons}/${collectionType.icon}`,
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
               cache: "reload",
             }}
             style={{ width: "100%", height: "100%" }}

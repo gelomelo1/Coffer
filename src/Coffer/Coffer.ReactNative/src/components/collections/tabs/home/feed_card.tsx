@@ -2,6 +2,7 @@ import CustomText from "@/src/components/custom_ui/custom_text";
 import { endpoints } from "@/src/const/endpoints";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
+import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import CollectionType from "@/src/types/entities/collectiontype";
 import Feed from "@/src/types/entities/feed";
@@ -27,6 +28,7 @@ interface FeedCardProps {
 }
 
 function FeedCard({ user, collectionType, feed }: FeedCardProps) {
+  const { token } = useUserStore();
   const { setValues, setUser, setCollection } = useOtherUserStore();
   const [country, setCountry] = useState<Country | null>(null);
 
@@ -42,16 +44,16 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
   }, [feed.user.country]);
 
   const isCollectionFollwed = !!feed.collection.follows.find(
-    (follow) => follow.userId === user.id
+    (follow) => follow.userId === user.id,
   );
 
   const primaryAttribute = getItemPrimaryAttributeValue(
-    feed.item.itemAttributes
+    feed.item.itemAttributes,
   );
 
   const darkContrastColor = adjustColor(
     collectionType.color,
-    customTheme.colorChangePercent.dark
+    customTheme.colorChangePercent.dark,
   );
 
   const handleUserPress = () => {
@@ -69,7 +71,7 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
       pathname: ROUTES.OTHERUSERCOLLECTION,
       params: pageParams.otherusercollection(
         feed.user.name,
-        feed.collection.name
+        feed.collection.name,
       ),
     });
   };
@@ -225,6 +227,9 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
                 uri: feed.item.image
                   ? `${endpoints.itemsCoverImage}/${feed.item.image}`
                   : `${endpoints.icons}/${collectionType.icon}`,
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
               }}
               style={{
                 aspectRatio: "1/1",

@@ -1,6 +1,13 @@
 import { customTheme } from "@/src/theme/theme";
+import CustomDropdownItem from "@/src/types/helpers/custom_dropdown_item";
 import { useState } from "react";
-import { Text, TextStyle, View, ViewStyle } from "react-native";
+import {
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from "react-native";
 import DropDownPicker, { ValueType } from "react-native-dropdown-picker";
 import CustomText from "./custom_text";
 
@@ -10,7 +17,7 @@ type CustomDropdownProps<T extends ValueType> = {
   open?: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setValue: React.Dispatch<React.SetStateAction<T | null>>;
-  items: { label: string; value: T }[];
+  items: CustomDropdownItem<T>[];
   disabled?: boolean;
   containerStyle?: ViewStyle;
   labelStyle?: TextStyle;
@@ -18,6 +25,8 @@ type CustomDropdownProps<T extends ValueType> = {
   dropDownContainerStyle?: ViewStyle;
   textStyle?: TextStyle;
   errorMessage?: string;
+  searchable?: boolean;
+  additionalElementPlacement?: "start" | "end";
 };
 
 function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
@@ -35,13 +44,20 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
     dropDownContainerStyle,
     textStyle,
     errorMessage,
+    searchable = false,
+    additionalElementPlacement = "start",
     ...rest
   } = props;
 
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
 
   return (
-    <View style={[{ width: "100%", position: "relative" }, containerStyle]}>
+    <View
+      style={[
+        { width: "100%", position: "relative", zIndex: 0 },
+        containerStyle,
+      ]}
+    >
       <Text
         style={[
           {
@@ -60,6 +76,7 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
       <DropDownPicker<T>
         {...rest}
         open={open ?? uncontrolledOpen}
+        searchable={searchable}
         setOpen={setOpen ?? setUncontrolledOpen}
         value={value ?? null}
         items={items ?? []}
@@ -73,7 +90,7 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
           }
         }}
         multiple={false}
-        listMode="SCROLLVIEW"
+        listMode="MODAL"
         style={[
           {
             backgroundColor: customTheme.colors.secondary,
@@ -106,6 +123,92 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
           boxShadow: "none",
         }}
         disabled={disabled}
+        modalAnimationType="slide"
+        modalTitle="Select an option"
+        placeholder="Select an option"
+        modalContentContainerStyle={{
+          backgroundColor: customTheme.colors.secondary,
+          paddingTop: 50,
+        }}
+        modalTitleStyle={{
+          color: customTheme.colors.primary,
+          fontSize: 24,
+          fontWeight: "bold",
+        }}
+        searchPlaceholderTextColor={customTheme.colors.primary}
+        searchTextInputStyle={{
+          color: customTheme.colors.primary,
+          borderColor: customTheme.colors.primary,
+        }}
+        CloseIconComponent={() => (
+          <Text
+            style={{
+              color: customTheme.colors.primary,
+              fontSize: 24,
+              fontWeight: "bold",
+            }}
+          >
+            ✕
+          </Text>
+        )}
+        renderListItem={({ item }: { item: CustomDropdownItem<T> }) => (
+          <TouchableOpacity
+            onPress={() => {
+              setValue(
+                (prev) => (prev === item.value ? null : item.value) as T,
+              );
+              setOpen(false);
+            }}
+          >
+            <View
+              style={{
+                marginHorizontal: 10,
+                marginBottom: 10,
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 10,
+              }}
+            >
+              <View
+                style={{
+                  flex: 1,
+                  flexDirection: "row",
+                  justifyContent: "flex-start",
+                  alignItems: "center",
+                  gap: 10,
+                }}
+              >
+                {item.additionalElement &&
+                additionalElementPlacement === "start"
+                  ? item.additionalElement
+                  : null}
+                <Text
+                  style={{
+                    color: customTheme.colors.primary,
+                    fontSize: 22,
+                  }}
+                >
+                  {item.label}
+                </Text>
+                {item.additionalElement && additionalElementPlacement === "end"
+                  ? item.additionalElement
+                  : null}
+              </View>
+              {item.value === value ? (
+                <Text
+                  style={{
+                    flexShrink: 0,
+                    color: customTheme.colors.primary,
+                    fontSize: 22,
+                  }}
+                >
+                  ✓
+                </Text>
+              ) : null}
+            </View>
+          </TouchableOpacity>
+        )}
       />
 
       {disabled && (

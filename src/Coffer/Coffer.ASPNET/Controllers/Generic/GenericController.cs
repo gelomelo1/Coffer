@@ -1,5 +1,6 @@
 ﻿using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Update.Internal;
 
@@ -22,6 +23,7 @@ namespace Coffer.ASPNET.Controllers.Generic
             _repository = repository;
         }
 
+        [Authorize]
         [HttpPost]
         public virtual async Task<ActionResult<TProvided>> Create([FromBody] TRequired required)
         {
@@ -29,6 +31,7 @@ namespace Coffer.ASPNET.Controllers.Generic
             return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public virtual async Task<ActionResult<TProvided>> Update(TKey id, [FromBody] TRequired required)
         {
@@ -37,6 +40,7 @@ namespace Coffer.ASPNET.Controllers.Generic
             return Ok(item);
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public virtual async Task<ActionResult> Delete(TKey id)
         {

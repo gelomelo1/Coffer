@@ -11,9 +11,10 @@ const defaultStyles = {
       borderWidth: disabled ? 0 : 2,
       paddingHorizontal: 5,
       boxShadow: disabled ? "none" : `2px 2px ${customTheme.colors.primary}`,
-    } as ViewStyle),
+    }) as ViewStyle,
   containerStyle: {
-    height: 70,
+    minHeight: 70,
+    maxHeight: 150,
     paddingHorizontal: 0,
     paddingVertical: 0,
   } as ViewStyle,

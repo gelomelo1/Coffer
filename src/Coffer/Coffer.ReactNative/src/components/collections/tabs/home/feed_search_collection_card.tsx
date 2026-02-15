@@ -3,6 +3,7 @@ import { endpoints } from "@/src/const/endpoints";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
+import { useUserStore } from "@/src/hooks/user_store";
 import CollectionSearch from "@/src/types/entities/collection_search";
 import CollectionType from "@/src/types/entities/collectiontype";
 import User from "@/src/types/entities/user";
@@ -22,6 +23,7 @@ function FeedSearchCollectionCard({
   collectionSearch,
   closeOverlay,
 }: FeedSearchCollectionCardProps) {
+  const { token } = useUserStore();
   const { setUser, setCollection } = useOtherUserStore();
   const { setCollection: setCurrentUserCollection } = useCollectionStore();
 
@@ -39,7 +41,7 @@ function FeedSearchCollectionCard({
         pathname: ROUTES.OTHERUSERCOLLECTION,
         params: pageParams.otherusercollection(
           collectionSearch.user.name,
-          collectionSearch.collection.name
+          collectionSearch.collection.name,
         ),
       });
     }
@@ -62,6 +64,9 @@ function FeedSearchCollectionCard({
           uri: collectionSearch.collection.image
             ? `${endpoints.collectionsCoverImage}/${collectionSearch.collection.image}`
             : `${endpoints.icons}/${collectionType.icon}`,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
           cache: "reload",
         }}
         style={{

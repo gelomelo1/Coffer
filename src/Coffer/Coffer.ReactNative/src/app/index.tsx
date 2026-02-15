@@ -13,6 +13,7 @@ import { getSingleData } from "../utils/backend_access";
 export default function Index() {
   const resetNavigate = useResetNavigation();
   const { setUser } = useUserStore();
+
   useEffect(() => {
     const checkAuth = async () => {
       const token = await AsyncStorage.getItem("jwt");
@@ -23,7 +24,7 @@ export default function Index() {
           const currentUser = await getSingleData<User>(
             endpoints.currentUser,
             undefined,
-            { Authorization: `Bearer ${token}` }
+            { Authorization: `Bearer ${token}` },
           );
           setUser(currentUser);
           resetNavigate({
@@ -43,7 +44,7 @@ export default function Index() {
       }
     };
     checkAuth();
-  }, [resetNavigate, setUser]);
+  }, []);
 
   return <LoadingScreen label="Trying to log you in..." />;
 }

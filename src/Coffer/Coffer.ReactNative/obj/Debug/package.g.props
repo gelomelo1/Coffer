@@ -45,12 +45,14 @@
     <PackageJsonDependenciesReactNativeElements Condition="$(PackageJsonDependenciesReactNativeElements) == ''">^3.0.0</PackageJsonDependenciesReactNativeElements>
     <PackageJsonDependenciesReactNativeGestureHandler Condition="$(PackageJsonDependenciesReactNativeGestureHandler) == ''">~2.28.0</PackageJsonDependenciesReactNativeGestureHandler>
     <PackageJsonDependenciesReactNativeIndicator Condition="$(PackageJsonDependenciesReactNativeIndicator) == ''">^1.2.1</PackageJsonDependenciesReactNativeIndicator>
+    <PackageJsonDependenciesReactNativeKeyboardAwareScrollView Condition="$(PackageJsonDependenciesReactNativeKeyboardAwareScrollView) == ''">^0.9.5</PackageJsonDependenciesReactNativeKeyboardAwareScrollView>
     <PackageJsonDependenciesReactNativeLocalize Condition="$(PackageJsonDependenciesReactNativeLocalize) == ''">^3.5.4</PackageJsonDependenciesReactNativeLocalize>
     <PackageJsonDependenciesReactNativeMonthYearPicker Condition="$(PackageJsonDependenciesReactNativeMonthYearPicker) == ''">^1.9.0</PackageJsonDependenciesReactNativeMonthYearPicker>
     <PackageJsonDependenciesReactNativeNavigationMode Condition="$(PackageJsonDependenciesReactNativeNavigationMode) == ''">^1.2.3</PackageJsonDependenciesReactNativeNavigationMode>
     <PackageJsonDependenciesReactNativePaper Condition="$(PackageJsonDependenciesReactNativePaper) == ''">^5.14.5</PackageJsonDependenciesReactNativePaper>
     <PackageJsonDependenciesReactNativeSafeAreaContext Condition="$(PackageJsonDependenciesReactNativeSafeAreaContext) == ''">^5.6.1</PackageJsonDependenciesReactNativeSafeAreaContext>
     <PackageJsonDependenciesReactNativeScreens Condition="$(PackageJsonDependenciesReactNativeScreens) == ''">~4.16.0</PackageJsonDependenciesReactNativeScreens>
+    <PackageJsonDependenciesReactNativeSslPinning Condition="$(PackageJsonDependenciesReactNativeSslPinning) == ''">^1.6.0</PackageJsonDependenciesReactNativeSslPinning>
     <PackageJsonDependenciesReactNativeToastMessage Condition="$(PackageJsonDependenciesReactNativeToastMessage) == ''">^2.3.3</PackageJsonDependenciesReactNativeToastMessage>
     <PackageJsonDependenciesReactNativeWeb Condition="$(PackageJsonDependenciesReactNativeWeb) == ''">~0.21.0</PackageJsonDependenciesReactNativeWeb>
     <PackageJsonDependenciesReactNativeWorklets Condition="$(PackageJsonDependenciesReactNativeWorklets) == ''">0.5.1</PackageJsonDependenciesReactNativeWorklets>

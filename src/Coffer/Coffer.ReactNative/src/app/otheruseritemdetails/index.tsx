@@ -25,17 +25,17 @@ import { Chip } from "react-native-elements";
 
 function OtherUserItemDetails() {
   const { collectionType } = useCollectionStore();
-  const { user: currentUser } = useUserStore();
+  const { user: currentUser, token } = useUserStore();
   const { user, collection, item, setItem } = useOtherUserStore();
 
   const darkContrastColor = adjustColor(
     collectionType.color,
-    customTheme.colorChangePercent.dark
+    customTheme.colorChangePercent.dark,
   );
 
   const lightContrastColor = adjustColor(
     collectionType.color,
-    customTheme.colorChangePercent.light
+    customTheme.colorChangePercent.light,
   );
 
   const primaryAttribute = getItemPrimaryAttributeValue(item!.itemAttributes);
@@ -83,6 +83,9 @@ function OtherUserItemDetails() {
             uri: item!.image
               ? `${endpoints.itemsCoverImage}/${item!.image}`
               : `${endpoints.icons}/${collectionType.icon}`,
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }}
           style={{
             aspectRatio: "1/1",
@@ -182,7 +185,7 @@ function OtherUserItemDetails() {
             attributeValue={getItemAttributeValue(itemAttribute)}
             collectionType={collectionType}
           />
-        )
+        ),
       )}
       <CustomText style={{ fontSize: 20, marginTop: 20, marginBottom: 10 }}>
         Tags

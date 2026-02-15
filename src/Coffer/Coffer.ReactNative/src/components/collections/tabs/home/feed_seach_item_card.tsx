@@ -4,6 +4,7 @@ import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useCollectionStore } from "@/src/hooks/collection_store";
 import { initItemStore } from "@/src/hooks/item_store";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
+import { useUserStore } from "@/src/hooks/user_store";
 import ItemSearch from "@/src/types/entities/item_search";
 import User from "@/src/types/entities/user";
 import { getItemPrimaryAttributeValue } from "@/src/utils/data_access_utils";
@@ -21,6 +22,7 @@ function FeedSearchItemCard({
   itemSearch,
   closeOverlay,
 }: FeedSearchItemCardProps) {
+  const { token } = useUserStore();
   const { setValues } = useOtherUserStore();
   const { setCollection } = useCollectionStore();
 
@@ -43,7 +45,7 @@ function FeedSearchItemCard({
   };
 
   const primaryAttribute = getItemPrimaryAttributeValue(
-    itemSearch.item.itemAttributes
+    itemSearch.item.itemAttributes,
   );
 
   return (
@@ -60,6 +62,9 @@ function FeedSearchItemCard({
       <Image
         source={{
           uri: `${endpoints.itemsCoverImage}/${itemSearch.item.image}`,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
           cache: "reload",
         }}
         style={{

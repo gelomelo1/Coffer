@@ -36,7 +36,7 @@ function CollectionInfoEditForm({
   isCollectionInfoEditOverlayOpen,
 }: CollectionInfoEditFormProps) {
   const { collection, setCollection } = useCollectionStore();
-  const { user } = useUserStore();
+  const { user, token } = useUserStore();
   const [collectionName, setCollectionName] = useState(collection.name);
   const [asset, setAsset] = useState<
     ImagePicker.ImagePickerAsset | null | "removable"
@@ -69,7 +69,7 @@ function CollectionInfoEditForm({
     {
       enabled: false,
       queryKey: [querykeys.collectionsWithCurrentName],
-    }
+    },
   );
 
   const {
@@ -78,7 +78,7 @@ function CollectionInfoEditForm({
   } = useUpdateData<CollectionRequired, Collection>(
     endpoints.collections,
     querykeys.collectionsData,
-    asset ? "" : undefined
+    asset ? "" : undefined,
   );
 
   const {
@@ -91,7 +91,7 @@ function CollectionInfoEditForm({
     undefined,
     {
       "Content-Type": "multipart/form-data",
-    }
+    },
   );
 
   const resetFormData = (isEditSaved: boolean) => {
@@ -258,6 +258,9 @@ function CollectionInfoEditForm({
               <Image
                 source={{
                   uri: `${endpoints.collectionsCoverImage}/${collection.image}`,
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
                   cache: "reload",
                 }}
                 style={{ width: "100%", height: "100%" }}

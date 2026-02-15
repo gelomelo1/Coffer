@@ -72,8 +72,6 @@ function ItemEditTags({
       value={internalText}
       onChangeText={handleChangeText}
       onBlur={() => formatText(internalText)}
-      style={{ height: 100 }}
-      inputContainerStyle={{ height: 100 }}
       multiline
     />
   );

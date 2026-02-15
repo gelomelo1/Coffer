@@ -23,7 +23,9 @@ export interface CollectionStore {
 
 export interface UserStore {
   user: User | null;
+  token: string | null;
   setUser: (user: User | null) => void;
+  setToken: (token: string | null) => void;
 }
 
 export interface OtherUserStore {
@@ -33,7 +35,7 @@ export interface OtherUserStore {
   setValues: (
     user?: User | null,
     collection?: Collection | null,
-    item?: ItemProvided | null
+    item?: ItemProvided | null,
   ) => void;
   setUser: (user: User | null) => void;
   setCollection: (collection: Collection | null) => void;

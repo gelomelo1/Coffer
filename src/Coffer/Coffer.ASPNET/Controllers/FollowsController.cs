@@ -2,6 +2,7 @@
 using Coffer.DataAccess.Repositories;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using static Coffer.ASPNET.Controllers.FeedController;
 
@@ -18,6 +19,7 @@ namespace Coffer.ASPNET.Controllers
             _collectionRepository = collectionRepository;
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<CollectionProvided>> ManageFollow([FromBody] FollowRequired followRequired)
         {

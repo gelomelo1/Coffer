@@ -45,14 +45,14 @@ function BarterItemSelectCard({
 
   const darkContrastColor = adjustColor(
     collectionType.color,
-    customTheme.colorChangePercent.dark
+    customTheme.colorChangePercent.dark,
   );
   const lightContrastColor = adjustColor(
     collectionType.color,
-    customTheme.colorChangePercent.light
+    customTheme.colorChangePercent.light,
   );
   const collectionTypeColorGrayScale = convertToGrayScaleColor(
-    collectionType.color
+    collectionType.color,
   );
   const darkContrastColorGrayScale = convertToGrayScaleColor(darkContrastColor);
   const lightContrastColorGrayScale =
@@ -64,7 +64,7 @@ function BarterItemSelectCard({
     trades,
     offers,
     trade,
-    offer
+    offer,
   );
 
   const handleCardPress = () => {
@@ -89,8 +89,8 @@ function BarterItemSelectCard({
           borderColor: isItemDisabled
             ? darkContrastColorGrayScale
             : selectedBarterItemId.value === item.id
-            ? lightContrastColor
-            : darkContrastColor,
+              ? lightContrastColor
+              : darkContrastColor,
         }}
         onPress={handleCardPress}
       >

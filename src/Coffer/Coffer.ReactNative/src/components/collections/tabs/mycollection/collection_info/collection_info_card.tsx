@@ -2,6 +2,7 @@ import CustomButton from "@/src/components/custom_ui/custom_button";
 import CustomText from "@/src/components/custom_ui/custom_text";
 import { endpoints } from "@/src/const/endpoints";
 import { useCollectionStore } from "@/src/hooks/collection_store";
+import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
@@ -12,6 +13,7 @@ import CollectionDeleteForm from "./collection_delete_form";
 import CollectionInfoEditForm from "./collection_info_edit_form";
 
 function CollectionInfoCard() {
+  const { token } = useUserStore();
   const { collection } = useCollectionStore();
 
   const [
@@ -56,6 +58,9 @@ function CollectionInfoCard() {
               <Image
                 source={{
                   uri: `${endpoints.collectionsCoverImage}/${collection.image}`,
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
                   cache: "reload",
                 }}
                 style={{ width: "100%", height: "100%" }}

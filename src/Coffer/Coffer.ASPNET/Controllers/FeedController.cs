@@ -1,6 +1,7 @@
 ﻿using Coffer.DataAccess.Repositories;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 
@@ -24,6 +25,7 @@ namespace Coffer.ASPNET.Controllers
             _followsRepository = followsRepository;
         }
 
+        [Authorize]
         [HttpGet("{userId}")]
         public async Task<ActionResult<IEnumerable<Feed>>> GetFeedItems(Guid userId)
         {
@@ -52,6 +54,7 @@ namespace Coffer.ASPNET.Controllers
 
         public record FoundItem(UserProvided User, CollectionProvided Collection, ItemProvided Item);
 
+        [Authorize]
         [HttpGet("SearchTag/{collectionTypeId}/{searchText}")]
         public async Task<ActionResult<IEnumerable<ItemTagGroup>>> TagSearch(int collectionTypeId, string searchText)
         {
@@ -112,6 +115,7 @@ namespace Coffer.ASPNET.Controllers
             ItemProvided Item
         );
 
+        [Authorize]
         [HttpGet("Search/{collectionTypeId}/{searchText}")]
         public async Task<ActionResult<MixedResponse>> MixedSearch(int collectionTypeId, string searchText)
         {
@@ -163,6 +167,7 @@ namespace Coffer.ASPNET.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("UserFollows/{userId}")]
         public async Task<ActionResult<IEnumerable<CollectionResult>>> UserFollows(Guid userId)
         {

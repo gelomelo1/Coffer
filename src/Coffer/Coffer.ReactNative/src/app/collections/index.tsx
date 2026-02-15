@@ -25,7 +25,7 @@ function Collections() {
   const { data: collectionTypes = [], isFetching: isCollectionTypesFetching } =
     useGetData<CollectionType>(
       endpoints.collectionTypes,
-      querykeys.collectionTypesData
+      querykeys.collectionTypesData,
     );
 
   const { data: collections = [], isFetching: isCollectionsFetching } =

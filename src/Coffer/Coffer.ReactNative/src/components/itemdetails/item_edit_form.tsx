@@ -1,12 +1,10 @@
 import { endpoints } from "@/src/const/endpoints";
 import { languageFilter, textInputRegex } from "@/src/const/filter";
-import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { querykeys } from "@/src/const/querykeys";
 import { stringResource } from "@/src/const/resource";
 import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useUpdateData } from "@/src/hooks/data_hooks";
 import { useItemStore } from "@/src/hooks/item_store";
-import { useResetNavigation } from "@/src/hooks/navigation";
 import { customTheme } from "@/src/theme/theme";
 import { Item, ItemProvided } from "@/src/types/entities/item";
 import {
@@ -15,9 +13,10 @@ import {
   updateItemAttributeValue,
 } from "@/src/utils/data_access_utils";
 import { useEffect, useState } from "react";
-import { ScrollView } from "react-native";
-import { Overlay } from "react-native-elements";
+import { View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import CustomButton from "../custom_ui/custom_button";
+import CustomOverlay from "../custom_ui/custom_overlay";
 import CustomText from "../custom_ui/custom_text";
 import CustomTextInput from "../custom_ui/custom_text_input";
 import ItemEditDynamicFields from "./item_edit_dynamic_fields";
@@ -32,12 +31,11 @@ interface ItemEditFormProps {
 }
 
 function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
-  const resetNavigate = useResetNavigation();
   const { collection } = useCollectionStore();
   const { mutateAsync: updateItem, isPending: isItemUpdatePending } =
     useUpdateData<Item, ItemProvided>(
       endpoints.items,
-      `${querykeys.itemsData}${collection.id}`
+      `${querykeys.itemsData}${collection.id}`,
     );
 
   const { item, setItem } = useItemStore();
@@ -46,22 +44,15 @@ function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
 
   const [draftItem, setDraftItem] = useState(item);
 
-  const [isDeleteConfirmOverlayOpen, setIsDeleteConfirmOverlayOpen] =
-    useState(false);
+  const [isQuantityPressed, setIsQuantityPressed] = useState(false);
 
   const handleEditOverlayClose = () => {
-    if (!isItemUpdatePending && !isDeleteConfirmOverlayOpen)
-      isItemEditFormOverlayOpen.set(false);
+    if (!isItemUpdatePending) isItemEditFormOverlayOpen.set(false);
   };
-
-  const handleDeleteOverlayClose = () => {
-    setIsDeleteConfirmOverlayOpen(false);
-  };
-
-  const handleUpdate = async (isDelete: boolean) => {
+  const handleUpdate = async () => {
     try {
       const response = await updateItem({ id: draftItem.id, value: draftItem });
-      if (!isDelete) setItem(response);
+      setItem(response);
     } catch (error) {
       console.error("Failed to update item", error);
     } finally {
@@ -69,19 +60,8 @@ function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
     }
   };
 
-  const handleDeleteConfirm = async () => {
-    handleDeleteOverlayClose();
-    await handleUpdate(true);
-    resetNavigate({
-      pathname: ROUTES.COLLECTIONS.MYCOLLECTION,
-      params: pageParams.mycollection,
-    });
-  };
-
   const handleEditPress = async () => {
-    console.log(draftItem);
-    if (draftItem.quantity === 0) setIsDeleteConfirmOverlayOpen(true);
-    else await handleUpdate(false);
+    await handleUpdate();
   };
 
   useEffect(() => {
@@ -89,6 +69,8 @@ function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
 
     setDraftItem(item);
     setFieldErrors({});
+    setDescriptionErrorMessage("");
+    setIsQuantityPressed(false);
   }, [isItemEditFormOverlayOpen, item]);
 
   const primaryAttribute = getItemPrimaryAttributeValue(item.itemAttributes);
@@ -116,43 +98,33 @@ function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
   }
 
   return (
-    <>
-      <Overlay
-        isVisible={isDeleteConfirmOverlayOpen}
-        onBackdropPress={handleEditOverlayClose}
-        overlayStyle={{
-          width: "90%",
-          backgroundColor: customTheme.colors.background,
-        }}
-      >
-        <CustomText>
-          You set the item quantity to 0. This will delete the item. Are you
-          sure you want to continue?
-        </CustomText>
+    <CustomOverlay
+      isVisible={isItemEditFormOverlayOpen.value}
+      onClose={handleEditOverlayClose}
+      overlayTitle="Edit Item"
+      footerContent={
         <CustomButton
-          title={"Cancel"}
-          onPress={handleDeleteOverlayClose}
-          containerStyle={{ marginBottom: 10 }}
+          title="Edit"
+          containerStyle={{ width: "90%", alignSelf: "center" }}
+          loading={isItemUpdatePending}
+          onPress={handleEditPress}
+          disabled={isError}
         />
-        <CustomButton title={"Confirm"} onPress={handleDeleteConfirm} />
-      </Overlay>
-      <Overlay
-        isVisible={isItemEditFormOverlayOpen.value}
-        onBackdropPress={handleEditOverlayClose}
-        overlayStyle={{
-          width: "90%",
-          maxHeight: "80%",
-          backgroundColor: customTheme.colors.background,
-        }}
+      }
+    >
+      <KeyboardAwareScrollView
+        enableOnAndroid
+        extraScrollHeight={250}
+        enableResetScrollToCoords={false}
       >
-        <ScrollView
-          style={{ width: "100%" }}
-          contentContainerStyle={{
+        <View
+          style={{
+            paddingHorizontal: 10,
             justifyContent: "center",
             gap: 20,
-            paddingHorizontal: 4,
           }}
         >
+          <View style={{ height: 20 }} />
           <ItemEditDynamicFields
             attribute={primaryAttribute.itemAttribute.attribute}
             defaultValue={primaryAttribute.value!}
@@ -163,7 +135,7 @@ function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
                   itemAttribute.attribute.id ===
                   primaryAttribute.itemAttribute.attribute.id
                     ? updateItemAttributeValue(itemAttribute, newValue)
-                    : itemAttribute
+                    : itemAttribute,
                 ),
               }));
             }}
@@ -184,8 +156,6 @@ function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
                 description: newValue,
               }));
             }}
-            style={{ height: 100 }}
-            inputContainerStyle={{ height: 100 }}
             multiline
             errorMessage={descriptionErrorMessage}
           />
@@ -196,13 +166,15 @@ function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
                 ...prev,
                 quantity: newValue,
               }));
+              setIsQuantityPressed(true);
             }}
           />
-          {draftItem.quantity === 0 ? (
+          {draftItem.quantity === 1 && isQuantityPressed ? (
             <CustomText
               style={{ fontSize: 12, color: customTheme.colors.accent }}
             >
-              Setting the item quantity to 0 will remove it from your list
+              You have to have at least 1 piece. To delete the item, please use
+              the delete button.
             </CustomText>
           ) : null}
           {item.itemAttributes.map((itemAttribute) =>
@@ -218,7 +190,7 @@ function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
                     itemAttributes: prev.itemAttributes.map((attr) =>
                       attr.attribute.id === itemAttribute.attribute.id
                         ? updateItemAttributeValue(attr, newValue)
-                        : attr
+                        : attr,
                     ),
                   }));
                 }}
@@ -229,7 +201,7 @@ function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
                   }));
                 }}
               />
-            )
+            ),
           )}
           <ItemEditTags
             defaultValue={item.itemTags}
@@ -241,16 +213,10 @@ function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
             }
             itemId={item.id}
           />
-          <CustomButton
-            title="Edit item"
-            containerStyle={{ marginTop: 20 }}
-            loading={isItemUpdatePending}
-            onPress={handleEditPress}
-            disabled={isError}
-          />
-        </ScrollView>
-      </Overlay>
-    </>
+        </View>
+        <View style={{ height: 50 }} />
+      </KeyboardAwareScrollView>
+    </CustomOverlay>
   );
 }
 

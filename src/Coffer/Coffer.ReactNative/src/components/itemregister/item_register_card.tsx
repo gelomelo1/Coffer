@@ -2,6 +2,7 @@ import { emptyItem, tempItemId } from "@/src/const/emptyItem";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
 import { useGetData } from "@/src/hooks/data_hooks";
+import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import Attribute from "@/src/types/entities/attribute";
 import { Collection } from "@/src/types/entities/collection";
@@ -41,6 +42,7 @@ function ItemRegisterCard({
   handleRemoveItemsCreateChange,
   itemsCreate,
 }: ItemRegisterCardProps) {
+  const { token } = useUserStore();
   const { data: attributes = [], isFetching: isAttributesFetching } =
     useGetData<Attribute>(
       endpoints.attributes,
@@ -53,17 +55,17 @@ function ItemRegisterCard({
             value: collectionType.id,
           },
         ],
-      }
+      },
     );
 
   const darkContrastColor = adjustColor(
     collectionType.color,
-    customTheme.colorChangePercent.dark
+    customTheme.colorChangePercent.dark,
   );
 
   const lightContrastColor = adjustColor(
     collectionType.color,
-    customTheme.colorChangePercent.light
+    customTheme.colorChangePercent.light,
   );
 
   const baseDefaultIndex =
@@ -72,7 +74,7 @@ function ItemRegisterCard({
   const overrideIndex = itemsCreate
     ? (() => {
         const foundIndex = imageCheck.similars.findIndex(
-          (similar) => similar.id === itemsCreate.item.id
+          (similar) => similar.id === itemsCreate.item.id,
         );
         return foundIndex >= 0 ? foundIndex + 1 : 0;
       })()
@@ -99,7 +101,7 @@ function ItemRegisterCard({
   useEffect(() => {
     if (itemsCreate) {
       const foundIndex = imageCheck.similars.findIndex(
-        (similar) => similar.id === itemsCreate.item.id
+        (similar) => similar.id === itemsCreate.item.id,
       );
       setSelectedIndex(foundIndex >= 0 ? foundIndex + 1 : 0);
       if (foundIndex === -1)
@@ -159,7 +161,7 @@ function ItemRegisterCard({
 
     attributes.forEach((attribute) => {
       const alreadyExists = updatedItem.itemAttributes.some(
-        (attr) => attr.attributeId === attribute.id
+        (attr) => attr.attributeId === attribute.id,
       );
 
       if (!alreadyExists) {
@@ -248,6 +250,9 @@ function ItemRegisterCard({
                 selectedIndex === 0 || !selectedSimilar
                   ? `${endpoints.itemsTempImage}/${imageCheck.id}`
                   : `${endpoints.itemsCoverImage}/${selectedSimilar.image}`,
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
             }}
             style={{ width: "100%", height: "100%" }}
           />
@@ -262,7 +267,7 @@ function ItemRegisterCard({
         >
           {selectedSimilar
             ? getItemPrimaryAttributeValue(
-                selectedSimilar.itemAttributes
+                selectedSimilar.itemAttributes,
               )?.value?.toLocaleString()
             : "New item"}
         </CustomText>
@@ -338,6 +343,9 @@ function ItemRegisterCard({
                     <Image
                       source={{
                         uri: `${endpoints.itemsCoverImage}/${imageCheck.similars[i].image}`,
+                        headers: {
+                          Authorization: `Bearer ${token}`,
+                        },
                       }}
                       style={{ width: "100%", height: "100%" }}
                       resizeMode="cover"
@@ -378,7 +386,7 @@ function ItemRegisterCard({
                 }}
               >
                 {getItemPrimaryAttributeValue(
-                  selectedSimilar.itemAttributes
+                  selectedSimilar.itemAttributes,
                 )?.value?.toLocaleString()}
               </CustomText>
               {" item quantity by "}

@@ -5,6 +5,7 @@ using Coffer.BusinessLogic.Services.Interfaces;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
 using DotNetEnv;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
@@ -28,6 +29,7 @@ namespace Coffer.ASPNET.Controllers
             _usersRepositry = usersRepository;
         }
 
+        [Authorize]
         [HttpGet("CoverImage/{fileName}")]
         public async Task<IActionResult> GetCoverImage(string fileName)
         {
@@ -42,6 +44,7 @@ namespace Coffer.ASPNET.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public override async Task<ActionResult<ItemProvided>> Update(Guid id, [FromBody] ItemRequired required)
         {
@@ -63,6 +66,7 @@ namespace Coffer.ASPNET.Controllers
         public record InsertedItem(ItemIds ItemIds, ItemProvided ItemProvided);
         public record UpsertItemRequest(Guid Id, ItemRequired Item);
 
+        [Authorize]
         [HttpPost("Upsert")]
         public async Task<ActionResult> Upsert([FromBody] UpsertItemRequest[] request)
         {
@@ -138,6 +142,7 @@ namespace Coffer.ASPNET.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("TempImage/{fileName}")]
         public async Task<IActionResult> GetTempImage(string fileName)
         {
@@ -152,6 +157,7 @@ namespace Coffer.ASPNET.Controllers
             }
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public override async Task<ActionResult> Delete(Guid id)
         {

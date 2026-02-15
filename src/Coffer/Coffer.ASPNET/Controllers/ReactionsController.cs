@@ -1,6 +1,7 @@
 ﻿using Coffer.ASPNET.Controllers.Generic;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Coffer.ASPNET.Controllers
@@ -18,6 +19,7 @@ namespace Coffer.ASPNET.Controllers
             _itemsRepository = itemsRepository;
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<ItemProvided>> PostReaction(ReactionRequired reactionRequired)
         {

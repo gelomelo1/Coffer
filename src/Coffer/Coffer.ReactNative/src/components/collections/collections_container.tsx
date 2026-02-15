@@ -5,7 +5,6 @@ import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import { Collection } from "@/src/types/entities/collection";
 import CollectionType from "@/src/types/entities/collectiontype";
-import User from "@/src/types/entities/user";
 import { adjustColor } from "@/src/utils/frontend_utils";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { navigate } from "expo-router/build/global-state/routing";
@@ -30,12 +29,12 @@ export default function CollectionsContainer({
   collectionTypes,
   collections,
 }: CollectionsContainerProps) {
-  const { user } = useUserStore();
+  const { user, token } = useUserStore();
 
   const [sorts, setSorts] = useState<Record<string, keyof Collection>>(
     Object.fromEntries(
-      collectionTypes.map((collectionType) => [collectionType.id, "createdAt"])
-    )
+      collectionTypes.map((collectionType) => [collectionType.id, "createdAt"]),
+    ),
   );
 
   const handleSorts = (typeId: number) => {
@@ -54,7 +53,7 @@ export default function CollectionsContainer({
     >
       {collectionTypes.map((type) => {
         const matchingCollections = collections.filter(
-          (collection) => collection.collectionTypeId === type.id
+          (collection) => collection.collectionTypeId === type.id,
         );
         if (matchingCollections.length === 0) return null;
 
@@ -62,7 +61,7 @@ export default function CollectionsContainer({
           matchingCollections.sort((a, b) => a.name.localeCompare(b.name));
         } else if (matchingCollections.length > 1) {
           matchingCollections.sort(
-            (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)
+            (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt),
           );
         }
 
@@ -127,7 +126,7 @@ export default function CollectionsContainer({
                 matchingCollections={matchingCollections}
                 matchingCollectionType={type}
                 triggerAnimation={sorts[type.id]}
-                user={user!}
+                token={token!}
               />
             }
           </View>
@@ -141,16 +140,16 @@ function CollectionCarousel({
   matchingCollections,
   matchingCollectionType,
   triggerAnimation,
-  user,
+  token,
 }: {
   matchingCollections: Collection[];
   matchingCollectionType: CollectionType;
   triggerAnimation: string;
-  user: User;
+  token: string;
 }) {
   const contrastColor = adjustColor(
     matchingCollectionType.color,
-    customTheme.colorChangePercent.dark
+    customTheme.colorChangePercent.dark,
   );
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -204,6 +203,9 @@ function CollectionCarousel({
                 uri: item.image
                   ? `${endpoints.collectionsCoverImage}/${item.image}`
                   : `${endpoints.icons}/${matchingCollectionType.icon}`,
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
                 cache: "reload",
               }}
               style={{

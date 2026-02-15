@@ -2,6 +2,7 @@ import CustomText from "@/src/components/custom_ui/custom_text";
 import { endpoints } from "@/src/const/endpoints";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { initItemStore } from "@/src/hooks/item_store";
+import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import CollectionType from "@/src/types/entities/collectiontype";
 import { ItemProvided } from "@/src/types/entities/item";
@@ -21,14 +22,14 @@ function CollectionItemListCard({
   collectionType,
   onCardPress,
 }: CollectionItemListCardProps) {
-  console.log(item.itemAttributes[0].valueString);
+  const { token } = useUserStore();
   const darkContrastColor = adjustColor(
     collectionType.color,
-    customTheme.colorChangePercent.dark
+    customTheme.colorChangePercent.dark,
   );
   const lightContrastColor = adjustColor(
     collectionType.color,
-    customTheme.colorChangePercent.light
+    customTheme.colorChangePercent.light,
   );
   const primaryValue = getItemPrimaryAttributeValue(item.itemAttributes);
 
@@ -61,6 +62,9 @@ function CollectionItemListCard({
           uri: item.image
             ? `${endpoints.itemsCoverImage}/${item.image}`
             : `${endpoints.icons}/${collectionType.icon}`,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
           cache: "reload",
         }}
         style={{
