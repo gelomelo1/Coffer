@@ -1,6 +1,6 @@
 import { endpoints } from "@/src/const/endpoints";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
-import { initCollectionStore } from "@/src/hooks/collection_store";
+import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import { Collection } from "@/src/types/entities/collection";
@@ -30,6 +30,7 @@ export default function CollectionsContainer({
   collections,
 }: CollectionsContainerProps) {
   const { user, token } = useUserStore();
+  const { setCollectionType, setCollection } = useCollectionStore();
 
   const [sorts, setSorts] = useState<Record<string, keyof Collection>>(
     Object.fromEntries(
@@ -125,6 +126,8 @@ export default function CollectionsContainer({
               <CollectionCarousel
                 matchingCollections={matchingCollections}
                 matchingCollectionType={type}
+                setCollectionType={setCollectionType}
+                setCollection={setCollection}
                 triggerAnimation={sorts[type.id]}
                 token={token!}
               />
@@ -139,11 +142,15 @@ export default function CollectionsContainer({
 function CollectionCarousel({
   matchingCollections,
   matchingCollectionType,
+  setCollectionType,
+  setCollection,
   triggerAnimation,
   token,
 }: {
   matchingCollections: Collection[];
   matchingCollectionType: CollectionType;
+  setCollectionType: (collectionType: CollectionType) => void;
+  setCollection: (collection: Collection) => void;
   triggerAnimation: string;
   token: string;
 }) {
@@ -165,9 +172,10 @@ function CollectionCarousel({
   }, [fadeAnim, triggerAnimation]);
 
   const handleNavigation = (item: Collection) => {
-    initCollectionStore(matchingCollectionType, item);
+    setCollectionType(matchingCollectionType);
+    setCollection(item);
     navigate({
-      pathname: ROUTES.COLLECTIONS.HOME,
+      pathname: ROUTES.MYCOLLECTION,
       params: pageParams.home,
     });
   };

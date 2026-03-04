@@ -5,14 +5,17 @@ import { useEffect } from "react";
 import { LoadingScreen } from "../components/custom_ui/loading";
 import { endpoints } from "../const/endpoints";
 import { pageParams, ROUTES } from "../const/navigation_params";
+import { useCollectionTypeStore } from "../hooks/collection_type_store";
 import { useResetNavigation } from "../hooks/navigation";
 import { useUserStore } from "../hooks/user_store";
+import CollectionType from "../types/entities/collectiontype";
 import User from "../types/entities/user";
-import { getSingleData } from "../utils/backend_access";
+import { getData, getSingleData } from "../utils/backend_access";
 
 export default function Index() {
   const resetNavigate = useResetNavigation();
   const { setUser } = useUserStore();
+  const { setCollectionTypes } = useCollectionTypeStore();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -26,10 +29,15 @@ export default function Index() {
             undefined,
             { Authorization: `Bearer ${token}` },
           );
+          const collectionTypes = await getData<CollectionType>(
+            endpoints.collectionTypes,
+            { Authorization: `Bearer ${token}` },
+          );
           setUser(currentUser);
+          setCollectionTypes(collectionTypes);
           resetNavigate({
-            pathname: ROUTES.COLLECTIONS.ROOT,
-            params: pageParams.collections,
+            pathname: ROUTES.TABS.HOME,
+            params: pageParams.home,
           });
         } catch (error: unknown) {
           if (axios.isAxiosError(error)) {

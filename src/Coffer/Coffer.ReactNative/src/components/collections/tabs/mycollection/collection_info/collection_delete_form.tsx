@@ -1,14 +1,12 @@
 import CustomButton from "@/src/components/custom_ui/custom_button";
+import CustomOverlay from "@/src/components/custom_ui/custom_overlay";
 import CustomText from "@/src/components/custom_ui/custom_text";
 import { endpoints } from "@/src/const/endpoints";
 import { ROUTES, pageParams } from "@/src/const/navigation_params";
 import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useDeleteData } from "@/src/hooks/data_hooks";
 import { useResetNavigation } from "@/src/hooks/navigation";
-import { customTheme } from "@/src/theme/theme";
 import React from "react";
-import { View } from "react-native";
-import { Overlay } from "react-native-elements";
 
 interface CollectionDeleteFormProps {
   isDeleteCollectionConfirmVisible: {
@@ -47,36 +45,34 @@ function CollectionDeleteForm({
   };
 
   return (
-    <Overlay
+    <CustomOverlay
       isVisible={isDeleteCollectionConfirmVisible.value}
-      onBackdropPress={handleOverlayClose}
-      overlayStyle={{
-        backgroundColor: customTheme.colors.background,
-      }}
-    >
-      <View
-        style={{
-          width: "90%",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: 10,
-        }}
-      >
-        <CustomText>
-          Are you sure you want to delete{" "}
-          <CustomText style={{ fontFamily: "VendSansBold" }}>
-            {collection.name}
-          </CustomText>{" "}
-          collection?
-        </CustomText>
+      onClose={handleOverlayClose}
+      overlayTitle={"Delete Collection"}
+      footerContent={
         <CustomButton
-          title={"Delete"}
+          title="Delete"
+          containerStyle={{ width: "90%", alignSelf: "center" }}
           loading={isDeletePending}
           onPress={handleDelete}
         />
-      </View>
-    </Overlay>
+      }
+    >
+      <CustomText
+        style={{
+          marginHorizontal: 10,
+          marginVertical: 10,
+          textAlign: "center",
+          fontSize: 20,
+        }}
+      >
+        Are you sure you want to delete{" "}
+        <CustomText style={{ fontSize: 20, fontFamily: "VendSansBold" }}>
+          {collection.name}
+        </CustomText>{" "}
+        collection?
+      </CustomText>
+    </CustomOverlay>
   );
 }
 

@@ -10,11 +10,12 @@ import CustomText from "../custom_ui/custom_text";
 
 function IndexCustomLayout(
   user: User | null,
-  route: RouteProp<ParamListBase, string>
+  route: RouteProp<ParamListBase, string>,
 ) {
   const params = parseParams(route);
   if (
-    route.name === (ROUTES.COLLECTIONS.HOME as string) ||
+    route.name === (ROUTES.MYCOLLECTION as string) ||
+    route.name === (ROUTES.TABS.HOME as string) ||
     route.name === (ROUTES.LOGIN as string) ||
     route.name === (ROUTES.ITEMDETAILS as string) ||
     route.name === (ROUTES.OTHERUSER as string) ||

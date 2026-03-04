@@ -31,7 +31,7 @@ function OtherUser() {
             value: collectionType.id,
           },
         ],
-      }
+      },
     );
 
   return (

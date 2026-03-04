@@ -1,6 +1,5 @@
 import AnimatedTabIcon from "@/src/components/collections/tabs/layout/animated_tab_icon";
 import CollectionTabsCustomLayout from "@/src/components/collections/tabs/layout/collection_tabs_custom_layout";
-import ItemRegisterActionButton from "@/src/components/itemregister/item_register_action_button";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useCollectionStore } from "@/src/hooks/collection_store";
 import { Tabs, usePathname } from "expo-router";
@@ -23,13 +22,37 @@ function CollectionLayout() {
               title: "Home",
               tabBarIcon: () => (
                 <AnimatedTabIcon
-                  focused={pathname === `/${ROUTES.COLLECTIONS.HOME}`}
+                  focused={pathname === `/${ROUTES.TABS.HOME}`}
                   title="Home"
                   icon={{ library: "fontawesome", name: "home" }}
                   navigate={() => {
                     navigate({
-                      pathname: ROUTES.COLLECTIONS.HOME,
+                      pathname: ROUTES.TABS.HOME,
                       params: pageParams.home,
+                    });
+                  }}
+                />
+              ),
+            };
+          }}
+        />
+        <Tabs.Screen
+          name="collections"
+          options={() => {
+            return {
+              title: "Collections",
+              tabBarIcon: () => (
+                <AnimatedTabIcon
+                  focused={pathname === `/${ROUTES.TABS.COLLECTIONS}`}
+                  title="Collections"
+                  icon={{
+                    library: "materialcommunityicons",
+                    name: "treasure-chest",
+                  }}
+                  navigate={() => {
+                    navigate({
+                      pathname: ROUTES.TABS.COLLECTIONS,
+                      params: pageParams.collections,
                     });
                   }}
                 />
@@ -44,7 +67,7 @@ function CollectionLayout() {
               title: "My Follows",
               tabBarIcon: () => (
                 <AnimatedTabIcon
-                  focused={pathname === `/${ROUTES.COLLECTIONS.MYFOLLOWS}`}
+                  focused={pathname === `/${ROUTES.TABS.MYFOLLOWS}`}
                   title="My Follows"
                   icon={{
                     library: "materialcommunityicons",
@@ -52,7 +75,7 @@ function CollectionLayout() {
                   }}
                   navigate={() => {
                     navigate({
-                      pathname: ROUTES.COLLECTIONS.MYFOLLOWS,
+                      pathname: ROUTES.TABS.MYFOLLOWS,
                       params: pageParams.myfollows,
                     });
                   }}
@@ -68,12 +91,12 @@ function CollectionLayout() {
               title: "Barter",
               tabBarIcon: () => (
                 <AnimatedTabIcon
-                  focused={pathname === `/${ROUTES.COLLECTIONS.BARTER}`}
+                  focused={pathname === `/${ROUTES.TABS.BARTER}`}
                   title="Barter"
                   icon={{ library: "fontawesome", name: "exchange" }}
                   navigate={() => {
                     navigate({
-                      pathname: ROUTES.COLLECTIONS.BARTER,
+                      pathname: ROUTES.TABS.BARTER,
                       params: pageParams.barter,
                     });
                   }}
@@ -82,35 +105,11 @@ function CollectionLayout() {
             };
           }}
         />
-        <Tabs.Screen
-          name="mycollection"
-          options={() => {
-            return {
-              title: "My Collection",
-              tabBarIcon: () => (
-                <AnimatedTabIcon
-                  focused={pathname === `/${ROUTES.COLLECTIONS.MYCOLLECTION}`}
-                  title="My Collection"
-                  icon={{
-                    library: "materialcommunityicons",
-                    name: "treasure-chest",
-                  }}
-                  navigate={() => {
-                    navigate({
-                      pathname: ROUTES.COLLECTIONS.MYCOLLECTION,
-                      params: pageParams.mycollection,
-                    });
-                  }}
-                />
-              ),
-            };
-          }}
-        />
       </Tabs>
-      <ItemRegisterActionButton
-        collectionType={collectionType}
-        collection={collection}
-      />
+      {/*<ItemRegisterActionButton
+        collectionType={collectionType!}
+        collection={collection!}
+      /> */}
     </PaperProvider>
   );
 }

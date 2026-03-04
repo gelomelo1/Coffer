@@ -5,21 +5,18 @@ import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
 import { useUserStore } from "@/src/hooks/user_store";
 import CollectionSearch from "@/src/types/entities/collection_search";
-import CollectionType from "@/src/types/entities/collectiontype";
 import User from "@/src/types/entities/user";
 import { navigate } from "expo-router/build/global-state/routing";
 import { Image, TouchableOpacity, View } from "react-native";
 
 interface FeedSearchCollectionCardProps {
   currentUser: User;
-  collectionType: CollectionType;
   collectionSearch: CollectionSearch;
   closeOverlay: () => void;
 }
 
 function FeedSearchCollectionCard({
   currentUser,
-  collectionType,
   collectionSearch,
   closeOverlay,
 }: FeedSearchCollectionCardProps) {
@@ -63,7 +60,7 @@ function FeedSearchCollectionCard({
         source={{
           uri: collectionSearch.collection.image
             ? `${endpoints.collectionsCoverImage}/${collectionSearch.collection.image}`
-            : `${endpoints.icons}/${collectionType.icon}`,
+            : `${endpoints.icons}/${collectionSearch.collection.collectionTypeId}`,
           headers: {
             Authorization: `Bearer ${token}`,
           },

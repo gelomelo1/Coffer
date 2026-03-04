@@ -2,7 +2,6 @@ import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
 import { useCreateData, useGetData } from "@/src/hooks/data_hooks";
 import { useUserStore } from "@/src/hooks/user_store";
-import { customTheme } from "@/src/theme/theme";
 import {
   Collection,
   CollectionRequired,
@@ -12,9 +11,10 @@ import User from "@/src/types/entities/user";
 import { Filter } from "profanity-check";
 import React, { useRef, useState } from "react";
 import { ActivityIndicator, Image, View } from "react-native";
-import { Icon, Overlay } from "react-native-elements";
+import { Icon } from "react-native-elements";
 import CustomButton from "../custom_ui/custom_button";
 import CustomDropdown from "../custom_ui/custom_dropdown";
+import CustomOverlay from "../custom_ui/custom_overlay";
 import CustomTextInput from "../custom_ui/custom_text_input";
 
 interface CreateCollectionFormProps {
@@ -161,20 +161,26 @@ function CreateCollectionForm({
   };
 
   return (
-    <Overlay
+    <CustomOverlay
       isVisible={isCreateNewCollectionOverlayOpen.value}
-      onBackdropPress={() => handleOverlayClose()}
-      overlayStyle={{
-        backgroundColor: customTheme.colors.background,
-      }}
+      onClose={handleOverlayClose}
+      overlayTitle={"Create New Collection"}
+      footerContent={
+        <CustomButton
+          title="Create"
+          disabled={isSubmitDisabled}
+          containerStyle={{ width: "90%", alignSelf: "center" }}
+          loading={isPending}
+          onPress={handleSubmitCollectionCreation}
+        />
+      }
     >
       <View
         style={{
-          width: "90%",
-          display: "flex",
+          paddingHorizontal: 10,
           justifyContent: "center",
-          alignItems: "center",
-          gap: 10,
+          gap: 20,
+          marginTop: 20,
         }}
       >
         <CustomDropdown
@@ -201,15 +207,8 @@ function CreateCollectionForm({
             ) : undefined
           }
         />
-        <CustomButton
-          title="Create collection"
-          disabled={isSubmitDisabled}
-          containerStyle={{ marginTop: 20 }}
-          loading={isPending}
-          onPress={handleSubmitCollectionCreation}
-        />
       </View>
-    </Overlay>
+    </CustomOverlay>
   );
 }
 

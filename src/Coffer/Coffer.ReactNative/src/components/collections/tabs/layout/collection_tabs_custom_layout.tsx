@@ -1,7 +1,5 @@
 import CustomText from "@/src/components/custom_ui/custom_text";
-import { endpoints } from "@/src/const/endpoints";
 import { ROUTES, pageParams } from "@/src/const/navigation_params";
-import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useResetNavigation } from "@/src/hooks/navigation";
 import { useNavigationModeStore } from "@/src/hooks/navigation_mode_store";
 import { useUserStore } from "@/src/hooks/user_store";
@@ -11,14 +9,13 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
 import { ParamListBase, RouteProp } from "@react-navigation/native";
 import { navigate } from "expo-router/build/global-state/routing";
-import { Image, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import { Icon } from "react-native-elements";
 
 function CollectionTabsCustomLayout(
-  route: RouteProp<ParamListBase, string>
+  route: RouteProp<ParamListBase, string>,
 ): BottomTabNavigationOptions {
   const { user } = useUserStore();
-  const { collectionType, collection } = useCollectionStore();
   const { navigationMode } = useNavigationModeStore();
   const params = parseParams(route);
   const resetNavigate = useResetNavigation();
@@ -68,51 +65,19 @@ function CollectionTabsCustomLayout(
             marginLeft: 20,
           }}
         >
-          <View
-            style={{
-              position: "absolute",
-              top: 0,
-              left: -36,
-              backgroundColor: collectionType.color,
-              paddingVertical: 3,
-              paddingHorizontal: 6,
-              elevation: 8,
-            }}
-          >
-            <Image
-              source={{
-                uri: `${endpoints.icons}/${collectionType.icon}`,
-              }}
-              style={{
-                width: 24,
-                height: 24,
-              }}
-            />
-          </View>
-
-          <CustomText
-            style={{
-              fontSize: 14,
-              color: collectionType.color,
-              borderBottomWidth: 11,
-              borderBottomColor: collectionType.color,
-              paddingLeft: 10,
-            }}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {collection.name}
-          </CustomText>
           {screenTitle ? (
             <CustomText
               style={{
                 fontSize: 14,
-                color: customTheme.colors.secondary,
+                color: customTheme.colors.primary,
+                borderBottomWidth: 10,
+                borderBottomColor: customTheme.colors.primary,
+                paddingLeft: 0,
               }}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              {` -> ${screenTitle}`}
+              {screenTitle}
             </CustomText>
           ) : null}
         </View>
@@ -122,15 +87,10 @@ function CollectionTabsCustomLayout(
       <>
         <TouchableOpacity
           style={{ marginRight: 16 }}
-          onPress={() =>
-            resetNavigate({
-              pathname: ROUTES.COLLECTIONS.ROOT,
-              params: pageParams.collections,
-            })
-          }
+          onPress={() => console.log("Help Pressed")}
         >
           <MaterialIcons
-            name="arrow-back"
+            name="help"
             size={24}
             color={customTheme.colors.primary}
           />

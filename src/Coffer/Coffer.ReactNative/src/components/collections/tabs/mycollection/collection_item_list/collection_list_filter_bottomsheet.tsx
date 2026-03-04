@@ -19,9 +19,11 @@ import {
 } from "@/src/utils/data_access_utils";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useEffect, useState } from "react";
-import { ScrollView, TouchableOpacity, View } from "react-native";
-import { BottomSheet, Switch } from "react-native-elements";
+import { TouchableOpacity, View } from "react-native";
+import { Overlay, Switch } from "react-native-elements";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import MonthPicker from "react-native-month-year-picker";
+import { SafeAreaView } from "react-native-safe-area-context";
 import CollectionItemListDynamicFilter from "./collection_item_list_dynamic_filter";
 
 interface CollectionListFilterBottomSheetProps {
@@ -55,18 +57,18 @@ function CollectionListFilterBottomSheet({
   const [isDuplicateSwitchOn, setIsDuplicateSwitchOn] = useState(false);
 
   const [acquiredAtBeforeDate, setAcquiredAtBeforeDate] = useState<Date | null>(
-    null
+    null,
   );
   const [acquiredAtAfterDate, setAcquiredAtAfterDate] = useState<Date | null>(
-    null
+    null,
   );
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [datePickerId, setDatePickerId] = useState<"before" | "after">(
-    "before"
+    "before",
   );
 
   const getFilterData = (
-    id: number | string
+    id: number | string,
   ): QueryFilterDataItem | undefined => {
     return selectedFilterDatas.find((item) => item.id === id);
   };
@@ -79,15 +81,15 @@ function CollectionListFilterBottomSheet({
       setIsDuplicateSwitchOn(
         (getFilterData(quantityItemFilterKey)?.value.value as number) === 1
           ? true
-          : false
+          : false,
       );
       setAcquiredAtBeforeDate(
         (getFilterData(`${acquiredAtItemFilterKey}_before`)?.value
-          .value as Date) ?? null
+          .value as Date) ?? null,
       );
       setAcquiredAtAfterDate(
         (getFilterData(`${acquiredAtItemFilterKey}_after`)?.value
-          .value as Date) ?? null
+          .value as Date) ?? null,
       );
       setIsDatePickerOpen(false);
     }
@@ -130,7 +132,7 @@ function CollectionListFilterBottomSheet({
       filters:
         draftFilterDatas.length > 0
           ? draftFilterDatas.map(
-              (selectedFilterDatasItem) => selectedFilterDatasItem.value
+              (selectedFilterDatasItem) => selectedFilterDatasItem.value,
             )
           : undefined,
     }));
@@ -176,166 +178,234 @@ function CollectionListFilterBottomSheet({
     return datePickerId === "before" && acquiredAtBeforeDate !== null
       ? acquiredAtBeforeDate
       : acquiredAtAfterDate !== null
-      ? acquiredAtAfterDate
-      : new Date();
+        ? acquiredAtAfterDate
+        : new Date();
   };
 
   return (
-    // @ts-ignore
-    <BottomSheet isVisible={isCollectionListFilterBottomSheetOpen.value}>
-      <ScrollView
-        style={{
-          width: "100%",
-          padding: 10,
-          backgroundColor: customTheme.colors.background,
-        }}
-      >
-        <View style={{ justifyContent: "space-between", flexDirection: "row" }}>
-          <CustomButton
-            title={"Reset"}
-            containerStyle={{
-              width: 80,
-              alignSelf: "flex-start",
-              borderRadius: 40,
-            }}
-            buttonStyle={{
-              borderRadius: 40,
-              margin: 0,
-              padding: 0,
-            }}
-            onPress={resetFilters}
-          />
-          <MaterialIcons
-            name="clear"
-            size={32}
-            color={customTheme.colors.primary}
-            onPress={handleCloseBottomSheet}
-            style={{ alignSelf: "flex-end" }}
-          />
-        </View>
-        <CustomText style={{ fontSize: 24, marginLeft: 20 }}>Sort</CustomText>
-        <CustomDropdown
-          open={isSortingDropdownOpen}
-          label={"Sort by"}
-          value={draftSortId}
-          setOpen={setIsSortingDropdownOpen}
-          setValue={setDraftSortId}
-          items={generateSortRecordDataForItem(attributes)}
-        />
-        <CustomText style={{ fontSize: 24, marginLeft: 20, marginTop: 20 }}>
-          Filter
-        </CustomText>
-        <View style={{ marginBottom: 10 }}>
-          <View style={{ justifyContent: "flex-end", flexDirection: "row" }}>
-            <CustomText>Duplicate</CustomText>
-            <Switch
-              value={isDuplicateSwitchOn}
-              trackColor={{ true: customTheme.colors.secondary }}
-              thumbColor={customTheme.colors.primary}
-              onValueChange={(newValue) => {
-                setIsDuplicateSwitchOn(newValue);
-                handleChangeFilterData({
-                  id: quantityItemFilterKey,
-                  value: {
-                    filter: ">",
-                    field: quantityItemFilterKey,
-                    value: newValue ? 1 : 0,
-                  },
-                });
-              }}
-            />
-          </View>
-          <CustomTextInput
-            label="Tags contains"
-            placeholder="Write any tags keyword"
-            defaultValue={
-              (getFilterData(tagItemFilterKey)?.value.value as string) ?? ""
-            }
-            onChangeText={(newValue) =>
-              handleChangeFilterData({
-                id: tagItemFilterKey,
-                value: {
-                  filter: "None",
-                  field: nestedTagFilterQuery(newValue),
-                  value: newValue,
-                },
-              })
-            }
-          />
-          <CustomText style={{ marginTop: 10 }}>
-            Last item acquisition date
-          </CustomText>
+    <Overlay
+      isVisible={isCollectionListFilterBottomSheetOpen.value}
+      onBackdropPress={handleCloseBottomSheet}
+      overlayStyle={{
+        backgroundColor: customTheme.colors.background,
+        margin: 0,
+        padding: 0,
+      }}
+      fullScreen
+      animationType="slide"
+    >
+      <SafeAreaView style={{ flex: 1 }}>
+        <View>
           <View
             style={{
               position: "relative",
-              width: "100%",
-              justifyContent: "space-between",
+              backgroundColor: customTheme.colors.background,
+
               flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              borderBottomWidth: 2,
+              borderBottomColor: customTheme.colors.primary,
+              paddingBottom: 10,
+              paddingHorizontal: 10,
+              zIndex: 1,
+              boxShadow: `0px 2px 2px ${customTheme.colors.primary}`,
             }}
           >
-            <TouchableOpacity
-              style={{ width: "48%" }}
-              onPress={() => handleDatePickerInput("after")}
-            >
-              <CustomTextInput
-                label="After Date"
-                editable={false}
-                value={acquiredAtAfterDate?.toLocaleDateString() ?? ""}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={{ width: "48%" }}
-              onPress={() => handleDatePickerInput("before")}
-            >
-              <CustomTextInput
-                label="Before Date"
-                editable={false}
-                value={acquiredAtBeforeDate?.toLocaleDateString() ?? ""}
-              />
-            </TouchableOpacity>
-            {isDatePickerOpen ? (
-              <MonthPicker
-                value={getDateValue()}
-                onChange={(event, newDate) => handleDateChange(newDate)}
-              />
-            ) : null}
+            <CustomButton
+              title={"Reset"}
+              containerStyle={{
+                width: 80,
+                alignSelf: "flex-start",
+                borderRadius: 40,
+              }}
+              buttonStyle={{
+                borderRadius: 40,
+                margin: 0,
+                padding: 0,
+              }}
+              onPress={resetFilters}
+            />
+            <MaterialIcons
+              name="clear"
+              size={32}
+              color={customTheme.colors.primary}
+              onPress={handleCloseBottomSheet}
+              style={{ alignSelf: "flex-end" }}
+            />
           </View>
-          {attributes
-            .slice()
-            .sort((a, b) => {
-              if (a.primary && !b.primary) return -1;
-              if (!a.primary && b.primary) return 1;
-              return 0;
-            })
-            .map((attribute) => (
-              <CollectionItemListDynamicFilter
-                key={attribute.id}
-                attribute={attribute}
-                isBottomSheetVisible={
-                  isCollectionListFilterBottomSheetOpen.value
-                }
-                onQueryFilterDataChange={(filter, id) =>
-                  handleChangeFilterData({
-                    id: id ?? attribute.id,
-                    value: filter,
-                  })
-                }
-                draftQueryFilterData={
-                  attribute.dataType === "date"
-                    ? [
-                        getFilterData(`${attribute.id}_before`),
-                        getFilterData(`${attribute.id}_after`),
-                      ].filter((f): f is QueryFilterDataItem => f !== undefined)
-                    : [getFilterData(attribute.id)].filter(
-                        (f): f is QueryFilterDataItem => f !== undefined
-                      )
-                }
-              />
-            ))}
         </View>
-        <CustomButton title={"Apply"} onPress={handleOnApply} />
-      </ScrollView>
-    </BottomSheet>
+        <View style={{ flex: 1 }}>
+          {
+            <KeyboardAwareScrollView
+              enableOnAndroid
+              extraScrollHeight={250}
+              enableResetScrollToCoords={false}
+            >
+              <View
+                style={{
+                  paddingHorizontal: 10,
+                  justifyContent: "center",
+                }}
+              >
+                <CustomText style={{ fontSize: 24, marginLeft: 20 }}>
+                  Sort
+                </CustomText>
+                <CustomDropdown
+                  open={isSortingDropdownOpen}
+                  label={"Sort by"}
+                  value={draftSortId}
+                  setOpen={setIsSortingDropdownOpen}
+                  setValue={setDraftSortId}
+                  items={generateSortRecordDataForItem(attributes)}
+                />
+                <CustomText
+                  style={{ fontSize: 24, marginLeft: 20, marginTop: 20 }}
+                >
+                  Filter
+                </CustomText>
+                <View style={{ marginBottom: 10 }}>
+                  <View
+                    style={{ justifyContent: "flex-end", flexDirection: "row" }}
+                  >
+                    <CustomText>Duplicate</CustomText>
+                    <Switch
+                      value={isDuplicateSwitchOn}
+                      trackColor={{ true: customTheme.colors.secondary }}
+                      thumbColor={customTheme.colors.primary}
+                      onValueChange={(newValue) => {
+                        setIsDuplicateSwitchOn(newValue);
+                        handleChangeFilterData({
+                          id: quantityItemFilterKey,
+                          value: {
+                            filter: ">",
+                            field: quantityItemFilterKey,
+                            value: newValue ? 1 : 0,
+                          },
+                        });
+                      }}
+                    />
+                  </View>
+                  <CustomTextInput
+                    label="Tags contains"
+                    placeholder="Write any tags keyword"
+                    defaultValue={
+                      (getFilterData(tagItemFilterKey)?.value
+                        .value as string) ?? ""
+                    }
+                    onChangeText={(newValue) =>
+                      handleChangeFilterData({
+                        id: tagItemFilterKey,
+                        value: {
+                          filter: "None",
+                          field: nestedTagFilterQuery(newValue),
+                          value: newValue,
+                        },
+                      })
+                    }
+                  />
+                  <CustomText style={{ marginTop: 10 }}>
+                    Last item acquisition date
+                  </CustomText>
+                  <View
+                    style={{
+                      position: "relative",
+                      width: "100%",
+                      justifyContent: "space-between",
+                      flexDirection: "row",
+                    }}
+                  >
+                    <TouchableOpacity
+                      style={{ width: "48%" }}
+                      onPress={() => handleDatePickerInput("after")}
+                    >
+                      <CustomTextInput
+                        label="After Date"
+                        editable={false}
+                        value={acquiredAtAfterDate?.toLocaleDateString() ?? ""}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={{ width: "48%" }}
+                      onPress={() => handleDatePickerInput("before")}
+                    >
+                      <CustomTextInput
+                        label="Before Date"
+                        editable={false}
+                        value={acquiredAtBeforeDate?.toLocaleDateString() ?? ""}
+                      />
+                    </TouchableOpacity>
+                    {isDatePickerOpen ? (
+                      <MonthPicker
+                        value={getDateValue()}
+                        onChange={(event, newDate) => handleDateChange(newDate)}
+                      />
+                    ) : null}
+                  </View>
+                  {attributes
+                    .slice()
+                    .sort((a, b) => {
+                      if (a.primary && !b.primary) return -1;
+                      if (!a.primary && b.primary) return 1;
+                      return 0;
+                    })
+                    .map((attribute) => (
+                      <CollectionItemListDynamicFilter
+                        key={attribute.id}
+                        attribute={attribute}
+                        isBottomSheetVisible={
+                          isCollectionListFilterBottomSheetOpen.value
+                        }
+                        onQueryFilterDataChange={(filter, id) =>
+                          handleChangeFilterData({
+                            id: id ?? attribute.id,
+                            value: filter,
+                          })
+                        }
+                        draftQueryFilterData={
+                          attribute.dataType === "date"
+                            ? [
+                                getFilterData(`${attribute.id}_before`),
+                                getFilterData(`${attribute.id}_after`),
+                              ].filter(
+                                (f): f is QueryFilterDataItem =>
+                                  f !== undefined,
+                              )
+                            : [getFilterData(attribute.id)].filter(
+                                (f): f is QueryFilterDataItem =>
+                                  f !== undefined,
+                              )
+                        }
+                      />
+                    ))}
+                </View>
+              </View>
+            </KeyboardAwareScrollView>
+          }
+        </View>
+        <View
+          style={{
+            height: 80,
+            backgroundColor: customTheme.colors.background,
+            borderTopWidth: 2,
+            borderLeftWidth: 2,
+            borderRightWidth: 2,
+            borderBottomColor: customTheme.colors.primary,
+            borderTopLeftRadius: 10,
+            borderTopRightRadius: 10,
+            justifyContent: "center",
+            alignItems: "center",
+            boxShadow: `0px -2px 2px ${customTheme.colors.primary}`,
+          }}
+        >
+          <CustomButton
+            title={"Apply"}
+            containerStyle={{ width: "90%", alignSelf: "center" }}
+            onPress={handleOnApply}
+          />
+        </View>
+      </SafeAreaView>
+    </Overlay>
   );
 }
 

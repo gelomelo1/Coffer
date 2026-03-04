@@ -16,9 +16,10 @@ export interface NavigationModeStore {
 }
 
 export interface CollectionStore {
-  collectionType: CollectionType;
-  collection: Collection;
-  setCollection: (collection: Collection) => void;
+  collectionType: CollectionType | null;
+  collection: Collection | null;
+  setCollectionType: (collectionType: CollectionType) => void;
+  setCollection: (collection: Collection | null) => void;
 }
 
 export interface UserStore {
@@ -50,4 +51,9 @@ export interface TradeStore {
 export interface OfferStore {
   offer: Offer | null;
   setOffer: (offer: Offer | null) => void;
+}
+
+export interface CollectionTypeStore {
+  collectionTypes: CollectionType[];
+  setCollectionTypes: (collectionTypes: CollectionType[]) => void;
 }

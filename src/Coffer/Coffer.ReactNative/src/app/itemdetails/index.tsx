@@ -35,12 +35,12 @@ function ItemDetails() {
     useState(false);
 
   const darkContrastColor = adjustColor(
-    collectionType.color,
+    collectionType!.color,
     customTheme.colorChangePercent.dark,
   );
 
   const lightContrastColor = adjustColor(
-    collectionType.color,
+    collectionType!.color,
     customTheme.colorChangePercent.light,
   );
 
@@ -50,7 +50,7 @@ function ItemDetails() {
 
   return (
     <>
-      <ScrollView style={rootViewStyle({ color: collectionType.color })}>
+      <ScrollView style={rootViewStyle({ color: collectionType!.color })}>
         <SafeAreaView>
           <View
             style={{
@@ -66,7 +66,7 @@ function ItemDetails() {
               source={{
                 uri: item.image
                   ? `${endpoints.itemsCoverImage}/${item.image}`
-                  : `${endpoints.icons}/${collectionType.icon}`,
+                  : `${endpoints.icons}/${collectionType!.icon}`,
                 headers: {
                   Authorization: `Bearer ${token}`,
                 },
@@ -90,7 +90,7 @@ function ItemDetails() {
           <CustomText
             style={{
               alignSelf: "center",
-              color: collectionType.color,
+              color: collectionType!.color,
               fontFamily: "VendSansBold",
               fontSize: 24,
               borderTopWidth: 1,
@@ -213,7 +213,7 @@ function ItemDetails() {
               <ItemDetailsDynamicAttributeDisplay
                 key={itemAttribute.id}
                 attributeValue={getItemAttributeValue(itemAttribute)}
-                collectionType={collectionType}
+                collectionType={collectionType!}
               />
             ),
           )}
@@ -235,7 +235,7 @@ function ItemDetails() {
                 title={`#${tag.tag}`}
                 titleStyle={{ color: darkContrastColor }}
                 buttonStyle={{
-                  backgroundColor: collectionType.color,
+                  backgroundColor: collectionType!.color,
                   borderWidth: 2,
                   borderColor: lightContrastColor,
                 }}

@@ -4,7 +4,6 @@ import { Loading } from "@/src/components/custom_ui/loading";
 import rootViewStyle from "@/src/components/custom_ui/root_view";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
-import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useGetData } from "@/src/hooks/data_hooks";
 import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
@@ -12,21 +11,15 @@ import CollectionSearch from "@/src/types/entities/collection_search";
 import { FlatList, View } from "react-native";
 
 function MyFollows() {
-  const { collectionType } = useCollectionStore();
   const { user } = useUserStore();
 
   const { data: followsData = [], isFetching } = useGetData<CollectionSearch>(
     `${endpoints.feedUserFollows}/${user!.id}`,
-    querykeys.followsData
+    querykeys.followsData,
   );
 
   return (
-    <View
-      style={[
-        rootViewStyle({ color: collectionType.color }),
-        { flex: 1, padding: 0 },
-      ]}
-    >
+    <View style={[rootViewStyle(), { flex: 1, padding: 0 }]}>
       <FlatList
         data={isFetching ? [] : followsData}
         keyExtractor={(item) => item.collection.id}
@@ -34,7 +27,6 @@ function MyFollows() {
           <View style={{ paddingHorizontal: 10 }}>
             <FeedSearchCollectionCard
               currentUser={user!}
-              collectionType={collectionType}
               collectionSearch={item}
               closeOverlay={() => {}}
             />

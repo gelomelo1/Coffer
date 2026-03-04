@@ -3,7 +3,7 @@ import CustomTextInput from "@/src/components/custom_ui/custom_text_input";
 import { Loading } from "@/src/components/custom_ui/loading";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
-import { useCollectionStore } from "@/src/hooks/collection_store";
+import { useCollectionTypeStore } from "@/src/hooks/collection_type_store";
 import { useGetData, useGetSingleData } from "@/src/hooks/data_hooks";
 import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
@@ -49,32 +49,35 @@ function FeedSearchOverlay({
   isFeedSearchOverlayVisible,
 }: FeedSearchOverlayProps) {
   const { user } = useUserStore();
-  const { collectionType } = useCollectionStore();
+  //const { collectionType } = useCollectionStore();
+  const { collectionTypes } = useCollectionTypeStore();
+
+  const collectionType = collectionTypes.find((ct) => ct.id === 1)!;
 
   const [searchText, setSearchText] = useState("");
 
   const { data: itemTagsSearchData = [], refetch: itemTagsSearchRefetch } =
     useGetData<ItemTagSearch>(
       `${endpoints.feedSearchTag}/${collectionType.id}/${encodeURIComponent(
-        searchText
+        searchText,
       )}`,
       querykeys.itemTagsSearchData,
       undefined,
       undefined,
-      { enabled: false, queryKey: [querykeys.itemTagsSearchData] }
+      { enabled: false, queryKey: [querykeys.itemTagsSearchData] },
     );
 
   const { data: mixedSearchData, refetch: mixedSearchRefetch } =
     useGetSingleData<MixedSearch>(
       `${endpoints.feedSearch}/${collectionType.id}/${encodeURIComponent(
-        searchText
+        searchText,
       )}`,
       querykeys.mixedSearchData,
       undefined,
       undefined,
       undefined,
       { enabled: false, queryKey: [querykeys.mixedSearchData] },
-      true
+      true,
     );
 
   const [selectedTabIndex, setSelectedTabIndex] = useState(0);
@@ -304,7 +307,6 @@ function FeedSearchOverlay({
                         return (
                           <FeedSearchCollectionCard
                             currentUser={user!}
-                            collectionType={collectionType}
                             collectionSearch={item.data}
                             closeOverlay={() =>
                               isFeedSearchOverlayVisible.set(false)
@@ -421,7 +423,6 @@ function FeedSearchOverlay({
                   renderItem={({ item }) => (
                     <FeedSearchCollectionCard
                       currentUser={user!}
-                      collectionType={collectionType}
                       collectionSearch={item}
                       closeOverlay={() => isFeedSearchOverlayVisible.set(false)}
                     />

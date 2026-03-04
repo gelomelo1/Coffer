@@ -60,7 +60,7 @@ function IndexCollectionCustomLayout(route: RouteProp<ParamListBase, string>) {
               position: "absolute",
               top: 0,
               left: -36,
-              backgroundColor: collectionType.color,
+              backgroundColor: collectionType!.color,
               paddingVertical: 3,
               paddingHorizontal: 6,
               elevation: 8,
@@ -68,7 +68,7 @@ function IndexCollectionCustomLayout(route: RouteProp<ParamListBase, string>) {
           >
             <Image
               source={{
-                uri: `${endpoints.icons}/${collectionType.icon}`,
+                uri: `${endpoints.icons}/${collectionType!.icon}`,
               }}
               style={{
                 width: 24,
@@ -80,15 +80,15 @@ function IndexCollectionCustomLayout(route: RouteProp<ParamListBase, string>) {
           <CustomText
             style={{
               fontSize: 14,
-              color: collectionType.color,
+              color: collectionType!.color,
               borderBottomWidth: 11,
-              borderBottomColor: collectionType.color,
+              borderBottomColor: collectionType!.color,
               paddingLeft: 10,
             }}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
-            {title ? title : collection.name}
+            {title ? title : collection!.name}
           </CustomText>
           {screenTitle ? (
             <CustomText
@@ -111,13 +111,23 @@ function IndexCollectionCustomLayout(route: RouteProp<ParamListBase, string>) {
           style={{ marginRight: 16 }}
           onPress={() =>
             navigate({
-              pathname: ROUTES.COLLECTIONS.HOME,
+              pathname: ROUTES.TABS.HOME,
               params: pageParams.home,
             })
           }
         >
           <MaterialIcons
             name="arrow-back"
+            size={24}
+            color={customTheme.colors.primary}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={{ marginRight: 16 }}
+          onPress={() => console.log("Help Pressed")}
+        >
+          <MaterialIcons
+            name="help"
             size={24}
             color={customTheme.colors.primary}
           />

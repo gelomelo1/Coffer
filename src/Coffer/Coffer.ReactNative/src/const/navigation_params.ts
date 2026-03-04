@@ -3,18 +3,18 @@ import { buildNavigationData } from "../utils/navigation_utils";
 export const ROUTES = {
   ROOT: "/" as any,
   LOGIN: "login" as any,
-  COLLECTIONS: {
-    ROOT: "collections" as any,
-    HOME: "collections/tabs" as any,
-    BARTER: "collections/tabs/barter" as any,
-    MYCOLLECTION: "collections/tabs/mycollection" as any,
-    MYFOLLOWS: "collections/tabs/myfollows" as any,
+  TABS: {
+    HOME: "tabs" as any,
+    BARTER: "tabs/barter" as any,
+    COLLECTIONS: "tabs/collections" as any,
+    MYFOLLOWS: "tabs/myfollows" as any,
   },
   SETTINGS: {
     ROOT: "settings" as any,
     DEVELOPER: "settings/developer" as any,
     USER: "settings/user" as any,
   },
+  MYCOLLECTION: "mycollection" as any,
   ITEMDETAILS: "itemdetails" as any,
   OTHERUSER: "otheruser" as any,
   OTHERUSERCOLLECTION: "otherusercollection" as any,

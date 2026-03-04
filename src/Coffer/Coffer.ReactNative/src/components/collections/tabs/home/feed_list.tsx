@@ -3,7 +3,7 @@ import CustomTextInput from "@/src/components/custom_ui/custom_text_input";
 import { Loading } from "@/src/components/custom_ui/loading";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
-import { useCollectionStore } from "@/src/hooks/collection_store";
+import { useCollectionTypeStore } from "@/src/hooks/collection_type_store";
 import { useGetData } from "@/src/hooks/data_hooks";
 import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
@@ -25,7 +25,7 @@ const HEADER_HEIGHT = 200;
 const INPUT_HEIGHT = 60;
 
 function FeedList() {
-  const { collectionType } = useCollectionStore();
+  const { collectionTypes } = useCollectionTypeStore();
   const { user } = useUserStore();
 
   const [isFeedSeachOverlayVisible, setIsFeedSearchOverlayVisible] =
@@ -33,7 +33,7 @@ function FeedList() {
 
   const { data: feedListData, isFetching } = useGetData<Feed>(
     `${endpoints.feed}/${user!.id}`,
-    querykeys.feedListData
+    querykeys.feedListData,
   );
 
   const flatListRef = useRef<FlatList<Feed>>(null);
@@ -198,7 +198,11 @@ function FeedList() {
             renderItem={({ item }) => (
               <FeedCard
                 user={user!}
-                collectionType={collectionType}
+                collectionType={
+                  collectionTypes.find(
+                    (ct) => ct.id === item.collection.collectionTypeId,
+                  )!
+                }
                 feed={item}
               />
             )}
@@ -213,7 +217,7 @@ function FeedList() {
             scrollEventThrottle={16}
             onScroll={Animated.event(
               [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-              { useNativeDriver: true }
+              { useNativeDriver: true },
             )}
             ListEmptyComponent={
               isFetching ? (

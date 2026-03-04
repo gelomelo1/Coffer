@@ -21,13 +21,13 @@ function MyCollection() {
     refetch,
   } = useGetData<ItemProvided>(
     endpoints.items,
-    `${querykeys.itemsData}${collection.id}`,
+    `${querykeys.itemsData}${collection!.id}`,
     {
       filters: [
         {
           filter: "Match",
           field: "collectionId",
-          value: collection.id,
+          value: collection!.id,
         },
         ...(queryOptions.filters ?? []),
       ],
@@ -35,22 +35,22 @@ function MyCollection() {
       page: queryOptions.page,
       pageSize: queryOptions.pageSize,
       filterConjunction: queryOptions.filterConjunction,
-    }
+    },
   );
 
   const { data: attributes = [], isFetching: isAttributesFetching } =
     useGetData<Attribute>(
       endpoints.attributes,
-      `${querykeys.attributesData}${collectionType.id}`,
+      `${querykeys.attributesData}${collectionType!.id}`,
       {
         filters: [
           {
             filter: "==",
             field: "collectionTypeId",
-            value: collectionType.id,
+            value: collectionType!.id,
           },
         ],
-      }
+      },
     );
 
   const allLoading = isItemsFetching || isAttributesFetching;
@@ -62,12 +62,12 @@ function MyCollection() {
   return (
     <View
       style={[
-        rootViewStyle({ color: collectionType.color }),
+        rootViewStyle({ color: collectionType!.color }),
         { flex: 1, padding: 0 },
       ]}
     >
       <CollectionSectionList
-        collectionType={collectionType}
+        collectionType={collectionType!}
         items={items}
         attributes={attributes}
         allLoading={allLoading}

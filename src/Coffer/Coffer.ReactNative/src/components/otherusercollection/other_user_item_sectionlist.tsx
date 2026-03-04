@@ -169,6 +169,7 @@ function OtherUserItemSectionList({
             textAlign: "center",
             fontFamily: "VendSansItalic",
             marginTop: 20,
+            marginBottom: 20,
           }}
         >
           End of list

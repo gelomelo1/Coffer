@@ -5,28 +5,23 @@ import { Loading } from "@/src/components/custom_ui/loading";
 import rootViewStyle from "@/src/components/custom_ui/root_view";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
+import { useCollectionTypeStore } from "@/src/hooks/collection_type_store";
 import { useGetData } from "@/src/hooks/data_hooks";
 import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import { Collection } from "@/src/types/entities/collection";
-import CollectionType from "@/src/types/entities/collectiontype";
 import { useState } from "react";
 import { View } from "react-native";
 import { Icon } from "react-native-elements";
 
 function Collections() {
   const { user } = useUserStore();
+  const { collectionTypes } = useCollectionTypeStore();
 
   const [
     isCreateNewCollectionOverlayOpen,
     setIsCreateNewCollectionOverlayOpen,
   ] = useState(false);
-
-  const { data: collectionTypes = [], isFetching: isCollectionTypesFetching } =
-    useGetData<CollectionType>(
-      endpoints.collectionTypes,
-      querykeys.collectionTypesData,
-    );
 
   const { data: collections = [], isFetching: isCollectionsFetching } =
     useGetData<Collection>(endpoints.collections, querykeys.collectionsData, {
@@ -39,7 +34,7 @@ function Collections() {
       ],
     });
 
-  const loading = isCollectionTypesFetching || isCollectionsFetching;
+  const loading = isCollectionsFetching;
 
   return (
     <>
@@ -54,7 +49,6 @@ function Collections() {
             marginVertical: 10,
             marginHorizontal: 10,
           }}
-          disabled={isCollectionTypesFetching}
         />
         {loading ? (
           <Loading />
