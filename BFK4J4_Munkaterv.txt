@@ -1,0 +1,43 @@
+Hallgató neve: Horváth Gellért  
+Neptun kódja: BFK4J4          
+Email címe: gellihorvath@gmail.com            
+Konzulens(ek) neve: Pálfy Miklós Gábor    
+Önlab tantárgy kódja: 	BMEVITMML10
+Tanév/félév:           2025/2026. 2. félév
+ 
+Feladat/téma címe: Modern webalkalmazás fejlesztése agilis módszertan alkalmazásával
+
+Leírás: A félév során a szakdolgozat projektem fejlesztését folytatom: az alkalmazás egyes funkcióit újragondolom és bővítem, 
+valamint megvalósítom a backend automatikus buildelését és VPS szerveren történő hosztolását, egy egyszerű, egy gombnyomásos publikálási folyamattal a folyamatos szállítás támogatására.
+ 
+1–2. oktatási hét:
+Az önálló labor témájának véglegesítése, valamint konzulens keresése és a projekt alapjainak egyeztetése.
+
+3–6. oktatási hét:
+Az alkalmazás funkcióinak újragondolása és bővítése, valamint új funkciók implementálása.
+Ennek keretében:
+-Az alkalmazás navigációs felépítésének átalakítása egy tipikus mobilalkalmazás struktúrájára (tab bar alapú navigáció, Home nyitóoldal kialakítása).
+-A csere-bere funkció újratervezése, mivel a jelenlegi megoldás túl szigorú és kevésbé használható.
+-Új funkció, kommentek létrehozása tárgyak alá.
+-Badge (jelvény) rendszer tervezése és megvalósítása a felhasználói aktivitás jutalmazására.
+
+7–8. oktatási hét:
+Információgyűjtés a folyamatos szállítás megvalósításáról.
+Ennek keretében:
+-VPS szolgáltatások és szerverbérlési lehetőségek vizsgálata.
+-A backend hosztolásának technikai feltételeinek megismerése.
+-GitHub alapú automatikus build folyamatok tanulmányozása.
+-Olyan script megtervezése, amely lehetővé teszi az alkalmazás egy gombnyomással történő publikálását.
+
+9–11. oktatási hét:
+A folyamatos szállítási folyamat gyakorlati megvalósítása:
+-VPS szerver bérlése és konfigurálása.
+-A backend alkalmazás hosztolásának beállítása.
+-GitHub automatikus build folyamat implementálása.
+-Automatikus publikálási (deploy) script elkészítése.
+
+12–13. oktatási hét:
+A projekt dokumentációjának elkészítése és véglegesítése.
+
+14. oktatási hét:
+Az előadás elkészítése és felkészülés a szóbeli bemutatóra.

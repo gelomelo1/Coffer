@@ -35,7 +35,7 @@ function ItemDeleteForm({ isDeleteItemConfirmVisible }: ItemDeleteFormProps) {
       await deleteCollection(item.id);
       handleOverlayClose();
       resetNavigate({
-        pathname: ROUTES.COLLECTIONS.MYCOLLECTION,
+        pathname: ROUTES.MYCOLLECTION,
         params: pageParams.mycollection,
       });
     } catch (error) {
@@ -66,8 +66,8 @@ function ItemDeleteForm({ isDeleteItemConfirmVisible }: ItemDeleteFormProps) {
           fontSize: 20,
         }}
       >
-        Are you sure you want to delete this {collectionType.name.toLowerCase()}{" "}
-        from your collection?
+        Are you sure you want to delete this{" "}
+        {collectionType!.name.toLowerCase()} from your collection?
       </CustomText>
     </CustomOverlay>
   );

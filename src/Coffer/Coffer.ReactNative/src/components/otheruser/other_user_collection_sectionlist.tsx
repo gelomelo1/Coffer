@@ -1,8 +1,8 @@
 import CustomText from "@/src/components/custom_ui/custom_text";
 import { Loading } from "@/src/components/custom_ui/loading";
+import { useCollectionTypeStore } from "@/src/hooks/collection_type_store";
 import { customTheme } from "@/src/theme/theme";
 import { Collection } from "@/src/types/entities/collection";
-import CollectionType from "@/src/types/entities/collectiontype";
 import User from "@/src/types/entities/user";
 import { chunkArray } from "@/src/utils/data_access_utils";
 import { useState } from "react";
@@ -18,7 +18,6 @@ import OtherUserCollectionCard from "./other_user_collection_card";
 interface OtherUserCollectionSectionListProps {
   currentUser: User;
   user: User;
-  collectionType: CollectionType;
   collections: Collection[];
   allLoading: boolean;
 }
@@ -26,10 +25,11 @@ interface OtherUserCollectionSectionListProps {
 function OtherUserCollectionSectionList({
   currentUser,
   user,
-  collectionType,
   collections,
   allLoading,
 }: OtherUserCollectionSectionListProps) {
+  const { collectionTypes } = useCollectionTypeStore();
+
   const chunkedItems = chunkArray(collections, 2);
 
   const sections = [{ data: chunkedItems.length > 0 ? chunkedItems : [[]] }];
@@ -110,7 +110,9 @@ function OtherUserCollectionSectionList({
               currentUser={currentUser}
               user={user}
               collection={i}
-              collectionType={collectionType}
+              collectionType={
+                collectionTypes.find((ct) => ct.id === i.collectionTypeId)!
+              }
             />
           ))}
         </View>

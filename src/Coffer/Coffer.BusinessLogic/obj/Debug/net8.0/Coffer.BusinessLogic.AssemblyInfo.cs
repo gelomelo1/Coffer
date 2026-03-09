@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Coffer.BusinessLogic")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3085d5e0d1b1839f2f90ea801c5df23a9e8af582")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6f715de02be1edfddc268ac08f1c585cce5298e1")]
 [assembly: System.Reflection.AssemblyProductAttribute("Coffer.BusinessLogic")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Coffer.BusinessLogic")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

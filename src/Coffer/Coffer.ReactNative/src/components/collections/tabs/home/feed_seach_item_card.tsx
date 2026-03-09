@@ -2,6 +2,7 @@ import CustomText from "@/src/components/custom_ui/custom_text";
 import { endpoints } from "@/src/const/endpoints";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useCollectionStore } from "@/src/hooks/collection_store";
+import { useCollectionTypeStore } from "@/src/hooks/collection_type_store";
 import { initItemStore } from "@/src/hooks/item_store";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
 import { useUserStore } from "@/src/hooks/user_store";
@@ -22,11 +23,17 @@ function FeedSearchItemCard({
   itemSearch,
   closeOverlay,
 }: FeedSearchItemCardProps) {
+  const { collectionTypes } = useCollectionTypeStore();
   const { token } = useUserStore();
   const { setValues } = useOtherUserStore();
-  const { setCollection } = useCollectionStore();
+  const { setCollectionType, setCollection } = useCollectionStore();
 
   const handleNavigation = () => {
+    setCollectionType(
+      collectionTypes.find(
+        (ct) => ct.id === itemSearch.collection.collectionTypeId,
+      )!,
+    );
     if (currentUser.id === itemSearch.user.id) {
       setCollection(itemSearch.collection);
       initItemStore(itemSearch.item);

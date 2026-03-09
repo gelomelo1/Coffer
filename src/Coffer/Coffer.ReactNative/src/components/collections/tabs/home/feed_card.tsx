@@ -1,6 +1,7 @@
 import CustomText from "@/src/components/custom_ui/custom_text";
 import { endpoints } from "@/src/const/endpoints";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
+import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
 import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
@@ -28,6 +29,7 @@ interface FeedCardProps {
 }
 
 function FeedCard({ user, collectionType, feed }: FeedCardProps) {
+  const { setCollectionType } = useCollectionStore();
   const { token } = useUserStore();
   const { setValues, setUser, setCollection } = useOtherUserStore();
   const [country, setCountry] = useState<Country | null>(null);
@@ -65,6 +67,7 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
   };
 
   const handleCollectionPress = () => {
+    setCollectionType(collectionType);
     setUser(feed.user);
     setCollection(feed.collection);
     navigate({
@@ -77,6 +80,7 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
   };
 
   const handleItemPress = () => {
+    setCollectionType(collectionType);
     setValues(feed.user, feed.collection, feed.item);
     navigate({
       pathname: ROUTES.OTHERUSERITEMDETAILS,

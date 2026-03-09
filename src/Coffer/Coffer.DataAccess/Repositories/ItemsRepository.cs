@@ -27,38 +27,62 @@ namespace Coffer.DataAccess.Repositories
             return await _dbContext.Database.BeginTransactionAsync();
         }
 
-        public async Task<IEnumerable<ItemProvided>> GetFeedItemsAsync(User user)
+        public async Task<IEnumerable<ItemProvided>> GetFeedItemsAsync(
+    User user,
+    string? filter = null,
+    string? orderBy = null,
+    int? page = null,
+    int? pageSize = null)
+{
+    var oneWeekAgo = DateTime.UtcNow.AddDays(-7);
+    var random = new Random();
+
+    IQueryable<ItemProvided> baseQuery = _dbSet
+        .Include(i => i.Reactions)
+        .Include(i => i.ItemAttributes)
+            .ThenInclude(ia => ia.Attribute)
+        .Include(i => i.ItemTags)
+        .Include(i => i.Collection)
+        .Include(i => i.Collection.Follows)
+        .Where(i =>
+            i.Collection.UserId != user.Id &&
+            i.AcquiredAt >= oneWeekAgo);
+
+    if (!string.IsNullOrWhiteSpace(filter))
+    {
+        baseQuery = baseQuery.Where(filter);
+    }
+
+    if (!string.IsNullOrWhiteSpace(orderBy))
+    {
+        baseQuery = baseQuery.OrderBy(orderBy);
+    }
+
+    if (page.HasValue && pageSize.HasValue)
+    {
+        baseQuery = baseQuery
+            .Skip((page.Value - 1) * pageSize.Value)
+            .Take(pageSize.Value);
+    }
+
+    var query = baseQuery
+        .Select(i => new
         {
-            var oneWeekAgo = DateTime.UtcNow.AddDays(-7);
-            var random = new Random();
+            Item = i,
+            Score =
+                (i.Collection.Follows.Any(f => f.UserId == user.Id) ? 100 : 0) +
+                (i.Collection.User.Country == user.Country ? 50 : 0) +
+                random.NextDouble() * 20
+        });
 
-            var query = _dbSet
-                .Include(i => i.Reactions)
-                .Include(i => i.ItemAttributes)
-                .ThenInclude(ia => ia.Attribute)
-                .Include(i => i.ItemTags)
-                .Include(i => i.Collection)
-                .Include(i => i.Collection.Follows)
-                .Where(i =>
-                    i.Collection.UserId != user.Id &&
-                    i.AcquiredAt >= oneWeekAgo)
-                .Select(i => new
-                {
-                    Item = i,
-                    Score =
-                        (i.Collection.Follows.Any(f => f.UserId == user.Id) ? 100 : 0) +
-                        (i.Collection.User.Country == user.Country ? 50 : 0) +
-                        random.NextDouble() * 20
-                });
+    var items = await query
+        .OrderByDescending(x => x.Score)
+        .ThenByDescending(x => x.Item.AcquiredAt)
+        .Select(x => x.Item)
+        .ToListAsync();
 
-            var items = await query
-                .OrderByDescending(x => x.Score)
-                .ThenByDescending(x => x.Item.AcquiredAt)
-                .Select(x => x.Item)
-                .ToListAsync();
-
-            return items;
-        }
+    return items;
+}
 
         private static string? GetPrimaryAttributeValueAsString(ItemProvided item)
         {
@@ -79,7 +103,7 @@ namespace Coffer.DataAccess.Repositories
             return null;
         }
 
-        public async Task<IEnumerable<ItemProvided>> SearchItems(int collectionTypeId, string searchText)
+        public async Task<IEnumerable<ItemProvided>> SearchItems(string? collectionTypeIds, string searchText)
         {
             if (string.IsNullOrWhiteSpace(searchText))
                 return Enumerable.Empty<ItemProvided>();
@@ -98,9 +122,19 @@ namespace Coffer.DataAccess.Repositories
                 }
             }
 
+            List<int> collectionTypeIdsProcessed = string.IsNullOrWhiteSpace(collectionTypeIds)
+                ? new List<int>()
+                : collectionTypeIds
+                    .Split(';', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(int.Parse)
+                    .ToList();
+
             query = query.Include(i => i.Collection);
 
-            query = query.Where(i => i.Collection.CollectionTypeId == collectionTypeId);
+            if(collectionTypeIdsProcessed.Count > 0)
+            {
+                query = query.Where(i => collectionTypeIdsProcessed.Contains(i.Collection.CollectionTypeId));
+            }
 
             var items = await query.ToListAsync();
 

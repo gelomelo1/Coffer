@@ -2,7 +2,6 @@ import rootViewStyle from "@/src/components/custom_ui/root_view";
 import OtherUserCollectionSectionList from "@/src/components/otheruser/other_user_collection_sectionlist";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
-import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useGetData } from "@/src/hooks/data_hooks";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
 import { useUserStore } from "@/src/hooks/user_store";
@@ -11,7 +10,6 @@ import { View } from "react-native";
 
 function OtherUser() {
   const { user: currentUser } = useUserStore();
-  const { collectionType } = useCollectionStore();
   const { user } = useOtherUserStore();
 
   const { data: otherUserCollectionsData = [], isFetching } =
@@ -25,26 +23,30 @@ function OtherUser() {
             field: "userId",
             value: user!.id,
           },
-          {
-            filter: "==",
-            field: "collectionTypeId",
-            value: collectionType.id,
-          },
         ],
+        filterTree: {
+          conjunction: "OR",
+          filters: [
+            {
+              filter: "==",
+              field: "collectionTypeId",
+              value: 1,
+            },
+            {
+              filter: "==",
+              field: "collectionTypeId",
+              value: 2,
+            },
+          ],
+        },
       },
     );
 
   return (
-    <View
-      style={[
-        rootViewStyle({ color: collectionType.color }),
-        { flex: 1, padding: 0 },
-      ]}
-    >
+    <View style={[rootViewStyle(), { flex: 1, padding: 0 }]}>
       <OtherUserCollectionSectionList
         currentUser={currentUser!}
         user={user!}
-        collectionType={collectionType}
         collections={otherUserCollectionsData}
         allLoading={isFetching}
       />

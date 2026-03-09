@@ -31,14 +31,16 @@ function OtherUserCollectionCard({
     customTheme.colorChangePercent.dark,
   );
 
+  const { setCollectionType } = useCollectionStore();
   const { setCollection } = useOtherUserStore();
   const { setCollection: setCurrentUserCollection } = useCollectionStore();
 
   const handleNavigation = () => {
+    setCollectionType(collectionType);
     if (currentUser.id === user.id) {
       setCurrentUserCollection(collection);
       navigate({
-        pathname: ROUTES.COLLECTIONS.MYCOLLECTION,
+        pathname: ROUTES.MYCOLLECTION,
         params: pageParams.mycollection,
       });
     } else {

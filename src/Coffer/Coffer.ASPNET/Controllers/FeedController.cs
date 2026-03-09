@@ -27,14 +27,17 @@ namespace Coffer.ASPNET.Controllers
 
         [Authorize]
         [HttpGet("{userId}")]
-        public async Task<ActionResult<IEnumerable<Feed>>> GetFeedItems(Guid userId)
+        public async Task<ActionResult<IEnumerable<Feed>>> GetFeedItems(Guid userId, [FromQuery] string? filter = null,
+                                                                            [FromQuery] string? orderBy = null,
+                                                                            [FromQuery] int? page = null,
+                                                                            [FromQuery] int? pageSize = null)
         {
             try
             {
                 var user = await _usersRepository.GetUserById(userId);
                 if (user == null)
                     return BadRequest("User not found");
-                var items = await _itemsRepository.GetFeedItemsAsync(user);
+                var items = await _itemsRepository.GetFeedItemsAsync(user, filter, orderBy, page, pageSize);
                 List<Feed> feeds = new List<Feed>();
                 foreach (var item in items)
                 {
@@ -55,8 +58,8 @@ namespace Coffer.ASPNET.Controllers
         public record FoundItem(UserProvided User, CollectionProvided Collection, ItemProvided Item);
 
         [Authorize]
-        [HttpGet("SearchTag/{collectionTypeId}/{searchText}")]
-        public async Task<ActionResult<IEnumerable<ItemTagGroup>>> TagSearch(int collectionTypeId, string searchText)
+        [HttpGet("SearchTag")]
+        public async Task<ActionResult<IEnumerable<ItemTagGroup>>> TagSearch(string searchText, string? collectionTypeIds)
         {
             try
             {
@@ -67,7 +70,7 @@ namespace Coffer.ASPNET.Controllers
                     .Replace("#", string.Empty)
                     .Trim();
 
-                var tags = await _itemTagsRepository.SearchTagsAsync(collectionTypeId, realSearchText);
+                var tags = await _itemTagsRepository.SearchTagsAsync(collectionTypeIds, realSearchText);
 
                 var foundItemTags = new List<ItemTagGroup>();
 
@@ -116,8 +119,8 @@ namespace Coffer.ASPNET.Controllers
         );
 
         [Authorize]
-        [HttpGet("Search/{collectionTypeId}/{searchText}")]
-        public async Task<ActionResult<MixedResponse>> MixedSearch(int collectionTypeId, string searchText)
+        [HttpGet("Search")]
+        public async Task<ActionResult<MixedResponse>> MixedSearch(string searchText, string? collectionTypeIds)
         {
             try
             {
@@ -128,7 +131,7 @@ namespace Coffer.ASPNET.Controllers
                             .Select(u => (UserProvided)u)
                             .ToList();
 
-                var collections = await _collectionRepository.SearchCollections(collectionTypeId ,searchText);
+                var collections = await _collectionRepository.SearchCollections(collectionTypeIds ,searchText);
 
                 List<CollectionResult> foundCollections = new List<CollectionResult>();
 
@@ -141,7 +144,7 @@ namespace Coffer.ASPNET.Controllers
                     foundCollections.Add(new CollectionResult(user, collection));
                 }
 
-                var items = await _itemsRepository.SearchItems(collectionTypeId, searchText);
+                var items = await _itemsRepository.SearchItems(collectionTypeIds, searchText);
 
                 List<ItemResult> foundItems = new List<ItemResult>();
 

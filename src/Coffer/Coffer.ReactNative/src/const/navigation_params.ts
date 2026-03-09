@@ -48,7 +48,7 @@ export const pageParams = {
   }),
   otheruser: (username: string) =>
     buildNavigationData({
-      title: username,
+      screenTitle: username,
     }),
   otherusercollection: (username: string, collectionName: string) =>
     buildNavigationData({

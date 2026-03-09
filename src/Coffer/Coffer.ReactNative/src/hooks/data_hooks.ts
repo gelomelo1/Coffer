@@ -26,7 +26,7 @@ export function useGetData<TData>(
   queryKey: string,
   options?: QueryOptions,
   headers?: Record<string, string>,
-  queryOptions?: UseQueryOptions<TData[], AxiosError, TData[], QueryKey>
+  queryOptions?: UseQueryOptions<TData[], AxiosError, TData[], QueryKey>,
 ) {
   return useQuery<TData[], AxiosError>({
     ...queryOptions,
@@ -34,7 +34,7 @@ export function useGetData<TData>(
     queryFn: () =>
       getData<TData>(
         `${apiPath}${options ? `/${buildQuery(options)}` : ""}`,
-        headers
+        headers,
       ),
     refetchOnWindowFocus: false,
   });
@@ -47,8 +47,9 @@ export function useGetSingleData<TData>(
   options?: QueryOptions,
   headers?: Record<string, string>,
   queryOptions?: UseQueryOptions<TData, AxiosError, TData, QueryKey>,
-  singleResponse?: boolean
+  singleResponse?: boolean,
 ) {
+  console.log(apiPath);
   return useQuery<TData, AxiosError>({
     ...queryOptions,
     queryKey: [queryKey],
@@ -59,7 +60,7 @@ export function useGetSingleData<TData>(
 
       const data = getData<TData>(
         `${apiPath}${options ? `/${buildQuery(options)}` : ""}`,
-        headers
+        headers,
       );
 
       if (Array.isArray(data)) {
@@ -76,7 +77,7 @@ export function useCreateData<TData, TResponse = void>(
   queryKey?: string,
   customSucessText?: string,
   customErrorText?: string,
-  headers?: Record<string, string>
+  headers?: Record<string, string>,
 ) {
   const queryClient = useQueryClient();
   return useMutation<TResponse, AxiosError, CreateDataPayload<TData>>({
@@ -111,7 +112,7 @@ export function useUpdateData<TData, TResponse = void>(
   queryKey?: string,
   customSucessText?: string,
   customErrorText?: string,
-  headers?: Record<string, string>
+  headers?: Record<string, string>,
 ) {
   const queryClient = useQueryClient();
   return useMutation<TResponse, AxiosError, UpdateDataPayload<TData>>({
@@ -146,7 +147,7 @@ export function useDeleteData(
   queryKey?: string,
   customSucessText?: string,
   customErrorText?: string,
-  headers?: Record<string, string>
+  headers?: Record<string, string>,
 ) {
   const queryClient = useQueryClient();
   return useMutation({

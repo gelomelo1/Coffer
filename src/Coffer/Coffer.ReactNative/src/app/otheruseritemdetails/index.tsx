@@ -30,12 +30,12 @@ function OtherUserItemDetails() {
   const { user, collection, item, setItem } = useOtherUserStore();
 
   const darkContrastColor = adjustColor(
-    collectionType.color,
+    collectionType!.color,
     customTheme.colorChangePercent.dark,
   );
 
   const lightContrastColor = adjustColor(
-    collectionType.color,
+    collectionType!.color,
     customTheme.colorChangePercent.light,
   );
 
@@ -55,7 +55,7 @@ function OtherUserItemDetails() {
   };
 
   return (
-    <ScrollView style={rootViewStyle({ color: collectionType.color })}>
+    <ScrollView style={rootViewStyle({ color: collectionType!.color })}>
       <CustomButton
         title={"Go to user's collections list"}
         icon={
@@ -84,7 +84,7 @@ function OtherUserItemDetails() {
             source={{
               uri: item!.image
                 ? `${endpoints.itemsCoverImage}/${item!.image}`
-                : `${endpoints.icons}/${collectionType.icon}`,
+                : `${endpoints.icons}/${collectionType!.icon}`,
               headers: {
                 Authorization: `Bearer ${token}`,
               },
@@ -108,7 +108,7 @@ function OtherUserItemDetails() {
         <CustomText
           style={{
             alignSelf: "center",
-            color: collectionType.color,
+            color: collectionType!.color,
             fontFamily: "VendSansBold",
             fontSize: 24,
             borderTopWidth: 1,
@@ -185,7 +185,7 @@ function OtherUserItemDetails() {
             <ItemDetailsDynamicAttributeDisplay
               key={itemAttribute.id}
               attributeValue={getItemAttributeValue(itemAttribute)}
-              collectionType={collectionType}
+              collectionType={collectionType!}
             />
           ),
         )}
@@ -207,7 +207,7 @@ function OtherUserItemDetails() {
               title={`#${tag.tag}`}
               titleStyle={{ color: darkContrastColor }}
               buttonStyle={{
-                backgroundColor: collectionType.color,
+                backgroundColor: collectionType!.color,
                 borderWidth: 2,
                 borderColor: lightContrastColor,
               }}

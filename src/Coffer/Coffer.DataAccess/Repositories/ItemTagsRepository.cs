@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Text;
 using System.Threading.Tasks;
 using Coffer.DataAccess.Extensions.IncludeProviders.Interfaces;
@@ -23,7 +24,7 @@ namespace Coffer.DataAccess.Repositories
             this.includeProvider = includeProvider;
         }
 
-        public async Task<List<(string value, List<ItemTags> tags)>> SearchTagsAsync(int collectionTypeId, string searchText)
+        public async Task<List<(string value, List<ItemTags> tags)>> SearchTagsAsync(string? collectionTypeIds, string searchText)
         {
             if (string.IsNullOrWhiteSpace(searchText))
                 return new List<(string, List<ItemTags>)>();
@@ -43,10 +44,22 @@ namespace Coffer.DataAccess.Repositories
 
             query = query.Include(t => t.Item.Collection);
 
+            List<int> collectionTypeIdsProcessed = string.IsNullOrWhiteSpace(collectionTypeIds)
+                ? new List<int>()
+                : collectionTypeIds
+                    .Split(';', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(int.Parse)
+                    .ToList();
+
             query = query.Where(t =>
-                t.Tag.ToLower().Contains(searchText) &&
-                t.Item.Collection.CollectionTypeId == collectionTypeId
-            );
+              t.Tag.ToLower().Contains(searchText));
+
+            if(collectionTypeIdsProcessed.Count > 0)
+            {
+                query = query.Where(t =>
+                    collectionTypeIdsProcessed.Contains(t.Item.Collection.CollectionTypeId)
+  );
+            }
 
             var result = await query
                 .GroupBy(t => t.Tag)

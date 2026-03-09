@@ -36,10 +36,18 @@ export interface QuerySortData {
   direction: "asc" | "desc";
 }
 
+export type QueryFilterNode =
+  | QueryFilterData
+  | {
+      conjunction: "AND" | "OR";
+      filters: QueryFilterNode[];
+    };
+
 export interface QueryOptions {
   filters?: QueryFilterData[];
   sort?: QuerySortData[];
   page?: number;
   pageSize?: number;
   filterConjunction?: "AND" | "OR";
+  filterTree?: QueryFilterNode;
 }

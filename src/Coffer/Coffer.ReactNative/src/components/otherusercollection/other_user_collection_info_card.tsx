@@ -119,7 +119,8 @@ function OtherUserCollectionInfoCard({
       </View>
       {follow ? (
         <CustomText style={{ textAlign: "center", marginBottom: 5 }}>
-          You follow this collection
+          You follow this collection since{" "}
+          {new Date(follow.followedAt).toLocaleDateString()}
         </CustomText>
       ) : null}
       <View

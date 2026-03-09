@@ -10,6 +10,6 @@ namespace Coffer.DataAccess.Repositories.Interfaces
 {
     public interface IItemTagsRepository
     {
-        public Task<List<(string value, List<ItemTags> tags)>> SearchTagsAsync(int collectionTypeId, string searchText);
+        public Task<List<(string value, List<ItemTags> tags)>> SearchTagsAsync(string? collectionTypeIds, string searchText);
     }
 }

@@ -32,7 +32,7 @@ namespace Coffer.DataAccess.Repositories
                 .FirstOrDefaultAsync(collection => collection.Id == id);
         }
 
-        public async Task<IEnumerable<CollectionProvided>> SearchCollections(int collectionTypeId, string searchText)
+        public async Task<IEnumerable<CollectionProvided>> SearchCollections(string? collectionTypeIds, string searchText)
         {
             if (string.IsNullOrWhiteSpace(searchText))
                 return Enumerable.Empty<CollectionProvided>();
@@ -51,10 +51,21 @@ namespace Coffer.DataAccess.Repositories
                 }
             }
 
+            List<int> collectionTypeIdsProcessed = string.IsNullOrWhiteSpace(collectionTypeIds)
+                ? new List<int>()
+                : collectionTypeIds
+                    .Split(';', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(int.Parse)
+                    .ToList();
+
             query = query.Where(c =>
-                c.CollectionTypeId == collectionTypeId &&
-                c.Name.ToLower().Contains(searchText)
-            );
+            c.Name.ToLower().Contains(searchText));
+
+            if(collectionTypeIdsProcessed.Count > 0)
+            {
+                query = query.Where(c =>
+                    collectionTypeIdsProcessed.Contains(c.CollectionTypeId));
+            }
 
             var collections = await query
                 .OrderBy(c => c.Name)

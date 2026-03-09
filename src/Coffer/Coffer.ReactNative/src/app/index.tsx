@@ -3,6 +3,7 @@ import axios from "axios";
 import { navigate } from "expo-router/build/global-state/routing";
 import { useEffect } from "react";
 import { LoadingScreen } from "../components/custom_ui/loading";
+import { asyncstoragekeys } from "../const/async_storage_keys";
 import { endpoints } from "../const/endpoints";
 import { pageParams, ROUTES } from "../const/navigation_params";
 import { useCollectionTypeStore } from "../hooks/collection_type_store";
@@ -19,7 +20,7 @@ export default function Index() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = await AsyncStorage.getItem("jwt");
+      const token = await AsyncStorage.getItem(asyncstoragekeys.jwt);
       if (!token) {
         navigate(ROUTES.LOGIN);
       } else {

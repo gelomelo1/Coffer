@@ -74,7 +74,7 @@ export function useGoogleAuth({
           onUserExistsChange?.(validation.exists);
 
           if (validation.exists && validation.token) {
-            await AsyncStorage.setItem("jwt", validation.token);
+            await AsyncStorage.setItem(asyncstoragekeys.jwt, validation.token);
             onSuccessfulLogin?.();
             navigate(ROUTES.ROOT);
           } else if (!validation.exists && validation.tempId) {
@@ -96,7 +96,7 @@ export function useGoogleAuth({
         { tempId: string; username: string; country: string },
         { token: string }
       >(endpoints.googleRegister, { tempId, username, country });
-      await AsyncStorage.setItem("jwt", jwtResp.token);
+      await AsyncStorage.setItem(asyncstoragekeys.jwt, jwtResp.token);
       onSuccessfulRegistration?.();
       navigate(ROUTES.ROOT);
     } catch (error) {

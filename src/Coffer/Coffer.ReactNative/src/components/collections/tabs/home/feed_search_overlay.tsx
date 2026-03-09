@@ -1,3 +1,4 @@
+import CustomDropdownMultiple from "@/src/components/custom_ui/custom_dropdown_multiple";
 import CustomText from "@/src/components/custom_ui/custom_text";
 import CustomTextInput from "@/src/components/custom_ui/custom_text_input";
 import { Loading } from "@/src/components/custom_ui/loading";
@@ -16,6 +17,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useEffect, useRef, useState } from "react";
 import {
   FlatList,
+  Image,
   ScrollView,
   SectionList,
   TouchableOpacity,
@@ -28,11 +30,16 @@ import FeedSearchItemCard from "./feed_seach_item_card";
 import FeedSearchUserCard from "./feed_seach_user_card";
 import FeedSearchCollectionCard from "./feed_search_collection_card";
 
+import { asyncstoragekeys } from "@/src/const/async_storage_keys";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 interface FeedSearchOverlayProps {
   isFeedSearchOverlayVisible: {
     value: boolean;
     set: React.Dispatch<React.SetStateAction<boolean>>;
   };
+  selectedCollectionTypeIds: number[] | null;
+  onClose: (searchSelectedCollectionTypeIds: number[] | null) => void;
 }
 
 type FeedSectionItem =
@@ -47,20 +54,28 @@ interface FeedSection {
 
 function FeedSearchOverlay({
   isFeedSearchOverlayVisible,
+  selectedCollectionTypeIds,
+  onClose,
 }: FeedSearchOverlayProps) {
-  const { user } = useUserStore();
-  //const { collectionType } = useCollectionStore();
+  const { token, user } = useUserStore();
   const { collectionTypes } = useCollectionTypeStore();
 
   const collectionType = collectionTypes.find((ct) => ct.id === 1)!;
 
   const [searchText, setSearchText] = useState("");
 
+  const [searchSelectedCollectionTypeIds, setSearchSelectedCollectionTypeIds] =
+    useState<number[] | null>(selectedCollectionTypeIds);
+
   const { data: itemTagsSearchData = [], refetch: itemTagsSearchRefetch } =
     useGetData<ItemTagSearch>(
-      `${endpoints.feedSearchTag}/${collectionType.id}/${encodeURIComponent(
-        searchText,
-      )}`,
+      searchSelectedCollectionTypeIds!.length > 0
+        ? `${endpoints.feedSearchTag}?searchText=${encodeURIComponent(
+            searchText,
+          )}&collectionTypeIds=${searchSelectedCollectionTypeIds!.join(";")}`
+        : `${endpoints.feedSearchTag}?searchText=${encodeURIComponent(
+            searchText,
+          )}`,
       querykeys.itemTagsSearchData,
       undefined,
       undefined,
@@ -69,9 +84,13 @@ function FeedSearchOverlay({
 
   const { data: mixedSearchData, refetch: mixedSearchRefetch } =
     useGetSingleData<MixedSearch>(
-      `${endpoints.feedSearch}/${collectionType.id}/${encodeURIComponent(
-        searchText,
-      )}`,
+      searchSelectedCollectionTypeIds!.length > 0
+        ? `${endpoints.feedSearch}?searchText=${encodeURIComponent(
+            searchText,
+          )}&collectionTypeIds=${searchSelectedCollectionTypeIds!.join(";")}`
+        : `${endpoints.feedSearch}?searchText=${encodeURIComponent(
+            searchText,
+          )}`,
       querykeys.mixedSearchData,
       undefined,
       undefined,
@@ -80,23 +99,63 @@ function FeedSearchOverlay({
       true,
     );
 
+  const [open, setOpen] = useState(false);
   const [selectedTabIndex, setSelectedTabIndex] = useState(0);
   const inputRef = useRef<any>(null);
   const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
 
+  const dropdownItems = collectionTypes.map((type) => ({
+    label: type.name,
+    value: type.id,
+    additionalElement: (
+      <Image
+        source={{
+          uri: `${endpoints.icons}/${type.icon}`,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          cache: "reload",
+        }}
+        style={{
+          width: 28,
+          height: 28,
+        }}
+      />
+    ),
+  }));
+
   useEffect(() => {
     setSearchText("");
     setIsLoading(false);
     setIsTyping(true);
+    if (isFeedSearchOverlayVisible.value) {
+      setSearchSelectedCollectionTypeIds(selectedCollectionTypeIds);
+    }
     if (isFeedSearchOverlayVisible.value && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [isFeedSearchOverlayVisible.value]);
+  }, [isFeedSearchOverlayVisible.value, selectedCollectionTypeIds]);
 
   const handleCloseFeedSearch = () => {
     isFeedSearchOverlayVisible.set(false);
+    onClose(searchSelectedCollectionTypeIds);
+  };
+
+  const handleFilterSelect = async () => {
+    await AsyncStorage.setItem(
+      asyncstoragekeys.feedCollectionTypeFilters,
+      JSON.stringify(searchSelectedCollectionTypeIds),
+    );
+
+    if (hasValue) {
+      if (hasTagValue) {
+        await itemTagsSearchRefetch();
+      } else {
+        await mixedSearchRefetch();
+      }
+    }
   };
 
   const hasValue = searchText.length > 0;
@@ -158,6 +217,33 @@ function FeedSearchOverlay({
               color={customTheme.colors.primary}
             />
           }
+          containerStyle={{
+            minHeight: undefined,
+            maxHeight: undefined,
+            height: 60,
+          }}
+        />
+        <CustomDropdownMultiple
+          value={searchSelectedCollectionTypeIds}
+          open={open}
+          setOpen={setOpen}
+          setValue={setSearchSelectedCollectionTypeIds}
+          items={dropdownItems}
+          placeholder="Collection type"
+          modalTitle="Filter your feed by Collection type"
+          multipleText={
+            searchSelectedCollectionTypeIds!.length > 0
+              ? `Collection type (${searchSelectedCollectionTypeIds?.length})`
+              : undefined
+          }
+          onClose={handleFilterSelect}
+          containerStyle={{
+            paddingHorizontal: 5,
+            paddingVertical: 10,
+            backgroundColor: customTheme.colors.background,
+            borderRadius: 20,
+          }}
+          style={{ height: 36, minHeight: 36, borderRadius: 10 }}
         />
         {hasSimpleValue ? (
           <View style={{ height: 40 }}>

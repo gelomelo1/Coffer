@@ -29,7 +29,10 @@ namespace Coffer.Domain.Entities
         public CollectionProvided Collection {  get; set; }
         public DateTime FollowedAt { get; set; }
 
-        public FollowProvided(Guid userId, Guid collectionId) : base(userId, collectionId) { }
+        public FollowProvided(Guid userId, Guid collectionId) : base(userId, collectionId) 
+        {
+            FollowedAt = DateTime.UtcNow;
+        }
 
         public FollowProvided(Guid userId, Guid collectionId, User user, CollectionProvided collectionProvided) : base(userId, collectionId)
         {

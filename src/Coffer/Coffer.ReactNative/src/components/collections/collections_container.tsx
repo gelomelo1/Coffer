@@ -176,7 +176,7 @@ function CollectionCarousel({
     setCollection(item);
     navigate({
       pathname: ROUTES.MYCOLLECTION,
-      params: pageParams.home,
+      params: pageParams.mycollection,
     });
   };
 

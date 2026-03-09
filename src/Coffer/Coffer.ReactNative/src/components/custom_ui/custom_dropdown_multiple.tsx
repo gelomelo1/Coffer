@@ -11,15 +11,17 @@ import {
 import DropDownPicker, { ValueType } from "react-native-dropdown-picker";
 import CustomText from "./custom_text";
 
-type CustomDropdownProps<T extends ValueType> = {
+type CustomDropdownMultipleProps<T extends ValueType> = {
   label?: string;
-  value: T | null;
+  value: T[] | null;
   open?: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setValue: React.Dispatch<React.SetStateAction<T | null>>;
+  setValue: React.Dispatch<React.SetStateAction<T[] | null>>;
   items: CustomDropdownItem<T>[];
   placeholder?: string;
   modalTitle?: string;
+  multipleText?: string;
+  onClose?: () => void;
   disabled?: boolean;
   containerStyle?: ViewStyle;
   labelStyle?: TextStyle;
@@ -31,7 +33,9 @@ type CustomDropdownProps<T extends ValueType> = {
   additionalElementPlacement?: "start" | "end";
 };
 
-function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
+function CustomDropdownMultiple<T extends ValueType>(
+  props: CustomDropdownMultipleProps<T>,
+) {
   const {
     label,
     open,
@@ -40,6 +44,8 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
     items,
     placeholder,
     modalTitle,
+    multipleText,
+    onClose,
     setValue,
     disabled = false,
     containerStyle,
@@ -54,6 +60,14 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
   } = props;
 
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+
+  const dropdownItems: CustomDropdownItem<T>[] = [
+    {
+      label: "None",
+      value: undefined as unknown as T, // special value to represent "clear all"
+    },
+    ...(items ?? []),
+  ];
 
   return (
     <View
@@ -84,18 +98,11 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
         open={open ?? uncontrolledOpen}
         searchable={searchable}
         setOpen={setOpen ?? setUncontrolledOpen}
-        value={value ?? null}
-        items={items ?? []}
-        setValue={(callback) => {
-          const newValue = callback(value);
-
-          if (newValue === value) {
-            setValue(null);
-          } else {
-            setValue(newValue);
-          }
-        }}
-        multiple={false}
+        onClose={onClose ? () => onClose() : undefined}
+        value={value}
+        items={dropdownItems}
+        setValue={setValue}
+        multiple={true}
         listMode="MODAL"
         style={[
           {
@@ -130,8 +137,9 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
         }}
         disabled={disabled}
         modalAnimationType="slide"
-        modalTitle={modalTitle || "Select an option"}
-        placeholder={placeholder || "Select an option"}
+        modalTitle={modalTitle || "Select options"}
+        placeholder={placeholder || "Select options"}
+        multipleText={multipleText || undefined}
         modalContentContainerStyle={{
           backgroundColor: customTheme.colors.secondary,
           paddingTop: 50,
@@ -157,64 +165,64 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
             ✕
           </Text>
         )}
-        renderListItem={({ item }: { item: CustomDropdownItem<T> }) => (
-          <TouchableOpacity
-            onPress={() => {
-              setValue(
-                (prev) => (prev === item.value ? null : item.value) as T,
-              );
-              setOpen(false);
-            }}
-          >
-            <View
-              style={{
-                marginHorizontal: 10,
-                marginBottom: 10,
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: 10,
+        renderListItem={({ item }: { item: CustomDropdownItem<T> }) => {
+          const isNone = item.value === undefined;
+          const isSelected =
+            Array.isArray(value) &&
+            (isNone ? value.length === 0 : value.includes(item.value!));
+
+          return (
+            <TouchableOpacity
+              onPress={() => {
+                if (isNone) return setValue([]);
+                setValue((prev) =>
+                  prev?.includes(item.value!)
+                    ? prev.filter((v) => v !== item.value!)
+                    : [...(prev ?? []), item.value!],
+                );
               }}
             >
               <View
                 style={{
-                  flex: 1,
                   flexDirection: "row",
-                  justifyContent: "flex-start",
+                  justifyContent: "space-between",
                   alignItems: "center",
-                  gap: 10,
+                  marginHorizontal: 10,
+                  marginBottom: 10,
                 }}
               >
-                {item.additionalElement &&
-                additionalElementPlacement === "start"
-                  ? item.additionalElement
-                  : null}
-                <Text
+                <View
                   style={{
-                    color: customTheme.colors.primary,
-                    fontSize: 22,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 10,
                   }}
                 >
-                  {item.label}
-                </Text>
-                {item.additionalElement && additionalElementPlacement === "end"
-                  ? item.additionalElement
-                  : null}
+                  {item.additionalElement &&
+                  additionalElementPlacement === "start"
+                    ? item.additionalElement
+                    : null}
+                  <Text
+                    style={{ color: customTheme.colors.primary, fontSize: 22 }}
+                  >
+                    {item.label}
+                  </Text>
+                  {item.additionalElement &&
+                  additionalElementPlacement === "end"
+                    ? item.additionalElement
+                    : null}
+                </View>
+                {isSelected && (
+                  <Text
+                    style={{ color: customTheme.colors.primary, fontSize: 22 }}
+                  >
+                    ✓
+                  </Text>
+                )}
               </View>
-              {item.value === value ? (
-                <Text
-                  style={{
-                    flexShrink: 0,
-                    color: customTheme.colors.primary,
-                    fontSize: 22,
-                  }}
-                >
-                  ✓
-                </Text>
-              ) : null}
-            </View>
-          </TouchableOpacity>
-        )}
+            </TouchableOpacity>
+          );
+        }}
       />
 
       {disabled && (
@@ -247,4 +255,4 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
   );
 }
 
-export default CustomDropdown;
+export default CustomDropdownMultiple;
