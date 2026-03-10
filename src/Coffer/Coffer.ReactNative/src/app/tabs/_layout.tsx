@@ -1,7 +1,7 @@
 import AnimatedTabIcon from "@/src/components/collections/tabs/layout/animated_tab_icon";
 import CollectionTabsCustomLayout from "@/src/components/collections/tabs/layout/collection_tabs_custom_layout";
+import ItemRegisterActionButtonTabs from "@/src/components/itemregister/item_register_action_button_tabs";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
-import { useCollectionStore } from "@/src/hooks/collection_store";
 import { Tabs, usePathname } from "expo-router";
 import { navigate } from "expo-router/build/global-state/routing";
 import React from "react";
@@ -9,8 +9,6 @@ import { Provider as PaperProvider } from "react-native-paper";
 
 function CollectionLayout() {
   const pathname = usePathname();
-
-  const { collectionType, collection } = useCollectionStore();
 
   return (
     <PaperProvider>
@@ -106,10 +104,7 @@ function CollectionLayout() {
           }}
         />
       </Tabs>
-      {/*<ItemRegisterActionButton
-        collectionType={collectionType!}
-        collection={collection!}
-      /> */}
+      <ItemRegisterActionButtonTabs />
     </PaperProvider>
   );
 }

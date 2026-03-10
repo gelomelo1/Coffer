@@ -3,7 +3,11 @@ import { Stack } from "expo-router";
 
 function ItemDetailsLayout() {
   return (
-    <Stack screenOptions={({ route }) => IndexCollectionCustomLayout(route)} />
+    <>
+      <Stack
+        screenOptions={({ route }) => IndexCollectionCustomLayout(route)}
+      />
+    </>
   );
 }
 

@@ -1,3 +1,6 @@
+from pathlib import Path
+import uuid
+
 from fastapi import FastAPI, File, UploadFile, Body
 import os
 from dotenv import load_dotenv
@@ -54,7 +57,6 @@ async def image_check(
     collection_id: str,
     file: UploadFile = File(...)):
     try:
-
         object_detection_model, similarity_model, collection = initialize_models(f"{collection_type_id}_detection.pt", find_file_containing(os.getenv("MODELS_PATH"), f"{collection_type_id}_similarity"))
 
         image_array = await uploadfile_to_numpy(file)
@@ -65,8 +67,6 @@ async def image_check(
             image_array=image_array,
             conf_threshold=OBJECT_DETECTION_THRESHOLD
             )
-        
-        print(len(results))
         
         response = build_image_check_response(
             results,

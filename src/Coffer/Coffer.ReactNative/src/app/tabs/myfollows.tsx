@@ -58,46 +58,6 @@ function MyFollows() {
 
   return (
     <View style={[rootViewStyle(), { flex: 1, padding: 0 }]}>
-      {/*<FlatList
-        data={isFetching ? [] : followsData}
-        keyExtractor={(item) => item.collection.id}
-        renderItem={({ item }) => (
-          <View style={{ paddingHorizontal: 10 }}>
-            <FeedSearchCollectionCard
-              currentUser={user!}
-              collectionSearch={item}
-              closeOverlay={() => {}}
-            />
-          </View>
-        )}
-        ListHeaderComponent={
-          <View
-            style={{
-              width: "100%",
-              backgroundColor: customTheme.colors.background,
-            }}
-          >
-            <CustomText
-              style={{ fontSize: 18, marginBottom: 5, paddingHorizontal: 10 }}
-            >{`You follow ${followsData.length} collections`}</CustomText>
-          </View>
-        }
-        stickyHeaderIndices={[0]}
-        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-        ListFooterComponent={
-          <CustomText
-            style={{
-              textAlign: "center",
-              fontFamily: "VendSansItalic",
-              marginTop: 20,
-            }}
-          >
-            End of results
-          </CustomText>
-        }
-        ListEmptyComponent={isFetching ? <Loading /> : null}
-      />
-*/}
       <SectionList
         sections={sections}
         keyExtractor={(item) => item.collection.id}
@@ -174,7 +134,13 @@ function MyFollows() {
             End of results
           </CustomText>
         }
-        ListEmptyComponent={isFetching ? <Loading /> : null}
+        ListEmptyComponent={
+          isFetching ? (
+            <Loading />
+          ) : (
+            <CustomText>You are not following any collections.</CustomText>
+          )
+        }
       />
     </View>
   );

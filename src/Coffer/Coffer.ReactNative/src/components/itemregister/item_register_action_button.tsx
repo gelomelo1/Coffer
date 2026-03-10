@@ -72,6 +72,7 @@ function ItemRegisterActionButton({
             borderColor: customTheme.colors.secondary,
           }}
           style={{
+            position: "absolute",
             paddingBottom: navigationMode.navigationBarHeight + 40,
             paddingRight: 0,
             marginRight: -8,
