@@ -1,7 +1,8 @@
+import CustomOverlay from "@/src/components/custom_ui/custom_overlay";
 import rarityVariants from "@/src/const/rarity_variants";
 import { customTheme } from "@/src/theme/theme";
 import { View } from "react-native";
-import { CheckBox, Overlay } from "react-native-elements";
+import { CheckBox } from "react-native-elements";
 
 interface FeedRaritySelectorProps {
   isFeedRaritySelectorVisible: {
@@ -23,12 +24,10 @@ function FeedRaritySelector({
   };
 
   return (
-    <Overlay
+    <CustomOverlay
       isVisible={isFeedRaritySelectorVisible.value}
-      onBackdropPress={() => isFeedRaritySelectorVisible.set(false)}
-      overlayStyle={{
-        backgroundColor: customTheme.colors.background,
-      }}
+      onClose={() => isFeedRaritySelectorVisible.set(false)}
+      overlayTitle="Select a rairty value"
     >
       <View
         style={{
@@ -47,7 +46,8 @@ function FeedRaritySelector({
             alignItems: "flex-start",
             paddingVertical: 0,
           }}
-          textStyle={{ color: customTheme.colors.primary }}
+          size={32}
+          textStyle={{ color: customTheme.colors.primary, fontSize: 32 }}
           checkedColor={customTheme.colors.primary}
           uncheckedColor={customTheme.colors.primary}
           checkedIcon="dot-circle-o"
@@ -67,7 +67,8 @@ function FeedRaritySelector({
               alignItems: "flex-start",
               paddingVertical: 0,
             }}
-            textStyle={{ color: rarity.color }}
+            size={32}
+            textStyle={{ color: rarity.color, fontSize: 32 }}
             checkedColor={rarity.color}
             uncheckedColor={rarity.color}
             checkedIcon="dot-circle-o"
@@ -77,7 +78,7 @@ function FeedRaritySelector({
           />
         ))}
       </View>
-    </Overlay>
+    </CustomOverlay>
   );
 }
 

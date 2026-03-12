@@ -1,10 +1,13 @@
 import CustomButton from "@/src/components/custom_ui/custom_button";
+import CustomImageResize from "@/src/components/custom_ui/custom_image_resize";
 import CustomOverlay from "@/src/components/custom_ui/custom_overlay";
+import CustomOverlayMessage from "@/src/components/custom_ui/custom_overlay_message";
 import CustomText from "@/src/components/custom_ui/custom_text";
 import CustomTextInput from "@/src/components/custom_ui/custom_text_input";
 import { ComponentLoading } from "@/src/components/custom_ui/loading";
 import { endpoints } from "@/src/const/endpoints";
 import { languageFilter, textInputRegex } from "@/src/const/filter";
+import { highImageResize } from "@/src/const/image_resize_config";
 import { querykeys } from "@/src/const/querykeys";
 import { stringResource } from "@/src/const/resource";
 import { useCollectionStore } from "@/src/hooks/collection_store";
@@ -19,6 +22,7 @@ import {
   Collection,
   CollectionRequired,
 } from "@/src/types/entities/collection";
+import { pickImage } from "@/src/utils/data_access_utils";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
 import * as ImagePicker from "expo-image-picker";
@@ -39,7 +43,7 @@ function CollectionInfoEditForm({
 }: CollectionInfoEditFormProps) {
   const { collection, setCollection } = useCollectionStore();
   const { user, token } = useUserStore();
-  const [collectionName, setCollectionName] = useState(collection.name);
+  const [collectionName, setCollectionName] = useState(collection!.name);
   const [asset, setAsset] = useState<
     ImagePicker.ImagePickerAsset | null | "removable"
   >(null);
@@ -47,6 +51,8 @@ function CollectionInfoEditForm({
   const [isInputCheck, setIsInputCheck] = useState(false);
   const [isImagePickerLoading, setIsImagePickerLoading] = useState(false);
   const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isPermissionWarningOverlayOpen, setIsPermissionWarningOverlayOpen] =
+    useState(false);
 
   const isSubmitDisabled = collectionName === "" || isInputCheck;
 
@@ -97,7 +103,7 @@ function CollectionInfoEditForm({
   );
 
   const resetFormData = (isEditSaved: boolean) => {
-    if (!isEditSaved) setCollectionName(collection.name);
+    if (!isEditSaved) setCollectionName(collection!.name);
     setAsset(null);
     setErrorMessage("");
     setIsInputCheck(false);
@@ -114,27 +120,29 @@ function CollectionInfoEditForm({
     let isEditSaved = true;
     try {
       let newValue = await updateCollection({
-        id: collection.id,
+        id: collection!.id,
         value: {
-          userId: collection.userId,
-          collectionTypeId: collection.collectionTypeId,
+          userId: collection!.userId,
+          collectionTypeId: collection!.collectionTypeId,
           name: collectionName,
         },
       });
       const formData = new FormData();
-      if (asset && asset !== "removable") {
-        formData.append("file", {
-          uri: asset.uri,
-          name: asset.fileName ?? "upload.jpg",
-          type: asset.mimeType ?? "image/jpeg",
-        } as any);
-      } else {
-        formData.append("file", "");
+      if (asset) {
+        if (asset !== "removable") {
+          formData.append("file", {
+            uri: asset.uri,
+            name: asset.fileName ?? "upload.jpg",
+            type: asset.mimeType ?? "image/jpeg",
+          } as any);
+        } else {
+          formData.append("file", "");
+        }
+        newValue = await uploadCoverImage({
+          id: collection!.id,
+          value: formData,
+        });
       }
-      newValue = await uploadCoverImage({
-        id: collection.id,
-        value: formData,
-      });
       setCollectionName(newValue.name);
       setCollection(newValue);
     } catch (error) {
@@ -183,165 +191,213 @@ function CollectionInfoEditForm({
 
   const handleImagePick = async () => {
     setIsImagePickerLoading(true);
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: "images",
-    });
-    setIsImagePickerLoading(false);
-    if (result.canceled) return;
-    const asset = result.assets[0];
-    setAsset(asset);
-    console.log(result);
+
+    const result = await pickImage("gallery");
+
+    switch (result.status) {
+      case "success":
+        const image = result.assets[0];
+        setAsset(image);
+        break;
+      case "cancel":
+        setIsImagePickerLoading(false);
+        setAsset(null);
+        break;
+      case "error":
+        console.log("Error occured during gallery open", result.error);
+        setIsImagePickerLoading(false);
+        setAsset(null);
+        break;
+      case "permission_denied":
+        setIsImagePickerLoading(false);
+        setIsPermissionWarningOverlayOpen(true);
+        setAsset(null);
+        break;
+    }
+  };
+
+  const handlePermissionWarningOverlayClose = () => {
+    setIsPermissionWarningOverlayOpen(false);
   };
 
   return (
-    <CustomOverlay
-      isVisible={isCollectionInfoEditOverlayOpen.value}
-      onClose={() => handleOverlayClose(false)}
-      overlayTitle={"Edit Collection"}
-      footerContent={
-        <CustomButton
-          title={"Edit"}
-          containerStyle={{ width: "90%", alignSelf: "center" }}
-          loading={isCollectionUpdatePending || isUploadCoverImagePending}
-          onPress={handleUpdate}
-          disabled={isSubmitDisabled}
-        />
-      }
-    >
-      <KeyboardAwareScrollView
-        enableOnAndroid
-        extraScrollHeight={100}
-        enableResetScrollToCoords={false}
+    <>
+      <CustomOverlay
+        isVisible={isCollectionInfoEditOverlayOpen.value}
+        onClose={() => handleOverlayClose(false)}
+        overlayTitle={"Edit Collection"}
+        footerContent={
+          <CustomButton
+            title={"Edit"}
+            containerStyle={{ width: "90%", alignSelf: "center" }}
+            loading={isCollectionUpdatePending || isUploadCoverImagePending}
+            onPress={handleUpdate}
+            disabled={isSubmitDisabled}
+          />
+        }
       >
-        <View
-          style={{
-            paddingHorizontal: 10,
-            justifyContent: "center",
-            gap: 20,
-          }}
+        <KeyboardAwareScrollView
+          enableOnAndroid
+          extraScrollHeight={100}
+          enableResetScrollToCoords={false}
         >
-          <CustomText
-            style={{
-              fontFamily: "VendSansBold",
-              marginBottom: 2,
-              marginTop: 10,
-            }}
-          >
-            Collection cover image
-          </CustomText>
           <View
             style={{
-              width: "100%",
-              display: "flex",
+              paddingHorizontal: 10,
               justifyContent: "center",
-              alignItems: "center",
-              gap: 10,
+              gap: 20,
             }}
           >
-            <View
+            <CustomText
               style={{
-                position: "relative",
-                width: 150,
-                height: 150,
-                justifyContent: "center",
+                fontFamily: "VendSansBold",
+                marginBottom: 2,
+                marginTop: 10,
               }}
             >
-              {isImagePickerLoading ? <ComponentLoading /> : null}
-              <Pressable
+              Collection cover image
+            </CustomText>
+            <View
+              style={{
+                width: "100%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 10,
+              }}
+            >
+              <View
                 style={{
-                  position: "absolute",
-                  top: -1,
-                  right: -1,
-                  bottom: -1,
-                  left: -1,
+                  position: "relative",
+                  width: 150,
+                  height: 150,
                   justifyContent: "center",
-                  alignItems: "center",
-                  backgroundColor: "rgba(255, 255, 255, 0.9)",
-                  borderWidth: 3,
-                  borderColor: "grey",
-                  borderStyle: "dashed",
-                  zIndex: 1,
                 }}
-                onPress={handleImagePick}
               >
-                <Entypo name="image" size={32} color="black" />
-              </Pressable>
-
-              {asset && asset !== "removable" ? (
-                <Image
-                  source={{
-                    uri: asset.uri,
-                    cache: "reload",
-                  }}
-                  style={{ width: "100%", height: "100%" }}
-                />
-              ) : collection.image && asset !== "removable" ? (
-                <Image
-                  source={{
-                    uri: `${endpoints.collectionsCoverImage}/${collection.image}`,
-                    headers: {
-                      Authorization: `Bearer ${token}`,
-                    },
-                    cache: "reload",
-                  }}
-                  style={{ width: "100%", height: "100%" }}
-                />
-              ) : (
-                <CustomText
+                {isImagePickerLoading ? <ComponentLoading /> : null}
+                <Pressable
                   style={{
-                    fontFamily: "VendSansItalic",
-                    fontSize: 14,
-                    textAlign: "center",
+                    position: "absolute",
+                    top: -1,
+                    right: -1,
+                    bottom: -1,
+                    left: -1,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: "rgba(255, 255, 255, 0.9)",
+                    borderWidth: 3,
+                    borderColor: "grey",
+                    borderStyle: "dashed",
+                    zIndex: 1,
                   }}
+                  onPress={handleImagePick}
                 >
-                  No cover image uploaded
-                </CustomText>
-              )}
-            </View>
-            <CustomButton
-              title={"Clear"}
-              containerStyle={{
-                width: 150,
-                alignSelf: "center",
-                borderRadius: 40,
-              }}
-              buttonStyle={{
-                borderRadius: 40,
-              }}
-              icon={
-                <AntDesign
-                  name="clear"
-                  size={18}
-                  color={customTheme.colors.secondary}
-                  style={{ marginRight: 5 }}
-                />
-              }
-              onPress={() => setAsset("removable")}
-            />
-            <CustomTextInput
-              placeholder="Enter a name for your collection"
-              label="Collection name"
-              containerStyle={{ marginBottom: 20 }}
-              value={collectionName}
-              onChangeText={(newValue) => handleChangeCollectionName(newValue)}
-              errorMessage={errorMessage}
-              rightIcon={
-                isFetching ? (
-                  <ActivityIndicator
-                    size="small"
-                    color={customTheme.colors.accent}
+                  <Entypo name="image" size={32} color="black" />
+                </Pressable>
+
+                {asset && asset !== "removable" ? (
+                  <Image
+                    source={{
+                      uri: asset.uri,
+                      cache: "reload",
+                    }}
+                    style={{
+                      width: "100%",
+                      aspectRatio: 1,
+                      resizeMode: "cover",
+                    }}
                   />
-                ) : !!errorMessage ? (
-                  <Icon name="close" size={20} color="red" />
-                ) : !isInputCheck ? (
-                  <Icon name="check" size={20} color="green" />
-                ) : undefined
-              }
-            />
+                ) : collection!.image && asset !== "removable" ? (
+                  <Image
+                    source={{
+                      uri: `${endpoints.collectionsCoverImage}/${collection!.image}`,
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                      },
+                      cache: "reload",
+                    }}
+                    style={{
+                      width: "100%",
+                      aspectRatio: 1,
+                      resizeMode: "cover",
+                    }}
+                  />
+                ) : (
+                  <CustomText
+                    style={{
+                      fontFamily: "VendSansItalic",
+                      fontSize: 14,
+                      textAlign: "center",
+                    }}
+                  >
+                    No cover image uploaded
+                  </CustomText>
+                )}
+              </View>
+              <CustomButton
+                title={"Clear"}
+                containerStyle={{
+                  width: 150,
+                  alignSelf: "center",
+                  borderRadius: 40,
+                }}
+                buttonStyle={{
+                  borderRadius: 40,
+                }}
+                icon={
+                  <AntDesign
+                    name="clear"
+                    size={18}
+                    color={customTheme.colors.secondary}
+                    style={{ marginRight: 5 }}
+                  />
+                }
+                onPress={() => setAsset("removable")}
+              />
+              <CustomTextInput
+                placeholder="Enter a name for your collection"
+                label="Collection name"
+                containerStyle={{ marginBottom: 20 }}
+                value={collectionName}
+                onChangeText={(newValue) =>
+                  handleChangeCollectionName(newValue)
+                }
+                errorMessage={errorMessage}
+                rightIcon={
+                  isFetching ? (
+                    <ActivityIndicator
+                      size="small"
+                      color={customTheme.colors.accent}
+                    />
+                  ) : !!errorMessage ? (
+                    <Icon name="close" size={20} color="red" />
+                  ) : !isInputCheck ? (
+                    <Icon name="check" size={20} color="green" />
+                  ) : undefined
+                }
+              />
+            </View>
           </View>
-        </View>
-      </KeyboardAwareScrollView>
-    </CustomOverlay>
+        </KeyboardAwareScrollView>
+      </CustomOverlay>
+      <CustomOverlayMessage
+        isVisible={isPermissionWarningOverlayOpen}
+        onClose={handlePermissionWarningOverlayClose}
+        overlayTitle={"Gallery Permission"}
+        message={
+          "Gallery permission is required to add items and enable the item duplication detection feature. Please allow access to continue."
+        }
+      />
+      {asset !== null && asset !== "removable" ? (
+        <CustomImageResize
+          width={highImageResize.width}
+          compress={highImageResize.compress}
+          asset={asset}
+          setAsset={setAsset}
+          onComplete={() => setIsImagePickerLoading(false)}
+        />
+      ) : null}
+    </>
   );
 }
 

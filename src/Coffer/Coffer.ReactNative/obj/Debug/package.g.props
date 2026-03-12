@@ -27,6 +27,7 @@
     <PackageJsonDependenciesExpoFont Condition="$(PackageJsonDependenciesExpoFont) == ''">~14.0.8</PackageJsonDependenciesExpoFont>
     <PackageJsonDependenciesExpoHaptics Condition="$(PackageJsonDependenciesExpoHaptics) == ''">~15.0.7</PackageJsonDependenciesExpoHaptics>
     <PackageJsonDependenciesExpoImage Condition="$(PackageJsonDependenciesExpoImage) == ''">~3.0.8</PackageJsonDependenciesExpoImage>
+    <PackageJsonDependenciesExpoImageManipulator Condition="$(PackageJsonDependenciesExpoImageManipulator) == ''">~14.0.8</PackageJsonDependenciesExpoImageManipulator>
     <PackageJsonDependenciesExpoImagePicker Condition="$(PackageJsonDependenciesExpoImagePicker) == ''">^17.0.8</PackageJsonDependenciesExpoImagePicker>
     <PackageJsonDependenciesExpoLinking Condition="$(PackageJsonDependenciesExpoLinking) == ''">~8.0.8</PackageJsonDependenciesExpoLinking>
     <PackageJsonDependenciesExpoRouter Condition="$(PackageJsonDependenciesExpoRouter) == ''">~6.0.3</PackageJsonDependenciesExpoRouter>
@@ -44,6 +45,7 @@
     <PackageJsonDependenciesReactNativeDropdownPicker Condition="$(PackageJsonDependenciesReactNativeDropdownPicker) == ''">^5.4.6</PackageJsonDependenciesReactNativeDropdownPicker>
     <PackageJsonDependenciesReactNativeElements Condition="$(PackageJsonDependenciesReactNativeElements) == ''">^3.0.0</PackageJsonDependenciesReactNativeElements>
     <PackageJsonDependenciesReactNativeGestureHandler Condition="$(PackageJsonDependenciesReactNativeGestureHandler) == ''">~2.28.0</PackageJsonDependenciesReactNativeGestureHandler>
+    <PackageJsonDependenciesReactNativeImageZoomViewer Condition="$(PackageJsonDependenciesReactNativeImageZoomViewer) == ''">^3.0.1</PackageJsonDependenciesReactNativeImageZoomViewer>
     <PackageJsonDependenciesReactNativeIndicator Condition="$(PackageJsonDependenciesReactNativeIndicator) == ''">^1.2.1</PackageJsonDependenciesReactNativeIndicator>
     <PackageJsonDependenciesReactNativeKeyboardAwareScrollView Condition="$(PackageJsonDependenciesReactNativeKeyboardAwareScrollView) == ''">^0.9.5</PackageJsonDependenciesReactNativeKeyboardAwareScrollView>
     <PackageJsonDependenciesReactNativeLocalize Condition="$(PackageJsonDependenciesReactNativeLocalize) == ''">^3.5.4</PackageJsonDependenciesReactNativeLocalize>

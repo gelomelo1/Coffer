@@ -12,7 +12,8 @@ import { FollowRequired } from "@/src/types/entities/follow";
 import User from "@/src/types/entities/user";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import React from "react";
-import { Image, View } from "react-native";
+import { View } from "react-native";
+import CustomImage from "../custom_ui/custom_image";
 
 interface OtherUserCollectionInfoCardProps {
   currentUser: User;
@@ -84,17 +85,14 @@ function OtherUserCollectionInfoCard({
             justifyContent: "center",
           }}
         >
-          <Image
-            source={{
-              uri: collection.image
+          <CustomImage
+            uri={
+              collection.image
                 ? `${endpoints.collectionsCoverImage}/${collection.image}`
-                : `${endpoints.icons}/${collectionType.icon}`,
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-              cache: "reload",
-            }}
-            style={{ width: "100%", height: "100%" }}
+                : `${endpoints.icons}/${collectionType.icon}`
+            }
+            style={{ width: "100%", aspectRatio: 1, resizeMode: "cover" }}
+            enableFullScreenView={true}
           />
         </View>
         <View

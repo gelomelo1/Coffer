@@ -1,4 +1,5 @@
 import CustomIconButton from "@/src/components/custom_ui/custom_icon_button";
+import CustomImage from "@/src/components/custom_ui/custom_image";
 import CustomText from "@/src/components/custom_ui/custom_text";
 import rootViewStyle from "@/src/components/custom_ui/root_view";
 import ItemDeleteForm from "@/src/components/itemdetails/item_delete_form";
@@ -19,7 +20,7 @@ import { adjustColor } from "@/src/utils/frontend_utils";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import Fontisto from "@expo/vector-icons/Fontisto";
 import { useState } from "react";
-import { Image, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { Chip } from "react-native-elements";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -62,18 +63,14 @@ function ItemDetails() {
               boxShadow: `2px 2px 2px ${darkContrastColor}`,
             }}
           >
-            <Image
-              source={{
-                uri: item.image
+            <CustomImage
+              uri={
+                item.image
                   ? `${endpoints.itemsCoverImage}/${item.image}`
-                  : `${endpoints.icons}/${collectionType!.icon}`,
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }}
-              style={{
-                aspectRatio: "1/1",
-              }}
+                  : `${endpoints.icons}/${collectionType!.icon}`
+              }
+              style={{ width: "100%", aspectRatio: 1, resizeMode: "cover" }}
+              enableFullScreenView={true}
             />
           </View>
           <CustomText

@@ -21,18 +21,21 @@ import ItemRegisterCard from "./item_register_card";
 interface ItemRegisterOverlayProps {
   collectionType: CollectionType;
   collection: Collection;
-  isImagePickerLoading: "Gallery" | "Camera" | null;
   isItemRegisterOverlayOpen: {
     value: boolean;
     set: React.Dispatch<React.SetStateAction<boolean>>;
   };
-  asset: ImagePicker.ImagePickerAsset | null;
+  asset: {
+    value: ImagePicker.ImagePickerAsset | null;
+    set: React.Dispatch<
+      React.SetStateAction<ImagePicker.ImagePickerAsset | null>
+    >;
+  };
 }
 
 function ItemRegisterOverlay({
   collectionType,
   collection,
-  isImagePickerLoading,
   isItemRegisterOverlayOpen,
   asset,
 }: ItemRegisterOverlayProps) {
@@ -48,7 +51,7 @@ function ItemRegisterOverlay({
     undefined,
     {
       "Content-Type": "multipart/form-data",
-    }
+    },
   );
 
   const { mutateAsync: upsertItems, isPending: isUpsertItemsPending } =
@@ -56,11 +59,11 @@ function ItemRegisterOverlay({
       `${endpoints.itemsUpsert}`,
       `${querykeys.itemsData}${collection.id}`,
       "Items successfully created and updated",
-      "Create and Update Failed"
+      "Create and Update Failed",
     );
 
   const [imageCheckResponse, setImageCheckResponse] = useState<ImageCheck[]>(
-    []
+    [],
   );
 
   const [selectedImageCheckIndex, setSelectedImageCheckIndex] =
@@ -76,7 +79,7 @@ function ItemRegisterOverlay({
     setSubmittedItems((prev) =>
       prev.some((x) => x.id === newItem.id)
         ? prev.map((x) => (x.id === newItem.id ? newItem : x))
-        : [...prev, newItem]
+        : [...prev, newItem],
     );
   };
 
@@ -109,14 +112,14 @@ function ItemRegisterOverlay({
   }, [isItemRegisterOverlayOpen.value]);
 
   useEffect(() => {
-    if (!asset) return;
+    if (!asset.value) return;
 
     const uploadImage = async () => {
       const formData = new FormData();
       formData.append("file", {
-        uri: asset.uri,
-        name: asset.fileName ?? "upload.jpg",
-        type: asset.mimeType ?? "image/jpeg",
+        uri: asset.value!.uri,
+        name: asset.value!.fileName ?? "upload.jpg",
+        type: asset.value!.mimeType ?? "image/jpeg",
       } as any);
 
       const response = await doImageCheck({
@@ -128,7 +131,7 @@ function ItemRegisterOverlay({
     };
 
     uploadImage();
-  }, [asset]);
+  }, [asset.value]);
 
   const handleNextItem = () => {
     if (imageCheckResponse.length - 1 > selectedImageCheckIndex)
@@ -154,6 +157,7 @@ function ItemRegisterOverlay({
         console.log(error);
       }
     }
+    asset.set(null);
     isItemRegisterOverlayOpen.set(false);
   };
 
@@ -164,18 +168,7 @@ function ItemRegisterOverlay({
       overlayStyle={{ backgroundColor: customTheme.colors.background }}
     >
       <SafeAreaView style={{ flex: 1 }}>
-        {isImagePickerLoading ? (
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <CustomText>{isImagePickerLoading}</CustomText>
-            <Loading />
-          </View>
-        ) : isDoImageCheckPending ? (
+        {isDoImageCheckPending ? (
           <View
             style={{
               flex: 1,
@@ -230,7 +223,7 @@ function ItemRegisterOverlay({
                 }}
                 btnStyle={(page) => ({
                   backgroundColor: submittedItemIsIdPresent(
-                    imageCheckResponse[page - 1].id
+                    imageCheckResponse[page - 1].id,
                   )
                     ? "green"
                     : "red",
@@ -360,7 +353,7 @@ function ItemRegisterOverlay({
                           handleNextItem();
                         }}
                         itemsCreate={findSubmittedItem(
-                          imageCheckResponse[selectedImageCheckIndex].id
+                          imageCheckResponse[selectedImageCheckIndex].id,
                         )}
                       />
                     ) : null}

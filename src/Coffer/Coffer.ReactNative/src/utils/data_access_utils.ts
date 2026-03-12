@@ -1,3 +1,4 @@
+import * as ImagePicker from "expo-image-picker";
 import { FlagType, getAllCountries } from "react-native-country-picker-modal";
 import {
   itemSortDefaultOptions,
@@ -16,12 +17,16 @@ import AttributeValue, {
   AttributeTypes,
 } from "../types/helpers/attribute_data";
 import { TradeStatus } from "../types/helpers/barter_status";
+import {
+  ImagePickerResult,
+  ImageSource,
+} from "../types/helpers/image_picker_result";
 import { QuerySortData } from "../types/helpers/query_data";
 import RarityValue from "../types/helpers/rarity_value";
 import ReviewSide from "../types/helpers/review_side";
 
 export function getItemAttributeValue(
-  itemAttribute: ItemAttribute
+  itemAttribute: ItemAttribute,
 ): AttributeValue {
   let value: string | number | boolean | Date | null;
   let valueString = "";
@@ -81,7 +86,7 @@ export function getAttributeValue(attribute: Attribute): AttributeTypes {
 }
 
 export function getItemPrimaryAttributeValue(
-  itemAttributes: ItemAttribute[]
+  itemAttributes: ItemAttribute[],
 ): AttributeValue | null {
   const primaryAttr = itemAttributes.find((attr) => attr.attribute.primary);
   return primaryAttr ? getItemAttributeValue(primaryAttr) : null;
@@ -98,7 +103,7 @@ export function parseSortKeysToQuerySortData(keys: string[]): QuerySortData[] {
 }
 
 export function generateSortRecordDataForItem(
-  attributes: Attribute[]
+  attributes: Attribute[],
 ): { value: string; label: string }[] {
   const records = itemSortDefaultOptions.flatMap((option) => [
     {
@@ -125,7 +130,7 @@ export function generateSortRecordDataForItem(
       {
         value: `${nestedSortQuery}_desc`,
         label: `${lowerCamelCaseToNormalFormat(name)} descending`,
-      }
+      },
     );
   }
 
@@ -160,7 +165,7 @@ export function getItemsQuantity(items: Item[]) {
 
 export function updateItemAttributeValue(
   attr: ItemAttribute,
-  newValue: any
+  newValue: any,
 ): ItemAttribute {
   switch (attr.attribute.dataType) {
     case "string":
@@ -186,7 +191,7 @@ export const chunkArray = <T>(array: T[], size: number): T[][] => {
 };
 
 export function getDefaultAttributeValue(
-  attribute: Attribute
+  attribute: Attribute,
 ): string | number | boolean | null {
   switch (attribute.dataType) {
     case "string":
@@ -213,7 +218,7 @@ export async function getCountryByCode(countryCode: string) {
     [countryCode as any],
     undefined,
     undefined,
-    undefined
+    undefined,
   );
 
   if (value.length === 0) return null;
@@ -231,7 +236,7 @@ export function getReactionsLikeCount(reactions: Reaction[]) {
 }
 
 export function getRarityVariantByValue(
-  reactions: Reaction[]
+  reactions: Reaction[],
 ): RarityValue | null {
   if (!reactions.length) return null;
 
@@ -267,7 +272,7 @@ export function isItemAvailableForTrade(
   trades: Trade[],
   offers: Offer[],
   excludeTrade?: Trade,
-  excludeOffer?: Offer
+  excludeOffer?: Offer,
 ) {
   if (item.quantity <= 1) return false;
 
@@ -299,7 +304,7 @@ export function isItemAvailableForTrade(
 export function getTradeReviewsRating(
   type: "like" | "dislike",
   tradeReviews: TradeReivewPack[],
-  userId: string
+  userId: string,
 ) {
   let count = 0;
 
@@ -324,7 +329,7 @@ export function getTradeReviewsRating(
 
 export function getCurrentUserReview(
   tradeReviews: TradeReivewPack,
-  userId: string
+  userId: string,
 ): ReviewSide | null {
   if (tradeReviews.trader?.reviewerId === userId) {
     return { side: "trader", review: tradeReviews.trader };
@@ -339,7 +344,7 @@ export function getCurrentUserReview(
 
 export function getCurrentUserReviewer(
   tradeReviews: TradeReivewPack,
-  userId: string
+  userId: string,
 ): ReviewSide | null {
   if (tradeReviews.offerer?.reviewerId !== userId && tradeReviews.offerer) {
     return { side: "offerer", review: tradeReviews.offerer };
@@ -351,3 +356,55 @@ export function getCurrentUserReviewer(
 
   return null;
 }
+
+export const pickImage = async (
+  source: ImageSource,
+  pickerOptions?: ImagePicker.ImagePickerOptions,
+): Promise<ImagePickerResult> => {
+  try {
+    let permission;
+
+    if (source === "camera") {
+      permission = await ImagePicker.getCameraPermissionsAsync();
+
+      if (!permission.granted) {
+        permission = await ImagePicker.requestCameraPermissionsAsync();
+      }
+    } else {
+      permission = await ImagePicker.getMediaLibraryPermissionsAsync();
+
+      if (!permission.granted) {
+        permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      }
+    }
+
+    if (!permission.granted) {
+      return { status: "permission_denied" };
+    }
+
+    const result =
+      source === "camera"
+        ? await ImagePicker.launchCameraAsync({
+            ...pickerOptions,
+            mediaTypes: ["images"],
+          })
+        : await ImagePicker.launchImageLibraryAsync({
+            ...pickerOptions,
+            mediaTypes: ["images"],
+          });
+
+    if (result.canceled) {
+      return { status: "cancel" };
+    }
+
+    return {
+      status: "success",
+      assets: result.assets,
+    };
+  } catch (error) {
+    return {
+      status: "error",
+      error,
+    };
+  }
+};

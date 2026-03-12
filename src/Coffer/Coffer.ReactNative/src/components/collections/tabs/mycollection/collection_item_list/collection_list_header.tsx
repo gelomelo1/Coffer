@@ -81,7 +81,7 @@ function CollectionItemHeader({
                 color: customTheme.colors.secondary,
               }}
             >
-              {collectionType.name}
+              {collectionType!.name}
             </CustomText>{" "}
             collection
           </CustomText>

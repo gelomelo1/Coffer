@@ -1,6 +1,7 @@
 import FeedLike from "@/src/components/collections/tabs/home/feed_like";
 import FeedRarity from "@/src/components/collections/tabs/home/feed_rarity";
 import CustomButton from "@/src/components/custom_ui/custom_button";
+import CustomImage from "@/src/components/custom_ui/custom_image";
 import CustomText from "@/src/components/custom_ui/custom_text";
 import rootViewStyle from "@/src/components/custom_ui/root_view";
 import ItemDetailsDynamicAttributeDisplay from "@/src/components/itemdetails/itemdetails_dynamic_attribute_display";
@@ -20,7 +21,7 @@ import { adjustColor } from "@/src/utils/frontend_utils";
 import Fontisto from "@expo/vector-icons/Fontisto";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { navigate } from "expo-router/build/global-state/routing";
-import { Image, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { Chip } from "react-native-elements";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -80,18 +81,14 @@ function OtherUserItemDetails() {
             boxShadow: `2px 2px 2px ${darkContrastColor}`,
           }}
         >
-          <Image
-            source={{
-              uri: item!.image
+          <CustomImage
+            uri={
+              item!.image
                 ? `${endpoints.itemsCoverImage}/${item!.image}`
-                : `${endpoints.icons}/${collectionType!.icon}`,
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }}
-            style={{
-              aspectRatio: "1/1",
-            }}
+                : `${endpoints.icons}/${collectionType!.icon}`
+            }
+            style={{ width: "100%", aspectRatio: 1, resizeMode: "cover" }}
+            enableFullScreenView={true}
           />
         </View>
         <CustomText

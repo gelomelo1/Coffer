@@ -236,7 +236,9 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
                 },
               }}
               style={{
-                aspectRatio: "1/1",
+                width: "100%",
+                aspectRatio: 1,
+                resizeMode: "cover",
               }}
             />
           </TouchableOpacity>
