@@ -8,6 +8,7 @@ using Coffer.DataAccess.Repositories.Generic;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Coffer.Domain.Constants;
 
 namespace Coffer.DataAccess.Repositories
 {
@@ -33,7 +34,7 @@ namespace Coffer.DataAccess.Repositories
 
         public async Task<User> InsertUserAsync(UserRequired newUser)
         {
-            var user = new User(newUser.Name, newUser.Email, newUser.Provider, newUser.Country, newUser.ProviderUserId, newUser.Avatar);
+            var user = new User(newUser.Name, newUser.Email, newUser.Provider, newUser.Country, newUser.ProviderUserId, newUser.Avatar, newUser.Role);
             _dbSet.Add(user);
             await _dbContext.SaveChangesAsync();
             return user;
@@ -60,7 +61,7 @@ namespace Coffer.DataAccess.Repositories
         {
             if(entity == null)
             {
-                return new User(required.Name, required.Email, required.Provider, required.Country, required.ProviderUserId, required.Avatar);
+                return new User(required.Name, required.Email, required.Provider, required.Country, required.ProviderUserId, required.Avatar, required.Role ?? UserRole.User);
             }
 
             entity.Name = required.Name;
@@ -69,6 +70,10 @@ namespace Coffer.DataAccess.Repositories
             entity.ProviderUserId = required.ProviderUserId;
             entity.Country = required.Country;
             entity.Avatar = required.Avatar;
+            if(required.Role != null)
+            {
+                entity.Role = required.Role.Value;
+            }
 
             return entity;
         }

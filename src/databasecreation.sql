@@ -9,7 +9,8 @@ CREATE TABLE users (
     email TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT now(),
     country VARCHAR(20) NOT NULL,
-    avatar TEXT
+    avatar TEXT,
+    role INTEGER NOT NULL
 );
 
 CREATE TABLE collection_types (

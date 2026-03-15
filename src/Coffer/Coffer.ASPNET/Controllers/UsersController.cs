@@ -1,6 +1,7 @@
 ﻿using System.Linq.Dynamic.Core;
 using Coffer.ASPNET.Controllers.Generic;
 using Coffer.ASPNET.Extensions;
+using Coffer.BusinessLogic.Services.Interfaces;
 using Coffer.DataAccess.Repositories;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
@@ -13,7 +14,7 @@ namespace Coffer.ASPNET.Controllers
     [Route("api/[controller]")]
     public class UsersController : GenericController<Guid, User, UserProvided, UserRequired>
     {
-        public UsersController(IUsersRepository genericRepository) : base(genericRepository)
+        public UsersController(IUsersRepository genericRepository, IPermissionService<Guid, UserRequired> permissionService) : base(genericRepository, permissionService)
         {
         }
     }

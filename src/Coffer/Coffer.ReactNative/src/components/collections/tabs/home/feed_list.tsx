@@ -65,7 +65,7 @@ function FeedList() {
     isFetching,
     refetch,
   } = useGetData<Feed>(
-    `${endpoints.feed}/${user!.id}`,
+    `${endpoints.feed}`,
     querykeys.feedListData,
     selectedCollectionTypeIds && selectedCollectionTypeIds.length > 0
       ? {

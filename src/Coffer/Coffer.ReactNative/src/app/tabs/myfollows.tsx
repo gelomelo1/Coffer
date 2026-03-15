@@ -17,7 +17,7 @@ function MyFollows() {
   const { token, user } = useUserStore();
 
   const { data: followsData = [], isFetching } = useGetData<CollectionSearch>(
-    `${endpoints.feedUserFollows}/${user!.id}`,
+    `${endpoints.feedUserFollows}`,
     querykeys.followsData,
   );
 
@@ -138,7 +138,9 @@ function MyFollows() {
           isFetching ? (
             <Loading />
           ) : (
-            <CustomText>You are not following any collections.</CustomText>
+            <CustomText style={{ alignSelf: "center" }}>
+              You are not following any collections.
+            </CustomText>
           )
         }
       />

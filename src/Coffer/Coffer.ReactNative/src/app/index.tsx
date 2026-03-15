@@ -24,6 +24,7 @@ export default function Index() {
       if (!token) {
         navigate(ROUTES.LOGIN);
       } else {
+        console.log(token);
         try {
           const currentUser = await getSingleData<User>(
             endpoints.currentUser,

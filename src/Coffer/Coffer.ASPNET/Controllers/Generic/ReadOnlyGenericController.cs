@@ -7,7 +7,7 @@ namespace Coffer.ASPNET.Controllers.Generic
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ReadOnlyGenericController<TKey, TEntity, TProvided> : ControllerBase
+    public class ReadOnlyGenericController<TKey, TEntity, TProvided> : BaseController
     where TKey : notnull
     where TEntity : class, TProvided
     where TProvided : class, IGenericEntity<TKey>

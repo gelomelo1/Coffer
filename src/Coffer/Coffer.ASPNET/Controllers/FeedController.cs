@@ -8,7 +8,7 @@ using System.Linq;
 namespace Coffer.ASPNET.Controllers
 {
     [Route("api/[controller]")]
-    public class FeedController : ControllerBase
+    public class FeedController : BaseController
     {
         private readonly IItemsRepository _itemsRepository;
         private readonly IUsersRepository _usersRepository;
@@ -26,15 +26,21 @@ namespace Coffer.ASPNET.Controllers
         }
 
         [Authorize]
-        [HttpGet("{userId}")]
-        public async Task<ActionResult<IEnumerable<Feed>>> GetFeedItems(Guid userId, [FromQuery] string? filter = null,
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Feed>>> GetFeedItems([FromQuery] string? filter = null,
                                                                             [FromQuery] string? orderBy = null,
                                                                             [FromQuery] int? page = null,
                                                                             [FromQuery] int? pageSize = null)
         {
+
+            if(!UserId.HasValue)
+            {
+                return Unauthorized();
+            }
+
             try
             {
-                var user = await _usersRepository.GetUserById(userId);
+                var user = await _usersRepository.GetUserById(UserId.Value);
                 if (user == null)
                     return BadRequest("User not found");
                 var items = await _itemsRepository.GetFeedItemsAsync(user, filter, orderBy, page, pageSize);
@@ -171,16 +177,22 @@ namespace Coffer.ASPNET.Controllers
         }
 
         [Authorize]
-        [HttpGet("UserFollows/{userId}")]
-        public async Task<ActionResult<IEnumerable<CollectionResult>>> UserFollows(Guid userId)
+        [HttpGet("UserFollows")]
+        public async Task<ActionResult<IEnumerable<CollectionResult>>> UserFollows()
         {
+
+            if(!UserId.HasValue)
+            {
+                return Unauthorized();
+            }
+
             try
             {
-                 var user = await _usersRepository.GetUserById(userId);
+                 var user = await _usersRepository.GetUserById(UserId.Value);
                  if (user == null)
                      return NotFound();
 
-                 var follows = await _followsRepository.FindFollowsOfUser(userId);
+                 var follows = await _followsRepository.FindFollowsOfUser(UserId.Value);
 
                  List<CollectionResult> followedResults = new List<CollectionResult>();
 

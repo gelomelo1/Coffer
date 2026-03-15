@@ -1,4 +1,5 @@
 ﻿using Coffer.ASPNET.Controllers.Generic;
+using Coffer.BusinessLogic.Services.Interfaces;
 using Coffer.DataAccess.Repositories;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
@@ -10,7 +11,7 @@ namespace Coffer.ASPNET.Controllers
     public class OffersController : GenericController<Guid, OfferProvided, OfferProvided, OfferRequired>
     {
         private readonly IOffersRepository _offersRepository;
-        public OffersController(IOffersRepository repository) : base(repository)
+        public OffersController(IOffersRepository repository, IPermissionService<Guid, OfferRequired> permissionService) : base(repository, permissionService)
         {
             _offersRepository = repository;
         }

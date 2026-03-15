@@ -51,6 +51,17 @@ namespace Coffer.Infrastructure
             services.AddHttpClient();
             services.AddHostedService<TradeCleanupService>();
             services.AddScoped<ITradeCleanupService, TradeCleanupService>();
+            services.AddScoped<IPermissionService<Guid, CollectionRequired>, CollectionPermissionService>();
+            services.AddScoped<IPermissionService<Guid, FollowRequired>, FollowPermissionService>();
+            services.AddScoped<IPermissionService<Guid, ItemRequired>, ItemPermissionService>();
+            services.AddScoped<IPermissionService<Guid, OfferProvided>, AllowAllPermissionService<Guid, OfferProvided>>();
+            services.AddScoped<IPermissionService<Guid, ReactionRequired>, ReactionPermissionService>();
+            services.AddScoped<IPermissionService<Guid, TradeReviewRequired>, AllowAllPermissionService<Guid, TradeReviewRequired>>();
+            services.AddScoped<IPermissionService<Guid, TradeRequired>, AllowAllPermissionService<Guid, TradeRequired>>();
+            services.AddScoped<IPermissionService<Guid, UserContactRequired>, UserContactPermissionService>();
+            services.AddScoped<IPermissionService<Guid, UserRequired>, UserPermissionService>();
+
+
             #endregion
 
             #region AddIncludes

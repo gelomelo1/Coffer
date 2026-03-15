@@ -26,7 +26,7 @@ namespace Coffer.ASPNET.Controllers
         private readonly string itemImageFolder =
     Path.Combine(Env.GetString("IMAGESTORE_PATH") ?? throw new InvalidOperationException("IMAGESTORE_PATH envionmental variable is not set"), "items");
         private readonly HttpClient _httpClient;
-        public CollectionsController(ICollectionsRepository collectionsRepository, IItemsRepository itemsRepository, IImageService imageService, HttpClient httpClient) : base(collectionsRepository)
+        public CollectionsController(ICollectionsRepository collectionsRepository, IItemsRepository itemsRepository, IImageService imageService, IPermissionService<Guid, CollectionRequired> permissionService, HttpClient httpClient) : base(collectionsRepository, permissionService)
         {
             _collectionsRepository = collectionsRepository;
             _imageService = imageService;
@@ -38,6 +38,12 @@ namespace Coffer.ASPNET.Controllers
         [HttpPost("CoverImage/Upload/{id}")]
         public async Task<IActionResult> UploadCoverImage(Guid id, IFormFile? file)
         {
+
+            if(!UserId.HasValue)
+            {
+                return Unauthorized();
+            }
+
             try
             {
                 var collection = await _repository.GetItemByIdAsync(id);
@@ -46,7 +52,14 @@ namespace Coffer.ASPNET.Controllers
 
                 if(file == null)
                 {
-                    if(!string.IsNullOrEmpty(collection.Image))
+
+                    bool isPermissionGranted = await _permissionService.CanDelete(UserId.Value, id);
+                    if (!isPermissionGranted)
+                    {
+                        return Forbid();
+                    }
+
+                    if (!string.IsNullOrEmpty(collection.Image))
                     {
                         await _imageService.DeleteImageAsync(collection.Image, imageFolder);
                     }
@@ -54,6 +67,13 @@ namespace Coffer.ASPNET.Controllers
                 }
                 else
                 {
+
+                    bool isPermissionGranted = await _permissionService.CanUpdate(UserId.Value, id, null);
+                    if (!isPermissionGranted)
+                    {
+                        return Forbid();
+                    }
+
                     var fileName = await _imageService.SaveImageAsync(file, id, imageFolder);
                     collection.Image = fileName;
                 }
@@ -124,6 +144,17 @@ namespace Coffer.ASPNET.Controllers
         [HttpPost("ImageCheck/{id}")]
         public async Task<ActionResult<IEnumerable<ImageCheckResponse>>> UploadImageCheckTest(Guid id, IFormFile file)
         {
+
+            if (!UserId.HasValue)
+            {
+                return Unauthorized();
+            }
+            bool isPermissionGranted = await _permissionService.CanUpdate(UserId.Value, id, null);
+            if (!isPermissionGranted)
+            {
+                return Forbid();
+            }
+
             if (file == null || file.Length == 0)
                 return BadRequest("No file uploaded.");
 
@@ -194,6 +225,17 @@ namespace Coffer.ASPNET.Controllers
         [HttpDelete("{id}")]
         public override async Task<ActionResult> Delete(Guid id)
         {
+
+            if (!UserId.HasValue)
+            {
+                return Unauthorized();
+            }
+            bool isPermissionGranted = await _permissionService.CanDelete(UserId.Value, id);
+            if (!isPermissionGranted)
+            {
+                return Forbid();
+            }
+
             var collection = await _collectionsRepository.GetCollectionByIdForDelete(id);
             if (collection == null) return NotFound();
 
