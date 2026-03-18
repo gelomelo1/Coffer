@@ -8,7 +8,10 @@ import {
 } from "@/src/const/filter";
 import { customTheme } from "@/src/theme/theme";
 import Attribute from "@/src/types/entities/attribute";
-import { QueryFilterDataItem } from "@/src/types/helpers/attribute_data";
+import {
+  AttributeDataTypes,
+  QueryFilterDataItem,
+} from "@/src/types/helpers/attribute_data";
 import { QueryOptions } from "@/src/types/helpers/query_data";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React, { useEffect, useState } from "react";
@@ -38,7 +41,7 @@ function TradeListFilterBottomSheet({
   >([]);
 
   const getFilterData = (
-    id: number | string
+    id: number | string,
   ): QueryFilterDataItem | undefined => {
     return selectedFilterDatas.find((item) => item.id === id);
   };
@@ -79,7 +82,7 @@ function TradeListFilterBottomSheet({
       filters:
         draftFilterDatas.length > 0
           ? draftFilterDatas.map(
-              (selectedFilterDatasItem) => selectedFilterDatasItem.value
+              (selectedFilterDatasItem) => selectedFilterDatasItem.value,
             )
           : undefined,
     }));
@@ -184,13 +187,13 @@ function TradeListFilterBottomSheet({
                   })
                 }
                 draftQueryFilterData={
-                  attribute.dataType === "date"
+                  attribute.dataType === AttributeDataTypes.Date
                     ? [
                         getFilterData(`${attribute.id}_before`),
                         getFilterData(`${attribute.id}_after`),
                       ].filter((f): f is QueryFilterDataItem => f !== undefined)
                     : [getFilterData(attribute.id)].filter(
-                        (f): f is QueryFilterDataItem => f !== undefined
+                        (f): f is QueryFilterDataItem => f !== undefined,
                       )
                 }
                 filterQuery={(id, attributeName, value) =>

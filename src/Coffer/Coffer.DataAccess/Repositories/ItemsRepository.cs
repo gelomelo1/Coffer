@@ -276,7 +276,19 @@ namespace Coffer.DataAccess.Repositories
 
         public async Task<IEnumerable<ItemProvided>> GetItemsByCollectionAsync(Guid collectionId)
         {
-            return await _dbSet
+            IQueryable<ItemProvided> query = _dbSet;
+
+            var includes = includeProvider.GetDefaultIncludes();
+
+            if (includes != null)
+            {
+                foreach (var include in includes)
+                {
+                    query = query.Include(include);
+                }
+            }
+
+            return await query
                 .Where(i => i.CollectionId == collectionId)
                 .ToListAsync();
         }

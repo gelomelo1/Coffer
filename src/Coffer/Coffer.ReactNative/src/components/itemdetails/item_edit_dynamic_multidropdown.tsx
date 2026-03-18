@@ -6,22 +6,22 @@ import Attribute from "@/src/types/entities/attribute";
 import ItemOptions from "@/src/types/entities/itemoptions";
 import { getOptions } from "@/src/utils/data_access_utils";
 import { useEffect, useState } from "react";
-import CustomDropdown from "../custom_ui/custom_dropdown";
+import CustomDropdownMultiple from "../custom_ui/custom_dropdown_multiple";
 
-interface ItemEditDynamicDropdownProps {
+interface ItemEditDynamicMultiDropdownProps {
   attribute: Attribute;
   defaultValue: string;
   onValueChange: (newValue: string | number | boolean) => void;
   onErrorChange: (errorMessage: string) => void;
 }
 
-function ItemEditDynamicDropdown({
+function ItemEditMultiDynamicDropdown({
   attribute,
   defaultValue,
   onValueChange,
   onErrorChange,
-}: ItemEditDynamicDropdownProps) {
-  const [selectValue, setSelectValue] = useState<string | null>(null);
+}: ItemEditDynamicMultiDropdownProps) {
+  const [selectValue, setSelectValue] = useState<string[]>([]);
   const [dropDownIsOpen, setDropDownIsOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -41,22 +41,22 @@ function ItemEditDynamicDropdown({
   };
 
   useEffect(() => {
-    const value = defaultValue.split(";")[0] ?? null;
+    const value = defaultValue?.split(";").slice(0, -1);
     setSelectValue(value);
     console.log(typeof value);
-    checkInput(value);
+    checkInput(defaultValue);
   }, [defaultValue]);
 
   return (
-    <CustomDropdown
+    <CustomDropdownMultiple
       open={dropDownIsOpen}
       label={attribute.name}
       value={selectValue}
       setOpen={setDropDownIsOpen}
       setValue={(newValue) => {
-        const value = newValue ? `${newValue};` : null;
+        const value = newValue ? `${newValue.join(";")};` : null;
         checkInput(value);
-        setSelectValue(newValue);
+        setSelectValue(newValue ?? []);
         onValueChange(value ?? "");
       }}
       items={getOptions(optionsData)}
@@ -66,4 +66,4 @@ function ItemEditDynamicDropdown({
   );
 }
 
-export default ItemEditDynamicDropdown;
+export default ItemEditMultiDynamicDropdown;

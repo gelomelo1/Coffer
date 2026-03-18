@@ -11,8 +11,15 @@ import {
 import { customTheme } from "@/src/theme/theme";
 import Attribute from "@/src/types/entities/attribute";
 import { ItemProvided } from "@/src/types/entities/item";
-import { QueryFilterDataItem } from "@/src/types/helpers/attribute_data";
-import { QueryOptions } from "@/src/types/helpers/query_data";
+import {
+  AttributeDataTypes,
+  QueryFilterDataItem,
+} from "@/src/types/helpers/attribute_data";
+import {
+  QueryFilterData,
+  QueryFilterNode,
+  QueryOptions,
+} from "@/src/types/helpers/query_data";
 import {
   generateSortRecordDataForItem,
   parseSortKeysToQuerySortData,
@@ -25,6 +32,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import MonthPicker from "react-native-month-year-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CollectionItemListDynamicFilter from "./collection_item_list_dynamic_filter";
+import CollectionListTagFilter from "./collection_list_tag_filter";
 
 interface CollectionListFilterBottomSheetProps {
   isCollectionListFilterBottomSheetOpen: {
@@ -34,6 +42,7 @@ interface CollectionListFilterBottomSheetProps {
   items: ItemProvided[];
   attributes: Attribute[];
   setQueryOptions: React.Dispatch<React.SetStateAction<QueryOptions>>;
+  itemTags: string[];
 }
 
 function CollectionListFilterBottomSheet({
@@ -41,6 +50,7 @@ function CollectionListFilterBottomSheet({
   items,
   attributes,
   setQueryOptions,
+  itemTags,
 }: CollectionListFilterBottomSheetProps) {
   const [isSortingDropdownOpen, setIsSortingDropdownOpen] = useState(false);
 
@@ -73,23 +83,41 @@ function CollectionListFilterBottomSheet({
     return selectedFilterDatas.find((item) => item.id === id);
   };
 
+  const getFilterTree = () => {
+    const filterTreeNodes: QueryFilterNode[] = draftFilterDatas
+      .map((item) => item.filterTree)
+      .filter((node): node is QueryFilterNode => node !== undefined);
+
+    console.log("STRINGIFY!!!!!!!!!!!!!!!");
+    console.log(JSON.stringify(filterTreeNodes[0]));
+
+    const rootFilterTree: QueryFilterNode | undefined =
+      filterTreeNodes.length === 0
+        ? undefined
+        : filterTreeNodes.length === 1
+          ? filterTreeNodes[0] // just one node, no need for "AND"
+          : { conjunction: "AND", filters: filterTreeNodes };
+
+    return rootFilterTree;
+  };
+
   useEffect(() => {
     if (isCollectionListFilterBottomSheetOpen.value) {
       setDraftSortId(selectedSortId);
       setDraftFilterDatas(selectedFilterDatas);
-      console.log(getFilterData(quantityItemFilterKey)?.value.value as number);
+      console.log(getFilterData(quantityItemFilterKey)?.value?.value as number);
       setIsDuplicateSwitchOn(
-        (getFilterData(quantityItemFilterKey)?.value.value as number) === 1
+        (getFilterData(quantityItemFilterKey)?.value?.value as number) === 1
           ? true
           : false,
       );
       setAcquiredAtBeforeDate(
         (getFilterData(`${acquiredAtItemFilterKey}_before`)?.value
-          .value as Date) ?? null,
+          ?.value as Date) ?? null,
       );
       setAcquiredAtAfterDate(
         (getFilterData(`${acquiredAtItemFilterKey}_after`)?.value
-          .value as Date) ?? null,
+          ?.value as Date) ?? null,
       );
       setIsDatePickerOpen(false);
     }
@@ -126,15 +154,18 @@ function CollectionListFilterBottomSheet({
     setSelectedSortId(draftSortId);
     setSelectedFilerDatas(draftFilterDatas);
 
+    console.log(draftFilterDatas);
+
     setQueryOptions((prev) => ({
       ...prev,
       sort: querySortData,
       filters:
         draftFilterDatas.length > 0
-          ? draftFilterDatas.map(
-              (selectedFilterDatasItem) => selectedFilterDatasItem.value,
-            )
+          ? draftFilterDatas
+              .map((item) => item.value)
+              .filter((value): value is QueryFilterData => value !== undefined)
           : undefined,
+      filterTree: getFilterTree(),
     }));
 
     handleCloseBottomSheet();
@@ -148,6 +179,7 @@ function CollectionListFilterBottomSheet({
       ...prev,
       sort: undefined,
       filters: undefined,
+      filterTree: undefined,
     }));
 
     handleCloseBottomSheet();
@@ -286,26 +318,33 @@ function CollectionListFilterBottomSheet({
                       }}
                     />
                   </View>
-                  <CustomTextInput
-                    label="Tags contains"
-                    placeholder="Write any tags keyword"
+                  <CollectionListTagFilter
                     defaultValue={
                       (getFilterData(tagItemFilterKey)?.value
-                        .value as string) ?? ""
+                        ?.value as string) ?? ""
                     }
-                    onChangeText={(newValue) =>
-                      handleChangeFilterData({
-                        id: tagItemFilterKey,
-                        value: {
-                          filter: "None",
-                          field: nestedTagFilterQuery(newValue),
-                          value: newValue,
-                        },
-                      })
-                    }
+                    setValue={(newValue) => {
+                      if (newValue.length === 0) {
+                        handleChangeFilterData({
+                          id: tagItemFilterKey,
+                          value: undefined,
+                          filterTree: undefined,
+                        });
+                      } else {
+                        handleChangeFilterData({
+                          id: tagItemFilterKey,
+                          value: {
+                            filter: "None",
+                            field: nestedTagFilterQuery(newValue),
+                            value: `#${newValue.join(" #")}`,
+                          },
+                        });
+                      }
+                    }}
+                    items={itemTags}
                   />
                   <CustomText style={{ marginTop: 10 }}>
-                    Last item acquisition date
+                    First piece acquisition date
                   </CustomText>
                   <View
                     style={{
@@ -356,14 +395,16 @@ function CollectionListFilterBottomSheet({
                         isBottomSheetVisible={
                           isCollectionListFilterBottomSheetOpen.value
                         }
-                        onQueryFilterDataChange={(filter, id) =>
+                        onQueryFilterDataChange={(filter, id, filterTree) => {
+                          console.log(filterTree);
                           handleChangeFilterData({
                             id: id ?? attribute.id,
                             value: filter,
-                          })
-                        }
+                            filterTree: filterTree,
+                          });
+                        }}
                         draftQueryFilterData={
-                          attribute.dataType === "date"
+                          attribute.dataType === AttributeDataTypes.Date
                             ? [
                                 getFilterData(`${attribute.id}_before`),
                                 getFilterData(`${attribute.id}_after`),

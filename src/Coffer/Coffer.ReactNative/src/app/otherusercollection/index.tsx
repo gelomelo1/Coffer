@@ -39,6 +39,7 @@ function OtherUserCollection() {
       page: queryOptions.page,
       pageSize: queryOptions.pageSize,
       filterConjunction: queryOptions.filterConjunction,
+      filterTree: queryOptions.filterTree,
     },
   );
 

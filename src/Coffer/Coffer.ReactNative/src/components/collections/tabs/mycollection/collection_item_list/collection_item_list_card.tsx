@@ -102,7 +102,7 @@ function CollectionItemListCard({
             color: lightContrastColor,
           }}
         >
-          Last acquisition date
+          Acquisition date of the first piece
         </CustomText>
         <CustomText style={{ color: darkContrastColor, marginLeft: 10 }}>
           {item.quantity}

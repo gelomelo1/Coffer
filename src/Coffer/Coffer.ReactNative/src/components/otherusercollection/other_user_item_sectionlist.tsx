@@ -111,6 +111,7 @@ function OtherUserItemSectionList({
         <>
           <CollectionItemHeader
             items={items}
+            collection={collection}
             attributes={attributes}
             queryOptions={queryOptions}
             isStickyShadow={isStickyShadow}

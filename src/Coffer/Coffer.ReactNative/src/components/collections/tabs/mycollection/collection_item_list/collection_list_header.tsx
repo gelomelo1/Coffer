@@ -1,18 +1,25 @@
 import CustomText from "@/src/components/custom_ui/custom_text";
+import { endpoints } from "@/src/const/endpoints";
+import { querykeys } from "@/src/const/querykeys";
 import { useCollectionStore } from "@/src/hooks/collection_store";
+import { useGetData } from "@/src/hooks/data_hooks";
 import { customTheme } from "@/src/theme/theme";
 import Attribute from "@/src/types/entities/attribute";
+import { Collection } from "@/src/types/entities/collection";
 import { ItemProvided } from "@/src/types/entities/item";
+import ItemTag from "@/src/types/entities/item_tag";
 import User from "@/src/types/entities/user";
 import { QueryOptions } from "@/src/types/helpers/query_data";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import React, { useState } from "react";
 import { TouchableOpacity, View } from "react-native";
+import { ActivityIndicator } from "react-native-paper";
 import CollectionItemListNumbers from "./collection_item_list_numbers";
 import CollectionListFilterBottomSheet from "./collection_list_filter_bottomsheet";
 
 interface CollectionItemHeaderProps {
   items: ItemProvided[];
+  collection: Collection;
   attributes: Attribute[];
   queryOptions: {
     value: QueryOptions;
@@ -24,12 +31,19 @@ interface CollectionItemHeaderProps {
 
 function CollectionItemHeader({
   items,
+  collection,
   attributes,
   queryOptions,
   isStickyShadow,
   user = undefined,
 }: CollectionItemHeaderProps) {
   const { collectionType } = useCollectionStore();
+
+  const { data: itemTags = [], isFetching: isItemTagsFetching } =
+    useGetData<ItemTag>(
+      `${endpoints.collectionItemTags}/${collection!.id}`,
+      `${querykeys.itemTagsData}${collection!.id}`,
+    );
 
   const [
     isCollectionListFilterBottomSheetOpen,
@@ -87,23 +101,27 @@ function CollectionItemHeader({
           </CustomText>
         </View>
 
-        <TouchableOpacity
-          style={{
-            justifyContent: "center",
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 10,
-            marginLeft: 10,
-          }}
-          onPress={() => setIsCollectionListFilterBottemSheetOpen(true)}
-        >
-          <CustomText style={{ fontSize: 20 }}>Filter</CustomText>
-          <Ionicons
-            name="filter"
-            size={24}
-            color={customTheme.colors.primary}
-          />
-        </TouchableOpacity>
+        {isItemTagsFetching ? (
+          <ActivityIndicator color={customTheme.colors.primary} />
+        ) : (
+          <TouchableOpacity
+            style={{
+              justifyContent: "center",
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              marginLeft: 10,
+            }}
+            onPress={() => setIsCollectionListFilterBottemSheetOpen(true)}
+          >
+            <CustomText style={{ fontSize: 20 }}>Filter</CustomText>
+            <Ionicons
+              name="filter"
+              size={24}
+              color={customTheme.colors.primary}
+            />
+          </TouchableOpacity>
+        )}
       </View>
       <CollectionListFilterBottomSheet
         isCollectionListFilterBottomSheetOpen={{
@@ -113,6 +131,7 @@ function CollectionItemHeader({
         items={items}
         attributes={attributes}
         setQueryOptions={queryOptions.set}
+        itemTags={itemTags.map((tag) => tag.tag)}
       />
     </View>
   );

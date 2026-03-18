@@ -1,5 +1,15 @@
 import ItemAttribute from "../entities/item_attribute";
-import { QueryFilterData } from "./query_data";
+import { QueryFilterData, QueryFilterNode } from "./query_data";
+
+export enum AttributeDataTypes {
+  String = 0,
+  Number = 1,
+  Date = 2,
+  Boolean = 3,
+  Select = 4,
+  Multi_Select = 5,
+  Autocomplete = 6,
+}
 
 export type AttributeTypes =
   | "valueString"
@@ -19,7 +29,8 @@ export default AttributeValue;
 
 export interface QueryFilterDataItem {
   id: number | string;
-  value: QueryFilterData;
+  value?: QueryFilterData;
+  filterTree?: QueryFilterNode;
 }
 
 export interface DatePickerData {

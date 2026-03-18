@@ -35,22 +35,22 @@ function Trades() {
       page: queryOptions.page,
       pageSize: queryOptions.pageSize,
       filterConjunction: queryOptions.filterConjunction,
-    }
+    },
   );
 
   const { data: attributes = [], isFetching: isAttributesFetching } =
     useGetData<Attribute>(
       endpoints.attributes,
-      `${querykeys.attributesData}${collectionType.id}`,
+      `${querykeys.attributesData}${collectionType!.id}`,
       {
         filters: [
           {
             filter: "==",
             field: "collectionTypeId",
-            value: collectionType.id,
+            value: collectionType!.id,
           },
         ],
-      }
+      },
     );
 
   const [
@@ -75,7 +75,7 @@ function Trades() {
           <View style={{ marginHorizontal: 10 }}>
             <TradeCard
               trade={item}
-              collectiontType={collectionType}
+              collectiontType={collectionType!}
               isMyTrade={false}
             />
           </View>

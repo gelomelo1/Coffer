@@ -1,6 +1,7 @@
 import CustomText from "@/src/components/custom_ui/custom_text";
 import { Loading } from "@/src/components/custom_ui/loading";
 import Attribute from "@/src/types/entities/attribute";
+import { Collection } from "@/src/types/entities/collection";
 import CollectionType from "@/src/types/entities/collectiontype";
 import { ItemProvided } from "@/src/types/entities/item";
 import { QueryOptions } from "@/src/types/helpers/query_data";
@@ -18,6 +19,7 @@ import CollectionItemHeader from "./collection_list_header";
 
 interface CollectionSectionListProps {
   collectionType: CollectionType;
+  collection: Collection;
   items: ItemProvided[];
   attributes: Attribute[];
   allLoading: boolean;
@@ -29,6 +31,7 @@ interface CollectionSectionListProps {
 
 function CollectionSectionList({
   collectionType,
+  collection,
   items,
   attributes,
   allLoading,
@@ -59,6 +62,7 @@ function CollectionSectionList({
         <>
           <CollectionItemHeader
             items={items}
+            collection={collection}
             attributes={attributes}
             queryOptions={queryOptions}
             isStickyShadow={isStickyShadow}

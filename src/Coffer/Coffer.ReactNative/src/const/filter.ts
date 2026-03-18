@@ -15,15 +15,26 @@ export const itemSortDefaultOptions: (keyof Item)[] = [
 
 export const nestedAttributeFilterQuery = (
   id: number,
-  attributeName: AttributeTypes
+  attributeName: AttributeTypes,
 ) => {
   let extension = "";
   if (attributeName === "valueString") extension = ".ToLower()";
   return `itemAttributes.Where(a => a.attributeId == ${id}).Select(a => a.${attributeName}${extension}).FirstOrDefault()`;
 };
 
-export const nestedTagFilterQuery = (value: string) => {
-  return `itemTags.Any(Tag.ToLower().Contains("${value}"))`;
+export const nestedTagFilterQuery = (values: string[]) => {
+  if (values.length === 0) return "";
+
+  const query = values
+    .map(
+      (value) =>
+        `itemTags.Any(Tag.ToLower().Contains("${value.toLowerCase()}"))`,
+    )
+    .join(" OR ");
+
+  const closedQuery = `(${query})`;
+
+  return closedQuery;
 };
 
 export const textInputRegex = /^[a-zA-Z0-9 .-]+$/;
@@ -48,7 +59,7 @@ export const tradeUsernameFilterQuery = (value: string) => {
 export const nestedTradeItemAttributeFilterQuery = (
   id: number,
   attributeName: string,
-  value: string
+  value: string,
 ) => {
   const lowerValue = value.toLowerCase();
   return `TradeItems.Any(ti => ti.Item.ItemAttributes.Any(a => a.AttributeId == ${id} && a.${

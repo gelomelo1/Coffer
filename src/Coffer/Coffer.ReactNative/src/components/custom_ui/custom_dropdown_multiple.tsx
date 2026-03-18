@@ -16,7 +16,7 @@ type CustomDropdownMultipleProps<T extends ValueType> = {
   value: T[] | null;
   open?: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setValue: React.Dispatch<React.SetStateAction<T[] | null>>;
+  setValue: (value: T[] | null) => void;
   items: CustomDropdownItem<T>[];
   placeholder?: string;
   modalTitle?: string;
@@ -101,7 +101,10 @@ function CustomDropdownMultiple<T extends ValueType>(
         onClose={onClose ? () => onClose() : undefined}
         value={value}
         items={dropdownItems}
-        setValue={setValue}
+        setValue={(callback) => {
+          const newValue = callback(value);
+          setValue(newValue);
+        }}
         multiple={true}
         listMode="MODAL"
         style={[
@@ -175,10 +178,10 @@ function CustomDropdownMultiple<T extends ValueType>(
             <TouchableOpacity
               onPress={() => {
                 if (isNone) return setValue([]);
-                setValue((prev) =>
-                  prev?.includes(item.value!)
-                    ? prev.filter((v) => v !== item.value!)
-                    : [...(prev ?? []), item.value!],
+                setValue(
+                  value?.includes(item.value!)
+                    ? value.filter((v) => v !== item.value!)
+                    : [...(value ?? []), item.value!],
                 );
               }}
             >

@@ -303,5 +303,23 @@ namespace Coffer.ASPNET.Controllers
                 return StatusCode(500, $"Failed to delete item: {ex.Message}");
             }
         }
+
+        [Authorize]
+        [HttpGet("ItemTags/{id}")]
+        public async Task<ActionResult<IEnumerable<ItemTags>>> GetItemTagsForCollection(Guid id)
+        {
+            var items = await _itemsRepository.GetItemsByCollectionAsync(id);
+
+            var tags = items
+                .SelectMany(i => i.ItemTags)
+                .GroupBy(t => t.Tag.ToLower())
+                .Select(g => g.First())
+                .ToList();
+
+            Console.WriteLine($"ITEM COUNT: {items.Count()}");
+            Console.WriteLine($"TAGS COUNT: {tags.Count()}");
+
+            return Ok(tags);
+        }
     }
 }

@@ -35,6 +35,7 @@ function MyCollection() {
       page: queryOptions.page,
       pageSize: queryOptions.pageSize,
       filterConjunction: queryOptions.filterConjunction,
+      filterTree: queryOptions.filterTree,
     },
   );
 
@@ -68,6 +69,7 @@ function MyCollection() {
     >
       <CollectionSectionList
         collectionType={collectionType!}
+        collection={collection!}
         items={items}
         attributes={attributes}
         allLoading={allLoading}

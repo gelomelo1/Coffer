@@ -15,13 +15,13 @@ interface CollectionItemListBooleanFilterProps {
   isBottomSheetVisible: boolean;
   onQueryFilterDataChange: (
     filter: QueryFilterData,
-    id?: string | number
+    id?: string | number,
   ) => void;
   draftQueryFilterData?: QueryFilterDataItem;
   filterQuery?: (
     id: number,
     attributeName: AttributeTypes,
-    value: any
+    value: any,
   ) => string;
 }
 
@@ -36,7 +36,7 @@ function CollectionItemListBooleanFilter({
 
   useEffect(() => {
     if (isBottomSheetVisible)
-      setIsOn((draftQueryFilterData?.value.value as boolean) ?? false);
+      setIsOn((draftQueryFilterData?.value?.value as boolean) ?? false);
   }, [isBottomSheetVisible]);
 
   return (

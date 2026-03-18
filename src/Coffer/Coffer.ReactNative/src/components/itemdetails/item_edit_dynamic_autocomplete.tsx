@@ -6,21 +6,21 @@ import Attribute from "@/src/types/entities/attribute";
 import ItemOptions from "@/src/types/entities/itemoptions";
 import { getOptions } from "@/src/utils/data_access_utils";
 import { useEffect, useState } from "react";
-import CustomDropdown from "../custom_ui/custom_dropdown";
+import CustomAutocomplete from "../custom_ui/custom_autocomplete";
 
-interface ItemEditDynamicDropdownProps {
+interface ItemEditDynamicAutocompleteProps {
   attribute: Attribute;
   defaultValue: string;
   onValueChange: (newValue: string | number | boolean) => void;
   onErrorChange: (errorMessage: string) => void;
 }
 
-function ItemEditDynamicDropdown({
+function ItemEditDynamicAutocomplete({
   attribute,
   defaultValue,
   onValueChange,
   onErrorChange,
-}: ItemEditDynamicDropdownProps) {
+}: ItemEditDynamicAutocompleteProps) {
   const [selectValue, setSelectValue] = useState<string | null>(null);
   const [dropDownIsOpen, setDropDownIsOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -41,29 +41,28 @@ function ItemEditDynamicDropdown({
   };
 
   useEffect(() => {
-    const value = defaultValue.split(";")[0] ?? null;
+    const value = defaultValue;
     setSelectValue(value);
     console.log(typeof value);
     checkInput(value);
   }, [defaultValue]);
 
   return (
-    <CustomDropdown
+    <CustomAutocomplete
       open={dropDownIsOpen}
       label={attribute.name}
       value={selectValue}
       setOpen={setDropDownIsOpen}
       setValue={(newValue) => {
-        const value = newValue ? `${newValue};` : null;
+        const value = newValue ? newValue : null;
         checkInput(value);
         setSelectValue(newValue);
         onValueChange(value ?? "");
       }}
       items={getOptions(optionsData)}
       errorMessage={errorMessage}
-      searchable
     />
   );
 }
 
-export default ItemEditDynamicDropdown;
+export default ItemEditDynamicAutocomplete;

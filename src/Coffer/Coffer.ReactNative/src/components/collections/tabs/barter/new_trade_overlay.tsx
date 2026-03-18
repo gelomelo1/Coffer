@@ -74,7 +74,7 @@ function NewTradeOverlay({
   const { navigationMode } = useNavigationModeStore();
   const [queryOptions, setQueryOptions] = useState<QueryOptions>({});
   const contactDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(
-    null
+    null,
   );
   const wantDescriptionDebounceTimer = useRef<ReturnType<
     typeof setTimeout
@@ -94,12 +94,12 @@ function NewTradeOverlay({
   const { mutateAsync: createTrade, isPending: isCreateTradePending } =
     useCreateData<TradeRequired, Trade>(
       endpoints.trades,
-      querykeys.myTradesData
+      querykeys.myTradesData,
     );
   const { mutateAsync: updateTrade, isPending: isUpdateTradePending } =
     useUpdateData<TradeRequired, Trade>(
       endpoints.trades,
-      querykeys.myTradesData
+      querykeys.myTradesData,
     );
 
   const {
@@ -122,7 +122,7 @@ function NewTradeOverlay({
       page: queryOptions.page,
       pageSize: queryOptions.pageSize,
       filterConjunction: queryOptions.filterConjunction,
-    }
+    },
   );
 
   const { data: attributes = [], isFetching: isAttributesFetching } =
@@ -137,7 +137,7 @@ function NewTradeOverlay({
             value: collectionType.id,
           },
         ],
-      }
+      },
     );
 
   const allLoading =
@@ -154,7 +154,9 @@ function NewTradeOverlay({
 
   const availableItems = items.filter(
     (item) =>
-      !draftTrade.tradeItems.some((tradeItems) => tradeItems.itemId === item.id)
+      !draftTrade.tradeItems.some(
+        (tradeItems) => tradeItems.itemId === item.id,
+      ),
   );
 
   const chunkedItems = chunkArray(availableItems, 3);
@@ -236,7 +238,7 @@ function NewTradeOverlay({
 
   const handleInputChange = (
     field: "title" | "description" | "wantDescription" | "moneyRequested",
-    value: string | undefined
+    value: string | undefined,
   ) => {
     setDraftTrade((prev) => ({ ...prev, [field]: value }));
 
@@ -244,10 +246,10 @@ function NewTradeOverlay({
       field === "title"
         ? contactDebounceTimer
         : field === "description"
-        ? wantDescriptionDebounceTimer
-        : field === "wantDescription"
-        ? wantDescriptionDebounceTimer
-        : moneyDebounceTimer;
+          ? wantDescriptionDebounceTimer
+          : field === "wantDescription"
+            ? wantDescriptionDebounceTimer
+            : moneyDebounceTimer;
 
     if (timerRef.current) clearTimeout(timerRef.current);
 
@@ -258,7 +260,7 @@ function NewTradeOverlay({
           break;
         case "description":
           setDescriptionError(
-            validateRequired(value) || validateProfanity(value)
+            validateRequired(value) || validateProfanity(value),
           );
           break;
         case "wantDescription":
@@ -272,7 +274,7 @@ function NewTradeOverlay({
   };
 
   const getInstantError = (
-    field: "title" | "description" | "wantDescription" | "moneyRequested"
+    field: "title" | "description" | "wantDescription" | "moneyRequested",
   ) => {
     const value = draftTrade[field];
     switch (field) {

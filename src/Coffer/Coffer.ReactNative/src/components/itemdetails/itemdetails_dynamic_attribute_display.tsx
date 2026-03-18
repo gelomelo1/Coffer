@@ -1,6 +1,8 @@
 import { customTheme } from "@/src/theme/theme";
 import CollectionType from "@/src/types/entities/collectiontype";
-import AttributeValue from "@/src/types/helpers/attribute_data";
+import AttributeValue, {
+  AttributeDataTypes,
+} from "@/src/types/helpers/attribute_data";
 import { adjustColor } from "@/src/utils/frontend_utils";
 import { ReactNode } from "react";
 import { CheckBox } from "react-native-elements";
@@ -19,12 +21,12 @@ function ItemDetailsDynamicAttributeDisplay({
 }: ItemDetailsDynamicAttributeDisplayProps) {
   const darkContrastColor = adjustColor(
     collectionType.color,
-    customTheme.colorChangePercent.dark
+    customTheme.colorChangePercent.dark,
   );
 
   const lightContrastColor = adjustColor(
     collectionType.color,
-    customTheme.colorChangePercent.light
+    customTheme.colorChangePercent.light,
   );
 
   const getDisplayFormat = (): ReactNode => {
@@ -32,7 +34,12 @@ function ItemDetailsDynamicAttributeDisplay({
 
     switch (attributeValue.valueKey) {
       case "valueString":
-        if (attributeValue.itemAttribute.attribute.dataType === "select")
+        if (
+          attributeValue.itemAttribute.attribute.dataType ===
+            AttributeDataTypes.Select ||
+          attributeValue.itemAttribute.attribute.dataType ===
+            AttributeDataTypes.Multi_Select
+        )
           return (
             <ItemDetailsSelectAttributeDisplay
               attributeValue={attributeValue}

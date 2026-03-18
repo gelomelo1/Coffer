@@ -9,6 +9,7 @@ import { Collection } from "@/src/types/entities/collection";
 import CollectionType from "@/src/types/entities/collectiontype";
 import ImageCheck from "@/src/types/entities/imagecheck";
 import { Item } from "@/src/types/entities/item";
+import { AttributeDataTypes } from "@/src/types/helpers/attribute_data";
 import { ItemsCreate } from "@/src/types/helpers/items_create";
 import {
   getDefaultAttributeValue,
@@ -174,7 +175,7 @@ function ItemRegisterCard({
           valueString: typeof defaultValue === "string" ? defaultValue : "",
           valueNumber: typeof defaultValue === "number" ? defaultValue : 0,
           valueDate:
-            attribute.dataType === "date"
+            attribute.dataType === AttributeDataTypes.Date
               ? (defaultValue as string)
               : new Date().toISOString(),
           valueBoolean:

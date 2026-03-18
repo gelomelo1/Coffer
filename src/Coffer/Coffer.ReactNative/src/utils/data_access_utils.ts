@@ -14,6 +14,7 @@ import { Reaction } from "../types/entities/reaction";
 import { Trade } from "../types/entities/trade";
 import TradeReivewPack from "../types/entities/trade_review_pack";
 import AttributeValue, {
+  AttributeDataTypes,
   AttributeTypes,
 } from "../types/helpers/attribute_data";
 import { TradeStatus } from "../types/helpers/barter_status";
@@ -33,23 +34,25 @@ export function getItemAttributeValue(
   let valueKey: AttributeTypes;
 
   switch (itemAttribute.attribute.dataType) {
-    case "string":
-    case "select":
+    case AttributeDataTypes.String:
+    case AttributeDataTypes.Multi_Select:
+    case AttributeDataTypes.Autocomplete:
+    case AttributeDataTypes.Select:
       value = itemAttribute.valueString ?? null;
       valueString = itemAttribute.valueString;
       valueKey = "valueString";
       break;
-    case "number":
+    case AttributeDataTypes.Number:
       value = itemAttribute.valueNumber ?? null;
       valueString = itemAttribute.valueNumber.toLocaleString();
       valueKey = "valueNumber";
       break;
-    case "boolean":
+    case AttributeDataTypes.Boolean:
       value = itemAttribute.valueBoolean ?? null;
       valueString = itemAttribute.valueBoolean ? "true" : "false";
       valueKey = "valueBoolean";
       break;
-    case "date":
+    case AttributeDataTypes.Date:
       value = itemAttribute.valueDate
         ? new Date(itemAttribute.valueDate)
         : null;
@@ -71,14 +74,16 @@ export function getItemAttributeValue(
 
 export function getAttributeValue(attribute: Attribute): AttributeTypes {
   switch (attribute.dataType) {
-    case "string":
-    case "select":
+    case AttributeDataTypes.String:
+    case AttributeDataTypes.Multi_Select:
+    case AttributeDataTypes.Autocomplete:
+    case AttributeDataTypes.Select:
       return "valueString";
-    case "number":
+    case AttributeDataTypes.Number:
       return "valueNumber";
-    case "boolean":
+    case AttributeDataTypes.Boolean:
       return "valueBoolean";
-    case "date":
+    case AttributeDataTypes.Date:
       return "valueDate";
     default:
       return "";
@@ -168,14 +173,16 @@ export function updateItemAttributeValue(
   newValue: any,
 ): ItemAttribute {
   switch (attr.attribute.dataType) {
-    case "string":
-    case "select":
+    case AttributeDataTypes.String:
+    case AttributeDataTypes.Multi_Select:
+    case AttributeDataTypes.Autocomplete:
+    case AttributeDataTypes.Select:
       return { ...attr, valueString: newValue as string };
-    case "number":
+    case AttributeDataTypes.Number:
       return { ...attr, valueNumber: newValue as number };
-    case "boolean":
+    case AttributeDataTypes.Boolean:
       return { ...attr, valueBoolean: newValue as boolean };
-    case "date":
+    case AttributeDataTypes.Date:
       return { ...attr, valueDate: newValue as string };
     default:
       return attr;
@@ -194,15 +201,19 @@ export function getDefaultAttributeValue(
   attribute: Attribute,
 ): string | number | boolean | null {
   switch (attribute.dataType) {
-    case "string":
+    case AttributeDataTypes.String:
       return "";
-    case "number":
+    case AttributeDataTypes.Multi_Select:
+      return "";
+    case AttributeDataTypes.Autocomplete:
+      return "";
+    case AttributeDataTypes.Number:
       return 0;
-    case "boolean":
+    case AttributeDataTypes.Boolean:
       return false;
-    case "date":
+    case AttributeDataTypes.Date:
       return new Date().toISOString();
-    case "select":
+    case AttributeDataTypes.Select:
       return "";
     default:
       return null;

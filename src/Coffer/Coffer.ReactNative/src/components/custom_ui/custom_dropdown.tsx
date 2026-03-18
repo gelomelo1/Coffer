@@ -16,7 +16,7 @@ type CustomDropdownProps<T extends ValueType> = {
   value: T | null;
   open?: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setValue: React.Dispatch<React.SetStateAction<T | null>>;
+  setValue: (value: T | null) => void;
   items: CustomDropdownItem<T>[];
   placeholder?: string;
   modalTitle?: string;
@@ -55,6 +55,14 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
 
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
 
+  const dropdownItems: CustomDropdownItem<T>[] = [
+    {
+      label: "None",
+      value: undefined as unknown as T, // special value to represent "clear all"
+    },
+    ...(items ?? []),
+  ];
+
   return (
     <View
       style={[
@@ -85,7 +93,7 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
         searchable={searchable}
         setOpen={setOpen ?? setUncontrolledOpen}
         value={value ?? null}
-        items={items ?? []}
+        items={dropdownItems}
         setValue={(callback) => {
           const newValue = callback(value);
 
@@ -157,64 +165,72 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
             ✕
           </Text>
         )}
-        renderListItem={({ item }: { item: CustomDropdownItem<T> }) => (
-          <TouchableOpacity
-            onPress={() => {
-              setValue(
-                (prev) => (prev === item.value ? null : item.value) as T,
-              );
-              setOpen(false);
-            }}
-          >
-            <View
-              style={{
-                marginHorizontal: 10,
-                marginBottom: 10,
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: 10,
+        renderListItem={({ item }: { item: CustomDropdownItem<T> }) => {
+          const isNone = item.value === undefined;
+          const isSelected = isNone ? false : item.value === value;
+
+          return (
+            <TouchableOpacity
+              onPress={() => {
+                if (isNone) {
+                  setValue(null);
+                } else {
+                  setValue(item.value === value ? null : (item.value as T));
+                }
+                setOpen(false);
               }}
             >
               <View
                 style={{
-                  flex: 1,
+                  marginHorizontal: 10,
+                  marginBottom: 10,
                   flexDirection: "row",
-                  justifyContent: "flex-start",
+                  justifyContent: "space-between",
                   alignItems: "center",
                   gap: 10,
                 }}
               >
-                {item.additionalElement &&
-                additionalElementPlacement === "start"
-                  ? item.additionalElement
-                  : null}
-                <Text
+                <View
                   style={{
-                    color: customTheme.colors.primary,
-                    fontSize: 22,
+                    flex: 1,
+                    flexDirection: "row",
+                    justifyContent: "flex-start",
+                    alignItems: "center",
+                    gap: 10,
                   }}
                 >
-                  {item.label}
-                </Text>
-                {item.additionalElement && additionalElementPlacement === "end"
-                  ? item.additionalElement
-                  : null}
+                  {item.additionalElement &&
+                  additionalElementPlacement === "start"
+                    ? item.additionalElement
+                    : null}
+                  <Text
+                    style={{
+                      color: customTheme.colors.primary,
+                      fontSize: 22,
+                    }}
+                  >
+                    {item.label}
+                  </Text>
+                  {item.additionalElement &&
+                  additionalElementPlacement === "end"
+                    ? item.additionalElement
+                    : null}
+                </View>
+                {isSelected ? (
+                  <Text
+                    style={{
+                      flexShrink: 0,
+                      color: customTheme.colors.primary,
+                      fontSize: 22,
+                    }}
+                  >
+                    ✓
+                  </Text>
+                ) : null}
               </View>
-              {item.value === value ? (
-                <Text
-                  style={{
-                    flexShrink: 0,
-                    color: customTheme.colors.primary,
-                    fontSize: 22,
-                  }}
-                >
-                  ✓
-                </Text>
-              ) : null}
-            </View>
-          </TouchableOpacity>
-        )}
+            </TouchableOpacity>
+          );
+        }}
       />
 
       {disabled && (

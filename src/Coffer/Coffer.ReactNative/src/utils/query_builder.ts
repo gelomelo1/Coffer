@@ -8,6 +8,9 @@ export default function buildQuery(options: QueryOptions): string {
   if (!options.filters && !options.sort && !options.page && !options.pageSize) {
     return "";
   }
+
+  console.log(`QUERY BUILDER!!!!!!!!! ${options.filterTree}`);
+
   let url = "?";
   let filterParts: string[] = [];
 

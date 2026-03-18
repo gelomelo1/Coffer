@@ -179,7 +179,9 @@ function ItemDetails() {
           <CustomText style={{ fontSize: 20, marginTop: 20 }}>
             Description
           </CustomText>
-          <CustomText style={{ fontFamily: "VendSansItalic" }}>
+          <CustomText
+            style={{ fontFamily: "VendSansItalic", marginBottom: 20 }}
+          >
             {item.description}
           </CustomText>
           <View
