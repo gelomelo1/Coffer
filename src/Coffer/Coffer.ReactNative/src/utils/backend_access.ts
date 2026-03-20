@@ -1,4 +1,5 @@
 import { backendAxios } from "../const/backendAccessConfiguration";
+import { none } from "../const/emptyIdUpdate";
 
 export async function postData<TData>(
   url: string,
@@ -72,6 +73,13 @@ export async function updateData<TData, TResponse>(
   data: TData,
   headers?: Record<string, string>,
 ): Promise<TResponse> {
+  if (id === none) {
+    const response = await backendAxios.put<TResponse>(`${url}`, data, {
+      headers,
+    });
+
+    return response.data;
+  }
   const response = await backendAxios.put<TResponse>(`${url}/${id}`, data, {
     headers,
   });

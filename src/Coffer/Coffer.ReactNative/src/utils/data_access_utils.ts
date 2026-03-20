@@ -419,3 +419,11 @@ export const pickImage = async (
     };
   }
 };
+
+export function stringHasValue(text: string | null | undefined) {
+  if (!text) return false;
+
+  const stripped = text.replace(/<[^>]*>/g, "").trim();
+
+  return stripped.length > 0;
+}

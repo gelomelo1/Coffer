@@ -1066,6 +1066,7 @@
         "dependencies": {
           "Coffer.Domain": "1.0.0",
           "Microsoft.EntityFrameworkCore": "9.0.9",
+          "Microsoft.EntityFrameworkCore.Relational": "9.0.1",
           "System.Linq.Dynamic.Core": "1.6.7"
         },
         "runtime": {

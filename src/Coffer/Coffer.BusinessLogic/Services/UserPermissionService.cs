@@ -85,14 +85,6 @@ namespace Coffer.BusinessLogic.Services
 
                 if(data != null)
                 {
-
-                    Console.WriteLine(otherUser.Email + " vs " + data.Email);
-                    Console.WriteLine(otherUser.Provider + " vs " + data.Provider);
-                    Console.WriteLine(otherUser.ProviderUserId + " vs " + data.ProviderUserId);
-                    Console.WriteLine(otherUser.Avatar + " vs " + data.Avatar);
-                    Console.WriteLine(otherUser.Name + " vs " + data.Name);
-                    Console.WriteLine("Role: " + data.Role);
-
                     if (otherUser.Email == data.Email && otherUser.Provider == data.Provider && otherUser.ProviderUserId == data.ProviderUserId && otherUser.Avatar == data.Avatar && otherUser.Name == data.Name && data.Role == null)
                     {
                         return true;

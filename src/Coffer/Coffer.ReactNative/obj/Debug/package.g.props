@@ -9,6 +9,7 @@
     <PackageJsonScriptsIos Condition="$(PackageJsonScriptsIos) == ''">expo run:ios</PackageJsonScriptsIos>
     <PackageJsonScriptsWeb Condition="$(PackageJsonScriptsWeb) == ''">expo start --web</PackageJsonScriptsWeb>
     <PackageJsonScriptsLint Condition="$(PackageJsonScriptsLint) == ''">expo lint</PackageJsonScriptsLint>
+    <PackageJsonDependencies10PlayTentapEditor Condition="$(PackageJsonDependencies10PlayTentapEditor) == ''">^1.0.1</PackageJsonDependencies10PlayTentapEditor>
     <PackageJsonDependenciesExpoVectorIcons Condition="$(PackageJsonDependenciesExpoVectorIcons) == ''">^15.0.2</PackageJsonDependenciesExpoVectorIcons>
     <PackageJsonDependenciesReactNativeAsyncStorageAsyncStorage Condition="$(PackageJsonDependenciesReactNativeAsyncStorageAsyncStorage) == ''">^2.2.0</PackageJsonDependenciesReactNativeAsyncStorageAsyncStorage>
     <PackageJsonDependenciesReactNativeGoogleSigninGoogleSignin Condition="$(PackageJsonDependenciesReactNativeGoogleSigninGoogleSignin) == ''">^16.0.0</PackageJsonDependenciesReactNativeGoogleSigninGoogleSignin>
@@ -52,11 +53,13 @@
     <PackageJsonDependenciesReactNativeMonthYearPicker Condition="$(PackageJsonDependenciesReactNativeMonthYearPicker) == ''">^1.9.0</PackageJsonDependenciesReactNativeMonthYearPicker>
     <PackageJsonDependenciesReactNativeNavigationMode Condition="$(PackageJsonDependenciesReactNativeNavigationMode) == ''">^1.2.3</PackageJsonDependenciesReactNativeNavigationMode>
     <PackageJsonDependenciesReactNativePaper Condition="$(PackageJsonDependenciesReactNativePaper) == ''">^5.14.5</PackageJsonDependenciesReactNativePaper>
+    <PackageJsonDependenciesReactNativeRenderHtml Condition="$(PackageJsonDependenciesReactNativeRenderHtml) == ''">^6.3.4</PackageJsonDependenciesReactNativeRenderHtml>
     <PackageJsonDependenciesReactNativeSafeAreaContext Condition="$(PackageJsonDependenciesReactNativeSafeAreaContext) == ''">^5.6.1</PackageJsonDependenciesReactNativeSafeAreaContext>
     <PackageJsonDependenciesReactNativeScreens Condition="$(PackageJsonDependenciesReactNativeScreens) == ''">~4.16.0</PackageJsonDependenciesReactNativeScreens>
     <PackageJsonDependenciesReactNativeSslPinning Condition="$(PackageJsonDependenciesReactNativeSslPinning) == ''">^1.6.0</PackageJsonDependenciesReactNativeSslPinning>
     <PackageJsonDependenciesReactNativeToastMessage Condition="$(PackageJsonDependenciesReactNativeToastMessage) == ''">^2.3.3</PackageJsonDependenciesReactNativeToastMessage>
     <PackageJsonDependenciesReactNativeWeb Condition="$(PackageJsonDependenciesReactNativeWeb) == ''">~0.21.0</PackageJsonDependenciesReactNativeWeb>
+    <PackageJsonDependenciesReactNativeWebview Condition="$(PackageJsonDependenciesReactNativeWebview) == ''">13.15.0</PackageJsonDependenciesReactNativeWebview>
     <PackageJsonDependenciesReactNativeWorklets Condition="$(PackageJsonDependenciesReactNativeWorklets) == ''">0.5.1</PackageJsonDependenciesReactNativeWorklets>
     <PackageJsonDependenciesZustand Condition="$(PackageJsonDependenciesZustand) == ''">^5.0.8</PackageJsonDependenciesZustand>
     <PackageJsonDevdependenciesTypesReact Condition="$(PackageJsonDevdependenciesTypesReact) == ''">~19.1.0</PackageJsonDevdependenciesTypesReact>

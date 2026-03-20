@@ -34,4 +34,5 @@ export const endpoints = {
   tradeReviewsTrade: "api/TradeReviews/Trade",
   tradeReviewsUser: "api/TradeReviews/User",
   collectionItemTags: "api/Collections/ItemTags",
+  userFrontend: "api/Users/UserFrontend",
 };

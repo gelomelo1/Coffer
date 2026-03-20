@@ -14,5 +14,7 @@ namespace Coffer.DataAccess.Repositories.Interfaces
         Task<User> InsertUserAsync(UserRequired newUser);
         Task<User?> GetUserById(Guid userId);
         Task<IEnumerable<User>> SearchUsersAsync(string searchText);
+
+        Task<User?> UpdateUserFrontend(Guid id, UserRequiredFrontend newUser);
     }
 }

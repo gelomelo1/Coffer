@@ -13,6 +13,7 @@ function IndexCustomLayout(
   route: RouteProp<ParamListBase, string>,
 ) {
   const params = parseParams(route);
+
   if (
     route.name === (ROUTES.MYCOLLECTION as string) ||
     route.name === (ROUTES.TABS.HOME as string) ||
@@ -22,7 +23,8 @@ function IndexCustomLayout(
     route.name === (ROUTES.OTHERUSERCOLLECTION as string) ||
     route.name === (ROUTES.OTHERUSERITEMDETAILS as string) ||
     route.name === (ROUTES.TRADEDETAILS as string) ||
-    route.name === (ROUTES.OFFERDETAILS as string)
+    route.name === (ROUTES.OFFERDETAILS as string) ||
+    route.name === (`${ROUTES.SETTINGS.ROOT}/index` as string)
   )
     return {
       headerShown: false,

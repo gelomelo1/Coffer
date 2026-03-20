@@ -248,6 +248,10 @@
               "target": "Package",
               "version": "[9.0.9, )"
             },
+            "Microsoft.EntityFrameworkCore.Relational": {
+              "target": "Package",
+              "version": "[9.0.1, )"
+            },
             "System.Linq.Dynamic.Core": {
               "target": "Package",
               "version": "[1.6.7, )"
