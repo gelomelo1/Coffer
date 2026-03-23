@@ -6,9 +6,10 @@ import CustomText from "./custom_text";
 
 interface CustomHTMLViewProps {
   content: string;
+  foldable?: boolean;
 }
 
-function CustomHTMLView({ content }: CustomHTMLViewProps) {
+function CustomHTMLView({ content, foldable = false }: CustomHTMLViewProps) {
   const [contentHeight, setContentHeight] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -26,7 +27,7 @@ function CustomHTMLView({ content }: CustomHTMLViewProps) {
     <View style={{ paddingHorizontal: 10 }}>
       <View
         style={{
-          maxHeight: isOpen ? undefined : maxHeight,
+          maxHeight: isOpen || !foldable ? undefined : maxHeight,
           overflow: "hidden",
         }}
       >
@@ -77,13 +78,19 @@ function CustomHTMLView({ content }: CustomHTMLViewProps) {
                 marginBottom: 4,
               },
             }}
+            classesStyles={{
+              placeholder: {
+                color: "grey",
+                fontSize: 16,
+              },
+            }}
             source={{
               html: content,
             }}
           />
         </View>
       </View>
-      {isOverflowing && !isOpen ? (
+      {isOverflowing && !isOpen && foldable ? (
         <TouchableOpacity onPress={handleOpen}>
           <CustomText style={{ fontFamily: "VendSansBold" }}>
             <CustomText style={{ fontFamily: "VendSans" }}>...</CustomText>

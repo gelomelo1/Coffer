@@ -12,6 +12,7 @@ import { AttributeDataTypes } from "@/src/types/helpers/attribute_data";
 import {
   getDefaultAttributeValue,
   getItemAttributeValue,
+  stringHasValue,
   updateItemAttributeValue,
 } from "@/src/utils/data_access_utils";
 import React, { useEffect, useState } from "react";
@@ -86,6 +87,33 @@ function ItemRegisterForm({
     }));
   };
 
+  const handlePrivateNoteInput = (newValue: string) => {
+    const privateNoteContent = stringHasValue(newValue) ? newValue : undefined;
+
+    newItem.set((prev) => ({
+      item: {
+        ...prev.item,
+        description: privateNoteContent,
+      },
+      version: prev.version,
+    }));
+  };
+
+  const handleDescriptionInput = (newValue: string) => {
+    const descriptionContent = stringHasValue(newValue) ? newValue : undefined;
+
+    if (descriptionContent) {
+      checkDescriptionInput(newValue);
+    }
+    newItem.set((prev) => ({
+      item: {
+        ...prev.item,
+        description: descriptionContent,
+      },
+      version: prev.version,
+    }));
+  };
+
   return isAttributesFetching ? (
     <Loading />
   ) : (
@@ -144,18 +172,19 @@ function ItemRegisterForm({
         }}
       />
       <CustomTextInput
+        label="Private note"
+        placeholder="The private note is visible only to you. Use it to store additional information about the item, for example, its location in your physical collection."
+        defaultValue={draftItem.privateNote}
+        onChangeText={handlePrivateNoteInput}
+        style={{ height: 100, marginBottom: 20 }}
+        inputContainerStyle={{ height: 100 }}
+        multiline
+      />
+      <CustomTextInput
         label="Description"
+        placeholder="The description is public and visible to everyone. It is used to describe your item, similar to a post."
         defaultValue={draftItem.description}
-        onChangeText={(newValue) => {
-          checkDescriptionInput(newValue);
-          newItem.set((prev) => ({
-            item: {
-              ...prev.item,
-              description: newValue,
-            },
-            version: prev.version,
-          }));
-        }}
+        onChangeText={handleDescriptionInput}
         style={{ height: 100, marginBottom: 20 }}
         inputContainerStyle={{ height: 100 }}
         multiline

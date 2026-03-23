@@ -10,6 +10,7 @@ import { Item, ItemProvided } from "@/src/types/entities/item";
 import {
   getItemAttributeValue,
   getItemPrimaryAttributeValue,
+  stringHasValue,
   updateItemAttributeValue,
 } from "@/src/utils/data_access_utils";
 import { useEffect, useState } from "react";
@@ -35,7 +36,7 @@ function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
   const { mutateAsync: updateItem, isPending: isItemUpdatePending } =
     useUpdateData<Item, ItemProvided>(
       endpoints.items,
-      `${querykeys.itemsData}${collection.id}`,
+      `${querykeys.itemsData}${collection!.id}`,
     );
 
   const { item, setItem } = useItemStore();
@@ -97,6 +98,25 @@ function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
     throw Error("No primary attribute found");
   }
 
+  const handleDescriptionChange = (newValue: string) => {
+    const descriptionValue = stringHasValue(newValue) ? newValue : undefined;
+    if (descriptionValue) {
+      checkDescriptionInput(newValue);
+    }
+    setDraftItem((prev) => ({
+      ...prev,
+      description: descriptionValue,
+    }));
+  };
+
+  const handlePrivateNoteChange = (newValue: string) => {
+    const privateNoteValue = stringHasValue(newValue) ? newValue : undefined;
+    setDraftItem((prev) => ({
+      ...prev,
+      privateNote: privateNoteValue,
+    }));
+  };
+
   return (
     <CustomOverlay
       isVisible={isItemEditFormOverlayOpen.value}
@@ -147,15 +167,15 @@ function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
             }}
           />
           <CustomTextInput
+            label="Private note"
+            defaultValue={item.privateNote}
+            onChangeText={handlePrivateNoteChange}
+            multiline
+          />
+          <CustomTextInput
             label="Description"
             defaultValue={item.description}
-            onChangeText={(newValue) => {
-              checkDescriptionInput(newValue);
-              setDraftItem((prev) => ({
-                ...prev,
-                description: newValue,
-              }));
-            }}
+            onChangeText={handleDescriptionChange}
             multiline
             errorMessage={descriptionErrorMessage}
           />

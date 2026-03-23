@@ -160,9 +160,10 @@ namespace Coffer.DataAccess.Repositories
             {
                 var newEntity = new ItemProvided(
                     required.CollectionId,
-                    required.Description,
                     required.Quantity,
-                    required.Image
+                    required.Image,
+                    required.Description,
+                    required.PrivateNote
                 );
 
                 foreach (var attr in required.ItemAttributes)
@@ -192,6 +193,7 @@ namespace Coffer.DataAccess.Repositories
             entity.Description = required.Description;
             entity.Quantity = required.Quantity;
             entity.Image = required.Image;
+            entity.PrivateNote = required.PrivateNote;
 
             foreach (var attr in required.ItemAttributes)
             {
@@ -247,9 +249,10 @@ namespace Coffer.DataAccess.Repositories
             {
                 var newEntity = new ItemProvided(
                     provided.CollectionId,
-                    provided.Description,
                     provided.Quantity,
-                    provided.Image
+                    provided.Image,
+                    provided.Description,
+                    provided.PrivateNote
                 );
 
                 newEntity.Collection = provided.Collection;

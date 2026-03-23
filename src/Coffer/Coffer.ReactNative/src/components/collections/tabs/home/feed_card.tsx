@@ -88,6 +88,8 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
     });
   };
 
+  console.log(feed.item.description);
+
   return (
     <>
       <View
@@ -97,7 +99,7 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
           borderRadius: 20,
         }}
       >
-        <View style={{ margin: 10 }}>
+        <View style={{ width: "100%", padding: 10 }}>
           <View
             style={{ justifyContent: "space-between", flexDirection: "row" }}
           >
@@ -174,6 +176,7 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
               justifyContent: "flex-start",
               alignItems: "center",
               flexDirection: "row",
+              marginBottom: feed.item.description ? 10 : 0,
             }}
           >
             <TouchableOpacity onPress={handleCollectionPress}>
@@ -203,6 +206,15 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
               </>
             ) : null}
           </View>
+          {feed.item.description ? (
+            <CustomText
+              style={{ color: customTheme.colors.secondary }}
+              foldable
+              maxLines={2}
+            >
+              {feed.item.description}
+            </CustomText>
+          ) : null}
         </View>
         <View
           style={{

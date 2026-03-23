@@ -174,8 +174,14 @@ function OtherUserItemDetails() {
         <CustomText style={{ fontSize: 20, marginTop: 20 }}>
           Description
         </CustomText>
-        <CustomText style={{ fontFamily: "VendSansItalic", marginBottom: 20 }}>
-          {item!.description}
+        <CustomText
+          style={{
+            fontFamily: item!.description ? "VendSans" : "VendSansItalic",
+            marginBottom: 10,
+          }}
+        >
+          {item!.description ??
+            "The user hasn’t added a description to this item yet."}
         </CustomText>
         {item!.itemAttributes.map((itemAttribute) =>
           itemAttribute.id === primaryAttribute?.itemAttribute.id ? null : (

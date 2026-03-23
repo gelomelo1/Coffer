@@ -354,6 +354,7 @@ function SettingsUserCard({
           content={
             isEditModeActive ? (editModeSummary ?? "") : (user?.summary ?? "")
           }
+          foldable={true}
         />
         {isEditModeActive ? (
           <TouchableOpacity
@@ -401,6 +402,8 @@ function SettingsUserCard({
         <CustomRichTextEditor
           initialContent={editModeSummary ?? ""}
           onChangeValue={(value) => setEditModeSummaryContent(value)}
+          placeholder="Share a bit about yourself – who you are, your hobbies, what you like to collect, or anything that shows your personality. Add a fun phrase, use emojis, decorate it as much as you want, and if you have collection-related social media accounts, feel free to include links"
+          margin={10}
         />
       </CustomOverlay>
     </>

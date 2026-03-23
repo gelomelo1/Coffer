@@ -1,6 +1,7 @@
 import { customTheme } from "@/src/theme/theme";
 import {
   CodeBridge,
+  PlaceholderBridge,
   RichText,
   TenTapStartKit,
   Toolbar,
@@ -11,11 +12,19 @@ import { KeyboardAvoidingView, View } from "react-native";
 interface CustomRichTextEditorProps {
   initialContent: string;
   onChangeValue: (value: string) => void;
+  placeholder?: string;
+  richTextHeight?: number;
+  keyboadVerticalOffset?: number;
+  margin?: number;
 }
 
 function CustomRichTextEditor({
   initialContent,
   onChangeValue,
+  placeholder,
+  richTextHeight,
+  keyboadVerticalOffset,
+  margin,
 }: CustomRichTextEditorProps) {
   const customCodeBlockCSS = `
 
@@ -110,13 +119,16 @@ function CustomRichTextEditor({
 `;
 
   const editor = useEditorBridge({
-    autofocus: true,
+    autofocus: false,
     avoidIosKeyboard: true,
     editable: true,
     initialContent: initialContent,
     bridgeExtensions: [
       ...TenTapStartKit,
       CodeBridge.configureCSS(customCodeBlockCSS),
+      PlaceholderBridge.configureExtension({
+        placeholder: placeholder ?? "Type something...",
+      }),
     ],
     onChange() {
       const provideContnet = async () => {
@@ -131,11 +143,18 @@ function CustomRichTextEditor({
 
   return (
     <View style={{ flex: 1 }}>
-      <RichText editor={editor} />
+      <View
+        style={{
+          height: richTextHeight ?? "100%",
+          marginHorizontal: margin ?? undefined,
+        }}
+      >
+        <RichText editor={editor} />
+      </View>
       <KeyboardAvoidingView
-        keyboardVerticalOffset={98}
+        keyboardVerticalOffset={keyboadVerticalOffset ?? 98}
         behavior="padding"
-        style={{ position: "absolute", width: "100%", bottom: 0 }}
+        style={{ flex: 1, position: "absolute", width: "100%", bottom: 0 }}
       >
         <Toolbar editor={editor} shouldHideDisabledToolbarItems={false} />
       </KeyboardAvoidingView>

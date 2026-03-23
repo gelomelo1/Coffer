@@ -1,4 +1,5 @@
 import CustomButton from "@/src/components/custom_ui/custom_button";
+import CustomHTMLView from "@/src/components/custom_ui/custom_html_view";
 import CustomImage from "@/src/components/custom_ui/custom_image";
 import CustomText from "@/src/components/custom_ui/custom_text";
 import { endpoints } from "@/src/const/endpoints";
@@ -34,7 +35,7 @@ function CollectionInfoCard() {
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
           marginHorizontal: 10,
-          marginBottom: 20,
+          marginBottom: 10,
         }}
       >
         <View
@@ -146,6 +147,28 @@ function CollectionInfoCard() {
             />
           </TouchableOpacity>
         </View>
+      </View>
+      <View style={{ marginHorizontal: 10 }}>
+        <CustomText
+          style={{
+            fontSize: 18,
+            fontFamily: "VendSansBold",
+            borderLeftWidth: 4,
+            borderLeftColor: customTheme.colors.secondary,
+            paddingLeft: 5,
+            paddingVertical: 5,
+          }}
+        >
+          Description
+        </CustomText>
+        {collection!.description ? (
+          <CustomHTMLView content={collection!.description} foldable={true} />
+        ) : (
+          <CustomText style={{ fontFamily: "VendSansItalic" }}>
+            You don’t have an introduction for your collection yet—add one so
+            others can learn more about what makes your collection special!
+          </CustomText>
+        )}
       </View>
       <CollectionDeleteForm
         isDeleteCollectionConfirmVisible={{

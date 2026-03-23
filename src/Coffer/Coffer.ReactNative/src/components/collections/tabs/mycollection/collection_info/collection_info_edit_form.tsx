@@ -22,7 +22,7 @@ import {
   Collection,
   CollectionRequired,
 } from "@/src/types/entities/collection";
-import { pickImage } from "@/src/utils/data_access_utils";
+import { pickImage, stringHasValue } from "@/src/utils/data_access_utils";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
 import * as ImagePicker from "expo-image-picker";
@@ -30,6 +30,7 @@ import React, { useRef, useState } from "react";
 import { ActivityIndicator, Image, Pressable, View } from "react-native";
 import { Icon } from "react-native-elements";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import CustomRichTextEditor from "../../../../custom_ui/custom_rich_text_editor";
 
 interface CollectionInfoEditFormProps {
   isCollectionInfoEditOverlayOpen: {
@@ -53,6 +54,10 @@ function CollectionInfoEditForm({
   const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isPermissionWarningOverlayOpen, setIsPermissionWarningOverlayOpen] =
     useState(false);
+
+  const [descriptionContent, setDescriptionContent] = useState(
+    collection!.description,
+  );
 
   const isSubmitDisabled = collectionName === "" || isInputCheck;
 
@@ -103,7 +108,10 @@ function CollectionInfoEditForm({
   );
 
   const resetFormData = (isEditSaved: boolean) => {
-    if (!isEditSaved) setCollectionName(collection!.name);
+    if (!isEditSaved) {
+      setCollectionName(collection!.name);
+      setDescriptionContent(collection!.description);
+    }
     setAsset(null);
     setErrorMessage("");
     setIsInputCheck(false);
@@ -116,6 +124,10 @@ function CollectionInfoEditForm({
     isCollectionInfoEditOverlayOpen.set(false);
   };
 
+  const descriptionUploadContent = stringHasValue(descriptionContent)
+    ? descriptionContent
+    : undefined;
+
   const handleUpdate = async () => {
     let isEditSaved = true;
     try {
@@ -125,6 +137,7 @@ function CollectionInfoEditForm({
           userId: collection!.userId,
           collectionTypeId: collection!.collectionTypeId,
           name: collectionName,
+          description: descriptionUploadContent,
         },
       });
       const formData = new FormData();
@@ -378,6 +391,17 @@ function CollectionInfoEditForm({
               />
             </View>
           </View>
+          <CustomText style={{ fontFamily: "VendSansBold", marginLeft: 10 }}>
+            Description
+          </CustomText>
+          <CustomRichTextEditor
+            initialContent={collection?.description ?? ""}
+            onChangeValue={(value) => setDescriptionContent(value)}
+            placeholder="What’s in your collection, and how do you find your pieces? Rare classics, everyday finds, or a bit of everything — tell your story."
+            richTextHeight={600}
+            keyboadVerticalOffset={188}
+            margin={10}
+          />
         </KeyboardAwareScrollView>
       </CustomOverlay>
       <CustomOverlayMessage

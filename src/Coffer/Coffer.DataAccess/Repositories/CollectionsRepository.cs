@@ -79,12 +79,13 @@ namespace Coffer.DataAccess.Repositories
         {
             if(entity == null)
             {
-                return new CollectionProvided(required.UserId, required.CollectionTypeId, required.Name);
+                return new CollectionProvided(required.UserId, required.CollectionTypeId, required.Name, null, required.Description);
             }
 
             entity.UserId = required.UserId;
             entity.CollectionTypeId = required.CollectionTypeId;
             entity.Name = required.Name;
+            entity.Description = required.Description;
 
             return entity;
         }
@@ -93,7 +94,7 @@ namespace Coffer.DataAccess.Repositories
         {
             if (entity == null)
             {
-                return new CollectionProvided(provided.UserId, provided.CollectionTypeId, provided.Name, provided.User, provided.Image);
+                return new CollectionProvided(provided.UserId, provided.CollectionTypeId, provided.Name, provided.User, provided.Image, provided.Description);
             }
 
             return provided;

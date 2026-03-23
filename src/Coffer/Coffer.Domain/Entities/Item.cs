@@ -11,28 +11,31 @@ namespace Coffer.Domain.Entities
     public class ItemRequired
     {
         public Guid CollectionId { get; set; }
-        public string Description  { get; set; }
+        public string? Description  { get; set; }
+        public string? PrivateNote { get; set; }
         public int Quantity { get; set; }
         public string Image {  get; set; }
         public ICollection<ItemAttributeRequired> ItemAttributes { get; set; } = new List<ItemAttributeRequired>();
         public ICollection<ItemTagsRequired> ItemTags { get; set; } = new List<ItemTagsRequired>();
 
-        public ItemRequired(Guid collectionId, string description, int quantity, string image)
+        public ItemRequired(Guid collectionId, int quantity, string image, string? description = null, string? privateNote = null)
         {
             CollectionId = collectionId;
             Description = description;
             Quantity = quantity;
             Image = image;
+            PrivateNote = privateNote;
         }
 
         [JsonConstructor]
-        public ItemRequired(Guid collectionId, string description, int quantity, string image, ICollection<ItemAttributeRequired> itemAttributes, ICollection<ItemTagsRequired> itemTags) {
+        public ItemRequired(Guid collectionId, int quantity, string image, ICollection<ItemAttributeRequired> itemAttributes, ICollection<ItemTagsRequired> itemTags, string? description = null, string? privateNote = null) {
             CollectionId = collectionId;
             Description = description;
             Quantity = quantity;
             Image = image;
             ItemAttributes = itemAttributes;
             ItemTags = itemTags;
+            PrivateNote = privateNote;
         }
     }
 
@@ -40,7 +43,8 @@ namespace Coffer.Domain.Entities
     {
         public Guid Id { get; set; }
         public Guid CollectionId { get; set; }
-        public string Description { get; set; }
+        public string? Description { get; set; }
+        public string? PrivateNote { get; set; }
         public int Quantity { get; set; }
         public string Image { get; set; }
         public ICollection<ItemAttribute> ItemAttributes { get; set; } = new List<ItemAttribute>();
@@ -50,16 +54,17 @@ namespace Coffer.Domain.Entities
         public CollectionProvided Collection;
         public DateTime AcquiredAt { get; set; }
 
-        public ItemProvided(Guid collectionId, string description, int quantity, string image)
+        public ItemProvided(Guid collectionId, int quantity, string image, string? description = null, string? privateNote = null)
         {
             CollectionId = collectionId;
             Description = description;
             Quantity = quantity;
             Image = image;
             AcquiredAt = DateTime.UtcNow;
+            PrivateNote = privateNote;
         }
 
-        public ItemProvided(Guid collectionId, string description, int quantity, string image, DateTime acquiredAt, ICollection<ItemAttribute> itemAttributes, ICollection<ItemTags> itemTags)
+        public ItemProvided(Guid collectionId, int quantity, string image, DateTime acquiredAt, ICollection<ItemAttribute> itemAttributes, ICollection<ItemTags> itemTags, string? description = null, string? privateNote = null)
         {
             CollectionId = collectionId;
             Description = description;
@@ -68,9 +73,10 @@ namespace Coffer.Domain.Entities
             ItemAttributes = itemAttributes;
             ItemTags = itemTags;
             AcquiredAt = acquiredAt;
+            PrivateNote = privateNote;
         }
 
-        public ItemProvided(Guid collectionId, string description, int quantity, string image, DateTime acquiredAt, ICollection<ItemAttribute> itemAttributes, ICollection<ItemTags> itemTags, ICollection<ReactionProvided> reactions, CollectionProvided collection)
+        public ItemProvided(Guid collectionId, int quantity, string image, DateTime acquiredAt, ICollection<ItemAttribute> itemAttributes, ICollection<ItemTags> itemTags, ICollection<ReactionProvided> reactions, CollectionProvided collection, string? description = null, string? privateNote = null)
         {
             CollectionId = collectionId;
             Description = description;
@@ -81,6 +87,7 @@ namespace Coffer.Domain.Entities
             AcquiredAt = acquiredAt;
             Reactions = reactions;
             Collection = collection;
+            PrivateNote = privateNote;
         }
 
         public ItemProvided() { }

@@ -176,14 +176,6 @@ function ItemDetails() {
               <CustomText>pcs</CustomText>
             </CustomText>
           </View>
-          <CustomText style={{ fontSize: 20, marginTop: 20 }}>
-            Description
-          </CustomText>
-          <CustomText
-            style={{ fontFamily: "VendSansItalic", marginBottom: 20 }}
-          >
-            {item.description}
-          </CustomText>
           <View
             style={{
               justifyContent: "center",
@@ -207,6 +199,55 @@ function ItemDetails() {
               reverseColor="white"
             />
           </View>
+          <CustomText
+            style={{ fontFamily: "VendSansBold", fontSize: 20, marginTop: 20 }}
+          >
+            Private note
+          </CustomText>
+          <CustomText
+            style={{
+              fontFamily: item.privateNote ? "VendSans" : "VendSansItalic",
+              marginBottom: 10,
+            }}
+          >
+            {item.privateNote ??
+              "You haven’t added a private note to this item yet."}
+          </CustomText>
+          <CustomText
+            style={{
+              fontFamily: "VendSansItalic",
+              fontSize: 12,
+              marginBottom: 20,
+            }}
+          >
+            The private note is visible only to you. Use it to store additional
+            information about the item, for example, its location in your
+            physical collection.
+          </CustomText>
+          <CustomText
+            style={{ fontFamily: "VendSansBold", fontSize: 20, marginTop: 20 }}
+          >
+            Description
+          </CustomText>
+          <CustomText
+            style={{
+              fontFamily: item.description ? "VendSans" : "VendSansItalic",
+              marginBottom: 10,
+            }}
+          >
+            {item.description ??
+              "You haven’t added a description to this item yet."}
+          </CustomText>
+          <CustomText
+            style={{
+              fontFamily: "VendSansItalic",
+              fontSize: 12,
+              marginBottom: 20,
+            }}
+          >
+            The description is public and visible to everyone. It is used to
+            describe your item, similar to a post.
+          </CustomText>
           {item.itemAttributes.map((itemAttribute) =>
             itemAttribute.id === primaryAttribute?.itemAttribute.id ? null : (
               <ItemDetailsDynamicAttributeDisplay
