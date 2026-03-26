@@ -94,9 +94,7 @@ CREATE TABLE follows (
 CREATE TABLE user_contacts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    platform VARCHAR(20) NOT NULL CHECK (
-        platform IN ('Phone', 'Facebook', 'Instagram')
-    ),
+    platform INT NOT NULL,
     value TEXT NOT NULL,
     link TEXT,
     created_at TIMESTAMP DEFAULT now(),
@@ -209,3 +207,17 @@ CREATE TABLE reports (
     resolved_by UUID REFERENCES users(id),
     resolved_at TIMESTAMP
 );
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE INDEX idx_collections_name_trgm
+ON collections
+USING gin (name gin_trgm_ops);
+
+CREATE INDEX idx_user_name_trgm
+ON users
+USING gin(name gin_trgm_ops);
+
+CREATE INDEX idx_itemtags_tag_trgm
+ON item_tags
+USING gin(tag gin_trgm_ops);

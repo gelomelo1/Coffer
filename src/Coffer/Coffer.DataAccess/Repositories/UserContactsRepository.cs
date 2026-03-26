@@ -5,15 +5,22 @@ using System.Text;
 using System.Threading.Tasks;
 using Coffer.DataAccess.Extensions.IncludeProviders.Interfaces;
 using Coffer.DataAccess.Repositories.Generic;
+using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Coffer.DataAccess.Repositories
 {
-    public class UserContactsRepository : GenericRepository<Guid, UserContactProvided, UserContactProvided, UserContactRequired>
+    public class UserContactsRepository : GenericRepository<Guid, UserContactProvided, UserContactProvided, UserContactRequired>, IUserContactsRepository
     {
         public UserContactsRepository(CofferDbContext dbContext, IIncludeProvider<UserContactProvided>? includeProvider = null) : base(dbContext, includeProvider)
         {
+        }
+
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            return await _dbContext.Database.BeginTransactionAsync();
         }
 
         protected override UserContactProvided MapToEntity(UserContactRequired required, UserContactProvided? entity = null)

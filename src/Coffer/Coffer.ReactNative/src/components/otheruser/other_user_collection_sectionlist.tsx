@@ -12,7 +12,7 @@ import {
   SectionList,
   View,
 } from "react-native";
-import SettingsUserCard from "../settings/settings_user_card";
+import UserInfoCard from "../settings/user_info_card";
 import OtherUserCollectionCard from "./other_user_collection_card";
 
 interface OtherUserCollectionSectionListProps {
@@ -30,7 +30,7 @@ function OtherUserCollectionSectionList({
 }: OtherUserCollectionSectionListProps) {
   const { collectionTypes } = useCollectionTypeStore();
 
-  const chunkedItems = chunkArray(collections, 2);
+  const chunkedItems = chunkArray(allLoading ? [] : collections, 2);
 
   const sections = [{ data: chunkedItems.length > 0 ? chunkedItems : [[]] }];
 
@@ -50,7 +50,7 @@ function OtherUserCollectionSectionList({
       }
       onScroll={onScroll}
       scrollEventThrottle={16}
-      ListHeaderComponent={<SettingsUserCard user={user} otherUser={true} />}
+      ListHeaderComponent={<UserInfoCard user={user} otherUser={true} />}
       renderSectionHeader={() => (
         <View
           style={{
@@ -129,7 +129,7 @@ function OtherUserCollectionSectionList({
           End of list
         </CustomText>
       }
-      contentContainerStyle={{ paddingTop: 20, paddingBottom: 40 }}
+      contentContainerStyle={{ paddingBottom: 40 }}
       ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
     />
   );

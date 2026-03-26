@@ -40,6 +40,10 @@ function FeedList() {
   const [isFeedSeachOverlayVisible, setIsFeedSearchOverlayVisible] =
     useState(false);
 
+  const [initialSearchText, setInitialSearchText] = useState<
+    string | undefined
+  >();
+
   const dropdownItems = collectionTypes.map((type) => ({
     label: type.name,
     value: type.id,
@@ -163,6 +167,12 @@ function FeedList() {
     extrapolate: "clamp",
   });
 
+  const handleOpenSearchOverlay = (initialText?: string) => {
+    setInitialSearchText(initialText);
+
+    setIsFeedSearchOverlayVisible(true);
+  };
+
   return (
     <>
       <View style={{ flex: 1 }}>
@@ -266,7 +276,7 @@ function FeedList() {
               paddingBottom: 0,
               height: 59,
             }}
-            onPress={() => setIsFeedSearchOverlayVisible(true)}
+            onPress={() => handleOpenSearchOverlay()}
           >
             <CustomTextInput
               placeholder="Search collectors, items"
@@ -340,6 +350,7 @@ function FeedList() {
                   )!
                 }
                 feed={item}
+                onTagPress={handleOpenSearchOverlay}
               />
             )}
             contentContainerStyle={{
@@ -395,6 +406,7 @@ function FeedList() {
         }}
         selectedCollectionTypeIds={selectedCollectionTypeIds}
         onClose={handleSearchOverlayClose}
+        initialSearchText={initialSearchText}
       />
     </>
   );

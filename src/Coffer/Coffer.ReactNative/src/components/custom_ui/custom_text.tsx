@@ -1,4 +1,5 @@
 import { customTheme } from "@/src/theme/theme";
+import { formatNumberShort } from "@/src/utils/data_access_utils";
 import { useState } from "react";
 import { StyleSheet, Text, TextStyle, View } from "react-native";
 import { TextProps } from "react-native-elements";
@@ -6,6 +7,7 @@ import { TextProps } from "react-native-elements";
 interface CustomTextProps extends TextProps {
   foldable?: boolean;
   maxLines?: number;
+  concatNumber?: boolean;
 }
 
 const defaultStyle: TextStyle = {
@@ -19,6 +21,7 @@ const CustomText: React.FC<CustomTextProps> = ({
   children,
   foldable = false,
   maxLines = 3,
+  concatNumber = false,
   ...props
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,10 +29,16 @@ const CustomText: React.FC<CustomTextProps> = ({
 
   const handleOpen = () => setIsOpen(true);
 
+  let displayValue = children;
+
+  if (concatNumber && !isNaN(Number(children))) {
+    displayValue = formatNumberShort(Number(children));
+  }
+
   if (!foldable) {
     return (
       <Text style={[defaultStyle, style]} {...props}>
-        {children}
+        {displayValue}
       </Text>
     );
   }

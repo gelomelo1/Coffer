@@ -84,7 +84,7 @@ namespace Coffer.Infrastructure
             services.AddScoped<IReactionsRepository, ReactionsRepository>();
             services.AddScoped<IFollowsRepository, FollowsRepository>();
             services.AddScoped<IItemTagsRepository, ItemTagsRepository>();
-            services.AddScoped<IGenericRepository<Guid, UserContactProvided, UserContactProvided, UserContactRequired>, UserContactsRepository>();
+            services.AddScoped<IUserContactsRepository, UserContactsRepository>();
             services.AddScoped<ITradesRepository, TradesRepository>();
             services.AddScoped<IOffersRepository, OffersRepository>();
             services.AddScoped<ITradeReviewRepository, TradeReviewsRepository>();

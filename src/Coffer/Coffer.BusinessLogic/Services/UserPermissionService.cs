@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Coffer.BusinessLogic.Extensions;
 using Coffer.BusinessLogic.Services.Interfaces;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Constants;
@@ -22,6 +23,12 @@ namespace Coffer.BusinessLogic.Services
 
         public async Task<bool> CanCreate(Guid userId, UserRequired data)
         {
+
+            if(data.Summary != null && HtmlSafetyChecker.IsHtmlSafe(data.Summary) == false)
+            {
+                return false;
+            }
+
             User? user = await _usersRepository.GetUserById(userId);
 
             if (user == null)
@@ -65,7 +72,12 @@ namespace Coffer.BusinessLogic.Services
             if(data == null)
             {
                 return false;
-            }    
+            }
+
+            if (data.Summary != null && HtmlSafetyChecker.IsHtmlSafe(data.Summary) == false)
+            {
+                return false;
+            }
 
             User? user = await _usersRepository.GetUserById(userId);
             User? otherUser = await _usersRepository.GetUserById(id);

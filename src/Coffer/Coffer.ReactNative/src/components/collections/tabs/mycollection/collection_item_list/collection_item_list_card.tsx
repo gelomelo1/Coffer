@@ -6,6 +6,7 @@ import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import CollectionType from "@/src/types/entities/collectiontype";
 import { ItemProvided } from "@/src/types/entities/item";
+import ItemsLayoutMode from "@/src/types/helpers/items_layout_mode";
 import { getItemPrimaryAttributeValue } from "@/src/utils/data_access_utils";
 import { adjustColor } from "@/src/utils/frontend_utils";
 import { navigate } from "expo-router/build/global-state/routing";
@@ -15,12 +16,14 @@ interface CollectionItemListCardProps {
   item: ItemProvided;
   collectionType: CollectionType;
   onCardPress?: () => void;
+  layoutMode: ItemsLayoutMode;
 }
 
 function CollectionItemListCard({
   item,
   collectionType,
   onCardPress,
+  layoutMode,
 }: CollectionItemListCardProps) {
   const { token } = useUserStore();
   const darkContrastColor = adjustColor(
@@ -48,7 +51,7 @@ function CollectionItemListCard({
   return (
     <TouchableOpacity
       style={{
-        width: "46%",
+        width: layoutMode === "two" ? "46%" : "30%",
         height: "auto",
         padding: 4,
         backgroundColor: collectionType.color,

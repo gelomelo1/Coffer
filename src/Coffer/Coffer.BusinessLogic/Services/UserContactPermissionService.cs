@@ -15,9 +15,9 @@ namespace Coffer.BusinessLogic.Services
     {
 
         private readonly IUsersRepository _usersRepository;
-        private readonly IGenericRepository<Guid, UserContactProvided, UserContactProvided, UserContactRequired> _userContactRepository;
+        private readonly IUserContactsRepository _userContactRepository;
 
-        public UserContactPermissionService(IUsersRepository usersRepository, IGenericRepository<Guid, UserContactProvided, UserContactProvided, UserContactRequired> userContactRepository)
+        public UserContactPermissionService(IUsersRepository usersRepository, IUserContactsRepository userContactRepository)
         {
             _usersRepository = usersRepository;
             _userContactRepository = userContactRepository;

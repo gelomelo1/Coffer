@@ -1,8 +1,8 @@
-import { ContactType } from "../helpers/contact_type";
+import UserContactPlatfrom from "../helpers/user_contact_platform";
 
 export interface UserContactRequired {
   userId: string;
-  platform: ContactType;
+  platform: UserContactPlatfrom;
   value: string;
   link?: string;
 }
@@ -10,4 +10,5 @@ export interface UserContactRequired {
 export interface UserContact extends UserContactRequired {
   id: string;
   createdAt: string;
+  fullUrl?: string;
 }

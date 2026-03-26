@@ -57,6 +57,33 @@ namespace Coffer.DataAccess.Repositories
             return users;
         }
 
+        public async Task<IEnumerable<User>> SearchUsersSmartAsync(string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                return Enumerable.Empty<User>();
+
+            searchText = searchText.Trim();
+
+            var users = await _dbSet
+                .Include(u => u.Contacts)
+                .Select(u => new
+                {
+                    User = u,
+                    Similarity = EF.Functions.TrigramsSimilarity(u.Name, searchText),
+                    IsExact = EF.Functions.ILike(u.Name, $"%{searchText}%")
+                })
+                .Where(x =>
+                    x.IsExact || x.Similarity > 0.3)
+                .OrderByDescending(x => x.IsExact)
+                .ThenByDescending(x => x.Similarity)
+                .ThenBy(x => x.User.Name)
+                .Take(10)
+                .Select(x => x.User)
+                .ToListAsync();
+
+            return users;
+        }
+
         public async Task<User?> UpdateUserFrontend(Guid id, UserRequiredFrontend newUser)
         {
             IQueryable<User> query = _dbSet;

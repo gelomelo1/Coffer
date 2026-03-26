@@ -202,3 +202,6 @@ E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.ASPNET\obj\Debug\net8.0\ref\
 E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.ASPNET\bin\Debug\net8.0\Microsoft.Extensions.Diagnostics.Abstractions.dll
 E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.ASPNET\bin\Debug\net8.0\Microsoft.Extensions.FileProviders.Abstractions.dll
 E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.ASPNET\bin\Debug\net8.0\Microsoft.Extensions.Hosting.Abstractions.dll
+E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.ASPNET\bin\Debug\net8.0\AngleSharp.dll
+E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.ASPNET\bin\Debug\net8.0\AngleSharp.Css.dll
+E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.ASPNET\bin\Debug\net8.0\HtmlSanitizer.dll

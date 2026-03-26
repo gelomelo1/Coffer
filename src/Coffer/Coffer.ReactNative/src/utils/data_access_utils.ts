@@ -427,3 +427,28 @@ export function stringHasValue(text: string | null | undefined) {
 
   return stripped.length > 0;
 }
+
+export const formatNumberShort = (num: number): string => {
+  const format = (value: number, suffix: string) => {
+    const truncated = Math.floor(value * 100) / 100; // round DOWN to 2 decimals
+    const hasDecimals = truncated % 1 !== 0;
+
+    return hasDecimals
+      ? `${truncated.toFixed(2).replace(/\.?0+$/, "")}${suffix}`
+      : `${truncated}${suffix}`;
+  };
+
+  if (num >= 1_000_000_000) {
+    return format(num / 1_000_000_000, "B");
+  }
+
+  if (num >= 1_000_000) {
+    return format(num / 1_000_000, "M");
+  }
+
+  if (num >= 1_000) {
+    return format(num / 1_000, "k");
+  }
+
+  return num.toString();
+};

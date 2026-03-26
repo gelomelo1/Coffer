@@ -10,6 +10,7 @@ using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 namespace Coffer.DataAccess.Repositories
 {
@@ -37,35 +38,12 @@ namespace Coffer.DataAccess.Repositories
             if (string.IsNullOrWhiteSpace(searchText))
                 return Enumerable.Empty<CollectionProvided>();
 
-            searchText = searchText.Trim().ToLower();
+            searchText = searchText.Trim();
 
-            var includes = includeProvider.GetDefaultIncludes();
-
-            IQueryable<CollectionProvided> query = _dbSet;
-
-            if (includes != null)
-            {
-                foreach (var include in includes)
-                {
-                    query = query.Include(include);
-                }
-            }
-
-            List<int> collectionTypeIdsProcessed = string.IsNullOrWhiteSpace(collectionTypeIds)
-                ? new List<int>()
-                : collectionTypeIds
-                    .Split(';', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(int.Parse)
-                    .ToList();
+            var query = BuildBaseQuery(collectionTypeIds);
 
             query = query.Where(c =>
-            c.Name.ToLower().Contains(searchText));
-
-            if(collectionTypeIdsProcessed.Count > 0)
-            {
-                query = query.Where(c =>
-                    collectionTypeIdsProcessed.Contains(c.CollectionTypeId));
-            }
+            EF.Functions.ILike(c.Name, $"%{searchText}%"));
 
             var collections = await query
                 .OrderBy(c => c.Name)
@@ -73,6 +51,34 @@ namespace Coffer.DataAccess.Repositories
                 .ToListAsync();
 
             return collections;
+        }
+
+        public async Task<IEnumerable<CollectionProvided>> SearchCollectionsSmart(string? collectionTypeIds, string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                return Enumerable.Empty<CollectionProvided>();
+
+            searchText = searchText.Trim();
+
+            var query = BuildBaseQuery(collectionTypeIds);
+
+            var results = await query
+                .Select(c => new
+                {
+                    Collection = c,
+                    Similarity = EF.Functions.TrigramsSimilarity(c.Name, searchText),
+                    IsExact = EF.Functions.ILike(c.Name, $"%{searchText}%")
+                })
+                .Where(x =>
+                    x.IsExact || x.Similarity > 0.3)
+                .OrderByDescending(x => x.IsExact)     
+                .ThenByDescending(x => x.Similarity)   
+                .ThenBy(x => x.Collection.Name)          
+                .Take(10)
+                .Select(x => x.Collection)
+                .ToListAsync();
+
+            return results;
         }
 
         protected override CollectionProvided MapToEntity(CollectionRequired required, CollectionProvided? entity = null)
@@ -98,6 +104,37 @@ namespace Coffer.DataAccess.Repositories
             }
 
             return provided;
+        }
+
+        private IQueryable<CollectionProvided> BuildBaseQuery(string? collectionTypeIds)
+        {
+            var includes = includeProvider.GetDefaultIncludes();
+
+            IQueryable<CollectionProvided> query = _dbSet;
+
+            if (includes != null)
+            {
+                foreach (var include in includes)
+                {
+                    query = query.Include(include);
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(collectionTypeIds))
+            {
+                var collectionTypeIdsProcessed = collectionTypeIds
+                    .Split(';', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(int.Parse)
+                    .ToList();
+
+                if (collectionTypeIdsProcessed.Count > 0)
+                {
+                    query = query.Where(c =>
+                        collectionTypeIdsProcessed.Contains(c.CollectionTypeId));
+                }
+            }
+
+            return query;
         }
     }
 }

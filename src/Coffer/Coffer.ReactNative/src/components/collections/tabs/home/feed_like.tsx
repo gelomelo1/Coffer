@@ -33,7 +33,7 @@ function FeedLike({
     useCreateData<ReactionRequired>(
       endpoints.reactions,
       querykeys.feedListData,
-      ""
+      "",
     );
 
   const scaleAnim = useState(new Animated.Value(1))[0];
@@ -43,7 +43,7 @@ function FeedLike({
   const currentItem = feed ? feed.item : localItem;
 
   const userReaction = currentItem!.reactions.find(
-    (reaction) => reaction.userId === user.id
+    (reaction) => reaction.userId === user.id,
   );
 
   const userRarity = feed
@@ -52,7 +52,7 @@ function FeedLike({
     : item!.reactions.find((reaction) => reaction.userId === user.id)?.rarity;
 
   const effectiveLiked =
-    localLiked !== null ? localLiked : userReaction?.liked ?? false;
+    localLiked !== null ? localLiked : (userReaction?.liked ?? false);
 
   const handleLikePress = async () => {
     const newValue = !effectiveLiked;
@@ -74,7 +74,7 @@ function FeedLike({
         onItemUpdate?.(updatedItem);
 
         const updatedUserReaction = updatedItem.reactions.find(
-          (r) => r.userId === user.id
+          (r) => r.userId === user.id,
         );
         setLocalLiked(updatedUserReaction?.liked ?? false);
       }
@@ -121,7 +121,7 @@ function FeedLike({
             name={effectiveLiked ? "heart" : "heart-o"}
             size={24}
             color={
-              effectiveLiked ? "red" : color ?? customTheme.colors.secondary
+              effectiveLiked ? "red" : (color ?? customTheme.colors.secondary)
             }
           />
         </TouchableOpacity>
@@ -133,6 +133,7 @@ function FeedLike({
           color: color ?? customTheme.colors.secondary,
           fontSize: fontSize ?? 16,
         }}
+        concatNumber={true}
       >
         {getReactionsLikeCount(currentItem!.reactions)}
       </CustomText>

@@ -231,6 +231,12 @@ function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
                 itemTags: newValues,
               }))
             }
+            onErrorChange={(hasError) => {
+              setFieldErrors((prev) => ({
+                ...prev,
+                ["itemTags"]: hasError,
+              }));
+            }}
             itemId={item.id}
           />
         </View>

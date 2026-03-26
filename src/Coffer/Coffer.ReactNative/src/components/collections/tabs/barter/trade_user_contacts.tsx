@@ -1,5 +1,5 @@
 import CustomText from "@/src/components/custom_ui/custom_text";
-import ContactCard from "@/src/components/settings/user_settings/contact_card";
+import ContactCard from "@/src/components/settings/user_contact_card";
 import { customTheme } from "@/src/theme/theme";
 import User from "@/src/types/entities/user";
 import { TouchableOpacity, View } from "react-native";

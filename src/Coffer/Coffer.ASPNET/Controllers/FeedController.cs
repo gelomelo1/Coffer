@@ -76,7 +76,7 @@ namespace Coffer.ASPNET.Controllers
                     .Replace("#", string.Empty)
                     .Trim();
 
-                var tags = await _itemTagsRepository.SearchTagsAsync(collectionTypeIds, realSearchText);
+                var tags = await _itemTagsRepository.SearchTagsSmartAsync(collectionTypeIds, realSearchText);
 
                 var foundItemTags = new List<ItemTagGroup>();
 
@@ -133,11 +133,11 @@ namespace Coffer.ASPNET.Controllers
                 if (string.IsNullOrWhiteSpace(searchText))
                     return BadRequest("Search text cannot be empty.");
 
-                var foundUsers = (await _usersRepository.SearchUsersAsync(searchText))
+                var foundUsers = (await _usersRepository.SearchUsersSmartAsync(searchText))
                             .Select(u => (UserProvided)u)
                             .ToList();
 
-                var collections = await _collectionRepository.SearchCollections(collectionTypeIds ,searchText);
+                var collections = await _collectionRepository.SearchCollectionsSmart(collectionTypeIds ,searchText);
 
                 List<CollectionResult> foundCollections = new List<CollectionResult>();
 
@@ -150,7 +150,7 @@ namespace Coffer.ASPNET.Controllers
                     foundCollections.Add(new CollectionResult(user, collection));
                 }
 
-                var items = await _itemsRepository.SearchItems(collectionTypeIds, searchText);
+                var items = await _itemsRepository.SearchItemsSmart(collectionTypeIds, searchText);
 
                 List<ItemResult> foundItems = new List<ItemResult>();
 

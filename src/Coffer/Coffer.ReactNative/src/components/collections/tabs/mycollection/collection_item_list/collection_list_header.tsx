@@ -1,4 +1,5 @@
 import CustomText from "@/src/components/custom_ui/custom_text";
+import { asyncstoragekeys } from "@/src/const/async_storage_keys";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
 import { useCollectionStore } from "@/src/hooks/collection_store";
@@ -9,8 +10,11 @@ import { Collection } from "@/src/types/entities/collection";
 import { ItemProvided } from "@/src/types/entities/item";
 import ItemTag from "@/src/types/entities/item_tag";
 import User from "@/src/types/entities/user";
+import ItemsLayoutMode from "@/src/types/helpers/items_layout_mode";
 import { QueryOptions } from "@/src/types/helpers/query_data";
+import Feather from "@expo/vector-icons/Feather";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 import { ActivityIndicator } from "react-native-paper";
@@ -26,6 +30,10 @@ interface CollectionItemHeaderProps {
     set: React.Dispatch<React.SetStateAction<QueryOptions>>;
   };
   isStickyShadow: boolean;
+  layoutMode: {
+    value: ItemsLayoutMode;
+    set: React.Dispatch<React.SetStateAction<ItemsLayoutMode>>;
+  };
   user?: User;
 }
 
@@ -35,6 +43,7 @@ function CollectionItemHeader({
   attributes,
   queryOptions,
   isStickyShadow,
+  layoutMode,
   user = undefined,
 }: CollectionItemHeaderProps) {
   const { collectionType } = useCollectionStore();
@@ -49,6 +58,15 @@ function CollectionItemHeader({
     isCollectionListFilterBottomSheetOpen,
     setIsCollectionListFilterBottemSheetOpen,
   ] = useState(false);
+
+  const handleLayoutPress = async () => {
+    const newLayoutMode: ItemsLayoutMode =
+      layoutMode.value === "two" ? "three" : "two";
+
+    layoutMode.set(newLayoutMode);
+
+    await AsyncStorage.setItem(asyncstoragekeys.itemsLayoutMode, newLayoutMode);
+  };
 
   return (
     <View
@@ -100,28 +118,36 @@ function CollectionItemHeader({
             collection
           </CustomText>
         </View>
-
-        {isItemTagsFetching ? (
-          <ActivityIndicator color={customTheme.colors.primary} />
-        ) : (
-          <TouchableOpacity
-            style={{
-              justifyContent: "center",
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 10,
-              marginLeft: 10,
-            }}
-            onPress={() => setIsCollectionListFilterBottemSheetOpen(true)}
-          >
-            <CustomText style={{ fontSize: 20 }}>Filter</CustomText>
-            <Ionicons
-              name="filter"
+        <View style={{ flexDirection: "row" }}>
+          <TouchableOpacity onPress={handleLayoutPress}>
+            <Feather
+              name="layout"
               size={24}
               color={customTheme.colors.primary}
             />
           </TouchableOpacity>
-        )}
+          {isItemTagsFetching ? (
+            <ActivityIndicator color={customTheme.colors.primary} />
+          ) : (
+            <TouchableOpacity
+              style={{
+                justifyContent: "center",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                marginLeft: 10,
+              }}
+              onPress={() => setIsCollectionListFilterBottemSheetOpen(true)}
+            >
+              <CustomText style={{ fontSize: 20 }}>Filter</CustomText>
+              <Ionicons
+                name="filter"
+                size={24}
+                color={customTheme.colors.primary}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
       <CollectionListFilterBottomSheet
         isCollectionListFilterBottomSheetOpen={{

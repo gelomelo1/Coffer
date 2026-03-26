@@ -47,14 +47,7 @@ function Settings() {
 
   return (
     <View style={{ flex: 1, backgroundColor: customTheme.colors.background }}>
-      <SafeAreaView
-        edges={["top", "left", "right"]}
-        style={{
-          backgroundColor: customTheme.colors.secondary,
-        }}
-      >
-        <SettingsUserCard user={user} setUser={setUser} />
-      </SafeAreaView>
+      <SettingsUserCard user={user} setUser={setUser} />
 
       <SafeAreaView
         style={{

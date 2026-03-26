@@ -1,25 +1,23 @@
-import { endpoints } from "@/src/const/endpoints";
+import emptyUserContact from "@/src/const/empty_user_contact";
 import {
+  emailRegex,
   facebookRegex,
-  instagramDomainRegex,
-  instagramRegex,
   languageFilter,
   phoneRegex,
 } from "@/src/const/filter";
 import { stringResource } from "@/src/const/resource";
-import { useCreateData } from "@/src/hooks/data_hooks";
-import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
-import {
-  UserContact,
-  UserContactRequired,
-} from "@/src/types/entities/user_contact";
-import { CONTACT_TYPES, ContactType } from "@/src/types/helpers/contact_type";
+import User from "@/src/types/entities/user";
+import { UserContact } from "@/src/types/entities/user_contact";
+import UserContactPlatfrom from "@/src/types/helpers/user_contact_platform";
+import { stringHasValue } from "@/src/utils/data_access_utils";
+import AntDesign from "@expo/vector-icons/AntDesign";
 import React, { useEffect, useRef, useState } from "react";
-import { Overlay } from "react-native-elements";
+import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomButton from "../../custom_ui/custom_button";
-import CustomDropdown from "../../custom_ui/custom_dropdown";
+import CustomOverlay from "../../custom_ui/custom_overlay";
+import CustomText from "../../custom_ui/custom_text";
 import CustomTextInput from "../../custom_ui/custom_text_input";
 
 interface AddContactOverlayProps {
@@ -27,286 +25,289 @@ interface AddContactOverlayProps {
     value: boolean;
     set: React.Dispatch<React.SetStateAction<boolean>>;
   };
+  user: User;
+  selectedPlatform: UserContactPlatfrom;
+  selectedContact?: UserContact;
+  handleEditContact: (newValue: UserContact) => void;
 }
 
 function AddContactOverlay({
   isAddContactOverlayVisible,
+  user,
+  selectedPlatform,
+  selectedContact,
+  handleEditContact,
 }: AddContactOverlayProps) {
-  const { user, setUser } = useUserStore();
-
-  const { mutateAsync: insertContact, isPending } = useCreateData<
-    UserContactRequired,
-    UserContact
-  >(
-    endpoints.userContact,
-    undefined,
-    "Contact info added successfully",
-    "Failed to add contact info"
+  const [value, setValue] = useState(
+    emptyUserContact("", "", UserContactPlatfrom.Phone),
   );
-
-  const [selectedContactPlatform, setSelectedContactPlatform] =
-    useState<ContactType | null>(null);
-  const [isPlatformDropdownOpen, setIsPlatformDropdownOpen] = useState(false);
-
-  const [contactValue, setContactValue] = useState("");
-  const [linkValue, setLinkValue] = useState<string | null>(null);
-
-  const [isContactFocused, setIsContactFocused] = useState(false);
-  const [isLinkFocused, setIsLinkFocused] = useState(false);
 
   const [contactError, setContactError] = useState<string | undefined>();
   const [linkError, setLinkError] = useState<string | undefined>();
+  const [isCheckingError, setIsCheckingError] = useState(false);
 
   const contactDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(
-    null
+    null,
   );
   const linkDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const availablePlatforms = CONTACT_TYPES.filter(
-    (type) => !user?.contacts.some((c) => c.platform === type)
-  );
+  useEffect(() => {
+    if (isAddContactOverlayVisible.value) {
+      if (selectedContact) {
+        setValue(selectedContact);
+      } else {
+        const existingContact = user.contacts.find(
+          (c) => c.platform === selectedPlatform,
+        );
 
-  const items = availablePlatforms.map((type) => ({
-    label: type,
-    value: type,
-  }));
+        setValue(
+          emptyUserContact(
+            existingContact ? existingContact.id : `${selectedPlatform}_new`,
+            user.id,
+            selectedPlatform,
+          ),
+        );
+      }
+
+      setContactError(
+        validateContact(selectedPlatform, selectedContact?.value ?? ""),
+      );
+      setLinkError(
+        selectedPlatform === UserContactPlatfrom.Facebook
+          ? getFacebookLinkFieldError(selectedContact?.link ?? "")
+          : undefined,
+      );
+
+      setIsCheckingError(false);
+    }
+  }, [isAddContactOverlayVisible.value, selectedContact, selectedPlatform]);
 
   const handleOverlayClose = () => {
-    setSelectedContactPlatform(null);
-    setContactValue("");
-    setLinkValue(null);
-    setIsContactFocused(false);
-    setIsLinkFocused(false);
     setContactError(undefined);
     setLinkError(undefined);
     isAddContactOverlayVisible.set(false);
   };
 
-  const handleChangeSelectedPlatform = (
-    newValue: React.SetStateAction<ContactType | null>
-  ) => {
-    setSelectedContactPlatform(newValue);
-    setContactValue("");
-    setLinkValue(null);
-    setIsContactFocused(false);
-    setIsLinkFocused(false);
-    setContactError(undefined);
-    setLinkError(undefined);
+  /** Validation functions that take the input value */
+  const getPhoneNumberFieldError = (val: string) => {
+    if (!stringHasValue(val)) return stringResource.requiredError;
+    if (languageFilter.isProfane(val)) return stringResource.profaneError;
+    if (!phoneRegex.test(val)) return stringResource.notValidPhoneNumberError;
+    return undefined;
   };
 
-  const getPhoneNumberFieldError = () => {
-    if (contactValue === "") return stringResource.requiredError;
-    if (languageFilter.isProfane(contactValue))
-      return stringResource.profaneError;
-    if (!phoneRegex.test(contactValue))
-      return stringResource.notValidPhoneNumberError;
+  const getFacebookNameFieldError = (val: string) => {
+    if (!stringHasValue(val)) return stringResource.requiredError;
+    if (languageFilter.isProfane(val)) return stringResource.profaneError;
+    return undefined;
   };
 
-  const getFacebookNameFieldError = () => {
-    if (contactValue === "") return stringResource.requiredError;
-    if (languageFilter.isProfane(contactValue))
-      return stringResource.profaneError;
+  const getFacebookLinkFieldError = (val: string) => {
+    if (!stringHasValue(val)) return stringResource.requiredError;
+    if (languageFilter.isProfane(val)) return stringResource.profaneError;
+    if (!facebookRegex.test(val))
+      return stringResource.notValidFacebookUsername;
+    return undefined;
   };
 
-  const getFacebookLinkFieldError = () => {
-    if (!linkValue || linkValue === "") return stringResource.requiredError;
-    if (languageFilter.isProfane(linkValue)) return stringResource.profaneError;
-    if (!facebookRegex.test(linkValue))
-      return stringResource.notValidFacebookLink;
+  const getEmailAddressFieldError = (val: string) => {
+    if (!stringHasValue(val)) return stringResource.requiredError;
+    if (languageFilter.isProfane(val)) return stringResource.profaneError;
+    if (!emailRegex.test(val)) return stringResource.notValidEmailAddress;
+    return undefined;
   };
 
-  const getInstagramNameFieldError = () => {
-    if (contactValue === "") return stringResource.requiredError;
-    if (languageFilter.isProfane(contactValue))
-      return stringResource.profaneError;
-    if (!instagramRegex.test(contactValue))
-      return stringResource.notValidInstagramUsername;
-  };
-
-  const getInstagramLinkFieldError = () => {
-    if (!linkValue || linkValue === "") return stringResource.requiredError;
-    if (languageFilter.isProfane(linkValue)) return stringResource.profaneError;
-    if (!instagramDomainRegex.test(linkValue))
-      return stringResource.notValidInstagramLink;
-  };
-
-  const getCurrentFieldError = () => {
-    switch (selectedContactPlatform) {
-      case "Phone":
-        return getPhoneNumberFieldError();
-      case "Facebook":
-        return getFacebookNameFieldError() || getFacebookLinkFieldError();
-      case "Instagram":
-        return getInstagramNameFieldError() || getInstagramLinkFieldError();
+  /** Generic contact validation */
+  const validateContact = (platform: UserContactPlatfrom, val: string) => {
+    switch (platform) {
+      case UserContactPlatfrom.Phone:
+        return getPhoneNumberFieldError(val);
+      case UserContactPlatfrom.Facebook:
+        return getFacebookNameFieldError(val);
+      case UserContactPlatfrom.Email:
+        return getEmailAddressFieldError(val);
       default:
         return undefined;
     }
   };
 
-  useEffect(() => {
+  /** Contact input change handler with debounce */
+  const handleContactChange = (newValue: string) => {
+    setValue((prev) => ({ ...prev, value: newValue }));
+
     if (contactDebounceTimer.current)
       clearTimeout(contactDebounceTimer.current);
-    if (!isContactFocused) {
-      switch (selectedContactPlatform) {
-        case "Phone":
-          setContactError(getPhoneNumberFieldError());
-          break;
-        case "Facebook":
-          setContactError(getFacebookNameFieldError());
-          break;
-        case "Instagram":
-          setContactError(getInstagramNameFieldError());
-          break;
-      }
-    } else {
-      contactDebounceTimer.current = setTimeout(() => {
-        switch (selectedContactPlatform) {
-          case "Phone":
-            setContactError(getPhoneNumberFieldError());
-            break;
-          case "Facebook":
-            setContactError(getFacebookNameFieldError());
-            break;
-          case "Instagram":
-            setContactError(getInstagramNameFieldError());
-            break;
-        }
-      }, 1000);
-    }
-  }, [contactValue, selectedContactPlatform, isContactFocused]);
 
-  useEffect(() => {
+    setIsCheckingError(true);
+
+    contactDebounceTimer.current = setTimeout(() => {
+      const error = validateContact(value.platform, newValue);
+      setContactError(error);
+      setIsCheckingError(false);
+    }, 500);
+  };
+
+  /** Link input change handler with debounce */
+  const handleLinkChange = (newValue: string) => {
+    setValue((prev) => ({ ...prev, link: newValue }));
+
     if (linkDebounceTimer.current) clearTimeout(linkDebounceTimer.current);
-    if (!isLinkFocused) {
-      switch (selectedContactPlatform) {
-        case "Facebook":
-          setLinkError(getFacebookLinkFieldError());
-          break;
-        case "Instagram":
-          setLinkError(getInstagramLinkFieldError());
-          break;
-      }
-    } else {
-      linkDebounceTimer.current = setTimeout(() => {
-        switch (selectedContactPlatform) {
-          case "Facebook":
-            setLinkError(getFacebookLinkFieldError());
-            break;
-          case "Instagram":
-            setLinkError(getInstagramLinkFieldError());
-            break;
-        }
-      }, 1000);
-    }
-  }, [linkValue, selectedContactPlatform, isLinkFocused]);
 
-  const handleAddContactPressed = async () => {
-    if (!selectedContactPlatform || !user) return;
+    setIsCheckingError(true);
 
-    try {
-      const response = await insertContact({
-        value: {
-          userId: user.id,
-          platform: selectedContactPlatform,
-          value: contactValue,
-          link: linkValue ?? undefined,
-        },
-      });
-      setUser({ ...user, contacts: [...user.contacts, response] });
-    } catch (e) {
-      console.error(e);
-    }
+    linkDebounceTimer.current = setTimeout(() => {
+      const error =
+        value.platform === UserContactPlatfrom.Facebook
+          ? getFacebookLinkFieldError(newValue)
+          : undefined;
+      setLinkError(error);
+      setIsCheckingError(false);
+    }, 500);
+  };
 
+  const handleEditPress = () => {
+    handleEditContact(value);
     handleOverlayClose();
   };
 
   return (
-    <Overlay
-      fullScreen
+    <CustomOverlay
       isVisible={isAddContactOverlayVisible.value}
-      overlayStyle={{ backgroundColor: customTheme.colors.background }}
-      onBackdropPress={handleOverlayClose}
+      onClose={handleOverlayClose}
+      overlayTitle={`Edit ${UserContactPlatfrom[value.platform]} contact`}
+      footerContent={
+        <CustomButton
+          title="Edit"
+          containerStyle={{ width: "90%", alignSelf: "center" }}
+          onPress={handleEditPress}
+          disabled={!!contactError || !!linkError || isCheckingError}
+        />
+      }
     >
       <SafeAreaView
         style={{
           flex: 1,
           padding: 10,
-          justifyContent: "center",
+          justifyContent: "flex-start",
           alignItems: "center",
           gap: 20,
         }}
       >
-        <CustomDropdown
-          label="Contact platform"
-          value={selectedContactPlatform}
-          open={isPlatformDropdownOpen}
-          setOpen={setIsPlatformDropdownOpen}
-          items={items}
-          setValue={(newValue) => handleChangeSelectedPlatform(newValue)}
-        />
+        {value.platform === UserContactPlatfrom.Facebook && (
+          <View>
+            <CustomText style={{ fontFamily: "VendSansBold", marginBottom: 5 }}>
+              How to find your Facebook username:
+            </CustomText>
+            <CustomText>• Open Facebook on your mobile device.</CustomText>
+            <CustomText>
+              • Tap{" "}
+              <AntDesign
+                name="menu"
+                size={16}
+                color={customTheme.colors.primary}
+              />{" "}
+              <CustomText style={{ fontFamily: "VendSansBold" }}>
+                Menu
+              </CustomText>{" "}
+              in the top left of Facebook.
+            </CustomText>
+            <CustomText>
+              • Tap{" "}
+              <CustomText style={{ fontFamily: "VendSansBold" }}>
+                Settings and privacy,
+              </CustomText>{" "}
+              then tap{" "}
+              <CustomText style={{ fontFamily: "VendSansBold" }}>
+                Settings.
+              </CustomText>
+            </CustomText>
+            <CustomText>
+              • Tap{" "}
+              <CustomText style={{ fontFamily: "VendSansBold" }}>
+                Accounts Centre,
+              </CustomText>{" "}
+              then tap{" "}
+              <CustomText style={{ fontFamily: "VendSansBold" }}>
+                Profiles.
+              </CustomText>
+            </CustomText>
+            <CustomText>
+              • Choose a profile, then tap{" "}
+              <CustomText style={{ fontFamily: "VendSansBold" }}>
+                Username.
+              </CustomText>
+            </CustomText>
+          </View>
+        )}
 
-        {selectedContactPlatform === "Phone" && (
+        {value.platform === UserContactPlatfrom.Phone && (
           <CustomTextInput
             label="Phone number"
             placeholder="Please enter your phone number"
-            onFocus={() => setIsContactFocused(true)}
-            onBlur={() => setIsContactFocused(false)}
-            onChangeText={(newValue) => setContactValue(newValue)}
+            value={value.value}
+            onChangeText={handleContactChange}
+            onFocus={() => setIsCheckingError(true)}
+            onBlur={() => {
+              const error = validateContact(value.platform, value.value);
+              setContactError(error);
+              setIsCheckingError(false);
+            }}
             errorMessage={contactError}
           />
         )}
 
-        {selectedContactPlatform === "Facebook" && (
+        {value.platform === UserContactPlatfrom.Facebook && (
           <>
             <CustomTextInput
               label="Facebook name"
-              placeholder="Please enter your Facebook name"
-              onFocus={() => setIsContactFocused(true)}
-              onBlur={() => setIsContactFocused(false)}
-              onChangeText={(newValue) => setContactValue(newValue)}
+              placeholder="Please enter your full name"
+              value={value.value}
+              onChangeText={handleContactChange}
+              onFocus={() => setIsCheckingError(true)}
+              onBlur={() => {
+                const error = validateContact(value.platform, value.value);
+                setContactError(error);
+                setIsCheckingError(false);
+              }}
               errorMessage={contactError}
             />
+
             <CustomTextInput
-              label="Facebook link"
-              placeholder="Please paste your Facebook account's link"
-              onFocus={() => setIsLinkFocused(true)}
-              onBlur={() => setIsLinkFocused(false)}
-              onChangeText={(newValue) => setLinkValue(newValue)}
+              label="Facebook username"
+              placeholder="Please enter your Facebook username"
+              value={value.link}
+              onChangeText={handleLinkChange}
+              onFocus={() => setIsCheckingError(true)}
+              onBlur={() => {
+                const error =
+                  value.platform === UserContactPlatfrom.Facebook
+                    ? getFacebookLinkFieldError(value.link ?? "")
+                    : undefined;
+                setLinkError(error);
+                setIsCheckingError(false);
+              }}
               errorMessage={linkError}
             />
           </>
         )}
 
-        {selectedContactPlatform === "Instagram" && (
-          <>
-            <CustomTextInput
-              label="Instagram username"
-              placeholder="Please enter your Instagram name"
-              onFocus={() => setIsContactFocused(true)}
-              onBlur={() => setIsContactFocused(false)}
-              onChangeText={(newValue) => setContactValue(newValue)}
-              errorMessage={contactError}
-            />
-            <CustomTextInput
-              label="Instagram link"
-              placeholder="Please paste your Instagram account's link"
-              onFocus={() => setIsLinkFocused(true)}
-              onBlur={() => setIsLinkFocused(false)}
-              onChangeText={(newValue) => setLinkValue(newValue)}
-              errorMessage={linkError}
-            />
-          </>
+        {value.platform === UserContactPlatfrom.Email && (
+          <CustomTextInput
+            label="Email address"
+            placeholder="Please enter your email address"
+            value={value.value}
+            onChangeText={handleContactChange}
+            onFocus={() => setIsCheckingError(true)}
+            onBlur={() => {
+              const error = validateContact(value.platform, value.value);
+              setContactError(error);
+              setIsCheckingError(false);
+            }}
+            errorMessage={contactError}
+          />
         )}
-
-        <CustomButton
-          title="Add"
-          containerStyle={{ marginTop: 10 }}
-          loading={isPending}
-          disabled={!!getCurrentFieldError()}
-          onPress={handleAddContactPressed}
-        />
       </SafeAreaView>
-    </Overlay>
+    </CustomOverlay>
   );
 }
 

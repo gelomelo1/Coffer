@@ -43,12 +43,9 @@ export const languageFilter = new Filter();
 
 export const phoneRegex = /^\+?\d{7,15}$/;
 
-export const facebookRegex = /^(https?:\/\/)?(www\.)?facebook\.com\/.+$/i;
+export const facebookRegex = /^[a-zA-Z0-9.\-]{5,50}$/;
 
-export const instagramRegex = /^@[a-z0-9._]{1,29}[a-z0-9_]$/;
-
-export const instagramDomainRegex =
-  /^(https?:\/\/)?(www\.)?instagram\.com\/.+$/i;
+export const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const titleTradeFilterKey = "title";
 

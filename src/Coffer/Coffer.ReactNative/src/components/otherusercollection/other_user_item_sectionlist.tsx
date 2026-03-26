@@ -1,5 +1,6 @@
 import CustomText from "@/src/components/custom_ui/custom_text";
 import { Loading } from "@/src/components/custom_ui/loading";
+import { asyncstoragekeys } from "@/src/const/async_storage_keys";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
 import { customTheme } from "@/src/theme/theme";
@@ -8,11 +9,13 @@ import { Collection } from "@/src/types/entities/collection";
 import CollectionType from "@/src/types/entities/collectiontype";
 import { ItemProvided } from "@/src/types/entities/item";
 import User from "@/src/types/entities/user";
+import ItemsLayoutMode from "@/src/types/helpers/items_layout_mode";
 import { QueryOptions } from "@/src/types/helpers/query_data";
 import { chunkArray } from "@/src/utils/data_access_utils";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { navigate } from "expo-router/build/global-state/routing";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -48,9 +51,18 @@ function OtherUserItemSectionList({
   allLoading,
   queryOptions,
 }: OtherUserItemSectionListProps) {
+  const [isLayoutModeLoading, setIsLayoutModeLoading] = useState(false);
+
+  const isLoading = allLoading || isLayoutModeLoading;
+
+  const [layoutMode, setLayoutMode] = useState<ItemsLayoutMode>("two");
+
   const { setItem } = useOtherUserStore();
 
-  const chunkedItems = chunkArray(items, 2);
+  const chunkedItems = chunkArray(
+    isLoading ? [] : items,
+    layoutMode === "two" ? 2 : 3,
+  );
 
   const sections = [{ data: chunkedItems.length > 0 ? chunkedItems : [[]] }];
 
@@ -76,6 +88,29 @@ function OtherUserItemSectionList({
       params: pageParams.otheruseritemdetails(collection.name),
     });
   };
+
+  useEffect(() => {
+    const loadLayout = async () => {
+      try {
+        setIsLayoutModeLoading(true);
+        const stored = await AsyncStorage.getItem(
+          asyncstoragekeys.itemsLayoutMode,
+        );
+
+        if (stored) {
+          const parsed = stored as ItemsLayoutMode;
+          setLayoutMode(parsed);
+        }
+      } catch (error) {
+        console.error("Failed to load items layout mode", error);
+        setLayoutMode("two");
+      } finally {
+        setIsLayoutModeLoading(false);
+      }
+    };
+
+    loadLayout();
+  }, []);
 
   return (
     <SectionList
@@ -115,11 +150,15 @@ function OtherUserItemSectionList({
             attributes={attributes}
             queryOptions={queryOptions}
             isStickyShadow={isStickyShadow}
+            layoutMode={{
+              value: layoutMode,
+              set: setLayoutMode,
+            }}
             user={user}
           />
-          {allLoading && <Loading />}
+          {isLoading && <Loading />}
 
-          {!allLoading && items.length === 0 ? (
+          {!isLoading && items.length === 0 ? (
             <>
               <View
                 style={{
@@ -159,6 +198,7 @@ function OtherUserItemSectionList({
               item={i}
               collectionType={collectionType}
               onCardPress={() => handleItemNavigation(i)}
+              layoutMode={layoutMode}
             />
           ))}
         </View>

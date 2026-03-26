@@ -26,9 +26,10 @@ interface FeedCardProps {
   user: User;
   collectionType: CollectionType;
   feed: Feed;
+  onTagPress: (tagText: string) => void;
 }
 
-function FeedCard({ user, collectionType, feed }: FeedCardProps) {
+function FeedCard({ user, collectionType, feed, onTagPress }: FeedCardProps) {
   const { setCollectionType } = useCollectionStore();
   const { token } = useUserStore();
   const { setValues, setUser, setCollection } = useOtherUserStore();
@@ -278,10 +279,14 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
             }}
           >
             {feed.item.itemTags.map((tag) => (
-              <CustomText
+              <TouchableOpacity
                 key={tag.id}
-                style={{ color: darkContrastColor, fontSize: 14 }}
-              >{`#${tag.tag}`}</CustomText>
+                onPress={() => onTagPress(`#${tag.tag}`)}
+              >
+                <CustomText
+                  style={{ color: darkContrastColor, fontSize: 14 }}
+                >{`#${tag.tag}`}</CustomText>
+              </TouchableOpacity>
             ))}
           </View>
         </View>

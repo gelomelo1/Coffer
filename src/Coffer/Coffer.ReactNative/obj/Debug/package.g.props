@@ -43,6 +43,7 @@
     <PackageJsonDependenciesReactNative Condition="$(PackageJsonDependenciesReactNative) == ''">0.81.4</PackageJsonDependenciesReactNative>
     <PackageJsonDependenciesReactNativeColorMatrixImageFilters Condition="$(PackageJsonDependenciesReactNativeColorMatrixImageFilters) == ''">^7.0.2</PackageJsonDependenciesReactNativeColorMatrixImageFilters>
     <PackageJsonDependenciesReactNativeCountryPickerModal Condition="$(PackageJsonDependenciesReactNativeCountryPickerModal) == ''">^2.0.0</PackageJsonDependenciesReactNativeCountryPickerModal>
+    <PackageJsonDependenciesReactNativeDeckSwiper Condition="$(PackageJsonDependenciesReactNativeDeckSwiper) == ''">^2.0.19</PackageJsonDependenciesReactNativeDeckSwiper>
     <PackageJsonDependenciesReactNativeDropdownPicker Condition="$(PackageJsonDependenciesReactNativeDropdownPicker) == ''">^5.4.6</PackageJsonDependenciesReactNativeDropdownPicker>
     <PackageJsonDependenciesReactNativeElements Condition="$(PackageJsonDependenciesReactNativeElements) == ''">^3.0.0</PackageJsonDependenciesReactNativeElements>
     <PackageJsonDependenciesReactNativeGestureHandler Condition="$(PackageJsonDependenciesReactNativeGestureHandler) == ''">~2.28.0</PackageJsonDependenciesReactNativeGestureHandler>

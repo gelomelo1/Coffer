@@ -18,7 +18,7 @@ function TradeReviewsRating({ userId }: TradeReviewsRatingProps) {
   const { data: userReviewsData = [], isFetching } =
     useGetData<TradeReivewPack>(
       `${endpoints.tradeReviewsUser}/${userId}`,
-      `${querykeys.userReviewsData}/${userId}`
+      `${querykeys.userReviewsData}/${userId}`,
     );
 
   useEffect(() => {
@@ -42,7 +42,6 @@ function TradeReviewsRating({ userId }: TradeReviewsRatingProps) {
     <>
       <TouchableOpacity
         style={{
-          width: "100%",
           justifyContent: "center",
           alignItems: "center",
           flexDirection: "row",
@@ -51,6 +50,7 @@ function TradeReviewsRating({ userId }: TradeReviewsRatingProps) {
         }}
         onPress={() => setIsTradeReviewCommentsOverlayVisible(true)}
       >
+        <CustomText>Reviews:</CustomText>
         <View
           style={{
             justifyContent: "center",
@@ -58,7 +58,9 @@ function TradeReviewsRating({ userId }: TradeReviewsRatingProps) {
             flexDirection: "row",
           }}
         >
-          <CustomText style={{ color: "green" }}>{likes}</CustomText>
+          <CustomText style={{ color: "green" }} concatNumber={true}>
+            {likes}
+          </CustomText>
           <AntDesign name="arrow-up" size={16} color="green" />
         </View>
         <View
@@ -68,7 +70,9 @@ function TradeReviewsRating({ userId }: TradeReviewsRatingProps) {
             flexDirection: "row",
           }}
         >
-          <CustomText style={{ color: "red" }}>{dislikes}</CustomText>
+          <CustomText style={{ color: "red" }} concatNumber={true}>
+            {dislikes}
+          </CustomText>
           <AntDesign name="arrow-down" size={16} color="red" />
         </View>
       </TouchableOpacity>

@@ -154,6 +154,66 @@ namespace Coffer.DataAccess.Repositories
             return filtered;
         }
 
+        public async Task<IEnumerable<ItemProvided>> SearchItemsSmart(string? collectionTypeIds, string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                return Enumerable.Empty<ItemProvided>();
+
+            searchText = searchText.Trim();
+
+            IQueryable<ItemProvided> query = _dbContext.Set<ItemProvided>()
+                .Include(i => i.Collection);
+
+            var includes = includeProvider.GetDefaultIncludes();
+            if (includes != null)
+            {
+                foreach (var include in includes)
+                    query = includes.Aggregate(query, (current, inc) => current.Include(inc));
+            }
+
+            if (!string.IsNullOrWhiteSpace(collectionTypeIds))
+            {
+                var ids = collectionTypeIds
+                    .Split(';', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(int.Parse)
+                    .ToList();
+
+                if (ids.Count > 0)
+                    query = query.Where(i => ids.Contains(i.Collection.CollectionTypeId));
+            }
+
+            var items = await query
+                .ToListAsync();
+
+            var results = items
+                .Select(item =>
+                {
+                    var primaryValue = GetPrimaryAttributeValueAsString(item);
+                    if (string.IsNullOrEmpty(primaryValue))
+                        return null;
+
+                    var isExact = string.Equals(primaryValue, searchText, StringComparison.OrdinalIgnoreCase);
+                    var similarity = ComputeTrigramSimilarity(primaryValue, searchText);
+
+                    return new
+                    {
+                        Item = item,
+                        PrimaryValue = primaryValue,
+                        IsExact = isExact,
+                        Similarity = similarity
+                    };
+                })
+                .Where(x => x != null && (x.IsExact || x.Similarity >= 0.3))
+                .OrderByDescending(x => x.IsExact)
+                .ThenByDescending(x => x.Similarity)
+                .ThenBy(x => x.PrimaryValue)
+                .Take(10)
+                .Select(x => x.Item)
+                .ToList();
+
+            return results;
+        }
+
         protected override ItemProvided MapToEntity(ItemRequired required, ItemProvided? entity = null)
         {
             if (entity == null)
@@ -180,6 +240,10 @@ namespace Coffer.DataAccess.Repositories
 
                 foreach (var tag in required.ItemTags)
                 {
+                    if(tag.Tag.Length < 3)
+                    {
+                        throw new ArgumentException("Tag must be at least 3 characters long.", nameof(tag.Tag));
+                    }
                     newEntity.ItemTags.Add(new ItemTags
                     {
                         Tag = tag.Tag
@@ -225,6 +289,12 @@ namespace Coffer.DataAccess.Repositories
 
             foreach (var tag in required.ItemTags)
             {
+
+                if (tag.Tag.Length < 3)
+                {
+                    throw new ArgumentException("Tag must be at least 3 characters long.", nameof(tag.Tag));
+                }
+
                 var existingTag = entity.ItemTags.FirstOrDefault(t => t.Tag == tag.Tag);
                 if (existingTag == null)
                 {
@@ -264,6 +334,11 @@ namespace Coffer.DataAccess.Repositories
 
                 foreach (var tag in provided.ItemTags)
                 {
+                    if(tag.Tag.Length < 3)
+                    {
+                        throw new ArgumentException("Tag must be at least 3 characters long.", nameof(tag.Tag));
+                    }
+
                     newEntity.ItemTags.Add(tag);
                 }
 
@@ -294,6 +369,33 @@ namespace Coffer.DataAccess.Repositories
             return await query
                 .Where(i => i.CollectionId == collectionId)
                 .ToListAsync();
+        }
+
+        private double ComputeTrigramSimilarity(string source, string target)
+        {
+            if (string.IsNullOrEmpty(source) || string.IsNullOrEmpty(target))
+                return 0;
+
+            source = source.ToLower();
+            target = target.ToLower();
+
+            var sourceTrigrams = GetTrigrams(source);
+            var targetTrigrams = GetTrigrams(target);
+
+            if (!sourceTrigrams.Any() || !targetTrigrams.Any())
+                return 0;
+
+            var common = sourceTrigrams.Intersect(targetTrigrams).Count();
+            return (double)common / Math.Max(sourceTrigrams.Count, targetTrigrams.Count);
+        }
+
+        private List<string> GetTrigrams(string s)
+        {
+            s = $"  {s}  ";
+            var trigrams = new List<string>();
+            for (int i = 0; i < s.Length - 2; i++)
+                trigrams.Add(s.Substring(i, 3));
+            return trigrams;
         }
     }
 }

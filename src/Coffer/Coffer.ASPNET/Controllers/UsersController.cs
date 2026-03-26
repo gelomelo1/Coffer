@@ -1,6 +1,7 @@
 ﻿using System.Linq.Dynamic.Core;
 using Coffer.ASPNET.Controllers.Generic;
 using Coffer.ASPNET.Extensions;
+using Coffer.BusinessLogic.Extensions;
 using Coffer.BusinessLogic.Services.Interfaces;
 using Coffer.DataAccess.Repositories;
 using Coffer.DataAccess.Repositories.Generic;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Coffer.ASPNET.Controllers
 {
@@ -29,6 +31,11 @@ namespace Coffer.ASPNET.Controllers
             if (!UserId.HasValue)
             {
                 return Unauthorized(); ;
+            }
+
+            if(required.Summary != null && HtmlSafetyChecker.IsHtmlSafe(required.Summary) == false)
+            {
+                return Forbid();
             }
 
             var item = await _usersRepository.UpdateUserFrontend(UserId.Value, required);
