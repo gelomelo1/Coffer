@@ -1,6 +1,7 @@
 import { customTheme } from "@/src/theme/theme";
 import {
   CodeBridge,
+  LinkBridge,
   PlaceholderBridge,
   RichText,
   TenTapStartKit,
@@ -27,95 +28,79 @@ function CustomRichTextEditor({
   margin,
 }: CustomRichTextEditorProps) {
   const customCodeBlockCSS = `
-
   html, body {
-    background-color: ${customTheme.colors.background};
-    margin: 0;
-    padding: 0;
-    line-height: 1.3;
-  }
+  background-color: ${customTheme.colors.background};
+  margin: 0;
+  padding: 0;
+  font-size: 14px;        /* ✅ base size */
+  line-height: 1.3;
+}
 
-  * {
-    color: ${customTheme.colors.primary};
-  }
+/* Global reset */
+* {
+  color: ${customTheme.colors.primary};
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-  /* Text emphasis */
-  b, strong { font-weight: bold; }
-  i, em { font-style: italic; }
-  u { text-decoration: underline; }
+/* Paragraphs — keep block, but remove ALL spacing */
+p {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.3;
+}
 
-  /* Headings (reduced size + spacing) */
-  h1 {
-    font-size: 26px;
-    font-weight: bold;
-    margin-bottom: 4px;
-  }
+/* Prevent extra spacing between paragraphs */
+p + p {
+  margin-top: 0 !important;
+}
 
-  h2 {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 4px;
-  }
+/* Headings — scaled, but no spacing */
+h1 { font-size: 20px; font-weight: bold; margin: 0; }
+h2 { font-size: 18px; font-weight: bold; margin: 0; }
+h3 { font-size: 16px; font-weight: bold; margin: 0; }
+h4 { font-size: 15px; font-weight: bold; margin: 0; }
+h5 { font-size: 14px; font-weight: bold; margin: 0; }
+h6 { font-size: 13px; font-weight: bold; margin: 0; }
 
-  h3 {
-    font-size: 20px;
-    font-weight: bold;
-    margin-bottom: 3px;
-  }
+/* Lists — tight */
+ul, ol {
+  margin: 0;
+  padding-left: 16px;
+}
 
-  h4 {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 3px;
-  }
+li {
+  margin: 0;
+}
 
-  h5 {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 2px;
-  }
+/* Text emphasis */
+b, strong { font-weight: bold; }
+i, em { font-style: italic; }
+u { text-decoration: underline; }
 
-  h6 {
-    font-size: 15px;
-    font-weight: bold;
-    margin-bottom: 2px;
-  }
+/* Links */
+a {
+  text-decoration: underline;
+}
 
-  /* Paragraph (tight) */
-  p {
-    margin-bottom: 4px;
-  }
+/* Code */
+code {
+  font-family: monospace;
+  background-color: #eee;
+  padding: 1px 3px;
+  font-size: 13px;
+}
 
-  /* Lists (tight) */
-  ul, ol {
-    margin-top: 4px;
-    margin-bottom: 4px;
-    padding-left: 16px; /* keeps bullets aligned nicely */
-  }
-
-  li {
-    margin-bottom: 2px;
-  }
-
-  /* Links */
-  a {
-    text-decoration: underline;
-  }
-
-  /* Code / pre (tightened) */
-  code {
-    font-family: monospace;
-    background-color: #eee;
-    padding: 1px 3px;
-  }
-
-  pre {
-    font-family: monospace;
-    background-color: #eee;
-    padding: 6px;
-    margin-bottom: 4px;
-    overflow-x: auto;
-  }
+/* Code block */
+pre {
+  font-family: monospace;
+  background-color: #eee;
+  padding: 6px;
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 13px;
+}
 `;
 
   const editor = useEditorBridge({
@@ -129,6 +114,7 @@ function CustomRichTextEditor({
       PlaceholderBridge.configureExtension({
         placeholder: placeholder ?? "Type something...",
       }),
+      LinkBridge.configureExtension({}),
     ],
     onChange() {
       const provideContnet = async () => {

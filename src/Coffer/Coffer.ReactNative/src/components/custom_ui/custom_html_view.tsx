@@ -13,7 +13,7 @@ function CustomHTMLView({ content, foldable = false }: CustomHTMLViewProps) {
   const [contentHeight, setContentHeight] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
 
-  const lineHeight = 16.8;
+  const lineHeight = 18;
 
   const maxHeight = 3 * lineHeight;
 
@@ -46,36 +46,56 @@ function CustomHTMLView({ content, foldable = false }: CustomHTMLViewProps) {
               em: { fontStyle: "italic" },
               u: { textDecorationLine: "underline" },
 
-              // Headings (reduced spacing + slightly smaller)
-              h1: { fontSize: 26, fontWeight: "bold", marginBottom: 4 },
-              h2: { fontSize: 24, fontWeight: "bold", marginBottom: 4 },
-              h3: { fontSize: 20, fontWeight: "bold", marginBottom: 3 },
-              h4: { fontSize: 18, fontWeight: "bold", marginBottom: 3 },
-              h5: { fontSize: 16, fontWeight: "bold", marginBottom: 2 },
-              h6: { fontSize: 15, fontWeight: "bold", marginBottom: 2 },
+              // Headings — scaled relative to 14px, NO spacing
+              h1: { fontSize: 20, fontWeight: "bold", marginBottom: 0 },
+              h2: { fontSize: 18, fontWeight: "bold", marginBottom: 0 },
+              h3: { fontSize: 16, fontWeight: "bold", marginBottom: 0 },
+              h4: { fontSize: 15, fontWeight: "bold", marginBottom: 0 },
+              h5: { fontSize: 14, fontWeight: "bold", marginBottom: 0 },
+              h6: { fontSize: 13, fontWeight: "bold", marginBottom: 0 },
 
-              // Paragraph (tight)
-              p: { marginBottom: 4 },
+              // Paragraph — behaves like simple newline (no spacing)
+              p: {
+                marginTop: 0,
+                marginBottom: 0,
+                minHeight: 18,
+              },
 
-              // Lists (much tighter)
-              ul: { marginVertical: 4 },
-              ol: { marginVertical: 4 },
-              li: { marginBottom: 2 },
+              // Lists — minimal spacing
+              ul: {
+                marginTop: 0,
+                marginBottom: 0,
+                paddingLeft: 16,
+              },
+              ol: {
+                marginTop: 0,
+                marginBottom: 0,
+                paddingLeft: 16,
+              },
+              li: {
+                marginTop: 0,
+                marginBottom: 0,
+              },
 
               // Links
               a: { textDecorationLine: "underline" },
 
-              // Code / pre (slightly tighter)
+              // Code
               code: {
                 fontFamily: "monospace",
                 backgroundColor: "#eee",
-                padding: 1,
+                paddingHorizontal: 3,
+                paddingVertical: 1,
+                fontSize: 13,
               },
+
               pre: {
                 fontFamily: "monospace",
                 backgroundColor: "#eee",
                 padding: 6,
-                marginBottom: 4,
+                marginTop: 0,
+                marginBottom: 0,
+                fontSize: 13,
               },
             }}
             classesStyles={{

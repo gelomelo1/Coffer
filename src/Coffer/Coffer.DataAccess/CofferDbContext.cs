@@ -24,6 +24,7 @@ namespace Coffer.DataAccess
         public DbSet<OfferProvided> Offers { get; set; }
         public DbSet<OfferItem> OfferItems { get; set; }
         public DbSet<TradeReviewProvided> TradeReviews { get; set; }
+        public DbSet<ItemMessage> ItemMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -173,6 +174,17 @@ namespace Coffer.DataAccess
                 .WithMany()
                 .HasForeignKey(t => t.RevieweeId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            //ItemMessages
+            modelBuilder.Entity<ItemMessage>()
+                .HasOne(i => i.User)
+                .WithMany()
+                .HasForeignKey(i => i.UserId);
+
+            modelBuilder.Entity<ItemMessage>()
+                .HasOne(i => i.Item)
+                .WithMany()
+                .HasForeignKey(i => i.ItemId);
         }
     }
 

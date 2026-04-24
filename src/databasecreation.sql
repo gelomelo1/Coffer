@@ -208,6 +208,14 @@ CREATE TABLE reports (
     resolved_at TIMESTAMP
 );
 
+CREATE TABLE item_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    item_id UUID REFERENCES items(id) ON DELETE SET NULL,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT now()
+);
+
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 CREATE INDEX idx_collections_name_trgm
