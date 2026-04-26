@@ -19,7 +19,7 @@ from typing import List
 from save_embeddings_to_vectordb import save_embeddings_to_vectordb
 
 
-load_dotenv(DOTENV_PATH)
+load_dotenv()
 
 app = FastAPI()
 

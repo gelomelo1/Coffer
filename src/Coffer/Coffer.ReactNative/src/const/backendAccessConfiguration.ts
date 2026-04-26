@@ -3,7 +3,7 @@ import axios from "axios";
 import { asyncstoragekeys } from "./async_storage_keys";
 
 export const backendAxios = axios.create({
-  baseURL: "http://192.168.1.2:5141",
+  baseURL: "http://192.168.1.10:5141",
 });
 
 backendAxios.interceptors.request.use(

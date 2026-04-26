@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Coffer/Coffer.ASPNET/Dockerfile
+    ports:
+      - "5141:80"
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - db
+      - fastapi
+    volumes:
+      - ./Coffer:/app/Coffer
+      - ./Coffer.sln:/app/Coffer.sln
+      - E:\Homework\Programming\AI\szakdolgozat\data\images:/app/data/images
+      - E:\Homework\Programming\AI\szakdolgozat\data\vectors:/app/data/vectors
+      - E:\Homework\Programming\AI\szakdolgozat\data\temp:/app/data/temp
+      - E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.PythonService\models:/app/models
+
+  fastapi:
+    build:
+      context: ./Coffer/Coffer.PythonService
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./Coffer/Coffer.PythonService:/app
+      - E:\Homework\Programming\AI\szakdolgozat\data\images:/app/data/images
+      - E:\Homework\Programming\AI\szakdolgozat\data\vectors:/app/data/vectors
+      - E:\Homework\Programming\AI\szakdolgozat\data\temp:/app/data/temp
+      - E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.PythonService\models:/app/models
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: Coffer
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:

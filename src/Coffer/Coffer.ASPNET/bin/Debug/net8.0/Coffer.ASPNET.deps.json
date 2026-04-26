@@ -13,7 +13,7 @@
           "Coffer.Infrastructure": "1.0.0",
           "DotNetEnv": "3.1.1",
           "Google.Apis.Auth": "1.71.0",
-          "Microsoft.AspNetCore.SpaProxy": "8.0.25",
+          "Microsoft.AspNetCore.SpaProxy": "8.0.26",
           "Swashbuckle.AspNetCore": "6.6.2",
           "System.IdentityModel.Tokens.Jwt": "8.14.0"
         },
@@ -137,11 +137,11 @@
           "System.IO.Pipelines": "5.0.2"
         }
       },
-      "Microsoft.AspNetCore.SpaProxy/8.0.25": {
+      "Microsoft.AspNetCore.SpaProxy/8.0.26": {
         "runtime": {
           "lib/net8.0/Microsoft.AspNetCore.SpaProxy.dll": {
-            "assemblyVersion": "8.0.25.0",
-            "fileVersion": "8.0.2526.11225"
+            "assemblyVersion": "8.0.26.0",
+            "fileVersion": "8.0.2626.16911"
           }
         }
       },
@@ -1217,7 +1217,7 @@
         },
         "runtime": {
           "Coffer.BusinessLogic.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -1232,7 +1232,7 @@
         },
         "runtime": {
           "Coffer.DataAccess.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -1240,7 +1240,7 @@
       "Coffer.Domain/1.0.0": {
         "runtime": {
           "Coffer.Domain.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -1249,15 +1249,17 @@
         "dependencies": {
           "Coffer.BusinessLogic": "1.0.0",
           "Coffer.DataAccess": "1.0.0",
+          "Coffer.Domain": "1.0.0",
           "DotNetEnv": "3.1.1",
           "EFCore.NamingConventions": "9.0.0",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.20",
           "Microsoft.EntityFrameworkCore": "9.0.9",
-          "Npgsql.EntityFrameworkCore.PostgreSQL": "9.0.4"
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "9.0.4",
+          "Swashbuckle.AspNetCore": "6.6.2"
         },
         "runtime": {
           "Coffer.Infrastructure.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -1340,12 +1342,12 @@
       "path": "microsoft.aspnetcore.http.features/5.0.17",
       "hashPath": "microsoft.aspnetcore.http.features.5.0.17.nupkg.sha512"
     },
-    "Microsoft.AspNetCore.SpaProxy/8.0.25": {
+    "Microsoft.AspNetCore.SpaProxy/8.0.26": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-jDv9gydWXVRAMtphfpBJloNDwUED8t01RJEs2HSpguv+6an/VdXllo7FRMkbvHdyL7I3J2hmbEQBg/XIrtZGWA==",
-      "path": "microsoft.aspnetcore.spaproxy/8.0.25",
-      "hashPath": "microsoft.aspnetcore.spaproxy.8.0.25.nupkg.sha512"
+      "sha512": "sha512-W/G2DtEUCuXKMgy/OtWhxhmfWe0c087zUk+f4riOttIJzvyrc0X0U2Sf1sPWiN3Nu0n5EW3rX9ANhF94XgPPdQ==",
+      "path": "microsoft.aspnetcore.spaproxy/8.0.26",
+      "hashPath": "microsoft.aspnetcore.spaproxy.8.0.26.nupkg.sha512"
     },
     "Microsoft.EntityFrameworkCore/9.0.9": {
       "type": "package",

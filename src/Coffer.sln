@@ -4,10 +4,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.14.36414.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Coffer.ASPNET", "Coffer\Coffer.ASPNET\Coffer.ASPNET.csproj", "{EACAA64B-DE45-D852-8CAF-FB85846AC237}"
-EndProject
-Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "Coffer.ReactNative", "Coffer\Coffer.ReactNative\Coffer.ReactNative.esproj", "{0AAFF4D5-A099-C614-BF72-9087176E7C9C}"
 	ProjectSection(ProjectDependencies) = postProject
-		{EACAA64B-DE45-D852-8CAF-FB85846AC237} = {EACAA64B-DE45-D852-8CAF-FB85846AC237}
+		{587EDC69-90E3-4B9B-B0C3-063BE9D096A5} = {587EDC69-90E3-4B9B-B0C3-063BE9D096A5}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Coffer.BusinessLogic", "Coffer\Coffer.BusinessLogic\Coffer.BusinessLogic.csproj", "{E20F54DA-E62F-4E90-AE60-F1201F68BD58}"
@@ -18,9 +16,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Coffer.Domain", "Coffer\Cof
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Coffer.Infrastructure", "Coffer\Coffer.Infrastructure\Coffer.Infrastructure.csproj", "{04BAED6F-84EB-4655-A6ED-AC3AC0B35BD4}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Coffer.Manager", "Coffer\Coffer.Manager\Coffer.Manager.pyproj", "{57E976FC-57BC-4FA3-9B83-AE0931E944F5}"
+EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Coffer.PythonService", "Coffer\Coffer.PythonService\Coffer.PythonService.pyproj", "{B7F59CD4-6D81-4615-9D8D-38532A97608E}"
 EndProject
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Coffer.Manager", "Coffer\Coffer.Manager\Coffer.Manager.pyproj", "{57E976FC-57BC-4FA3-9B83-AE0931E944F5}"
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "Coffer.ReactNative", "Coffer\Coffer.ReactNative\Coffer.ReactNative.esproj", "{0AAFF4D5-A099-C614-BF72-9087176E7C9C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,12 +32,6 @@ Global
 		{EACAA64B-DE45-D852-8CAF-FB85846AC237}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EACAA64B-DE45-D852-8CAF-FB85846AC237}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EACAA64B-DE45-D852-8CAF-FB85846AC237}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0AAFF4D5-A099-C614-BF72-9087176E7C9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0AAFF4D5-A099-C614-BF72-9087176E7C9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0AAFF4D5-A099-C614-BF72-9087176E7C9C}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{0AAFF4D5-A099-C614-BF72-9087176E7C9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0AAFF4D5-A099-C614-BF72-9087176E7C9C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0AAFF4D5-A099-C614-BF72-9087176E7C9C}.Release|Any CPU.Deploy.0 = Release|Any CPU
 		{E20F54DA-E62F-4E90-AE60-F1201F68BD58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E20F54DA-E62F-4E90-AE60-F1201F68BD58}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E20F54DA-E62F-4E90-AE60-F1201F68BD58}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -54,11 +48,15 @@ Global
 		{04BAED6F-84EB-4655-A6ED-AC3AC0B35BD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{04BAED6F-84EB-4655-A6ED-AC3AC0B35BD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{04BAED6F-84EB-4655-A6ED-AC3AC0B35BD4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B7F59CD4-6D81-4615-9D8D-38532A97608E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B7F59CD4-6D81-4615-9D8D-38532A97608E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B7F59CD4-6D81-4615-9D8D-38532A97608E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{57E976FC-57BC-4FA3-9B83-AE0931E944F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{57E976FC-57BC-4FA3-9B83-AE0931E944F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7F59CD4-6D81-4615-9D8D-38532A97608E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7F59CD4-6D81-4615-9D8D-38532A97608E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7F59CD4-6D81-4615-9D8D-38532A97608E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AAFF4D5-A099-C614-BF72-9087176E7C9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AAFF4D5-A099-C614-BF72-9087176E7C9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AAFF4D5-A099-C614-BF72-9087176E7C9C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AAFF4D5-A099-C614-BF72-9087176E7C9C}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

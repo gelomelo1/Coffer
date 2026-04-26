@@ -20,6 +20,7 @@ namespace Coffer.ASPNET.Controllers
         private readonly string imageFolder =
             Path.Combine(Env.GetString("IMAGESTORE_PATH") ?? throw new InvalidOperationException("IMAGESTORE_PATH envionmental variable is not set"), "items");
         private readonly string tempFolder = Env.GetString("IMAGECHECK_TEMP_PATH") ?? throw new InvalidOperationException("IMAGECHECK_TEMP_PATH envionmental variable is not set");
+        private readonly string pythonServiceUrl = Env.GetString("FASTAPI_URL") ?? throw new InvalidOperationException("FASTAPI_URL envionmental variable is not set");
         private readonly HttpClient _httpClient;
         public ItemsController(IItemsRepository repository, IUsersRepository usersRepository, IImageService imageService, IPermissionService<Guid, ItemRequired> permissionService, HttpClient httpClient) : base(repository, permissionService)
         {
@@ -153,7 +154,7 @@ namespace Coffer.ASPNET.Controllers
 
 
                     var response = await _httpClient.PostAsJsonAsync(
-                        $"http://localhost:8000/save_embeddings/{collectionId}",
+                        $"{pythonServiceUrl}/save_embeddings/{collectionId}",
                         itemIds
                     );
 
@@ -228,7 +229,7 @@ namespace Coffer.ASPNET.Controllers
 
                 await _repository.DeleteItemAsync(id);
 
-                var response = await _httpClient.DeleteAsync($"http://localhost:8000/delete_embeddings/{id}");
+                var response = await _httpClient.DeleteAsync($"{pythonServiceUrl}/delete_embeddings/{id}");
 
                 if (!response.IsSuccessStatusCode)
                 {

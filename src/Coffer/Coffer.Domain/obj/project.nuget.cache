@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "mlG6NsxMrHY=",
+  "dgSpecHash": "NE+4iq5HQv4=",
   "success": true,
-  "projectFilePath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Domain\\Coffer.Domain.csproj",
+  "projectFilePath": "/app/Coffer/Coffer.Domain/Coffer.Domain.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

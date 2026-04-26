@@ -169,7 +169,7 @@
           }
         }
       },
-      "Microsoft.AspNetCore.SpaProxy/8.0.25": {
+      "Microsoft.AspNetCore.SpaProxy/8.0.26": {
         "type": "package",
         "compile": {
           "lib/net8.0/Microsoft.AspNetCore.SpaProxy.dll": {}
@@ -2200,11 +2200,13 @@
         "dependencies": {
           "Coffer.BusinessLogic": "1.0.0",
           "Coffer.DataAccess": "1.0.0",
+          "Coffer.Domain": "1.0.0",
           "DotNetEnv": "3.1.1",
           "EFCore.NamingConventions": "9.0.0",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.20",
           "Microsoft.EntityFrameworkCore": "9.0.9",
-          "Npgsql.EntityFrameworkCore.PostgreSQL": "9.0.4"
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "9.0.4",
+          "Swashbuckle.AspNetCore": "6.6.2"
         },
         "compile": {
           "bin/placeholder/Coffer.Infrastructure.dll": {}
@@ -2403,10 +2405,10 @@
         "microsoft.aspnetcore.http.features.nuspec"
       ]
     },
-    "Microsoft.AspNetCore.SpaProxy/8.0.25": {
-      "sha512": "jDv9gydWXVRAMtphfpBJloNDwUED8t01RJEs2HSpguv+6an/VdXllo7FRMkbvHdyL7I3J2hmbEQBg/XIrtZGWA==",
+    "Microsoft.AspNetCore.SpaProxy/8.0.26": {
+      "sha512": "W/G2DtEUCuXKMgy/OtWhxhmfWe0c087zUk+f4riOttIJzvyrc0X0U2Sf1sPWiN3Nu0n5EW3rX9ANhF94XgPPdQ==",
       "type": "package",
-      "path": "microsoft.aspnetcore.spaproxy/8.0.25",
+      "path": "microsoft.aspnetcore.spaproxy/8.0.26",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -2414,7 +2416,7 @@
         "THIRD-PARTY-NOTICES.TXT",
         "build/Microsoft.AspNetCore.SpaProxy.targets",
         "lib/net8.0/Microsoft.AspNetCore.SpaProxy.dll",
-        "microsoft.aspnetcore.spaproxy.8.0.25.nupkg.sha512",
+        "microsoft.aspnetcore.spaproxy.8.0.26.nupkg.sha512",
         "microsoft.aspnetcore.spaproxy.nuspec"
       ]
     },
@@ -7001,45 +7003,38 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\gelli\\.nuget\\packages\\": {},
-    "E:\\Apps\\Visual Studio\\SDK\\NuGetPackages": {}
+    "/root/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.ASPNET\\Coffer.ASPNET.csproj",
+      "projectUniqueName": "/app/Coffer/Coffer.ASPNET/Coffer.ASPNET.csproj",
       "projectName": "Coffer.ASPNET",
-      "projectPath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.ASPNET\\Coffer.ASPNET.csproj",
-      "packagesPath": "C:\\Users\\gelli\\.nuget\\packages\\",
-      "outputPath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.ASPNET\\obj\\",
+      "projectPath": "/app/Coffer/Coffer.ASPNET/Coffer.ASPNET.csproj",
+      "packagesPath": "/root/.nuget/packages/",
+      "outputPath": "/app/Coffer/Coffer.ASPNET/obj/",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "E:\\Apps\\Visual Studio\\SDK\\NuGetPackages"
-      ],
       "configFilePaths": [
-        "C:\\Users\\gelli\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "/root/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.BusinessLogic\\Coffer.BusinessLogic.csproj": {
-              "projectPath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.BusinessLogic\\Coffer.BusinessLogic.csproj"
+            "/app/Coffer/Coffer.BusinessLogic/Coffer.BusinessLogic.csproj": {
+              "projectPath": "/app/Coffer/Coffer.BusinessLogic/Coffer.BusinessLogic.csproj"
             },
-            "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.DataAccess\\Coffer.DataAccess.csproj": {
-              "projectPath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.DataAccess\\Coffer.DataAccess.csproj"
+            "/app/Coffer/Coffer.DataAccess/Coffer.DataAccess.csproj": {
+              "projectPath": "/app/Coffer/Coffer.DataAccess/Coffer.DataAccess.csproj"
             },
-            "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Infrastructure\\Coffer.Infrastructure.csproj": {
-              "projectPath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Infrastructure\\Coffer.Infrastructure.csproj"
+            "/app/Coffer/Coffer.Infrastructure/Coffer.Infrastructure.csproj": {
+              "projectPath": "/app/Coffer/Coffer.Infrastructure/Coffer.Infrastructure.csproj"
             }
           }
         }
@@ -7053,8 +7048,7 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      },
-      "SdkAnalysisLevel": "9.0.300"
+      }
     },
     "frameworks": {
       "net8.0": {
@@ -7100,7 +7094,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/8.0.420/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

@@ -3,7 +3,7 @@
 "ServerUrl": "https://localhost:8081",
 "RedirectUrl": "",
 "LaunchCommand": "npm run android",
-"WorkingDirectory": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.ASPNET\\..\\Coffer.ReactNative",
+"WorkingDirectory": "/app/Coffer/Coffer.ASPNET/../Coffer.ReactNative",
 "MaxTimeoutInSeconds": "120",
 "KeepRunning": "false"
 }

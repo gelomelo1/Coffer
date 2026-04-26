@@ -823,39 +823,32 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\gelli\\.nuget\\packages\\": {},
-    "E:\\Apps\\Visual Studio\\SDK\\NuGetPackages": {}
+    "/root/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.DataAccess\\Coffer.DataAccess.csproj",
+      "projectUniqueName": "/app/Coffer/Coffer.DataAccess/Coffer.DataAccess.csproj",
       "projectName": "Coffer.DataAccess",
-      "projectPath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.DataAccess\\Coffer.DataAccess.csproj",
-      "packagesPath": "C:\\Users\\gelli\\.nuget\\packages\\",
-      "outputPath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.DataAccess\\obj\\",
+      "projectPath": "/app/Coffer/Coffer.DataAccess/Coffer.DataAccess.csproj",
+      "packagesPath": "/root/.nuget/packages/",
+      "outputPath": "/app/Coffer/Coffer.DataAccess/obj/",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "E:\\Apps\\Visual Studio\\SDK\\NuGetPackages"
-      ],
       "configFilePaths": [
-        "C:\\Users\\gelli\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "/root/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Domain\\Coffer.Domain.csproj": {
-              "projectPath": "E:\\Homework\\Programming\\AI\\Coffer\\src\\Coffer\\Coffer.Domain\\Coffer.Domain.csproj"
+            "/app/Coffer/Coffer.Domain/Coffer.Domain.csproj": {
+              "projectPath": "/app/Coffer/Coffer.Domain/Coffer.Domain.csproj"
             }
           }
         }
@@ -869,8 +862,7 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      },
-      "SdkAnalysisLevel": "9.0.300"
+      }
     },
     "frameworks": {
       "net8.0": {
@@ -909,7 +901,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/8.0.420/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

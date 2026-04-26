@@ -1,0 +1,30 @@
+# React Native
+
+Coffer/Coffer.ReactNative
+
+# Python service
+
+Coffer/Coffer.PythonService
+
+# Manager
+
+Coffer/Coffer.Manager
+
+# build outputs
+
+**/bin
+**/obj
+
+# git
+
+.git
+.gitignore
+
+# node (if any)
+
+\*\*/node_modules
+
+# IDE
+
+.vs
+.vscode
