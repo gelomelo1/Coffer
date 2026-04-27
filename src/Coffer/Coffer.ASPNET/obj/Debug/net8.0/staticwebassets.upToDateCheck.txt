@@ -1,2 +1,0 @@
-wwwroot\icons\cap.png
-wwwroot\icons\stamp.png

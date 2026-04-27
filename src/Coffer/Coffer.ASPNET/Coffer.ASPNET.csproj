@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Coffer.BusinessLogic\Coffer.BusinessLogic.csproj" />
     <ProjectReference Include="..\Coffer.DataAccess\Coffer.DataAccess.csproj" />
+    <ProjectReference Include="..\Coffer.Domain\Coffer.Domain.csproj" />
     <ProjectReference Include="..\Coffer.Infrastructure\Coffer.Infrastructure.csproj" />
   </ItemGroup>
 

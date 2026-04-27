@@ -1,0 +1,47 @@
+name: Build .NET + Python
+
+on:
+  push:
+    branches:
+      - development
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Setup Docker build system (enables caching)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # .NET BUILD
+      - name: Build .NET Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./src/Coffer/Coffer.ASPNET/Dockerfile.dotnet
+          push: false
+          tags: coffer-dotnet:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          load: true
+
+      # PYTHON BUILD
+      - name: Build Python Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./src/Coffer/Coffer.PythonService/Dockerfile.python
+          push: false
+          tags: coffer-python:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          load: true
+
+      # OPTIONAL DEBUG INFO
+      - name: Show build result
+        run: echo "Build completed successfully"
