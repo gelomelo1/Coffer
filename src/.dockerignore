@@ -28,8 +28,3 @@ Coffer/Coffer.Manager
 
 .vs
 .vscode
-
-#Environment variables
-
-.env
-.env.*

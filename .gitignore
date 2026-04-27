@@ -24,7 +24,6 @@ android/
 __pycache__/
 *.py[cod]
 venv/
-.env
 
 # ----------------------------
 # OS / Editor
@@ -32,3 +31,11 @@ venv/
 .DS_Store
 .vscode/
 .idea/
+
+#Environment variables
+
+.env
+.env.*
+
+#Other
+UserTokens.txt
