@@ -16,7 +16,16 @@ services:
       - fastapi
     volumes:
       - ./Coffer:/app/Coffer
-      - ./Coffer.sln:/app/Coffer.sln
+      - /app/Coffer/Coffer.ASPNET/bin
+      - /app/Coffer/Coffer.ASPNET/obj
+      - /app/Coffer/Coffer.BusinessLogic/bin
+      - /app/Coffer/Coffer.BusinessLogic/obj
+      - /app/Coffer/Coffer.DataAccess/bin
+      - /app/Coffer/Coffer.DataAccess/obj
+      - /app/Coffer/Coffer.Domain/bin
+      - /app/Coffer/Coffer.Domain/obj
+      - /app/Coffer/Coffer.Infrastructure/bin
+      - /app/Coffer/Coffer.Infrastructure/obj
       - E:\Homework\Programming\AI\szakdolgozat\data\images:/app/data/images
       - E:\Homework\Programming\AI\szakdolgozat\data\vectors:/app/data/vectors
       - E:\Homework\Programming\AI\szakdolgozat\data\temp:/app/data/temp
@@ -39,10 +48,8 @@ services:
 
   db:
     image: postgres:15
-    environment:
-      POSTGRES_DB: Coffer
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: db
+    env_file:
+      - .env
     ports:
       - "5432:5432"
     volumes:
