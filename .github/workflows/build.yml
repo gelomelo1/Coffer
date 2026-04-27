@@ -23,7 +23,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./src
-          file: ./Coffer/Coffer.ASPNET/Dockerfile.dotnet
+          file: Coffer/Coffer.ASPNET/Dockerfile.dotnet
           push: false
           tags: coffer-dotnet:latest
           cache-from: type=gha
