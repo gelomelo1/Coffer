@@ -34,7 +34,6 @@ jobs:
           tags: coffer-dotnet:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          load: true
 
       # PYTHON BUILD
       - name: Build Python Docker image
@@ -46,7 +45,6 @@ jobs:
           tags: coffer-python:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          load: true
 
       # OPTIONAL DEBUG INFO
       - name: Show build result
