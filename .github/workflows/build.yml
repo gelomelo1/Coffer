@@ -18,15 +18,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: List src folder
-        run: ls -R ./src
-
       # .NET BUILD
       - name: Build .NET Docker image
         uses: docker/build-push-action@v5
         with:
           context: ./src
-          file: Coffer/Coffer.ASPNET/Dockerfile.dotnet
+          file: ./src/Coffer/Coffer.ASPNET/Dockerfile.dotnet
           push: false
           tags: coffer-dotnet:latest
           cache-from: type=gha
@@ -38,7 +35,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./src/Coffer/Coffer.PythonService
-          file: Dockerfile.python
+          file: ./src/Coffer/Coffer.PythonService/Dockerfile.python
           push: false
           tags: coffer-python:latest
           cache-from: type=gha
