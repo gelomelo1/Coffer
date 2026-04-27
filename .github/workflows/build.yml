@@ -22,8 +22,8 @@ jobs:
       - name: Build .NET Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./src/Coffer/Coffer.ASPNET/Dockerfile.dotnet
+          context: ./src
+          file: ./Coffer/Coffer.ASPNET/Dockerfile.dotnet
           push: false
           tags: coffer-dotnet:latest
           cache-from: type=gha
@@ -34,8 +34,8 @@ jobs:
       - name: Build Python Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./src/Coffer/Coffer.PythonService/Dockerfile.python
+          context: ./src/Coffer/Coffer.PythonService
+          file: Dockerfile.python
           push: false
           tags: coffer-python:latest
           cache-from: type=gha
