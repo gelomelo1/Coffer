@@ -1,11 +1,11 @@
 from pathlib import Path
 import uuid
-
 from fastapi import FastAPI, File, UploadFile, Body
 import os
 from dotenv import load_dotenv
+from fastapi.concurrency import asynccontextmanager
 from build_image_check_response import build_image_check_response
-from config import DOTENV_PATH, OBJECT_DETECTION_THRESHOLD, SIMILARITY_THRESHOLD, TEST_UPLOAD_DIR
+from config import DOTENV_PATH, OBJECT_DETECTION_THRESHOLD, SIMILARITY_THRESHOLD, TEST_UPLOAD_DIR, VECTOR_COLLECTION_NAME
 from delete_embedding_from_vectordb import delete_embedding_from_vectordb
 from delete_embeddings_from_vectordb import delete_embeddings_from_vectordb
 from file_utils import find_file_containing, save_dicts_to_txt, save_images, uploadfile_to_numpy
@@ -17,11 +17,28 @@ from pydantic import BaseModel
 from uuid import UUID
 from typing import List
 from save_embeddings_to_vectordb import save_embeddings_to_vectordb
+import chromadb
 
 
 load_dotenv()
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.vector_db = chromadb.PersistentClient(
+        os.getenv("VECTORSTORE_PATH")
+    )
+    print("vector_db initialized:", app.state.vector_db)
+
+    app.state.collection = app.state.vector_db.get_or_create_collection(
+        name=VECTOR_COLLECTION_NAME
+    )
+    print(f"Collection '{VECTOR_COLLECTION_NAME}' ready.")
+
+    yield
+
+    print("Shutting down...")
+
+app = FastAPI(lifespan=lifespan)
 
 
 @app.get("/hello")
@@ -32,7 +49,7 @@ async def say_hello():
 async def image_check(file: UploadFile = File(...)):
     try:
 
-        object_detection_model, similarity_model, collection = initialize_models("1_detection.pt", "1_similarity_60.pt")
+        object_detection_model, similarity_model = initialize_models("1_detection.pt", "1_similarity_60.pt")
 
         image_array = await uploadfile_to_numpy(file)
 
@@ -57,7 +74,7 @@ async def image_check(
     collection_id: str,
     file: UploadFile = File(...)):
     try:
-        object_detection_model, similarity_model, collection = initialize_models(f"{collection_type_id}_detection.pt", find_file_containing(os.getenv("MODELS_PATH"), f"{collection_type_id}_similarity"))
+        object_detection_model, similarity_model = initialize_models(f"{collection_type_id}_detection.pt", find_file_containing(os.getenv("MODELS_PATH"), f"{collection_type_id}_similarity"))
 
         image_array = await uploadfile_to_numpy(file)
 
@@ -70,7 +87,7 @@ async def image_check(
         
         response = build_image_check_response(
             results,
-            vector_db_collection=collection,
+            vector_db_collection=app.state.collection,
             main_threshold=SIMILARITY_THRESHOLD,
             save_path=os.getenv("IMAGECHECK_TEMP_PATH"),
             metadata_filters=[("collection_id", collection_id)]
@@ -88,10 +105,8 @@ async def save_embeddings(
 
     try:
 
-        object_detection_model, similarity_model, collection = initialize_models()
-
         save_embeddings_to_vectordb(
-            collection,
+            app.state.collection,
             collection_id,
             os.getenv("IMAGECHECK_TEMP_PATH"),
             items
@@ -107,9 +122,7 @@ async def save_embeddings(
 ):
     try:
 
-        object_detection_model, similarity_model, collection = initialize_models()
-
-        delete_embedding_from_vectordb(collection, item_id)
+        delete_embedding_from_vectordb(app.state.collection, item_id)
 
         return {"status": "ok"}
     except Exception as e:
@@ -121,9 +134,7 @@ async def save_embeddings(
 ):
     try:
 
-        object_detection_model, similarity_model, collection = initialize_models()
-
-        delete_embeddings_from_vectordb(collection, collection_id)
+        delete_embeddings_from_vectordb(app.state.collection, collection_id)
 
         return {"status": "ok"}
     except Exception as e:

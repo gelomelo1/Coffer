@@ -1,0 +1,24 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /app
+
+COPY Coffer.sln .
+COPY Coffer/Coffer.ASPNET/*.csproj Coffer/Coffer.ASPNET/
+COPY Coffer/Coffer.BusinessLogic/*.csproj Coffer/Coffer.BusinessLogic/
+COPY Coffer/Coffer.DataAccess/*.csproj Coffer/Coffer.DataAccess/
+COPY Coffer/Coffer.Domain/*.csproj Coffer/Coffer.Domain/
+COPY Coffer/Coffer.Infrastructure/*.csproj Coffer/Coffer.Infrastructure/
+
+RUN dotnet restore Coffer/Coffer.ASPNET/Coffer.ASPNET.csproj
+
+COPY . .
+
+RUN dotnet publish Coffer/Coffer.ASPNET/Coffer.ASPNET.csproj -c Release -o /out
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /app
+
+COPY --from=build /out .
+
+ENV ASPNETCORE_URLS=http://0.0.0.0:80
+
+ENTRYPOINT ["dotnet", "Coffer.ASPNET.dll"]

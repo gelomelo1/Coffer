@@ -1,7 +1,6 @@
 from ultralytics import YOLO
 import torch
 import os
-import chromadb
 from config import DEVICE, VECTOR_COLLECTION_NAME
 from image_to_cnn_embedding import ResNetEmbeddingWithClassifier
 
@@ -31,9 +30,4 @@ def initialize_models(object_detection_model_name: str = None, similarity_model_
         similarity_model.to(DEVICE)
         similarity_model.eval()
 
-    vector_db = chromadb.PersistentClient(os.getenv("VECTORSTORE_PATH"))
-    print("vector_db initialized:", vector_db)
-    collection = vector_db.get_collection(VECTOR_COLLECTION_NAME)
-    print("collection loaded:", collection)
-
-    return object_detection_model, similarity_model, collection
+    return object_detection_model, similarity_model

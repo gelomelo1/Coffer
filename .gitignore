@@ -39,3 +39,4 @@ venv/
 
 #Other
 UserTokens.txt
+docker-compose.prod.yml
