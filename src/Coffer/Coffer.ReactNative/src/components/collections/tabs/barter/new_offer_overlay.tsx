@@ -86,12 +86,12 @@ function NewOfferOverlay({
   const { mutateAsync: createOffer, isPending: isCreateOfferPending } =
     useCreateData<OfferRequired, Offer>(
       endpoints.offers,
-      `${querykeys.myOffersData};${querykeys.tradesData}`
+      `${querykeys.myOffersData};${querykeys.tradesData}`,
     );
   const { mutateAsync: updateOffer, isPending: isUpdateOfferPending } =
     useUpdateData<OfferRequired, Offer>(
       endpoints.offers,
-      `${querykeys.myOffersData};${querykeys.tradesData}`
+      `${querykeys.myOffersData};${querykeys.tradesData}`,
     );
 
   const { refetch: refetchTrade } = useGetSingleData<Trade>(
@@ -100,7 +100,7 @@ function NewOfferOverlay({
     trade.id,
     undefined,
     undefined,
-    { enabled: false, queryKey: [querykeys.tradeData] }
+    { enabled: false, queryKey: [querykeys.tradeData] },
   );
 
   const {
@@ -123,7 +123,7 @@ function NewOfferOverlay({
       page: queryOptions.page,
       pageSize: queryOptions.pageSize,
       filterConjunction: queryOptions.filterConjunction,
-    }
+    },
   );
 
   const { data: attributes = [], isFetching: isAttributesFetching } =
@@ -138,7 +138,7 @@ function NewOfferOverlay({
             value: collectionType.id,
           },
         ],
-      }
+      },
     );
 
   const allLoading =
@@ -152,12 +152,14 @@ function NewOfferOverlay({
   }, [queryOptions, refetch]);
 
   const [draftOffer, setDraftOffer] = useState(
-    emptyOfferRequired(user.id, trade.id)
+    emptyOfferRequired(user.id, trade.id),
   );
 
   const availableItems = items.filter(
     (item) =>
-      !draftOffer.offerItems.some((offerItems) => offerItems.itemId === item.id)
+      !draftOffer.offerItems.some(
+        (offerItems) => offerItems.itemId === item.id,
+      ),
   );
 
   const chunkedItems = chunkArray(availableItems, 3);

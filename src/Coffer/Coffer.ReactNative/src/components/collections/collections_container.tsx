@@ -1,11 +1,10 @@
 import { endpoints } from "@/src/const/endpoints";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
-import { initCollectionStore } from "@/src/hooks/collection_store";
+import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import { Collection } from "@/src/types/entities/collection";
 import CollectionType from "@/src/types/entities/collectiontype";
-import User from "@/src/types/entities/user";
 import { adjustColor } from "@/src/utils/frontend_utils";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { navigate } from "expo-router/build/global-state/routing";
@@ -30,12 +29,13 @@ export default function CollectionsContainer({
   collectionTypes,
   collections,
 }: CollectionsContainerProps) {
-  const { user } = useUserStore();
+  const { user, token } = useUserStore();
+  const { setCollectionType, setCollection } = useCollectionStore();
 
   const [sorts, setSorts] = useState<Record<string, keyof Collection>>(
     Object.fromEntries(
-      collectionTypes.map((collectionType) => [collectionType.id, "createdAt"])
-    )
+      collectionTypes.map((collectionType) => [collectionType.id, "createdAt"]),
+    ),
   );
 
   const handleSorts = (typeId: number) => {
@@ -54,7 +54,7 @@ export default function CollectionsContainer({
     >
       {collectionTypes.map((type) => {
         const matchingCollections = collections.filter(
-          (collection) => collection.collectionTypeId === type.id
+          (collection) => collection.collectionTypeId === type.id,
         );
         if (matchingCollections.length === 0) return null;
 
@@ -62,7 +62,7 @@ export default function CollectionsContainer({
           matchingCollections.sort((a, b) => a.name.localeCompare(b.name));
         } else if (matchingCollections.length > 1) {
           matchingCollections.sort(
-            (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)
+            (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt),
           );
         }
 
@@ -126,8 +126,10 @@ export default function CollectionsContainer({
               <CollectionCarousel
                 matchingCollections={matchingCollections}
                 matchingCollectionType={type}
+                setCollectionType={setCollectionType}
+                setCollection={setCollection}
                 triggerAnimation={sorts[type.id]}
-                user={user!}
+                token={token!}
               />
             }
           </View>
@@ -140,17 +142,21 @@ export default function CollectionsContainer({
 function CollectionCarousel({
   matchingCollections,
   matchingCollectionType,
+  setCollectionType,
+  setCollection,
   triggerAnimation,
-  user,
+  token,
 }: {
   matchingCollections: Collection[];
   matchingCollectionType: CollectionType;
+  setCollectionType: (collectionType: CollectionType) => void;
+  setCollection: (collection: Collection) => void;
   triggerAnimation: string;
-  user: User;
+  token: string;
 }) {
   const contrastColor = adjustColor(
     matchingCollectionType.color,
-    customTheme.colorChangePercent.dark
+    customTheme.colorChangePercent.dark,
   );
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -166,10 +172,11 @@ function CollectionCarousel({
   }, [fadeAnim, triggerAnimation]);
 
   const handleNavigation = (item: Collection) => {
-    initCollectionStore(matchingCollectionType, item);
+    setCollectionType(matchingCollectionType);
+    setCollection(item);
     navigate({
-      pathname: ROUTES.COLLECTIONS.HOME,
-      params: pageParams.home,
+      pathname: ROUTES.MYCOLLECTION,
+      params: pageParams.mycollection,
     });
   };
 
@@ -204,6 +211,9 @@ function CollectionCarousel({
                 uri: item.image
                   ? `${endpoints.collectionsCoverImage}/${item.image}`
                   : `${endpoints.icons}/${matchingCollectionType.icon}`,
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
                 cache: "reload",
               }}
               style={{

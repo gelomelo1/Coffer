@@ -2,13 +2,12 @@ import CustomButton from "@/src/components/custom_ui/custom_button";
 import CustomText from "@/src/components/custom_ui/custom_text";
 import { endpoints } from "@/src/const/endpoints";
 import { ROUTES, pageParams } from "@/src/const/navigation_params";
+import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useDeleteData } from "@/src/hooks/data_hooks";
 import { useItemStore } from "@/src/hooks/item_store";
 import { useResetNavigation } from "@/src/hooks/navigation";
-import { customTheme } from "@/src/theme/theme";
 import React from "react";
-import { View } from "react-native";
-import { Overlay } from "react-native-elements";
+import CustomOverlay from "../custom_ui/custom_overlay";
 
 interface ItemDeleteFormProps {
   isDeleteItemConfirmVisible: {
@@ -20,6 +19,7 @@ interface ItemDeleteFormProps {
 function ItemDeleteForm({ isDeleteItemConfirmVisible }: ItemDeleteFormProps) {
   const resetNavigate = useResetNavigation();
   const { item } = useItemStore();
+  const { collectionType } = useCollectionStore();
 
   const { mutateAsync: deleteCollection, isPending: isDeletePending } =
     useDeleteData(endpoints.items);
@@ -35,7 +35,7 @@ function ItemDeleteForm({ isDeleteItemConfirmVisible }: ItemDeleteFormProps) {
       await deleteCollection(item.id);
       handleOverlayClose();
       resetNavigate({
-        pathname: ROUTES.COLLECTIONS.MYCOLLECTION,
+        pathname: ROUTES.MYCOLLECTION,
         params: pageParams.mycollection,
       });
     } catch (error) {
@@ -45,35 +45,31 @@ function ItemDeleteForm({ isDeleteItemConfirmVisible }: ItemDeleteFormProps) {
   };
 
   return (
-    <Overlay
+    <CustomOverlay
       isVisible={isDeleteItemConfirmVisible.value}
-      onBackdropPress={handleOverlayClose}
-      overlayStyle={{
-        backgroundColor: customTheme.colors.background,
-      }}
-    >
-      <View
-        style={{
-          width: "90%",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: 10,
-        }}
-      >
-        <CustomText>
-          Are you sure you want to delete this item type?
-          <CustomText style={{ fontFamily: "VendSansItalic", fontSize: 14 }}>
-            This not equal with removing a piece from the item type
-          </CustomText>
-        </CustomText>
+      onClose={handleOverlayClose}
+      overlayTitle="Delete Item"
+      footerContent={
         <CustomButton
-          title={"Delete"}
+          title="Delete"
+          containerStyle={{ width: "90%", alignSelf: "center" }}
           loading={isDeletePending}
           onPress={handleDelete}
         />
-      </View>
-    </Overlay>
+      }
+    >
+      <CustomText
+        style={{
+          marginHorizontal: 10,
+          marginVertical: 10,
+          textAlign: "center",
+          fontSize: 20,
+        }}
+      >
+        Are you sure you want to delete this{" "}
+        {collectionType!.name.toLowerCase()} from your collection?
+      </CustomText>
+    </CustomOverlay>
   );
 }
 

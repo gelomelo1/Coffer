@@ -1,7 +1,9 @@
 import CustomText from "@/src/components/custom_ui/custom_text";
 import { endpoints } from "@/src/const/endpoints";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
+import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
+import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import CollectionType from "@/src/types/entities/collectiontype";
 import Feed from "@/src/types/entities/feed";
@@ -24,9 +26,12 @@ interface FeedCardProps {
   user: User;
   collectionType: CollectionType;
   feed: Feed;
+  onTagPress: (tagText: string) => void;
 }
 
-function FeedCard({ user, collectionType, feed }: FeedCardProps) {
+function FeedCard({ user, collectionType, feed, onTagPress }: FeedCardProps) {
+  const { setCollectionType } = useCollectionStore();
+  const { token } = useUserStore();
   const { setValues, setUser, setCollection } = useOtherUserStore();
   const [country, setCountry] = useState<Country | null>(null);
 
@@ -42,16 +47,16 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
   }, [feed.user.country]);
 
   const isCollectionFollwed = !!feed.collection.follows.find(
-    (follow) => follow.userId === user.id
+    (follow) => follow.userId === user.id,
   );
 
   const primaryAttribute = getItemPrimaryAttributeValue(
-    feed.item.itemAttributes
+    feed.item.itemAttributes,
   );
 
   const darkContrastColor = adjustColor(
     collectionType.color,
-    customTheme.colorChangePercent.dark
+    customTheme.colorChangePercent.dark,
   );
 
   const handleUserPress = () => {
@@ -63,24 +68,28 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
   };
 
   const handleCollectionPress = () => {
+    setCollectionType(collectionType);
     setUser(feed.user);
     setCollection(feed.collection);
     navigate({
       pathname: ROUTES.OTHERUSERCOLLECTION,
       params: pageParams.otherusercollection(
         feed.user.name,
-        feed.collection.name
+        feed.collection.name,
       ),
     });
   };
 
   const handleItemPress = () => {
+    setCollectionType(collectionType);
     setValues(feed.user, feed.collection, feed.item);
     navigate({
       pathname: ROUTES.OTHERUSERITEMDETAILS,
       params: pageParams.otheruseritemdetails(feed.collection.name),
     });
   };
+
+  console.log(feed.item.description);
 
   return (
     <>
@@ -91,7 +100,7 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
           borderRadius: 20,
         }}
       >
-        <View style={{ margin: 10 }}>
+        <View style={{ width: "100%", padding: 10 }}>
           <View
             style={{ justifyContent: "space-between", flexDirection: "row" }}
           >
@@ -168,6 +177,7 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
               justifyContent: "flex-start",
               alignItems: "center",
               flexDirection: "row",
+              marginBottom: feed.item.description ? 10 : 0,
             }}
           >
             <TouchableOpacity onPress={handleCollectionPress}>
@@ -197,6 +207,15 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
               </>
             ) : null}
           </View>
+          {feed.item.description ? (
+            <CustomText
+              style={{ color: customTheme.colors.secondary }}
+              foldable
+              maxLines={2}
+            >
+              {feed.item.description}
+            </CustomText>
+          ) : null}
         </View>
         <View
           style={{
@@ -225,9 +244,14 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
                 uri: feed.item.image
                   ? `${endpoints.itemsCoverImage}/${feed.item.image}`
                   : `${endpoints.icons}/${collectionType.icon}`,
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
               }}
               style={{
-                aspectRatio: "1/1",
+                width: "100%",
+                aspectRatio: 1,
+                resizeMode: "cover",
               }}
             />
           </TouchableOpacity>
@@ -255,10 +279,14 @@ function FeedCard({ user, collectionType, feed }: FeedCardProps) {
             }}
           >
             {feed.item.itemTags.map((tag) => (
-              <CustomText
+              <TouchableOpacity
                 key={tag.id}
-                style={{ color: darkContrastColor, fontSize: 14 }}
-              >{`#${tag.tag}`}</CustomText>
+                onPress={() => onTagPress(`#${tag.tag}`)}
+              >
+                <CustomText
+                  style={{ color: darkContrastColor, fontSize: 14 }}
+                >{`#${tag.tag}`}</CustomText>
+              </TouchableOpacity>
             ))}
           </View>
         </View>

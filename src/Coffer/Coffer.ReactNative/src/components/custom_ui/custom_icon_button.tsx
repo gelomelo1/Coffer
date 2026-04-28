@@ -1,16 +1,18 @@
 import { customTheme } from "@/src/theme/theme";
-import { TouchableOpacity } from "react-native";
+import { TouchableOpacity, ViewStyle } from "react-native";
 import { Icon } from "react-native-elements";
 import CustomText from "./custom_text";
 
 interface CustomIconButtonProps {
   iconName: string;
   iconType: string;
-  title: string;
   onPress: () => void;
+  title?: string;
   color?: string;
   reverseColor?: string;
   disabled?: boolean;
+  size?: number;
+  style?: ViewStyle;
 }
 
 function CustomIconButton({
@@ -21,10 +23,12 @@ function CustomIconButton({
   color,
   reverseColor,
   disabled = false,
+  size,
+  style,
 }: CustomIconButtonProps) {
   return (
     <TouchableOpacity
-      style={{ justifyContent: "center" }}
+      style={{ ...style, justifyContent: "center" }}
       onPress={onPress}
       disabled={disabled}
     >
@@ -36,10 +40,13 @@ function CustomIconButton({
         reverseColor={reverseColor ?? customTheme.colors.secondary}
         disabled={disabled}
         containerStyle={{ margin: 0 }}
+        size={size}
       />
-      <CustomText style={{ fontSize: 14, textAlign: "center" }}>
-        {title}
-      </CustomText>
+      {title ? (
+        <CustomText style={{ fontSize: 14, textAlign: "center" }}>
+          {title}
+        </CustomText>
+      ) : null}
     </TouchableOpacity>
   );
 }

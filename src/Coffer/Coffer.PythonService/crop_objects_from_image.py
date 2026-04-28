@@ -3,6 +3,8 @@ import numpy as np
 import cv2
 from typing import List
 
+from config import TEST_UPLOAD_DIR
+
 def crop_objects_from_image(model: YOLO, image_array: np.ndarray, conf_threshold: float = 0.8) -> List[np.ndarray]:
     """
     Detects objects in an in-memory image and returns a list of cropped images (NumPy arrays, RGB).
@@ -15,7 +17,7 @@ def crop_objects_from_image(model: YOLO, image_array: np.ndarray, conf_threshold
     Returns:
         List[np.ndarray]: A list of cropped image arrays (RGB format).
     """
-
+    
     results = model.predict(source=image_array, imgsz=512, conf=conf_threshold, verbose=False)
     res = results[0]
     crops = []

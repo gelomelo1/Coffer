@@ -2,9 +2,11 @@ import CustomText from "@/src/components/custom_ui/custom_text";
 import { endpoints } from "@/src/const/endpoints";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { initItemStore } from "@/src/hooks/item_store";
+import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import CollectionType from "@/src/types/entities/collectiontype";
 import { ItemProvided } from "@/src/types/entities/item";
+import ItemsLayoutMode from "@/src/types/helpers/items_layout_mode";
 import { getItemPrimaryAttributeValue } from "@/src/utils/data_access_utils";
 import { adjustColor } from "@/src/utils/frontend_utils";
 import { navigate } from "expo-router/build/global-state/routing";
@@ -14,21 +16,23 @@ interface CollectionItemListCardProps {
   item: ItemProvided;
   collectionType: CollectionType;
   onCardPress?: () => void;
+  layoutMode: ItemsLayoutMode;
 }
 
 function CollectionItemListCard({
   item,
   collectionType,
   onCardPress,
+  layoutMode,
 }: CollectionItemListCardProps) {
-  console.log(item.itemAttributes[0].valueString);
+  const { token } = useUserStore();
   const darkContrastColor = adjustColor(
     collectionType.color,
-    customTheme.colorChangePercent.dark
+    customTheme.colorChangePercent.dark,
   );
   const lightContrastColor = adjustColor(
     collectionType.color,
-    customTheme.colorChangePercent.light
+    customTheme.colorChangePercent.light,
   );
   const primaryValue = getItemPrimaryAttributeValue(item.itemAttributes);
 
@@ -47,7 +51,7 @@ function CollectionItemListCard({
   return (
     <TouchableOpacity
       style={{
-        width: "46%",
+        width: layoutMode === "two" ? "46%" : "30%",
         height: "auto",
         padding: 4,
         backgroundColor: collectionType.color,
@@ -61,6 +65,9 @@ function CollectionItemListCard({
           uri: item.image
             ? `${endpoints.itemsCoverImage}/${item.image}`
             : `${endpoints.icons}/${collectionType.icon}`,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
           cache: "reload",
         }}
         style={{
@@ -98,7 +105,7 @@ function CollectionItemListCard({
             color: lightContrastColor,
           }}
         >
-          Last acquisition date
+          Acquisition date of the first piece
         </CustomText>
         <CustomText style={{ color: darkContrastColor, marginLeft: 10 }}>
           {item.quantity}

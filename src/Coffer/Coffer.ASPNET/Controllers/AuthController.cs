@@ -10,12 +10,13 @@ using Google.Apis.Auth.OAuth2.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql.TypeMapping;
+using Coffer.Domain.Constants;
 
 namespace Coffer.ASPNET.Controllers
 {
     [ApiController]
     [Route("api/auth")]
-    public class AuthController : ControllerBase
+    public class AuthController : BaseController
     {
         private readonly IUsersRepository _usersRepository;
         private readonly IJwtService _jwtService;
@@ -77,7 +78,7 @@ namespace Coffer.ASPNET.Controllers
                     return BadRequest("User already exists");
                 }
 
-                var user = await _usersRepository.InsertUserAsync(new UserRequired("google", payload.Subject, req.Username, payload.Email, req.Country, payload.Picture));
+                var user = await _usersRepository.InsertUserAsync(new UserRequired("google", payload.Subject, req.Username, payload.Email, req.Country, payload.Picture, UserRole.User));
 
                 var jwt = _jwtService.GenerateToken(user);
 
@@ -135,7 +136,7 @@ namespace Coffer.ASPNET.Controllers
                 if (existingUser != null) return BadRequest("User already exists");
 
                 var user = await _usersRepository.InsertUserAsync(
-                    new UserRequired("github", githubUser.Id, req.Username, githubUser.Email, req.Country, githubUser.AvatarUrl)
+                    new UserRequired("github", githubUser.Id, req.Username, githubUser.Email, req.Country, githubUser.AvatarUrl, UserRole.User)
                 );
 
                 var jwt = _jwtService.GenerateToken(user);

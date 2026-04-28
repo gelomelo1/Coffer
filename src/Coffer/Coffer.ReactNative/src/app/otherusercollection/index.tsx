@@ -39,22 +39,23 @@ function OtherUserCollection() {
       page: queryOptions.page,
       pageSize: queryOptions.pageSize,
       filterConjunction: queryOptions.filterConjunction,
-    }
+      filterTree: queryOptions.filterTree,
+    },
   );
 
   const { data: attributes = [], isFetching: isAttributesFetching } =
     useGetData<Attribute>(
       endpoints.attributes,
-      `${querykeys.attributesData}${collectionType.id}`,
+      `${querykeys.attributesData}${collectionType!.id}`,
       {
         filters: [
           {
             filter: "==",
             field: "collectionTypeId",
-            value: collectionType.id,
+            value: collectionType!.id,
           },
         ],
-      }
+      },
     );
 
   const allLoading = isItemsFetching || isAttributesFetching;
@@ -66,14 +67,14 @@ function OtherUserCollection() {
   return (
     <View
       style={[
-        rootViewStyle({ color: collectionType.color }),
+        rootViewStyle({ color: collectionType!.color }),
         { flex: 1, padding: 0 },
       ]}
     >
       <OtherUserItemSectionList
         currentUser={currentUser!}
         user={user!}
-        collectionType={collectionType}
+        collectionType={collectionType!}
         collection={collection!}
         items={otherUserItemsData}
         attributes={attributes}

@@ -13,6 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { navigate } from "expo-router/build/global-state/routing";
 import { View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 function Settings() {
   GoogleSignin.configure({
@@ -32,7 +33,7 @@ function Settings() {
 
   const resetNavigate = useResetNavigation();
 
-  const { user } = useUserStore();
+  const { user, setUser } = useUserStore();
 
   const handleLogout = async () => {
     try {
@@ -45,55 +46,64 @@ function Settings() {
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        display: "flex",
-        justifyContent: "flex-start",
-        alignItems: "center",
-        gap: 15,
-        paddingTop: 15,
-        backgroundColor: customTheme.colors.background,
-      }}
-    >
-      <SettingsUserCard user={user} />
+    <View style={{ flex: 1, backgroundColor: customTheme.colors.background }}>
+      <SettingsUserCard user={user} setUser={setUser} />
 
-      <SettingsButton
-        title="Developer options"
-        icon={
-          <MaterialIcons
-            name="developer-mode"
-            size={20}
-            color={customTheme.colors.primary}
-          />
-        }
-        onPress={() =>
-          navigate({
-            pathname: ROUTES.SETTINGS.DEVELOPER,
-            params: pageParams.developer,
-          })
-        }
-      />
-      <SettingsButton
-        title="User"
-        icon={
-          <AntDesign name="user" size={20} color={customTheme.colors.primary} />
-        }
-        onPress={() =>
-          navigate({
-            pathname: ROUTES.SETTINGS.USER,
-            params: pageParams.user,
-          })
-        }
-      />
-      <SettingsButton
-        title="Logout"
-        icon={
-          <Entypo name="log-out" size={20} color={customTheme.colors.primary} />
-        }
-        onPress={handleLogout}
-        isLastInList={true}
-      />
+      <SafeAreaView
+        style={{
+          flex: 1,
+          display: "flex",
+          justifyContent: "flex-start",
+          alignItems: "center",
+          gap: 15,
+          backgroundColor: customTheme.colors.background,
+        }}
+      >
+        <SettingsButton
+          title="Developer options"
+          icon={
+            <MaterialIcons
+              name="developer-mode"
+              size={20}
+              color={customTheme.colors.primary}
+            />
+          }
+          onPress={() =>
+            navigate({
+              pathname: ROUTES.SETTINGS.DEVELOPER,
+              params: pageParams.developer,
+            })
+          }
+        />
+        <SettingsButton
+          title="User"
+          icon={
+            <AntDesign
+              name="user"
+              size={20}
+              color={customTheme.colors.primary}
+            />
+          }
+          onPress={() =>
+            navigate({
+              pathname: ROUTES.SETTINGS.USER,
+              params: pageParams.user,
+            })
+          }
+        />
+        <SettingsButton
+          title="Logout"
+          icon={
+            <Entypo
+              name="log-out"
+              size={20}
+              color={customTheme.colors.primary}
+            />
+          }
+          onPress={handleLogout}
+          isLastInList={true}
+        />
+      </SafeAreaView>
     </View>
   );
 }

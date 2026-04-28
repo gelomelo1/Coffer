@@ -1,14 +1,12 @@
 import { endpoints } from "@/src/const/endpoints";
-import { ROUTES, pageParams } from "@/src/const/navigation_params";
 import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import { parseParams } from "@/src/utils/navigation_utils";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { ParamListBase, RouteProp } from "@react-navigation/native";
-import { navigate } from "expo-router/build/global-state/routing";
+import { goBack } from "expo-router/build/global-state/routing";
 import { Image, TouchableOpacity, View } from "react-native";
-import { Icon } from "react-native-elements";
 import CustomText from "../custom_ui/custom_text";
 
 function IndexCollectionCustomLayout(route: RouteProp<ParamListBase, string>) {
@@ -60,7 +58,7 @@ function IndexCollectionCustomLayout(route: RouteProp<ParamListBase, string>) {
               position: "absolute",
               top: 0,
               left: -36,
-              backgroundColor: collectionType.color,
+              backgroundColor: collectionType!.color,
               paddingVertical: 3,
               paddingHorizontal: 6,
               elevation: 8,
@@ -68,7 +66,7 @@ function IndexCollectionCustomLayout(route: RouteProp<ParamListBase, string>) {
           >
             <Image
               source={{
-                uri: `${endpoints.icons}/${collectionType.icon}`,
+                uri: `${endpoints.icons}/${collectionType!.icon}`,
               }}
               style={{
                 width: 24,
@@ -80,15 +78,15 @@ function IndexCollectionCustomLayout(route: RouteProp<ParamListBase, string>) {
           <CustomText
             style={{
               fontSize: 14,
-              color: collectionType.color,
+              color: collectionType!.color,
               borderBottomWidth: 11,
-              borderBottomColor: collectionType.color,
+              borderBottomColor: collectionType!.color,
               paddingLeft: 10,
             }}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
-            {title ? title : collection.name}
+            {title ? title : collection!.name}
           </CustomText>
           {screenTitle ? (
             <CustomText
@@ -106,33 +104,13 @@ function IndexCollectionCustomLayout(route: RouteProp<ParamListBase, string>) {
       </View>
     ),
     headerRight: () => (
-      <>
-        <TouchableOpacity
-          style={{ marginRight: 16 }}
-          onPress={() =>
-            navigate({
-              pathname: ROUTES.COLLECTIONS.HOME,
-              params: pageParams.home,
-            })
-          }
-        >
-          <MaterialIcons
-            name="arrow-back"
-            size={24}
-            color={customTheme.colors.primary}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() =>
-            navigate({
-              pathname: ROUTES.SETTINGS.ROOT,
-              params: pageParams.settings,
-            })
-          }
-        >
-          <Icon name="settings" color={customTheme.colors.primary} />
-        </TouchableOpacity>
-      </>
+      <TouchableOpacity onPress={goBack}>
+        <MaterialIcons
+          name="arrow-back"
+          size={32}
+          color={customTheme.colors.primary}
+        />
+      </TouchableOpacity>
     ),
   };
 }

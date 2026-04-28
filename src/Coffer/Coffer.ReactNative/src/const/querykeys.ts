@@ -18,4 +18,5 @@ export const querykeys = {
   followsData: "followsData",
   tradeReviewData: "tradeReviewData",
   userReviewsData: "userReviewsData",
+  itemTagsData: "itemTagsData",
 };

@@ -1,14 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Coffer.Domain.Constants;
 using Coffer.Domain.Entities.Interfaces;
 
 namespace Coffer.Domain.Entities
 {
+
+    public class UserRequiredFrontend
+    {
+        public string Country { get; set; }
+        public string? Summary { get; set; }
+    }
 
     public class UserRequired
     {
@@ -18,8 +26,10 @@ namespace Coffer.Domain.Entities
         public string Email { get; set; }
         public string Country { get; set; }
         public string? Avatar { get; set; }
+        public UserRole? Role { get; set; }
+        public string? Summary { get; set; }
 
-        public UserRequired(string provider, string providerUserId, string name, string email, string country, string? avatar = null)
+        public UserRequired(string provider, string providerUserId, string name, string email, string country, string? avatar = null, UserRole? role = null, string? summary = null)
         {
             Provider = provider;
             ProviderUserId = providerUserId;
@@ -27,6 +37,8 @@ namespace Coffer.Domain.Entities
             Email = email;
             Country = country;
             Avatar = avatar;
+            Role = role ?? null;
+            Summary = summary;
         }
     }
 
@@ -38,11 +50,16 @@ namespace Coffer.Domain.Entities
         public DateTime CreatedAt { get; set; }
         public string Provider { get; set; }
         public string Country { get; set; }
+        public UserRole Role { get; set; }
         public string? Avatar { get; set; }
+
+        public string? Summary { get; set; }
 
         public ICollection<UserContactProvided> Contacts { get; set; } = new List<UserContactProvided>();
 
-        public UserProvided(string name, string email, string provider, string country, string? avatar)
+        protected UserProvided() { }
+
+        public UserProvided(string name, string email, string provider, string country, UserRole role, string? avatar, string? summary)
         {
             Name = name;
             Email = email;
@@ -50,6 +67,8 @@ namespace Coffer.Domain.Entities
             Provider = provider;
             Country = country;
             Avatar = avatar;
+            Role = role;
+            Summary = summary;
         }
     }
 
@@ -57,7 +76,9 @@ namespace Coffer.Domain.Entities
     {
         public string ProviderUserId { get; set; }
 
-        public User(string name, string email, string provider, string country, string providerUserId, string? avatar = null) : base(name, email, provider, country, avatar)
+        public User() { }
+
+        public User(string name, string email, string provider, string country, string providerUserId, string? avatar = null, UserRole? role = UserRole.User, string? summary = null) : base(name, email, provider, country, role.GetValueOrDefault(), avatar, summary)
         {
             Provider = provider;
             ProviderUserId = providerUserId;

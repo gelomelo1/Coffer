@@ -13,12 +13,14 @@ namespace Coffer.Domain.Entities
         public Guid UserId { get; set; }
         public int CollectionTypeId { get; set; }
         public string Name { get; set; }
+        public string? Description { get; set; }
 
-        public CollectionRequired(Guid userId, int collectionTypeId, string name)
+        public CollectionRequired(Guid userId, int collectionTypeId, string name, string? description = null)
         {
             UserId = userId;
             CollectionTypeId = collectionTypeId;
             Name = name;
+            Description = description;
         }
     }
 
@@ -31,13 +33,13 @@ namespace Coffer.Domain.Entities
         public User User { get; set; }
         public DateTime CreatedAt { get; set; }
 
-        public CollectionProvided(Guid userId, int collectionTypeId, string name, string? image = null) : base(userId, collectionTypeId, name)
+        public CollectionProvided(Guid userId, int collectionTypeId, string name, string? image = null, string? description = null) : base(userId, collectionTypeId, name, description)
         {
             Image = image;
             CreatedAt = DateTime.UtcNow;
         }
 
-        public CollectionProvided(Guid userId, int collectionTypeId, string name,  User user, string? image = null) : base(userId, collectionTypeId, name)
+        public CollectionProvided(Guid userId, int collectionTypeId, string name,  User user, string? image = null, string? description = null) : base(userId, collectionTypeId, name, description)
         {
             User = user;
             Image = image;

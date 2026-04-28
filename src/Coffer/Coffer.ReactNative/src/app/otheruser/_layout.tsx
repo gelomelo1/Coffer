@@ -1,9 +1,12 @@
-import IndexCollectionCustomLayout from "@/src/components/layout/index_collection_custom_layout";
+import IndexCustomLayout from "@/src/components/layout/index_custom_layout";
+import { useUserStore } from "@/src/hooks/user_store";
 import { Stack } from "expo-router";
 
 function OtherUserLayout() {
+  const { user } = useUserStore();
+
   return (
-    <Stack screenOptions={({ route }) => IndexCollectionCustomLayout(route)} />
+    <Stack screenOptions={({ route }) => IndexCustomLayout(user, route)} />
   );
 }
 

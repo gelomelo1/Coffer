@@ -1,4 +1,5 @@
 ﻿using Coffer.ASPNET.Controllers.Generic;
+using Coffer.BusinessLogic.Services.Interfaces;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +11,7 @@ namespace Coffer.ASPNET.Controllers
     public class TradesController : GenericController<Guid, TradeProvided, TradeProvided, TradeRequired>
     {
         private readonly ITradesRepository _tradeRepository;
-        public TradesController(ITradesRepository repository) : base(repository)
+        public TradesController(ITradesRepository repository, IPermissionService<Guid, TradeRequired> permissionService) : base(repository, permissionService)
         {
             _tradeRepository = repository;
         }

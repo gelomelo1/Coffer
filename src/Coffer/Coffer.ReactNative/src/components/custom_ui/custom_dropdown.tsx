@@ -1,16 +1,25 @@
 import { customTheme } from "@/src/theme/theme";
+import CustomDropdownItem from "@/src/types/helpers/custom_dropdown_item";
 import { useState } from "react";
-import { Text, TextStyle, View, ViewStyle } from "react-native";
+import {
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from "react-native";
 import DropDownPicker, { ValueType } from "react-native-dropdown-picker";
 import CustomText from "./custom_text";
 
 type CustomDropdownProps<T extends ValueType> = {
-  label: string;
+  label?: string;
   value: T | null;
   open?: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setValue: React.Dispatch<React.SetStateAction<T | null>>;
-  items: { label: string; value: T }[];
+  setValue: (value: T | null) => void;
+  items: CustomDropdownItem<T>[];
+  placeholder?: string;
+  modalTitle?: string;
   disabled?: boolean;
   containerStyle?: ViewStyle;
   labelStyle?: TextStyle;
@@ -18,6 +27,8 @@ type CustomDropdownProps<T extends ValueType> = {
   dropDownContainerStyle?: ViewStyle;
   textStyle?: TextStyle;
   errorMessage?: string;
+  searchable?: boolean;
+  additionalElementPlacement?: "start" | "end";
 };
 
 function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
@@ -27,6 +38,8 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
     setOpen,
     value,
     items,
+    placeholder,
+    modalTitle,
     setValue,
     disabled = false,
     containerStyle,
@@ -35,34 +48,52 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
     dropDownContainerStyle,
     textStyle,
     errorMessage,
+    searchable = false,
+    additionalElementPlacement = "start",
     ...rest
   } = props;
 
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
 
+  const dropdownItems: CustomDropdownItem<T>[] = [
+    {
+      label: "None",
+      value: undefined as unknown as T, // special value to represent "clear all"
+    },
+    ...(items ?? []),
+  ];
+
   return (
-    <View style={[{ width: "100%", position: "relative" }, containerStyle]}>
-      <Text
-        style={[
-          {
-            fontSize: 16,
-            fontWeight: "bold",
-            color: customTheme.colors.primary,
-            marginBottom: 2,
-            fontFamily: "VendSansBold",
-          },
-          labelStyle,
-        ]}
-      >
-        {label}
-      </Text>
+    <View
+      style={[
+        { width: "100%", position: "relative", zIndex: 0 },
+        containerStyle,
+      ]}
+    >
+      {label ? (
+        <Text
+          style={[
+            {
+              fontSize: 16,
+              fontWeight: "bold",
+              color: customTheme.colors.primary,
+              marginBottom: 2,
+              fontFamily: "VendSansBold",
+            },
+            labelStyle,
+          ]}
+        >
+          {label}
+        </Text>
+      ) : null}
 
       <DropDownPicker<T>
         {...rest}
         open={open ?? uncontrolledOpen}
+        searchable={searchable}
         setOpen={setOpen ?? setUncontrolledOpen}
         value={value ?? null}
-        items={items ?? []}
+        items={dropdownItems}
         setValue={(callback) => {
           const newValue = callback(value);
 
@@ -73,7 +104,7 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
           }
         }}
         multiple={false}
-        listMode="SCROLLVIEW"
+        listMode="MODAL"
         style={[
           {
             backgroundColor: customTheme.colors.secondary,
@@ -106,6 +137,100 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
           boxShadow: "none",
         }}
         disabled={disabled}
+        modalAnimationType="slide"
+        modalTitle={modalTitle || "Select an option"}
+        placeholder={placeholder || "Select an option"}
+        modalContentContainerStyle={{
+          backgroundColor: customTheme.colors.secondary,
+          paddingTop: 50,
+        }}
+        modalTitleStyle={{
+          color: customTheme.colors.primary,
+          fontSize: 24,
+          fontWeight: "bold",
+        }}
+        searchPlaceholderTextColor={customTheme.colors.primary}
+        searchTextInputStyle={{
+          color: customTheme.colors.primary,
+          borderColor: customTheme.colors.primary,
+        }}
+        CloseIconComponent={() => (
+          <Text
+            style={{
+              color: customTheme.colors.primary,
+              fontSize: 24,
+              fontWeight: "bold",
+            }}
+          >
+            ✕
+          </Text>
+        )}
+        renderListItem={({ item }: { item: CustomDropdownItem<T> }) => {
+          const isNone = item.value === undefined;
+          const isSelected = isNone ? false : item.value === value;
+
+          return (
+            <TouchableOpacity
+              onPress={() => {
+                if (isNone) {
+                  setValue(null);
+                } else {
+                  setValue(item.value === value ? null : (item.value as T));
+                }
+                setOpen(false);
+              }}
+            >
+              <View
+                style={{
+                  marginHorizontal: 10,
+                  marginBottom: 10,
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 10,
+                }}
+              >
+                <View
+                  style={{
+                    flex: 1,
+                    flexDirection: "row",
+                    justifyContent: "flex-start",
+                    alignItems: "center",
+                    gap: 10,
+                  }}
+                >
+                  {item.additionalElement &&
+                  additionalElementPlacement === "start"
+                    ? item.additionalElement
+                    : null}
+                  <Text
+                    style={{
+                      color: customTheme.colors.primary,
+                      fontSize: 22,
+                    }}
+                  >
+                    {item.label}
+                  </Text>
+                  {item.additionalElement &&
+                  additionalElementPlacement === "end"
+                    ? item.additionalElement
+                    : null}
+                </View>
+                {isSelected ? (
+                  <Text
+                    style={{
+                      flexShrink: 0,
+                      color: customTheme.colors.primary,
+                      fontSize: 22,
+                    }}
+                  >
+                    ✓
+                  </Text>
+                ) : null}
+              </View>
+            </TouchableOpacity>
+          );
+        }}
       />
 
       {disabled && (

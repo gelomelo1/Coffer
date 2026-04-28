@@ -8,9 +8,11 @@ import Attribute from "@/src/types/entities/attribute";
 import CollectionType from "@/src/types/entities/collectiontype";
 import { Item } from "@/src/types/entities/item";
 import ItemAttribute from "@/src/types/entities/item_attribute";
+import { AttributeDataTypes } from "@/src/types/helpers/attribute_data";
 import {
   getDefaultAttributeValue,
   getItemAttributeValue,
+  stringHasValue,
   updateItemAttributeValue,
 } from "@/src/utils/data_access_utils";
 import React, { useEffect, useState } from "react";
@@ -47,7 +49,7 @@ function ItemRegisterForm({
             value: collectionType.id,
           },
         ],
-      }
+      },
     );
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
@@ -59,7 +61,7 @@ function ItemRegisterForm({
   const primaryAttribute = attributes.find((attribtue) => attribtue.primary);
 
   const primaryItemAttribute = draftItem.itemAttributes.find(
-    (itemAttribute) => itemAttribute.attributeId === primaryAttribute?.id
+    (itemAttribute) => itemAttribute.attributeId === primaryAttribute?.id,
   );
 
   useEffect(() => {
@@ -85,6 +87,33 @@ function ItemRegisterForm({
     }));
   };
 
+  const handlePrivateNoteInput = (newValue: string) => {
+    const privateNoteContent = stringHasValue(newValue) ? newValue : undefined;
+
+    newItem.set((prev) => ({
+      item: {
+        ...prev.item,
+        description: privateNoteContent,
+      },
+      version: prev.version,
+    }));
+  };
+
+  const handleDescriptionInput = (newValue: string) => {
+    const descriptionContent = stringHasValue(newValue) ? newValue : undefined;
+
+    if (descriptionContent) {
+      checkDescriptionInput(newValue);
+    }
+    newItem.set((prev) => ({
+      item: {
+        ...prev.item,
+        description: descriptionContent,
+      },
+      version: prev.version,
+    }));
+  };
+
   return isAttributesFetching ? (
     <Loading />
   ) : (
@@ -102,7 +131,7 @@ function ItemRegisterForm({
         onValueChange={(newValue) => {
           newItem.set((prev) => {
             const existingAttrIndex = prev.item.itemAttributes.findIndex(
-              (ia) => ia.attributeId === primaryAttribute!.id
+              (ia) => ia.attributeId === primaryAttribute!.id,
             );
 
             let updatedItemAttributes = [...prev.item.itemAttributes];
@@ -111,7 +140,7 @@ function ItemRegisterForm({
               updatedItemAttributes[existingAttrIndex] =
                 updateItemAttributeValue(
                   updatedItemAttributes[existingAttrIndex],
-                  newValue
+                  newValue,
                 );
             } else {
               updatedItemAttributes.push({
@@ -121,7 +150,7 @@ function ItemRegisterForm({
                 valueString: typeof newValue === "string" ? newValue : null,
                 valueNumber: typeof newValue === "number" ? newValue : null,
                 valueDate:
-                  primaryAttribute!.dataType === "date"
+                  primaryAttribute!.dataType === AttributeDataTypes.Date
                     ? (newValue as string)
                     : null,
                 valueBoolean: typeof newValue === "boolean" ? newValue : null,
@@ -143,18 +172,19 @@ function ItemRegisterForm({
         }}
       />
       <CustomTextInput
+        label="Private note"
+        placeholder="The private note is visible only to you. Use it to store additional information about the item, for example, its location in your physical collection."
+        defaultValue={draftItem.privateNote}
+        onChangeText={handlePrivateNoteInput}
+        style={{ height: 100, marginBottom: 20 }}
+        inputContainerStyle={{ height: 100 }}
+        multiline
+      />
+      <CustomTextInput
         label="Description"
+        placeholder="The description is public and visible to everyone. It is used to describe your item, similar to a post."
         defaultValue={draftItem.description}
-        onChangeText={(newValue) => {
-          checkDescriptionInput(newValue);
-          newItem.set((prev) => ({
-            item: {
-              ...prev.item,
-              description: newValue,
-            },
-            version: prev.version,
-          }));
-        }}
+        onChangeText={handleDescriptionInput}
         style={{ height: 100, marginBottom: 20 }}
         inputContainerStyle={{ height: 100 }}
         multiline
@@ -169,7 +199,7 @@ function ItemRegisterForm({
         .filter((attribute) => attribute.id !== primaryAttribute?.id)
         .map((attribute) => {
           const itemAttr = draftItem.itemAttributes.find(
-            (ia) => ia.attributeId === attribute.id
+            (ia) => ia.attributeId === attribute.id,
           );
 
           const defaultValue = itemAttr
@@ -184,7 +214,7 @@ function ItemRegisterForm({
               onValueChange={(newValue) => {
                 newItem.set((prev) => {
                   const existingIndex = prev.item.itemAttributes.findIndex(
-                    (ia) => ia.attributeId === attribute.id
+                    (ia) => ia.attributeId === attribute.id,
                   );
 
                   const updatedItemAttributes = [...prev.item.itemAttributes];
@@ -193,7 +223,7 @@ function ItemRegisterForm({
                     updatedItemAttributes[existingIndex] =
                       updateItemAttributeValue(
                         updatedItemAttributes[existingIndex],
-                        newValue
+                        newValue,
                       );
                   } else {
                     updatedItemAttributes.push({
@@ -205,7 +235,7 @@ function ItemRegisterForm({
                       valueNumber:
                         typeof newValue === "number" ? newValue : null,
                       valueDate:
-                        attribute.dataType === "date"
+                        attribute.dataType === AttributeDataTypes.Date
                           ? (newValue as string)
                           : null,
                       valueBoolean:

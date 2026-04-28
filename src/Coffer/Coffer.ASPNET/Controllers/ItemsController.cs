@@ -5,6 +5,7 @@ using Coffer.BusinessLogic.Services.Interfaces;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
 using DotNetEnv;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
@@ -19,8 +20,9 @@ namespace Coffer.ASPNET.Controllers
         private readonly string imageFolder =
             Path.Combine(Env.GetString("IMAGESTORE_PATH") ?? throw new InvalidOperationException("IMAGESTORE_PATH envionmental variable is not set"), "items");
         private readonly string tempFolder = Env.GetString("IMAGECHECK_TEMP_PATH") ?? throw new InvalidOperationException("IMAGECHECK_TEMP_PATH envionmental variable is not set");
+        private readonly string pythonServiceUrl = Env.GetString("FASTAPI_URL") ?? throw new InvalidOperationException("FASTAPI_URL envionmental variable is not set");
         private readonly HttpClient _httpClient;
-        public ItemsController(IItemsRepository repository, IUsersRepository usersRepository, IImageService imageService, HttpClient httpClient) : base(repository)
+        public ItemsController(IItemsRepository repository, IUsersRepository usersRepository, IImageService imageService, IPermissionService<Guid, ItemRequired> permissionService, HttpClient httpClient) : base(repository, permissionService)
         {
             _itemsRepository = repository;
             _imageService = imageService;
@@ -28,6 +30,7 @@ namespace Coffer.ASPNET.Controllers
             _usersRepositry = usersRepository;
         }
 
+        [Authorize]
         [HttpGet("CoverImage/{fileName}")]
         public async Task<IActionResult> GetCoverImage(string fileName)
         {
@@ -42,30 +45,58 @@ namespace Coffer.ASPNET.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public override async Task<ActionResult<ItemProvided>> Update(Guid id, [FromBody] ItemRequired required)
         {
+
+            if (!UserId.HasValue)
+            {
+                return Unauthorized();
+            }
+
             if (required.Quantity == 0)
             {
                 var item = await _repository.GetItemByIdAsync(id);
                 if (item == null) return NotFound();
+
+                bool isPermissionGranted = await _permissionService.CanDelete(UserId.Value, id);
+                if (!isPermissionGranted)
+                {
+                    return Forbid();
+                }
 
                 if (!string.IsNullOrEmpty(item.Image))
                     await _imageService.DeleteImageAsync(item.Image, imageFolder);
 
                 return await base.Delete(id);
             }
+            else
+            {
+                bool isPermissionGranted = await _permissionService.CanUpdate(UserId.Value, id, null);
+                if (!isPermissionGranted)
+                {
+                    return Forbid();
+                }
 
-            return await base.Update(id, required);
+                return await base.Update(id, required);
+            }
         }
 
         public record ItemIds(Guid TempId, Guid Id);
         public record InsertedItem(ItemIds ItemIds, ItemProvided ItemProvided);
         public record UpsertItemRequest(Guid Id, ItemRequired Item);
 
+        [Authorize]
         [HttpPost("Upsert")]
         public async Task<ActionResult> Upsert([FromBody] UpsertItemRequest[] request)
         {
+
+            if (!UserId.HasValue)
+            {
+                return Unauthorized();
+            }
+
             if (request == null || request.Length == 0)
                 return BadRequest("No items provided.");
 
@@ -79,14 +110,28 @@ namespace Coffer.ASPNET.Controllers
 
                 foreach (var upsertItem in request)
                 {
+
                     var itemFound = await _repository.GetItemByIdAsync(upsertItem.Id);
                     if (itemFound == null)
                     {
+
+                        bool isPermissionGranted = await _permissionService.CanCreate(UserId.Value, upsertItem.Item);
+                        if (!isPermissionGranted)
+                        {
+                            return Forbid();
+                        }
+
                         var newItem = await _repository.InsertItemAsync(upsertItem.Item);
                         newItems.Add(new InsertedItem(new ItemIds(upsertItem.Id, newItem.Id), newItem));
                     }
                     else
                     {
+                        bool isPermissionGranted = await _permissionService.CanUpdate(UserId.Value, upsertItem.Id, upsertItem.Item);
+                        if (!isPermissionGranted)
+                        {
+                            return Forbid();
+                        }
+
                         await _repository.UpdateItemAsync(upsertItem.Id, upsertItem.Item);
                     }
                 }
@@ -109,7 +154,7 @@ namespace Coffer.ASPNET.Controllers
 
 
                     var response = await _httpClient.PostAsJsonAsync(
-                        $"http://localhost:8000/save_embeddings/{collectionId}",
+                        $"{pythonServiceUrl}/save_embeddings/{collectionId}",
                         itemIds
                     );
 
@@ -138,6 +183,7 @@ namespace Coffer.ASPNET.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("TempImage/{fileName}")]
         public async Task<IActionResult> GetTempImage(string fileName)
         {
@@ -152,9 +198,21 @@ namespace Coffer.ASPNET.Controllers
             }
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public override async Task<ActionResult> Delete(Guid id)
         {
+
+            if (!UserId.HasValue)
+            {
+                return Unauthorized();
+            }
+            bool isPermissionGranted = await _permissionService.CanDelete(UserId.Value, id);
+            if (!isPermissionGranted)
+            {
+                return Forbid();
+            }
+
             var item = await _repository.GetItemByIdAsync(id);
             if (item == null)
                 return NotFound();
@@ -171,7 +229,7 @@ namespace Coffer.ASPNET.Controllers
 
                 await _repository.DeleteItemAsync(id);
 
-                var response = await _httpClient.DeleteAsync($"http://localhost:8000/delete_embeddings/{id}");
+                var response = await _httpClient.DeleteAsync($"{pythonServiceUrl}/delete_embeddings/{id}");
 
                 if (!response.IsSuccessStatusCode)
                 {

@@ -1,19 +1,23 @@
+import CustomDropdownMultiple from "@/src/components/custom_ui/custom_dropdown_multiple";
 import CustomText from "@/src/components/custom_ui/custom_text";
 import CustomTextInput from "@/src/components/custom_ui/custom_text_input";
 import { Loading } from "@/src/components/custom_ui/loading";
+import { asyncstoragekeys } from "@/src/const/async_storage_keys";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
-import { useCollectionStore } from "@/src/hooks/collection_store";
+import { useCollectionTypeStore } from "@/src/hooks/collection_type_store";
 import { useGetData } from "@/src/hooks/data_hooks";
 import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import Feed from "@/src/types/entities/feed";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import React, { useRef, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
   FlatList,
+  Image,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -25,23 +29,122 @@ const HEADER_HEIGHT = 200;
 const INPUT_HEIGHT = 60;
 
 function FeedList() {
-  const { collectionType } = useCollectionStore();
-  const { user } = useUserStore();
+  const { collectionTypes } = useCollectionTypeStore();
+  const { token, user } = useUserStore();
 
+  const [pendingRefetch, setPendingRefetch] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [selectedCollectionTypeIds, setSelectedCollectionTypeIds] = useState<
+    number[] | null
+  >([]);
   const [isFeedSeachOverlayVisible, setIsFeedSearchOverlayVisible] =
     useState(false);
 
-  const { data: feedListData, isFetching } = useGetData<Feed>(
-    `${endpoints.feed}/${user!.id}`,
-    querykeys.feedListData
+  const [initialSearchText, setInitialSearchText] = useState<
+    string | undefined
+  >();
+
+  const dropdownItems = collectionTypes.map((type) => ({
+    label: type.name,
+    value: type.id,
+    additionalElement: (
+      <Image
+        source={{
+          uri: `${endpoints.icons}/${type.icon}`,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          cache: "reload",
+        }}
+        style={{
+          width: 28,
+          height: 28,
+        }}
+      />
+    ),
+  }));
+
+  const {
+    data: feedListData,
+    isFetching,
+    refetch,
+  } = useGetData<Feed>(
+    `${endpoints.feed}`,
+    querykeys.feedListData,
+    selectedCollectionTypeIds && selectedCollectionTypeIds.length > 0
+      ? {
+          filters: selectedCollectionTypeIds.map((id) => ({
+            filter: "==",
+            field: "Collection.CollectionTypeId",
+            value: id,
+          })),
+          filterConjunction: "OR",
+        }
+      : undefined,
   );
+
+  useEffect(() => {
+    const loadFilters = async () => {
+      try {
+        const stored = await AsyncStorage.getItem(
+          asyncstoragekeys.feedCollectionTypeFilters,
+        );
+        if (stored) {
+          setPendingRefetch(true);
+          const parsed: number[] = JSON.parse(stored);
+          setSelectedCollectionTypeIds(parsed);
+        } else {
+          setSelectedCollectionTypeIds([]);
+        }
+      } catch (error) {
+        console.error("Failed to load collection type filters", error);
+        setSelectedCollectionTypeIds([]); // fallback
+      }
+    };
+
+    loadFilters();
+  }, []);
+
+  const handleFilterSelect = async () => {
+    await AsyncStorage.setItem(
+      asyncstoragekeys.feedCollectionTypeFilters,
+      JSON.stringify(selectedCollectionTypeIds),
+    );
+    await refetch();
+  };
+
+  const handleSearchOverlayClose = (
+    searchSelectedCollectionTypeIds: number[] | null,
+  ) => {
+    if (
+      selectedCollectionTypeIds!.length !==
+        searchSelectedCollectionTypeIds!.length ||
+      !selectedCollectionTypeIds!.every(
+        (id, index) => id === searchSelectedCollectionTypeIds![index],
+      )
+    ) {
+      setSelectedCollectionTypeIds([...searchSelectedCollectionTypeIds!]);
+      setPendingRefetch(true);
+    }
+  };
+
+  useEffect(() => {
+    const loadFilters = async () => {
+      if (pendingRefetch) {
+        refetch();
+        setPendingRefetch(false);
+      }
+    };
+
+    loadFilters();
+  }, [selectedCollectionTypeIds, pendingRefetch, refetch]);
 
   const flatListRef = useRef<FlatList<Feed>>(null);
 
   const scrollY = useRef(new Animated.Value(0)).current;
 
   const translateY = scrollY.interpolate({
-    inputRange: [0, HEADER_HEIGHT - INPUT_HEIGHT],
+    inputRange: [0, HEADER_HEIGHT + 80],
     outputRange: [0, -(HEADER_HEIGHT - INPUT_HEIGHT - 20)],
     extrapolate: "clamp",
   });
@@ -63,6 +166,12 @@ function FeedList() {
     outputRange: [0, HEADER_HEIGHT - 2 * INPUT_HEIGHT],
     extrapolate: "clamp",
   });
+
+  const handleOpenSearchOverlay = (initialText?: string) => {
+    setInitialSearchText(initialText);
+
+    setIsFeedSearchOverlayVisible(true);
+  };
 
   return (
     <>
@@ -161,8 +270,13 @@ function FeedList() {
           style={[styles.inputContainer, { transform: [{ translateY }] }]}
         >
           <TouchableOpacity
-            style={{ width: "90%" }}
-            onPress={() => setIsFeedSearchOverlayVisible(true)}
+            style={{
+              width: "90%",
+              padding: 0,
+              paddingBottom: 0,
+              height: 59,
+            }}
+            onPress={() => handleOpenSearchOverlay()}
           >
             <CustomTextInput
               placeholder="Search collectors, items"
@@ -176,6 +290,37 @@ function FeedList() {
               editable={false}
             />
           </TouchableOpacity>
+
+          <Animated.View
+            style={{
+              width: "100%",
+              alignSelf: "center",
+              borderRadius: 20,
+            }}
+          >
+            <CustomDropdownMultiple
+              value={selectedCollectionTypeIds}
+              open={open}
+              setOpen={setOpen}
+              setValue={setSelectedCollectionTypeIds}
+              items={dropdownItems}
+              placeholder="Collection type"
+              modalTitle="Filter your feed by Collection type"
+              multipleText={
+                selectedCollectionTypeIds!.length > 0
+                  ? `Collection type (${selectedCollectionTypeIds?.length})`
+                  : undefined
+              }
+              onClose={handleFilterSelect}
+              containerStyle={{
+                paddingHorizontal: 5,
+                paddingVertical: 10,
+                backgroundColor: customTheme.colors.background,
+                borderRadius: 20,
+              }}
+              style={{ height: 36, minHeight: 36, borderRadius: 10 }}
+            />
+          </Animated.View>
         </Animated.View>
 
         <Animated.View
@@ -193,13 +338,19 @@ function FeedList() {
         >
           <Animated.FlatList
             data={feedListData}
+            showsVerticalScrollIndicator={false}
             ref={flatListRef}
             keyExtractor={(item) => item.item.id}
             renderItem={({ item }) => (
               <FeedCard
                 user={user!}
-                collectionType={collectionType}
+                collectionType={
+                  collectionTypes.find(
+                    (ct) => ct.id === item.collection.collectionTypeId,
+                  )!
+                }
                 feed={item}
+                onTagPress={handleOpenSearchOverlay}
               />
             )}
             contentContainerStyle={{
@@ -208,12 +359,14 @@ function FeedList() {
               marginTop: HEADER_HEIGHT,
               paddingBottom: HEADER_HEIGHT + 2 * INPUT_HEIGHT,
               paddingHorizontal: 10,
-              paddingTop: 10,
+              paddingTop: 80,
             }}
             scrollEventThrottle={16}
             onScroll={Animated.event(
               [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-              { useNativeDriver: true }
+              {
+                useNativeDriver: true,
+              },
             )}
             ListEmptyComponent={
               isFetching ? (
@@ -251,6 +404,9 @@ function FeedList() {
           value: isFeedSeachOverlayVisible,
           set: setIsFeedSearchOverlayVisible,
         }}
+        selectedCollectionTypeIds={selectedCollectionTypeIds}
+        onClose={handleSearchOverlayClose}
+        initialSearchText={initialSearchText}
       />
     </>
   );

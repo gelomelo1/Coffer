@@ -1,5 +1,10 @@
 import { UserContact } from "./user_contact";
 
+export interface UserFrontend {
+  country: string;
+  summary?: string;
+}
+
 interface User {
   id: string;
   name: string;
@@ -8,6 +13,7 @@ interface User {
   country: string;
   avatar: string;
   provider: string;
+  summary?: string;
   contacts: UserContact[];
 }
 

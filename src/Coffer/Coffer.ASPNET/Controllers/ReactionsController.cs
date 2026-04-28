@@ -1,6 +1,8 @@
 ﻿using Coffer.ASPNET.Controllers.Generic;
+using Coffer.BusinessLogic.Services.Interfaces;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Coffer.ASPNET.Controllers
@@ -11,16 +13,25 @@ namespace Coffer.ASPNET.Controllers
         private readonly IReactionsRepository _reactionsRepository;
         private readonly IUsersRepository _usersRepository;
         private readonly IItemsRepository _itemsRepository;
-        public ReactionsController(IReactionsRepository reactionsRepository, IUsersRepository usersRepository, IItemsRepository itemsRepository) : base(reactionsRepository)
+        private readonly IPermissionService<Guid, ReactionRequired> _permissionService;
+        public ReactionsController(IReactionsRepository reactionsRepository, IUsersRepository usersRepository, IItemsRepository itemsRepository, IPermissionService<Guid, ReactionRequired> permissionService) : base(reactionsRepository)
         {
             _reactionsRepository = reactionsRepository;
             _usersRepository = usersRepository;
             _itemsRepository = itemsRepository;
+            _permissionService = permissionService;
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<ItemProvided>> PostReaction(ReactionRequired reactionRequired)
         {
+
+            if (!UserId.HasValue)
+            {
+                return Unauthorized();
+            }
+
             try
             {
                 var user = await _usersRepository.GetUserById(reactionRequired.UserId);
@@ -38,15 +49,33 @@ namespace Coffer.ASPNET.Controllers
 
                 if (existingReaction == null)
                 {
+                    bool isPermissionGranted = await _permissionService.CanCreate(UserId.Value, reactionRequired);
+                    if (!isPermissionGranted)
+                    {
+                        return Forbid();
+                    }
+
                     await _reactionsRepository.InsertItemAsync(reactionRequired);
                 }
                 else if (!reactionRequired.Liked && reactionRequired.Rarity == null)
                 {
+                    bool isPermissionGranted = await _permissionService.CanDelete(UserId.Value, existingReaction.Id);
+                    if (!isPermissionGranted)
+                    {
+                        return Forbid();
+                    }
+
                     await _reactionsRepository.DeleteItemAsync(existingReaction.Id);
                 }
                 else
                 {
-                     await _reactionsRepository.UpdateItemAsync(existingReaction.Id, reactionRequired);
+                    bool isPermissionGranted = await _permissionService.CanUpdate(UserId.Value, existingReaction.Id, reactionRequired);
+                    if (!isPermissionGranted)
+                    {
+                        return Forbid();
+                    }
+
+                    await _reactionsRepository.UpdateItemAsync(existingReaction.Id, reactionRequired);
                 }
 
                 var updatedItem = await _itemsRepository.GetItemByIdAsync(reactionRequired.ItemId);

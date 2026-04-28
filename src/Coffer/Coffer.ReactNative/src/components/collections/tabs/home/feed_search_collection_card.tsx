@@ -2,34 +2,41 @@ import CustomText from "@/src/components/custom_ui/custom_text";
 import { endpoints } from "@/src/const/endpoints";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useCollectionStore } from "@/src/hooks/collection_store";
+import { useCollectionTypeStore } from "@/src/hooks/collection_type_store";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
+import { useUserStore } from "@/src/hooks/user_store";
 import CollectionSearch from "@/src/types/entities/collection_search";
-import CollectionType from "@/src/types/entities/collectiontype";
 import User from "@/src/types/entities/user";
 import { navigate } from "expo-router/build/global-state/routing";
 import { Image, TouchableOpacity, View } from "react-native";
 
 interface FeedSearchCollectionCardProps {
   currentUser: User;
-  collectionType: CollectionType;
   collectionSearch: CollectionSearch;
   closeOverlay: () => void;
 }
 
 function FeedSearchCollectionCard({
   currentUser,
-  collectionType,
   collectionSearch,
   closeOverlay,
 }: FeedSearchCollectionCardProps) {
+  const { collectionTypes } = useCollectionTypeStore();
+  const { token } = useUserStore();
   const { setUser, setCollection } = useOtherUserStore();
-  const { setCollection: setCurrentUserCollection } = useCollectionStore();
+  const { setCollectionType, setCollection: setCurrentUserCollection } =
+    useCollectionStore();
 
   const handleNavigation = () => {
+    setCollectionType(
+      collectionTypes.find(
+        (ct) => ct.id === collectionSearch.collection.collectionTypeId,
+      )!,
+    );
     if (currentUser.id === collectionSearch.user.id) {
       setCurrentUserCollection(collectionSearch.collection);
       navigate({
-        pathname: ROUTES.COLLECTIONS.MYCOLLECTION,
+        pathname: ROUTES.MYCOLLECTION,
         params: pageParams.mycollection,
       });
     } else {
@@ -39,7 +46,7 @@ function FeedSearchCollectionCard({
         pathname: ROUTES.OTHERUSERCOLLECTION,
         params: pageParams.otherusercollection(
           collectionSearch.user.name,
-          collectionSearch.collection.name
+          collectionSearch.collection.name,
         ),
       });
     }
@@ -61,7 +68,10 @@ function FeedSearchCollectionCard({
         source={{
           uri: collectionSearch.collection.image
             ? `${endpoints.collectionsCoverImage}/${collectionSearch.collection.image}`
-            : `${endpoints.icons}/${collectionType.icon}`,
+            : `${endpoints.icons}/${collectionSearch.collection.collectionTypeId}`,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
           cache: "reload",
         }}
         style={{

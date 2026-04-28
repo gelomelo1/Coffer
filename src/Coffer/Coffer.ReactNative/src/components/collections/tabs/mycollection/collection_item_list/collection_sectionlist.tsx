@@ -1,11 +1,15 @@
 import CustomText from "@/src/components/custom_ui/custom_text";
 import { Loading } from "@/src/components/custom_ui/loading";
+import { asyncstoragekeys } from "@/src/const/async_storage_keys";
 import Attribute from "@/src/types/entities/attribute";
+import { Collection } from "@/src/types/entities/collection";
 import CollectionType from "@/src/types/entities/collectiontype";
 import { ItemProvided } from "@/src/types/entities/item";
+import ItemsLayoutMode from "@/src/types/helpers/items_layout_mode";
 import { QueryOptions } from "@/src/types/helpers/query_data";
 import { chunkArray } from "@/src/utils/data_access_utils";
-import { useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useState } from "react";
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -18,6 +22,7 @@ import CollectionItemHeader from "./collection_list_header";
 
 interface CollectionSectionListProps {
   collectionType: CollectionType;
+  collection: Collection;
   items: ItemProvided[];
   attributes: Attribute[];
   allLoading: boolean;
@@ -29,12 +34,22 @@ interface CollectionSectionListProps {
 
 function CollectionSectionList({
   collectionType,
+  collection,
   items,
   attributes,
   allLoading,
   queryOptions,
 }: CollectionSectionListProps) {
-  const chunkedItems = chunkArray(items, 2);
+  const [isLayoutModeLoading, setIsLayoutModeLoading] = useState(false);
+
+  const isLoading = allLoading || isLayoutModeLoading;
+
+  const [layoutMode, setLayoutMode] = useState<ItemsLayoutMode>("two");
+
+  const chunkedItems = chunkArray(
+    isLoading ? [] : items,
+    layoutMode === "two" ? 2 : 3,
+  );
 
   const sections = [{ data: chunkedItems.length > 0 ? chunkedItems : [[]] }];
 
@@ -45,6 +60,29 @@ function CollectionSectionList({
 
     setIsStickyShadow(offsetY > 260);
   };
+
+  useEffect(() => {
+    const loadLayout = async () => {
+      try {
+        setIsLayoutModeLoading(true);
+        const stored = await AsyncStorage.getItem(
+          asyncstoragekeys.itemsLayoutMode,
+        );
+
+        if (stored) {
+          const parsed = stored as ItemsLayoutMode;
+          setLayoutMode(parsed);
+        }
+      } catch (error) {
+        console.error("Failed to load items layout mode", error);
+        setLayoutMode("two");
+      } finally {
+        setIsLayoutModeLoading(false);
+      }
+    };
+
+    loadLayout();
+  }, []);
 
   return (
     <SectionList
@@ -59,13 +97,18 @@ function CollectionSectionList({
         <>
           <CollectionItemHeader
             items={items}
+            collection={collection}
             attributes={attributes}
             queryOptions={queryOptions}
             isStickyShadow={isStickyShadow}
+            layoutMode={{
+              value: layoutMode,
+              set: setLayoutMode,
+            }}
           />
-          {allLoading && <Loading />}
+          {isLoading && <Loading />}
 
-          {!allLoading && items.length === 0 ? (
+          {!isLoading && items.length === 0 ? (
             <>
               <View
                 style={{
@@ -104,6 +147,7 @@ function CollectionSectionList({
               key={i.id}
               item={i}
               collectionType={collectionType}
+              layoutMode={layoutMode}
             />
           ))}
         </View>
@@ -115,6 +159,7 @@ function CollectionSectionList({
             textAlign: "center",
             fontFamily: "VendSansItalic",
             marginTop: 20,
+            marginBottom: 20,
           }}
         >
           End of list

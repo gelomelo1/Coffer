@@ -28,7 +28,7 @@ function ItemEditDynamicDropdown({
   const { data: optionsData } = useGetSingleData<ItemOptions>(
     `${endpoints.itemOptions}`,
     `${querykeys.itemOptionsData}/${attribute.itemOptionsId}`,
-    `${attribute.itemOptionsId}`
+    `${attribute.itemOptionsId}`,
   );
 
   const checkInput = (newValue: string | null) => {
@@ -41,7 +41,7 @@ function ItemEditDynamicDropdown({
   };
 
   useEffect(() => {
-    const value = defaultValue?.split(";")[0] || null;
+    const value = defaultValue.split(";")[0] ?? null;
     setSelectValue(value);
     console.log(typeof value);
     checkInput(value);
@@ -61,6 +61,7 @@ function ItemEditDynamicDropdown({
       }}
       items={getOptions(optionsData)}
       errorMessage={errorMessage}
+      searchable
     />
   );
 }

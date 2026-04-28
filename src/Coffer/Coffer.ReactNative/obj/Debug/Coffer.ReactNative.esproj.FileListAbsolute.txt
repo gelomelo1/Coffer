@@ -1,3 +1,0 @@
-E:\Homework\Programming\AI\szakdolgozat\src2\Coffer\Coffer.ReactNative\obj\Debug\Coffer.ReactNative.esproj.CoreCompileInputs.cache
-E:\Homework\Programming\AI\szakdolgozat\src\Coffer\Coffer.ReactNative\obj\Debug\Coffer.ReactNative.esproj.CoreCompileInputs.cache
-E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.ReactNative\obj\Debug\Coffer.ReactNative.esproj.CoreCompileInputs.cache

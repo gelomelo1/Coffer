@@ -80,7 +80,7 @@ function OfferDetails() {
       ? `${querykeys.myOffersData};${querykeys.tradesData}`
       : querykeys.myTradesData,
     "Status changed successfully",
-    "Failed to change status"
+    "Failed to change status",
   );
 
   const { refetch } = useGetSingleData<Trade>(
@@ -89,14 +89,14 @@ function OfferDetails() {
     trade!.id,
     undefined,
     undefined,
-    { enabled: false, queryKey: [querykeys.tradeData] }
+    { enabled: false, queryKey: [querykeys.tradeData] },
   );
 
   const { data: tradeReviewData, isFetching: isTradeReviewFetching } =
     useGetSingleData<TradeReivewPack>(
       endpoints.tradeReviewsTrade,
       querykeys.tradeReviewData,
-      trade!.id
+      trade!.id,
     );
 
   const [isNewOfferOverlayVisible, setIsNewOfferOverlayVisible] =
@@ -255,7 +255,7 @@ function OfferDetails() {
     <>
       <ScrollView
         style={[
-          rootViewStyle({ color: collectionType.color }),
+          rootViewStyle({ color: collectionType!.color }),
           { paddingVertical: 10, paddingHorizontal: 10 },
         ]}
       >
@@ -412,7 +412,7 @@ function OfferDetails() {
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => (
             <BarterItemSelectedCard
-              collectionType={collectionType}
+              collectionType={collectionType!}
               item={item}
               user={offer!.user}
             />
@@ -699,7 +699,7 @@ function OfferDetails() {
                   style={{ fontFamily: "VendSansItalic", fontSize: 12 }}
                 >
                   {new Date(
-                    tradeReviewData!.offerer.createdAt
+                    tradeReviewData!.offerer.createdAt,
                   ).toLocaleDateString()}
                 </CustomText>
               </View>
@@ -807,7 +807,7 @@ function OfferDetails() {
                   style={{ fontFamily: "VendSansItalic", fontSize: 12 }}
                 >
                   {new Date(
-                    tradeReviewData!.trader.createdAt
+                    tradeReviewData!.trader.createdAt,
                   ).toLocaleDateString()}
                 </CustomText>
               </View>
@@ -875,7 +875,7 @@ function OfferDetails() {
                   style={{ fontFamily: "VendSansItalic", fontSize: 12 }}
                 >
                   {new Date(
-                    tradeReviewData!.trader.createdAt
+                    tradeReviewData!.trader.createdAt,
                   ).toLocaleDateString()}
                 </CustomText>
               </View>
@@ -983,7 +983,7 @@ function OfferDetails() {
                   style={{ fontFamily: "VendSansItalic", fontSize: 12 }}
                 >
                   {new Date(
-                    tradeReviewData!.offerer.createdAt
+                    tradeReviewData!.offerer.createdAt,
                   ).toLocaleDateString()}
                 </CustomText>
               </View>
@@ -1018,8 +1018,8 @@ function OfferDetails() {
           set: setIsNewOfferOverlayVisible,
         }}
         user={user!}
-        collection={collection}
-        collectionType={collectionType}
+        collection={collection!}
+        collectionType={collectionType!}
         trades={myTradesData}
         offers={myOffersData}
         isTradesFetching={isMyTradesFetching}

@@ -1,0 +1,48 @@
+name: Deploy to VPS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+
+            cd /opt/coffer
+
+            echo "Stopping old stack..."
+            docker compose down || true
+
+            echo "Cleaning config..."
+            rm -rf docker-compose.prod.yml .env.production models
+
+            mkdir -p models
+
+            echo "Downloading production files..."
+
+            rclone copy cloudflarer2:coffer/docker-compose.prod.yml ./
+
+            rclone copy cloudflarer2:coffer/.env.production.zip ./
+            unzip -o .env.production.zip -d .
+            rm .env.production.zip
+
+            rclone copy cloudflarer2:coffer/models.zip ./
+            unzip -o models.zip -d models
+            rm models.zip
+
+            echo "Pulling images..."
+            docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+
+            docker compose -f docker-compose.prod.yml pull
+
+            echo "Starting stack..."
+            docker compose -f docker-compose.prod.yml up -d

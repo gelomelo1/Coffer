@@ -9,7 +9,9 @@ CREATE TABLE users (
     email TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT now(),
     country VARCHAR(20) NOT NULL,
-    avatar TEXT
+    avatar TEXT,
+    role INTEGER NOT NULL,
+    summary TEXT,
 );
 
 CREATE TABLE collection_types (
@@ -23,11 +25,12 @@ CREATE TABLE collection_types (
 
 CREATE TABLE collections (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     collection_type_id INT NOT NULL REFERENCES collection_types(id),
     name VARCHAR(100) NOT NULL,                 -- e.g. "Német kupakok"
     image VARCHAR(100),                         -- optional image URL or filename
-    created_at TIMESTAMP DEFAULT now()
+    created_at TIMESTAMP DEFAULT now(),
+    description JSONB NOT NULL,
 );
 
 CREATE TABLE attributes (
@@ -35,7 +38,7 @@ CREATE TABLE attributes (
     collection_type_id INT NOT NULL REFERENCES collection_types(id) ON DELETE CASCADE,
     item_options_id INT REFERENCES item_options(id) ON DELETE SET NULL,
     name VARCHAR(20) NOT NULL,   -- pl. "Gyártó"
-    data_type TEXT NOT NULL CHECK (data_type IN ('string','number','date','boolean', "select")),
+    data_type INT,
 );
 
 CREATE TABLE items (
@@ -91,9 +94,7 @@ CREATE TABLE follows (
 CREATE TABLE user_contacts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    platform VARCHAR(20) NOT NULL CHECK (
-        platform IN ('Phone', 'Facebook', 'Instagram')
-    ),
+    platform INT NOT NULL,
     value TEXT NOT NULL,
     link TEXT,
     created_at TIMESTAMP DEFAULT now(),
@@ -102,49 +103,129 @@ CREATE TABLE user_contacts (
 
 CREATE TABLE trades (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+
+    seller_id UUID REFERENCES users(id) ON DELETE SET NULL
+
+    collection_type_id INT NOT NULL
+        REFERENCES collection_types(id),
+
     title TEXT NOT NULL,
     description TEXT NOT NULL,
-    want_description TEXT,               -- what they want in return (text)
-    money_requested NUMERIC(10,2),       -- optional money value
+
+    money_price NUMERIC(12,2),
+    exchange_description TEXT,
+
+    city TEXT NOT NULL,
+    delivery_available BOOLEAN DEFAULT false NOT NULL,
+
+    quality_id INT NOT NULL,
+
+    state_id INT NOT NULL,
+
     created_at TIMESTAMP DEFAULT now(),
-    updated_at TIMESTAMP DEFAULT now()
+    updated_at TIMESTAMP
 );
 
-CREATE TABLE trade_items (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    trade_id UUID NOT NULL REFERENCES trades(id) ON DELETE CASCADE,
-    item_id UUID REFERENCES items(id) ON DELETE SET NULL,
-    UNIQUE (trade_id, item_id)
+CREATE TABLE trade_images (
+    id SERIAL PRIMARY KEY,
+    trade_id INT NOT NULL REFERENCES trades(id) ON DELETE CASCADE,
+    image_url TEXT NOT NULL,
+    position INT,
+    created_at TIMESTAMP DEFAULT now()
 );
 
-CREATE TABLE offers (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    trade_id UUID NOT NULL REFERENCES trades(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    money_offer NUMERIC(10,2),
-    status TEXT NOT NULL DEFAULT 'pending' CHECK (
-        status IN ('pending', 'rejected', 'accepted', 'revertByCreator', 'revertByOfferer', 'traded')
-    ),
+CREATE TABLE trade_followers (
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    trade_id INT REFERENCES trades(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT now(),
-    updated_at TIMESTAMP DEFAULT now(),
-    UNIQUE (trade_id, user_id)             -- one offer per user per trade
+
+    PRIMARY KEY (user_id, trade_id)
 );
 
-CREATE TABLE offer_items (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    offer_id UUID NOT NULL REFERENCES offers(id) ON DELETE CASCADE,
-    item_id UUID REFERENCES items(id) ON DELETE SET NULL,
-    UNIQUE (offer_id, item_id)
+CREATE TABLE trade_chats (
+    id UUID PRIMARY KEY,
+
+    trade_id UUID NOT NULL REFERENCES trades(id),
+    seller_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    buyer_id UUID  REFERENCES users(id) ON DELETE SET NULL,
+
+    created_at TIMESTAMP DEFAULT now(),
+
+    UNIQUE(trade_id, buyer_id)
+);
+
+CREATE TABLE trade_chat_messages (
+    id SERIAL PRIMARY KEY,
+
+    chat_id UUID NOT NULL REFERENCES trade_chats(id) ON DELETE CASCADE,
+    sender_id UUID NOT NULL REFERENCES users(id),
+
+    content JSONB NOT NULL,
+    created_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE trade_confirmations (
+    id SERIAL PRIMARY KEY,
+
+    trade_id UUID NOT NULL REFERENCES trades(id),
+
+    seller_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    buyer_id UUID REFERENCES users(id) ON DELETE SET NULL,
+
+    seller_confirmed BOOLEAN DEFAULT false,
+    buyer_confirmed BOOLEAN DEFAULT false,
+
+    created_at TIMESTAMP DEFAULT now(),
+    completed_at TIMESTAMP
 );
 
 CREATE TABLE trade_reviews (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id SERIAL PRIMARY KEY,
     trade_id UUID NOT NULL REFERENCES trades(id) ON DELETE CASCADE,
     reviewer_id UUID REFERENCES users(id) ON DELETE SET NULL,
-    reviewee_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    reviewee_id UUID REFERENCES users(id) ON DELETE SET NULL,
     rating BOOLEAN NOT NULL,  -- true = good, false = bad
     comment TEXT,
     created_at TIMESTAMP DEFAULT now(),
     UNIQUE (trade_id, reviewer_id)
 );
+
+CREATE TABLE reports (
+    id SERIAL PRIMARY KEY,
+    
+    reporter_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    
+    report_type INT NOT NULL, -- e.g., 'spam', 'scam', 'inappropriate_content'
+    
+    entity_type TEXT NOT NULL, -- e.g., 'trade', 'user', 'message', 'review'
+    entity_id TEXT NOT NULL,           -- store INT, UUID, or other IDs as text
+    
+    description JSONB NOT NULL,         -- rich text explanation
+
+    created_at TIMESTAMP DEFAULT now(),
+    resolved BOOLEAN DEFAULT false,
+    resolved_by UUID REFERENCES users(id),
+    resolved_at TIMESTAMP
+);
+
+CREATE TABLE item_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    item_id UUID REFERENCES items(id) ON DELETE SET NULL,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT now()
+);
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE INDEX idx_collections_name_trgm
+ON collections
+USING gin (name gin_trgm_ops);
+
+CREATE INDEX idx_user_name_trgm
+ON users
+USING gin(name gin_trgm_ops);
+
+CREATE INDEX idx_itemtags_tag_trgm
+ON item_tags
+USING gin(tag gin_trgm_ops);

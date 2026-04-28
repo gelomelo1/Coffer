@@ -22,13 +22,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Coffer.BusinessLogic\Coffer.BusinessLogic.csproj" />
     <ProjectReference Include="..\Coffer.DataAccess\Coffer.DataAccess.csproj" />
+    <ProjectReference Include="..\Coffer.Domain\Coffer.Domain.csproj" />
     <ProjectReference Include="..\Coffer.Infrastructure\Coffer.Infrastructure.csproj" />
-    <ProjectReference Include="..\Coffer.ReactNative\Coffer.ReactNative.esproj">
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-      <ProjectReference Include="..\Coffer.PythonService\Coffer.PythonService.pyproj">
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
   </ItemGroup>
 
 </Project>

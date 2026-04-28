@@ -46,7 +46,7 @@ function ItemEditQuantity({
           iconName="minus"
           title="Decrease"
           onPress={handleMinusPress}
-          disabled={quantity === 0}
+          disabled={quantity === 1}
         />
         <View
           style={{

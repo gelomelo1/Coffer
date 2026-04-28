@@ -1,13 +1,14 @@
 ﻿using Coffer.DataAccess.Repositories;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 
 namespace Coffer.ASPNET.Controllers
 {
     [Route("api/[controller]")]
-    public class FeedController : ControllerBase
+    public class FeedController : BaseController
     {
         private readonly IItemsRepository _itemsRepository;
         private readonly IUsersRepository _usersRepository;
@@ -24,15 +25,25 @@ namespace Coffer.ASPNET.Controllers
             _followsRepository = followsRepository;
         }
 
-        [HttpGet("{userId}")]
-        public async Task<ActionResult<IEnumerable<Feed>>> GetFeedItems(Guid userId)
+        [Authorize]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Feed>>> GetFeedItems([FromQuery] string? filter = null,
+                                                                            [FromQuery] string? orderBy = null,
+                                                                            [FromQuery] int? page = null,
+                                                                            [FromQuery] int? pageSize = null)
         {
+
+            if(!UserId.HasValue)
+            {
+                return Unauthorized();
+            }
+
             try
             {
-                var user = await _usersRepository.GetUserById(userId);
+                var user = await _usersRepository.GetUserById(UserId.Value);
                 if (user == null)
                     return BadRequest("User not found");
-                var items = await _itemsRepository.GetFeedItemsAsync(user);
+                var items = await _itemsRepository.GetFeedItemsAsync(user, filter, orderBy, page, pageSize);
                 List<Feed> feeds = new List<Feed>();
                 foreach (var item in items)
                 {
@@ -52,8 +63,9 @@ namespace Coffer.ASPNET.Controllers
 
         public record FoundItem(UserProvided User, CollectionProvided Collection, ItemProvided Item);
 
-        [HttpGet("SearchTag/{collectionTypeId}/{searchText}")]
-        public async Task<ActionResult<IEnumerable<ItemTagGroup>>> TagSearch(int collectionTypeId, string searchText)
+        [Authorize]
+        [HttpGet("SearchTag")]
+        public async Task<ActionResult<IEnumerable<ItemTagGroup>>> TagSearch(string searchText, string? collectionTypeIds)
         {
             try
             {
@@ -64,7 +76,7 @@ namespace Coffer.ASPNET.Controllers
                     .Replace("#", string.Empty)
                     .Trim();
 
-                var tags = await _itemTagsRepository.SearchTagsAsync(collectionTypeId, realSearchText);
+                var tags = await _itemTagsRepository.SearchTagsSmartAsync(collectionTypeIds, realSearchText);
 
                 var foundItemTags = new List<ItemTagGroup>();
 
@@ -112,19 +124,20 @@ namespace Coffer.ASPNET.Controllers
             ItemProvided Item
         );
 
-        [HttpGet("Search/{collectionTypeId}/{searchText}")]
-        public async Task<ActionResult<MixedResponse>> MixedSearch(int collectionTypeId, string searchText)
+        [Authorize]
+        [HttpGet("Search")]
+        public async Task<ActionResult<MixedResponse>> MixedSearch(string searchText, string? collectionTypeIds)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(searchText))
                     return BadRequest("Search text cannot be empty.");
 
-                var foundUsers = (await _usersRepository.SearchUsersAsync(searchText))
+                var foundUsers = (await _usersRepository.SearchUsersSmartAsync(searchText))
                             .Select(u => (UserProvided)u)
                             .ToList();
 
-                var collections = await _collectionRepository.SearchCollections(collectionTypeId ,searchText);
+                var collections = await _collectionRepository.SearchCollectionsSmart(collectionTypeIds ,searchText);
 
                 List<CollectionResult> foundCollections = new List<CollectionResult>();
 
@@ -137,7 +150,7 @@ namespace Coffer.ASPNET.Controllers
                     foundCollections.Add(new CollectionResult(user, collection));
                 }
 
-                var items = await _itemsRepository.SearchItems(collectionTypeId, searchText);
+                var items = await _itemsRepository.SearchItemsSmart(collectionTypeIds, searchText);
 
                 List<ItemResult> foundItems = new List<ItemResult>();
 
@@ -163,16 +176,23 @@ namespace Coffer.ASPNET.Controllers
             }
         }
 
-        [HttpGet("UserFollows/{userId}")]
-        public async Task<ActionResult<IEnumerable<CollectionResult>>> UserFollows(Guid userId)
+        [Authorize]
+        [HttpGet("UserFollows")]
+        public async Task<ActionResult<IEnumerable<CollectionResult>>> UserFollows()
         {
+
+            if(!UserId.HasValue)
+            {
+                return Unauthorized();
+            }
+
             try
             {
-                 var user = await _usersRepository.GetUserById(userId);
+                 var user = await _usersRepository.GetUserById(UserId.Value);
                  if (user == null)
                      return NotFound();
 
-                 var follows = await _followsRepository.FindFollowsOfUser(userId);
+                 var follows = await _followsRepository.FindFollowsOfUser(UserId.Value);
 
                  List<CollectionResult> followedResults = new List<CollectionResult>();
 

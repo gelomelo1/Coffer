@@ -1,12 +1,13 @@
 ﻿using Coffer.Domain.Entities.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Coffer.DataAccess.Repositories.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Coffer.ASPNET.Controllers.Generic
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ReadOnlyGenericController<TKey, TEntity, TProvided> : ControllerBase
+    public class ReadOnlyGenericController<TKey, TEntity, TProvided> : BaseController
     where TKey : notnull
     where TEntity : class, TProvided
     where TProvided : class, IGenericEntity<TKey>
@@ -18,6 +19,7 @@ namespace Coffer.ASPNET.Controllers.Generic
             _repository = repository;
         }
 
+        [Authorize]
         [HttpGet]
         public virtual async Task<ActionResult<IEnumerable<TProvided>>> Get([FromQuery] string? filter = null,
                                                                             [FromQuery] string? orderBy = null,
@@ -28,6 +30,7 @@ namespace Coffer.ASPNET.Controllers.Generic
             return Ok(items);
         }
 
+        [Authorize]
         [HttpGet("{id}")]
         public virtual async Task<ActionResult<TProvided>> GetById(TKey id)
         {

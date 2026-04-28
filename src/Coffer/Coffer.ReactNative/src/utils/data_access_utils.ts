@@ -1,3 +1,4 @@
+import * as ImagePicker from "expo-image-picker";
 import { FlagType, getAllCountries } from "react-native-country-picker-modal";
 import {
   itemSortDefaultOptions,
@@ -13,38 +14,45 @@ import { Reaction } from "../types/entities/reaction";
 import { Trade } from "../types/entities/trade";
 import TradeReivewPack from "../types/entities/trade_review_pack";
 import AttributeValue, {
+  AttributeDataTypes,
   AttributeTypes,
 } from "../types/helpers/attribute_data";
 import { TradeStatus } from "../types/helpers/barter_status";
+import {
+  ImagePickerResult,
+  ImageSource,
+} from "../types/helpers/image_picker_result";
 import { QuerySortData } from "../types/helpers/query_data";
 import RarityValue from "../types/helpers/rarity_value";
 import ReviewSide from "../types/helpers/review_side";
 
 export function getItemAttributeValue(
-  itemAttribute: ItemAttribute
+  itemAttribute: ItemAttribute,
 ): AttributeValue {
   let value: string | number | boolean | Date | null;
   let valueString = "";
   let valueKey: AttributeTypes;
 
   switch (itemAttribute.attribute.dataType) {
-    case "string":
-    case "select":
+    case AttributeDataTypes.String:
+    case AttributeDataTypes.Multi_Select:
+    case AttributeDataTypes.Autocomplete:
+    case AttributeDataTypes.Select:
       value = itemAttribute.valueString ?? null;
       valueString = itemAttribute.valueString;
       valueKey = "valueString";
       break;
-    case "number":
+    case AttributeDataTypes.Number:
       value = itemAttribute.valueNumber ?? null;
       valueString = itemAttribute.valueNumber.toLocaleString();
       valueKey = "valueNumber";
       break;
-    case "boolean":
+    case AttributeDataTypes.Boolean:
       value = itemAttribute.valueBoolean ?? null;
       valueString = itemAttribute.valueBoolean ? "true" : "false";
       valueKey = "valueBoolean";
       break;
-    case "date":
+    case AttributeDataTypes.Date:
       value = itemAttribute.valueDate
         ? new Date(itemAttribute.valueDate)
         : null;
@@ -66,14 +74,16 @@ export function getItemAttributeValue(
 
 export function getAttributeValue(attribute: Attribute): AttributeTypes {
   switch (attribute.dataType) {
-    case "string":
-    case "select":
+    case AttributeDataTypes.String:
+    case AttributeDataTypes.Multi_Select:
+    case AttributeDataTypes.Autocomplete:
+    case AttributeDataTypes.Select:
       return "valueString";
-    case "number":
+    case AttributeDataTypes.Number:
       return "valueNumber";
-    case "boolean":
+    case AttributeDataTypes.Boolean:
       return "valueBoolean";
-    case "date":
+    case AttributeDataTypes.Date:
       return "valueDate";
     default:
       return "";
@@ -81,7 +91,7 @@ export function getAttributeValue(attribute: Attribute): AttributeTypes {
 }
 
 export function getItemPrimaryAttributeValue(
-  itemAttributes: ItemAttribute[]
+  itemAttributes: ItemAttribute[],
 ): AttributeValue | null {
   const primaryAttr = itemAttributes.find((attr) => attr.attribute.primary);
   return primaryAttr ? getItemAttributeValue(primaryAttr) : null;
@@ -98,7 +108,7 @@ export function parseSortKeysToQuerySortData(keys: string[]): QuerySortData[] {
 }
 
 export function generateSortRecordDataForItem(
-  attributes: Attribute[]
+  attributes: Attribute[],
 ): { value: string; label: string }[] {
   const records = itemSortDefaultOptions.flatMap((option) => [
     {
@@ -125,7 +135,7 @@ export function generateSortRecordDataForItem(
       {
         value: `${nestedSortQuery}_desc`,
         label: `${lowerCamelCaseToNormalFormat(name)} descending`,
-      }
+      },
     );
   }
 
@@ -160,17 +170,19 @@ export function getItemsQuantity(items: Item[]) {
 
 export function updateItemAttributeValue(
   attr: ItemAttribute,
-  newValue: any
+  newValue: any,
 ): ItemAttribute {
   switch (attr.attribute.dataType) {
-    case "string":
-    case "select":
+    case AttributeDataTypes.String:
+    case AttributeDataTypes.Multi_Select:
+    case AttributeDataTypes.Autocomplete:
+    case AttributeDataTypes.Select:
       return { ...attr, valueString: newValue as string };
-    case "number":
+    case AttributeDataTypes.Number:
       return { ...attr, valueNumber: newValue as number };
-    case "boolean":
+    case AttributeDataTypes.Boolean:
       return { ...attr, valueBoolean: newValue as boolean };
-    case "date":
+    case AttributeDataTypes.Date:
       return { ...attr, valueDate: newValue as string };
     default:
       return attr;
@@ -186,18 +198,22 @@ export const chunkArray = <T>(array: T[], size: number): T[][] => {
 };
 
 export function getDefaultAttributeValue(
-  attribute: Attribute
+  attribute: Attribute,
 ): string | number | boolean | null {
   switch (attribute.dataType) {
-    case "string":
+    case AttributeDataTypes.String:
       return "";
-    case "number":
+    case AttributeDataTypes.Multi_Select:
+      return "";
+    case AttributeDataTypes.Autocomplete:
+      return "";
+    case AttributeDataTypes.Number:
       return 0;
-    case "boolean":
+    case AttributeDataTypes.Boolean:
       return false;
-    case "date":
+    case AttributeDataTypes.Date:
       return new Date().toISOString();
-    case "select":
+    case AttributeDataTypes.Select:
       return "";
     default:
       return null;
@@ -213,7 +229,7 @@ export async function getCountryByCode(countryCode: string) {
     [countryCode as any],
     undefined,
     undefined,
-    undefined
+    undefined,
   );
 
   if (value.length === 0) return null;
@@ -231,7 +247,7 @@ export function getReactionsLikeCount(reactions: Reaction[]) {
 }
 
 export function getRarityVariantByValue(
-  reactions: Reaction[]
+  reactions: Reaction[],
 ): RarityValue | null {
   if (!reactions.length) return null;
 
@@ -267,7 +283,7 @@ export function isItemAvailableForTrade(
   trades: Trade[],
   offers: Offer[],
   excludeTrade?: Trade,
-  excludeOffer?: Offer
+  excludeOffer?: Offer,
 ) {
   if (item.quantity <= 1) return false;
 
@@ -299,7 +315,7 @@ export function isItemAvailableForTrade(
 export function getTradeReviewsRating(
   type: "like" | "dislike",
   tradeReviews: TradeReivewPack[],
-  userId: string
+  userId: string,
 ) {
   let count = 0;
 
@@ -324,7 +340,7 @@ export function getTradeReviewsRating(
 
 export function getCurrentUserReview(
   tradeReviews: TradeReivewPack,
-  userId: string
+  userId: string,
 ): ReviewSide | null {
   if (tradeReviews.trader?.reviewerId === userId) {
     return { side: "trader", review: tradeReviews.trader };
@@ -339,7 +355,7 @@ export function getCurrentUserReview(
 
 export function getCurrentUserReviewer(
   tradeReviews: TradeReivewPack,
-  userId: string
+  userId: string,
 ): ReviewSide | null {
   if (tradeReviews.offerer?.reviewerId !== userId && tradeReviews.offerer) {
     return { side: "offerer", review: tradeReviews.offerer };
@@ -351,3 +367,88 @@ export function getCurrentUserReviewer(
 
   return null;
 }
+
+export const pickImage = async (
+  source: ImageSource,
+  pickerOptions?: ImagePicker.ImagePickerOptions,
+): Promise<ImagePickerResult> => {
+  try {
+    let permission;
+
+    if (source === "camera") {
+      permission = await ImagePicker.getCameraPermissionsAsync();
+
+      if (!permission.granted) {
+        permission = await ImagePicker.requestCameraPermissionsAsync();
+      }
+    } else {
+      permission = await ImagePicker.getMediaLibraryPermissionsAsync();
+
+      if (!permission.granted) {
+        permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      }
+    }
+
+    if (!permission.granted) {
+      return { status: "permission_denied" };
+    }
+
+    const result =
+      source === "camera"
+        ? await ImagePicker.launchCameraAsync({
+            ...pickerOptions,
+            mediaTypes: ["images"],
+          })
+        : await ImagePicker.launchImageLibraryAsync({
+            ...pickerOptions,
+            mediaTypes: ["images"],
+          });
+
+    if (result.canceled) {
+      return { status: "cancel" };
+    }
+
+    return {
+      status: "success",
+      assets: result.assets,
+    };
+  } catch (error) {
+    return {
+      status: "error",
+      error,
+    };
+  }
+};
+
+export function stringHasValue(text: string | null | undefined) {
+  if (!text) return false;
+
+  const stripped = text.replace(/<[^>]*>/g, "").trim();
+
+  return stripped.length > 0;
+}
+
+export const formatNumberShort = (num: number): string => {
+  const format = (value: number, suffix: string) => {
+    const truncated = Math.floor(value * 100) / 100; // round DOWN to 2 decimals
+    const hasDecimals = truncated % 1 !== 0;
+
+    return hasDecimals
+      ? `${truncated.toFixed(2).replace(/\.?0+$/, "")}${suffix}`
+      : `${truncated}${suffix}`;
+  };
+
+  if (num >= 1_000_000_000) {
+    return format(num / 1_000_000_000, "B");
+  }
+
+  if (num >= 1_000_000) {
+    return format(num / 1_000_000, "M");
+  }
+
+  if (num >= 1_000) {
+    return format(num / 1_000, "k");
+  }
+
+  return num.toString();
+};

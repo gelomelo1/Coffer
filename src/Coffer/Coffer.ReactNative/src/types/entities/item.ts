@@ -5,7 +5,8 @@ import { Reaction } from "./reaction";
 export interface Item {
   id: string;
   collectionId: string;
-  description: string;
+  description?: string;
+  privateNote?: string;
   quantity: number;
   image: string;
   acquiredAt: string;

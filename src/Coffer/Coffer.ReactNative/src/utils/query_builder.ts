@@ -1,19 +1,34 @@
-import { QueryFilterData, QueryOptions } from "../types/helpers/query_data";
+import {
+  QueryFilterData,
+  QueryFilterNode,
+  QueryOptions,
+} from "../types/helpers/query_data";
 
 export default function buildQuery(options: QueryOptions): string {
   if (!options.filters && !options.sort && !options.page && !options.pageSize) {
     return "";
   }
+
+  console.log(`QUERY BUILDER!!!!!!!!! ${options.filterTree}`);
+
   let url = "?";
-  if (options.filters) {
-    url += "filter=";
+  let filterParts: string[] = [];
+
+  if (options.filters?.length) {
+    const base = options.filters
+      .map((f) => buildFilter(f))
+      .join(` ${options.filterConjunction ?? "AND"} `);
+
+    filterParts.push(`(${base})`);
   }
-  options.filters?.forEach((filter, index) => {
-    if (index > 0) {
-      url += options.filterConjunction === "OR" ? " OR " : " AND ";
-    }
-    url += buildFilter(filter);
-  });
+
+  if (options.filterTree) {
+    filterParts.push(buildFilterNode(options.filterTree));
+  }
+
+  if (filterParts.length) {
+    url += "filter=" + filterParts.join(" AND ");
+  }
   if (options.sort) {
     url += (options.filters ? "&" : "") + "orderBy=";
   }
@@ -44,7 +59,7 @@ export default function buildQuery(options: QueryOptions): string {
     const prev = str[offset - 1];
     if (
       /filter|orderBy|page|pageSize/i.test(
-        str.slice(0, offset).split(/[?&]/).pop() || ""
+        str.slice(0, offset).split(/[?&]/).pop() || "",
       )
     ) {
       return match;
@@ -53,6 +68,15 @@ export default function buildQuery(options: QueryOptions): string {
   });
 
   return encoded;
+}
+
+function buildFilterNode(node: QueryFilterNode): string {
+  if ("filters" in node) {
+    const parts = node.filters.map(buildFilterNode);
+    return `(${parts.join(` ${node.conjunction} `)})`;
+  }
+
+  return buildFilter(node);
 }
 
 function buildFilter(filter: QueryFilterData): string {

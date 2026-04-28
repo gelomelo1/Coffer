@@ -1,8 +1,8 @@
 import CustomText from "@/src/components/custom_ui/custom_text";
 import { Loading } from "@/src/components/custom_ui/loading";
+import { useCollectionTypeStore } from "@/src/hooks/collection_type_store";
 import { customTheme } from "@/src/theme/theme";
 import { Collection } from "@/src/types/entities/collection";
-import CollectionType from "@/src/types/entities/collectiontype";
 import User from "@/src/types/entities/user";
 import { chunkArray } from "@/src/utils/data_access_utils";
 import { useState } from "react";
@@ -12,13 +12,12 @@ import {
   SectionList,
   View,
 } from "react-native";
-import SettingsUserCard from "../settings/settings_user_card";
+import UserInfoCard from "../settings/user_info_card";
 import OtherUserCollectionCard from "./other_user_collection_card";
 
 interface OtherUserCollectionSectionListProps {
   currentUser: User;
   user: User;
-  collectionType: CollectionType;
   collections: Collection[];
   allLoading: boolean;
 }
@@ -26,11 +25,12 @@ interface OtherUserCollectionSectionListProps {
 function OtherUserCollectionSectionList({
   currentUser,
   user,
-  collectionType,
   collections,
   allLoading,
 }: OtherUserCollectionSectionListProps) {
-  const chunkedItems = chunkArray(collections, 2);
+  const { collectionTypes } = useCollectionTypeStore();
+
+  const chunkedItems = chunkArray(allLoading ? [] : collections, 2);
 
   const sections = [{ data: chunkedItems.length > 0 ? chunkedItems : [[]] }];
 
@@ -50,7 +50,7 @@ function OtherUserCollectionSectionList({
       }
       onScroll={onScroll}
       scrollEventThrottle={16}
-      ListHeaderComponent={<SettingsUserCard user={user} otherUser={true} />}
+      ListHeaderComponent={<UserInfoCard user={user} otherUser={true} />}
       renderSectionHeader={() => (
         <View
           style={{
@@ -110,7 +110,9 @@ function OtherUserCollectionSectionList({
               currentUser={currentUser}
               user={user}
               collection={i}
-              collectionType={collectionType}
+              collectionType={
+                collectionTypes.find((ct) => ct.id === i.collectionTypeId)!
+              }
             />
           ))}
         </View>
@@ -127,7 +129,7 @@ function OtherUserCollectionSectionList({
           End of list
         </CustomText>
       }
-      contentContainerStyle={{ paddingTop: 20, paddingBottom: 40 }}
+      contentContainerStyle={{ paddingBottom: 40 }}
       ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
     />
   );

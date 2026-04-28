@@ -12,11 +12,13 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.20" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Coffer.BusinessLogic\Coffer.BusinessLogic.csproj" />
     <ProjectReference Include="..\Coffer.DataAccess\Coffer.DataAccess.csproj" />
+    <ProjectReference Include="..\Coffer.Domain\Coffer.Domain.csproj" />
   </ItemGroup>
 
 </Project>

@@ -16,13 +16,13 @@ interface CollectionItemListDateFilterProps {
   isBottomSheetVisible: boolean;
   onQueryFilterDataChange: (
     filter: QueryFilterData,
-    id?: string | number
+    id?: string | number,
   ) => void;
   draftQueryFilterData: QueryFilterDataItem[];
   filterQuery?: (
     id: number,
     attributeName: AttributeTypes,
-    value: any
+    value: any,
   ) => string;
 }
 
@@ -34,14 +34,14 @@ function CollectionItemListDateFilter({
   filterQuery,
 }: CollectionItemListDateFilterProps) {
   const [acquiredAtBeforeDate, setAcquiredAtBeforeDate] = useState<Date | null>(
-    null
+    null,
   );
   const [acquiredAtAfterDate, setAcquiredAtAfterDate] = useState<Date | null>(
-    null
+    null,
   );
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [datePickerId, setDatePickerId] = useState<"before" | "after">(
-    "before"
+    "before",
   );
 
   const handleDatePickerInput = (id: "before" | "after") => {
@@ -53,21 +53,21 @@ function CollectionItemListDateFilter({
     return datePickerId === "before" && acquiredAtBeforeDate !== null
       ? acquiredAtBeforeDate
       : acquiredAtAfterDate !== null
-      ? acquiredAtAfterDate
-      : new Date();
+        ? acquiredAtAfterDate
+        : new Date();
   };
 
   useEffect(() => {
     if (isBottomSheetVisible) {
       setIsDatePickerOpen(false);
       const afterItem = draftQueryFilterData.find(
-        (f) => f.id === `${attribute.id}_after`
+        (f) => f.id === `${attribute.id}_after`,
       );
       const beforeItem = draftQueryFilterData.find(
-        (f) => f.id === `${attribute.id}_before`
+        (f) => f.id === `${attribute.id}_before`,
       );
-      setAcquiredAtAfterDate((afterItem?.value.value as Date) ?? null);
-      setAcquiredAtBeforeDate((beforeItem?.value.value as Date) ?? null);
+      setAcquiredAtAfterDate((afterItem?.value?.value as Date) ?? null);
+      setAcquiredAtBeforeDate((beforeItem?.value?.value as Date) ?? null);
     }
   }, [isBottomSheetVisible]);
 
@@ -84,7 +84,7 @@ function CollectionItemListDateFilter({
                 "valueDate",
                 `DateTime(${newValue.getFullYear()}, ${
                   newValue.getMonth() + 1
-                }, 1, 0, 0, 0, DateTimeKind.Utc)`
+                }, 1, 0, 0, 0, DateTimeKind.Utc)`,
               ),
               value: "",
             }
@@ -93,7 +93,7 @@ function CollectionItemListDateFilter({
               field: nestedAttributeFilterQuery(attribute.id, "valueDate"),
               value: newValue,
             },
-        `${attribute.id}_${datePickerId}`
+        `${attribute.id}_${datePickerId}`,
       );
     }
     setIsDatePickerOpen(false);

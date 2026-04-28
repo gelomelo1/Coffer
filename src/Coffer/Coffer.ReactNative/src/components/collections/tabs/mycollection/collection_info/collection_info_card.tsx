@@ -1,17 +1,21 @@
 import CustomButton from "@/src/components/custom_ui/custom_button";
+import CustomHTMLView from "@/src/components/custom_ui/custom_html_view";
+import CustomImage from "@/src/components/custom_ui/custom_image";
 import CustomText from "@/src/components/custom_ui/custom_text";
 import { endpoints } from "@/src/const/endpoints";
 import { useCollectionStore } from "@/src/hooks/collection_store";
+import { useUserStore } from "@/src/hooks/user_store";
 import { customTheme } from "@/src/theme/theme";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
 import React, { useState } from "react";
-import { Image, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import { Button } from "react-native-elements";
 import CollectionDeleteForm from "./collection_delete_form";
 import CollectionInfoEditForm from "./collection_info_edit_form";
 
 function CollectionInfoCard() {
+  const { token } = useUserStore();
   const { collection } = useCollectionStore();
 
   const [
@@ -31,7 +35,7 @@ function CollectionInfoCard() {
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
           marginHorizontal: 10,
-          marginBottom: 20,
+          marginBottom: 10,
         }}
       >
         <View
@@ -52,13 +56,11 @@ function CollectionInfoCard() {
               justifyContent: "center",
             }}
           >
-            {collection.image ? (
-              <Image
-                source={{
-                  uri: `${endpoints.collectionsCoverImage}/${collection.image}`,
-                  cache: "reload",
-                }}
-                style={{ width: "100%", height: "100%" }}
+            {collection!.image ? (
+              <CustomImage
+                uri={`${endpoints.collectionsCoverImage}/${collection!.image}`}
+                style={{ width: "100%", aspectRatio: 1, resizeMode: "cover" }}
+                enableFullScreenView={true}
               />
             ) : (
               <CustomText
@@ -82,13 +84,13 @@ function CollectionInfoCard() {
               numberOfLines={2}
               ellipsizeMode="tail"
             >
-              {collection.name}
+              {collection!.name}
             </CustomText>
             <CustomText>
-              {new Date(collection.createdAt).toLocaleDateString()}
+              {new Date(collection!.createdAt).toLocaleDateString()}
             </CustomText>
             <CustomText style={{ fontFamily: "VendSansBold" }}>
-              {collection.follows.length} <CustomText>follower</CustomText>
+              {collection!.follows.length} <CustomText>follower</CustomText>
             </CustomText>
           </View>
         </View>
@@ -145,6 +147,28 @@ function CollectionInfoCard() {
             />
           </TouchableOpacity>
         </View>
+      </View>
+      <View style={{ marginHorizontal: 10 }}>
+        <CustomText
+          style={{
+            fontSize: 18,
+            fontFamily: "VendSansBold",
+            borderLeftWidth: 4,
+            borderLeftColor: customTheme.colors.secondary,
+            paddingLeft: 5,
+            paddingVertical: 5,
+          }}
+        >
+          Description
+        </CustomText>
+        {collection!.description ? (
+          <CustomHTMLView content={collection!.description} foldable={true} />
+        ) : (
+          <CustomText style={{ fontFamily: "VendSansItalic" }}>
+            You don’t have an introduction for your collection yet—add one so
+            others can learn more about what makes your collection special!
+          </CustomText>
+        )}
       </View>
       <CollectionDeleteForm
         isDeleteCollectionConfirmVisible={{
