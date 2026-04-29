@@ -36,4 +36,5 @@ export const endpoints = {
   collectionItemTags: "api/Collections/ItemTags",
   userFrontend: "api/Users/UserFrontend",
   userContactBulk: "api/UserContact/Bulk",
+  userExists: "api/Users/UserExists",
 };

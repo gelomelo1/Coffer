@@ -10,6 +10,7 @@ namespace Coffer.DataAccess.Repositories.Interfaces
 {
     public interface IUsersRepository : IGenericRepository<Guid, User, UserProvided, UserRequired>
     {
+        Task<User?> GetUserByName(string username);
         public Task<IEnumerable<User>> SearchUsersSmartAsync(string searchText);
         Task<User?> GetUserByLogin(string provider, string providerUserId);
         Task<User> InsertUserAsync(UserRequired newUser);

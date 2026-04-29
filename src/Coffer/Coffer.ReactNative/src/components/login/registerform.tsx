@@ -58,19 +58,11 @@ function RegisterForm({ submitRegistration }: RegisterFormProps) {
         return;
       }
 
-      const url = `${endpoints.users}${buildQuery({
-        filters: [
-          {
-            filter: "Match",
-            field: "name",
-            value: newValue,
-          },
-        ],
-      })}`;
+      const url = `${endpoints.userExists}/${newValue}`;
 
-      const userWithCurrentUsername = await getData<User>(url);
+      const userWithCurrentUsername = await getData<boolean>(url);
 
-      if (userWithCurrentUsername.length !== 0) {
+      if (userWithCurrentUsername) {
         setErrorMessage(stringResource.alreadyExistsError);
         setIsLoading(false);
         return;

@@ -42,5 +42,17 @@ namespace Coffer.ASPNET.Controllers
             if (item == null) return NotFound();
             return Ok(item);
         }
+
+        [HttpGet("UserExists/{username}")]
+        public async Task<ActionResult<bool>> GetUserExists(string username)
+        {
+            var user = await _usersRepository.GetUserByName(username);
+            bool exists = false;
+            if (user != null)
+            {
+                exists = true;
+            }
+            return Ok(exists);
+        }
     }
 }
