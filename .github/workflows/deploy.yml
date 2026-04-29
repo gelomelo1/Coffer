@@ -17,33 +17,49 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             set -e
-
+            
             cd /opt/coffer
-
+            
+            TMP_DIR="_deploy_tmp"
+            
+            echo "Creating temp folder..."
+            rm -rf $TMP_DIR
+            mkdir -p $TMP_DIR
+            
+            echo "Downloading production files into temp..."
+            
+            rclone copy cloudflarer2:coffer/docker-compose.prod.yml $TMP_DIR/
+            
+            rclone copy cloudflarer2:coffer/.env.production.zip $TMP_DIR/
+            unzip -o $TMP_DIR/.env.production.zip -d $TMP_DIR/
+            rm $TMP_DIR/.env.production.zip
+            
+            rclone copy cloudflarer2:coffer/models.zip $TMP_DIR/
+            unzip -o $TMP_DIR/models.zip -d $TMP_DIR/models
+            rm $TMP_DIR/models.zip
+            
+            echo "Verifying download..."
+            ls -la $TMP_DIR
+            
             echo "Stopping old stack..."
-            docker compose down || true
-
-            echo "Cleaning config..."
+            if [ -f docker-compose.prod.yml ]; then
+              docker compose -f docker-compose.prod.yml down
+            fi
+            
+            echo "Switching to new version..."
+            
             rm -rf docker-compose.prod.yml .env.production models
-
-            mkdir -p models
-
-            echo "Downloading production files..."
-
-            rclone copy cloudflarer2:coffer/docker-compose.prod.yml ./
-
-            rclone copy cloudflarer2:coffer/.env.production.zip ./
-            unzip -o .env.production.zip -d .
-            rm .env.production.zip
-
-            rclone copy cloudflarer2:coffer/models.zip ./
-            unzip -o models.zip -d models
-            rm models.zip
-
+            
+            mv $TMP_DIR/docker-compose.prod.yml ./
+            mv $TMP_DIR/.env.production ./
+            mv $TMP_DIR/models ./
+            
+            rm -rf $TMP_DIR
+            
             echo "Pulling images..."
             docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
-
+            
             docker compose -f docker-compose.prod.yml pull
-
+            
             echo "Starting stack..."
             docker compose -f docker-compose.prod.yml up -d
