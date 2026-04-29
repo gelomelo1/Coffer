@@ -32,6 +32,13 @@ namespace Coffer.DataAccess.Repositories
                 .FirstOrDefaultAsync(u => u.Provider == provider && u.ProviderUserId == providerUserId);
         }
 
+        public async Task<User?> GetUserByName(string username)
+        {
+            return await _dbSet
+                .Include(u => u.Contacts)
+                .FirstOrDefaultAsync(user => user.Name == username);
+        }
+
         public async Task<User> InsertUserAsync(UserRequired newUser)
         {
             var user = new User(newUser.Name, newUser.Email, newUser.Provider, newUser.Country, newUser.ProviderUserId, newUser.Avatar, newUser.Role);
