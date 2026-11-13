@@ -17,6 +17,57 @@ namespace Coffer.BusinessLogic.Services
         {
         }
 
+        /// <summary>
+        /// Stored image names are always "{entityId}_{timestamp}{ext}" (see SaveImageAsync / CopyImageAsync).
+        /// Used so an entity can only delete its own image file, never another entity's.
+        /// </summary>
+        public static bool IsImageOf(string? fileName, Guid ownerId)
+        {
+            return !string.IsNullOrWhiteSpace(fileName)
+                && IsPlainFileName(fileName)
+                && fileName.StartsWith($"{ownerId}_", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public async Task DeleteOwnedImageAsync(string? fileName, Guid ownerId, string folder)
+        {
+            if (!IsImageOf(fileName, ownerId))
+                return;
+
+            try
+            {
+                await DeleteImageAsync(fileName!, folder);
+            }
+            catch (Exception e)
+            {
+                // The database change is already committed; an orphaned file is harmless.
+                Console.WriteLine($"Failed to delete image '{fileName}': {e.GetType().Name}");
+            }
+        }
+
+        private static bool IsPlainFileName(string fileName)
+        {
+            return fileName.IndexOfAny(new[] { '/', '\\' }) < 0
+                && !Path.IsPathRooted(fileName)
+                && fileName != "."
+                && fileName != ".."
+                && fileName.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
+        }
+
+        /// <summary>
+        /// Resolves a file name inside <paramref name="folder"/>. Returns null for anything that is not a
+        /// plain file name or would resolve outside the folder (path traversal, absolute paths).
+        /// </summary>
+        private static string? ResolveInFolder(string fileName, string folder)
+        {
+            if (string.IsNullOrWhiteSpace(fileName) || !IsPlainFileName(fileName))
+                return null;
+
+            var root = Path.GetFullPath(folder).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            var full = Path.GetFullPath(Path.Combine(root, fileName));
+
+            return full.StartsWith(root, StringComparison.Ordinal) ? full : null;
+        }
+
         public async Task<string> CopyImageAsync(Guid id, string sourcePath, string destinationFolder)
         {
             if (string.IsNullOrWhiteSpace(sourcePath))
@@ -59,7 +110,7 @@ namespace Coffer.BusinessLogic.Services
             var matchingFiles = Directory.GetFiles(destinationFolder, $"{id}_*");
             foreach (var file in matchingFiles)
             {
-                await DeleteImageAsync(file, destinationFolder);
+                await DeleteImageAsync(Path.GetFileName(file), destinationFolder);
             }
 
             var fileName = $"{id}_{DateTime.UtcNow:yyyyMMddHHmmss}{extension}";
@@ -76,7 +127,8 @@ namespace Coffer.BusinessLogic.Services
 
         public Task DeleteImageAsync(string fileName, string folder)
         {
-            var filePath = Path.Combine(folder, fileName);
+            var filePath = ResolveInFolder(fileName, folder)
+                ?? throw new ArgumentException("Invalid image file name", nameof(fileName));
             if(Directory.Exists(folder))
             {
                 if (File.Exists(filePath))
@@ -95,20 +147,20 @@ namespace Coffer.BusinessLogic.Services
 
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
 
-            string filePath;
+            string? filePath;
             if (string.IsNullOrWhiteSpace(Path.GetExtension(fileName)))
             {
                 filePath = allowedExtensions
-                    .Select(ext => Path.Combine(folder, fileName + ext))
-                    .FirstOrDefault(File.Exists);
+                    .Select(ext => ResolveInFolder(fileName + ext, folder))
+                    .FirstOrDefault(path => path != null && File.Exists(path));
 
                 if (filePath == null)
                     throw new FileNotFoundException($"No image found for '{fileName}' with allowed extensions.", fileName);
             }
             else
             {
-                filePath = Path.Combine(folder, fileName);
-                if (!File.Exists(filePath))
+                filePath = ResolveInFolder(fileName, folder);
+                if (filePath == null || !File.Exists(filePath))
                     throw new FileNotFoundException("Image not found.", fileName);
             }
 
@@ -136,10 +188,9 @@ namespace Coffer.BusinessLogic.Services
                 Directory.CreateDirectory(destinationFolder);
 
             var matchingFiles = Directory.GetFiles(destinationFolder,  $"{id}_*");
-            Console.WriteLine(matchingFiles.ToString());
             foreach (var files in matchingFiles)
             {
-               await DeleteImageAsync(files, destinationFolder);
+               await DeleteImageAsync(Path.GetFileName(files), destinationFolder);
             }
 
             var fileName = $"{id}_{DateTime.UtcNow:yyyyMMddHHmmss}{Path.GetExtension(file.FileName)}";
@@ -161,7 +212,8 @@ namespace Coffer.BusinessLogic.Services
             if (!Directory.Exists(destinationFolder))
                 Directory.CreateDirectory(destinationFolder);
 
-            var filePath = Path.Combine(destinationFolder, fileName);
+            var filePath = ResolveInFolder(fileName, destinationFolder)
+                ?? throw new ArgumentException("Invalid image file name", nameof(fileName));
 
             await using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
             {

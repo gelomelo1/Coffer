@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   GoogleSignin,
   SignInResponse,
@@ -6,7 +5,6 @@ import {
 import * as AuthSession from "expo-auth-session";
 import { navigate } from "expo-router/build/global-state/routing";
 import { useEffect, useState } from "react";
-import { asyncstoragekeys } from "../const/async_storage_keys";
 import {
   githubClientId,
   redirectUriScheme,
@@ -15,6 +13,7 @@ import {
 import { endpoints } from "../const/endpoints";
 import { ROUTES } from "../const/navigation_params";
 import { postData } from "../utils/backend_access";
+import { setToken } from "../utils/token_store";
 
 const reidrectUri = AuthSession.makeRedirectUri({
   scheme: redirectUriScheme,
@@ -74,7 +73,7 @@ export function useGoogleAuth({
           onUserExistsChange?.(validation.exists);
 
           if (validation.exists && validation.token) {
-            await AsyncStorage.setItem(asyncstoragekeys.jwt, validation.token);
+            await setToken(validation.token);
             onSuccessfulLogin?.();
             navigate(ROUTES.ROOT);
           } else if (!validation.exists && validation.tempId) {
@@ -96,7 +95,7 @@ export function useGoogleAuth({
         { tempId: string; username: string; country: string },
         { token: string }
       >(endpoints.googleRegister, { tempId, username, country });
-      await AsyncStorage.setItem(asyncstoragekeys.jwt, jwtResp.token);
+      await setToken(jwtResp.token);
       onSuccessfulRegistration?.();
       navigate(ROUTES.ROOT);
     } catch (error) {
@@ -147,7 +146,7 @@ export function useGitHubAuth({
           onUserExistsChange?.(validation.exists);
 
           if (validation.exists && validation.token) {
-            await AsyncStorage.setItem(asyncstoragekeys.jwt, validation.token);
+            await setToken(validation.token);
             onSuccessfulLogin?.();
             navigate(ROUTES.ROOT);
           } else if (!validation.exists && validation.tempId) {
@@ -168,7 +167,7 @@ export function useGitHubAuth({
         { tempId: string; username: string; country: string },
         { token: string }
       >(endpoints.githubRegister, { tempId, username, country });
-      await AsyncStorage.setItem(asyncstoragekeys.jwt, jwtResp.token);
+      await setToken(jwtResp.token);
       onSuccessfulRegistration?.();
       navigate(ROUTES.ROOT);
     } catch (error) {

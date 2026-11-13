@@ -2,6 +2,7 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Coffer.ASPNET.Controllers.Generic;
+using Coffer.ASPNET.Extensions;
 using Coffer.BusinessLogic.Services.Interfaces;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
@@ -27,12 +28,14 @@ namespace Coffer.ASPNET.Controllers
     Path.Combine(Env.GetString("IMAGESTORE_PATH") ?? throw new InvalidOperationException("IMAGESTORE_PATH envionmental variable is not set"), "items");
         private readonly string pythonServiceUrl = Env.GetString("FASTAPI_URL") ?? throw new InvalidOperationException("FASTAPI_URL envionmental variable is not set");
         private readonly HttpClient _httpClient;
-        public CollectionsController(ICollectionsRepository collectionsRepository, IItemsRepository itemsRepository, IImageService imageService, IPermissionService<Guid, CollectionRequired> permissionService, HttpClient httpClient) : base(collectionsRepository, permissionService)
+        private readonly IWebHostEnvironment _environment;
+        public CollectionsController(ICollectionsRepository collectionsRepository, IItemsRepository itemsRepository, IImageService imageService, IPermissionService<Guid, CollectionRequired> permissionService, HttpClient httpClient, IWebHostEnvironment environment) : base(collectionsRepository, permissionService)
         {
             _collectionsRepository = collectionsRepository;
             _imageService = imageService;
             _httpClient = httpClient;
             _itemsRepository = itemsRepository;
+            _environment = environment;
         }
 
         [Authorize]
@@ -60,10 +63,7 @@ namespace Coffer.ASPNET.Controllers
                         return Forbid();
                     }
 
-                    if (!string.IsNullOrEmpty(collection.Image))
-                    {
-                        await _imageService.DeleteImageAsync(collection.Image, imageFolder);
-                    }
+                    await _imageService.DeleteOwnedImageAsync(collection.Image, collection.Id, imageFolder);
                     collection.Image = null;
                 }
                 else
@@ -84,7 +84,7 @@ namespace Coffer.ASPNET.Controllers
             catch(Exception e)
             {
                 Console.WriteLine(e.Message);
-                return BadRequest(e.Message);
+                return BadRequest(e is ArgumentException ? e.Message : "Failed to update cover image");
             }
         }
 
@@ -108,6 +108,10 @@ namespace Coffer.ASPNET.Controllers
         [HttpPost("ImageCheck/Test")]
         public async Task<IActionResult> UploadImageCheckTest(IFormFile file)
         {
+            // Debugging endpoint of the ML pipeline: not part of the app, not exposed outside development.
+            if (!_environment.IsDevelopment())
+                return NotFound();
+
             if (file == null || file.Length == 0)
                 return BadRequest("No file uploaded.");
 
@@ -215,13 +219,6 @@ namespace Coffer.ASPNET.Controllers
             }
         }
 
-        public record ItemImage(
-            byte[] Bytes,
-            string ContentType,
-            Guid id,
-            string fileName
-            );
-
         [Authorize]
         [HttpDelete("{id}")]
         public override async Task<ActionResult> Delete(Guid id)
@@ -240,69 +237,39 @@ namespace Coffer.ASPNET.Controllers
             var collection = await _collectionsRepository.GetCollectionByIdForDelete(id);
             if (collection == null) return NotFound();
 
-            (byte[] Bytes, string ContentType)? deletedCollectionImage = null;
-            if (collection.Image != null)
+            var items = (await _itemsRepository.GetItemsByCollectionAsync(id)).ToList();
+
+            using (var transaction = await _collectionsRepository.BeginTransactionAsync())
             {
-                deletedCollectionImage = await _imageService.GetImageAsync(collection.Image, imageFolder);
-            }
-
-            var items = await _itemsRepository.GetItemsByCollectionAsync(id);
-
-            List<ItemImage> deletedItemImages = new List<ItemImage>();
-            foreach(var item in items)
-            {
-                var deletedImage = await _imageService.GetImageAsync(item.Image, itemImageFolder);
-                deletedItemImages.Add(new ItemImage(deletedImage.Bytes, deletedImage.ContentType, item.Id, item.Image));
-            }
-
-            using var transaction = await _collectionsRepository.BeginTransactionAsync();
-            try
-            {
-                if (!string.IsNullOrEmpty(collection.Image))
-                {
-                    await _imageService.DeleteImageAsync(collection.Image, imageFolder);
-                }
-
-                foreach (var image in deletedItemImages)
-                {
-                    await _imageService.DeleteImageAsync(image.fileName, itemImageFolder);
-                }
-
-                await _repository.DeleteItemAsync(id);
-
-                var response = await _httpClient.DeleteAsync($"{pythonServiceUrl}/delete_collection_embeddings/{id}");
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    throw new Exception($"Failed to delete embedding via FastAPI: {errorContent}");
-                }
-
-                await transaction.CommitAsync();
-                return Ok();
-            }
-            catch(Exception ex)
-            {
-                await transaction.RollbackAsync();
                 try
                 {
-                    if(deletedCollectionImage.HasValue)
+                    await _repository.DeleteItemAsync(id);
+
+                    var response = await _httpClient.DeleteAsync($"{pythonServiceUrl}/delete_collection_embeddings/{id}");
+
+                    if (!await PythonServiceResponse.IsOkAsync(response))
                     {
-                        await _imageService.SaveImageAsync(deletedCollectionImage.Value.Bytes, id, imageFolder, collection.Image);
+                        throw new Exception("Failed to delete embedding via FastAPI");
                     }
 
-                    foreach(var image in deletedItemImages)
-                    {
-                        await _imageService.SaveImageAsync(image.Bytes, image.id, itemImageFolder, image.fileName);
-                    }
+                    await transaction.CommitAsync();
                 }
-                catch
+                catch (Exception ex)
                 {
-
+                    await transaction.RollbackAsync();
+                    Console.WriteLine($"Failed to delete collection {id}: {ex.Message}");
+                    return StatusCode(500, "Failed to delete item");
                 }
-
-                return StatusCode(500, $"Failed to delete item: {ex.Message}");
             }
+
+            // Files cannot take part in the DB transaction, so they are only removed after a successful commit.
+            await _imageService.DeleteOwnedImageAsync(collection.Image, collection.Id, imageFolder);
+            foreach (var item in items)
+            {
+                await _imageService.DeleteOwnedImageAsync(item.Image, item.Id, itemImageFolder);
+            }
+
+            return Ok();
         }
 
         [Authorize]

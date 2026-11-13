@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.20" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Coffer.ASPNET\Coffer.ASPNET.csproj" />
+    <ProjectReference Include="..\Coffer.BusinessLogic\Coffer.BusinessLogic.csproj" />
+    <ProjectReference Include="..\Coffer.DataAccess\Coffer.DataAccess.csproj" />
+    <ProjectReference Include="..\Coffer.Domain\Coffer.Domain.csproj" />
+    <ProjectReference Include="..\Coffer.Infrastructure\Coffer.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

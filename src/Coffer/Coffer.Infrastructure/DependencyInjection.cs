@@ -84,10 +84,12 @@ namespace Coffer.Infrastructure
             services.AddScoped<IPermissionService<Guid, CollectionRequired>, CollectionPermissionService>();
             services.AddScoped<IPermissionService<Guid, FollowRequired>, FollowPermissionService>();
             services.AddScoped<IPermissionService<Guid, ItemRequired>, ItemPermissionService>();
-            services.AddScoped<IPermissionService<Guid, OfferProvided>, AllowAllPermissionService<Guid, OfferProvided>>();
+            services.AddScoped<OfferPermissionService>();
+            services.AddScoped<IOfferPermissionService>(sp => sp.GetRequiredService<OfferPermissionService>());
+            services.AddScoped<IPermissionService<Guid, OfferRequired>>(sp => sp.GetRequiredService<OfferPermissionService>());
             services.AddScoped<IPermissionService<Guid, ReactionRequired>, ReactionPermissionService>();
-            services.AddScoped<IPermissionService<Guid, TradeReviewRequired>, AllowAllPermissionService<Guid, TradeReviewRequired>>();
-            services.AddScoped<IPermissionService<Guid, TradeRequired>, AllowAllPermissionService<Guid, TradeRequired>>();
+            services.AddScoped<IPermissionService<Guid, TradeReviewRequired>, TradeReviewPermissionService>();
+            services.AddScoped<IPermissionService<Guid, TradeRequired>, TradePermissionService>();
             services.AddScoped<IPermissionService<Guid, UserContactRequired>, UserContactPermissionService>();
             services.AddScoped<IPermissionService<Guid, UserRequired>, UserPermissionService>();
 

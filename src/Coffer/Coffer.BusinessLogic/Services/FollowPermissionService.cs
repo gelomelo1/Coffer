@@ -34,7 +34,7 @@ namespace Coffer.BusinessLogic.Services
                 return false;
             }
 
-            if (user.Role == UserRole.User)
+            if (user.Role == UserRole.Admin)
             {
                 return true;
             }
@@ -58,7 +58,7 @@ namespace Coffer.BusinessLogic.Services
                 return false;
             }
 
-            if (user.Role == UserRole.User || user.Role == UserRole.Moderator)
+            if (user.Role == UserRole.Admin || user.Role == UserRole.Moderator)
             {
                 return true;
             }
@@ -94,7 +94,7 @@ namespace Coffer.BusinessLogic.Services
                 return false;
             }
 
-            if (user.Role == UserRole.User)
+            if (user.Role == UserRole.Admin)
             {
                 return true;
             }

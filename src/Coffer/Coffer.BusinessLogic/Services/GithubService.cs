@@ -12,21 +12,30 @@ namespace Coffer.BusinessLogic.Services
 {
     public class GithubService : IGithubService
     {
+        // Public OAuth app id (also shipped in the mobile app); the secret must come from the environment.
+        private const string DefaultGithubClientId = "Ov23liTJaxWIA5j85V7M";
+
         public async Task<string> ExchangeCodeForToken(string code, string codeVerifier)
         {
+            var clientId = Environment.GetEnvironmentVariable("GITHUB_CLIENT_ID");
+            if (string.IsNullOrWhiteSpace(clientId))
+                clientId = DefaultGithubClientId;
+
+            var clientSecret = Environment.GetEnvironmentVariable("GITHUB_CLIENT_SECRET");
+            if (string.IsNullOrWhiteSpace(clientSecret))
+                throw new InvalidOperationException("GITHUB_CLIENT_SECRET envionmental variable is not set");
+
             using var client = new HttpClient();
             var content = new FormUrlEncodedContent(new Dictionary<string, string>
     {
-        {"client_id", "Ov23liTJaxWIA5j85V7M"},
-        {"client_secret", "b2359453f042db8ec7211c63275a44fa5190eeaf"},
+        {"client_id", clientId},
+        {"client_secret", clientSecret},
         {"code", code},
         {"code_verifier", codeVerifier }
     });
 
             client.DefaultRequestHeaders.Add("Accept", "application/json");
             var response = await client.PostAsync("https://github.com/login/oauth/access_token", content);
-            var raw = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"GitHub token exchange raw response: {raw}");
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
             return (result["access_token"]);

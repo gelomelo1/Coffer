@@ -1,6 +1,5 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
-import { asyncstoragekeys } from "../const/async_storage_keys";
+import { getToken } from "../utils/token_store";
 
 function useTokenStorage() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -11,7 +10,7 @@ function useTokenStorage() {
   useEffect(() => {
     const loadToken = async () => {
       try {
-        const storedToken = await AsyncStorage.getItem(asyncstoragekeys.jwt);
+        const storedToken = await getToken();
         setToken(storedToken);
         setIsLoaded(true);
       } catch (error) {

@@ -1,5 +1,6 @@
 ﻿using Coffer.Domain.Entities.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Coffer.DataAccess.Extensions;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 
@@ -26,6 +27,9 @@ namespace Coffer.ASPNET.Controllers.Generic
                                                                             [FromQuery] int? page = null,
                                                                             [FromQuery] int? pageSize = null)
         {
+            if (!DynamicQueryGuard.IsAllowed(filter) || !DynamicQueryGuard.IsAllowed(orderBy))
+                return BadRequest("Filtering or ordering on this field is not allowed");
+
             var items = await _repository.GetItemsAsync(filter, orderBy, page, pageSize);
             return Ok(items);
         }

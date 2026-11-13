@@ -21,7 +21,10 @@
               "scheme": "com.gelomelo.coffer"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ],
       "adaptiveIcon": {
@@ -62,7 +65,10 @@
       ],
       "expo-font",
       "react-native-navigation-mode",
-      ["expo-image-picker"]
+      [
+        "expo-image-picker"
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,

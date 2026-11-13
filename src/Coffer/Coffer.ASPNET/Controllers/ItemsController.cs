@@ -1,6 +1,7 @@
 ﻿using System.Net.Http;
 using System.Net.Http.Headers;
 using Coffer.ASPNET.Controllers.Generic;
+using Coffer.ASPNET.Extensions;
 using Coffer.BusinessLogic.Services.Interfaces;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
@@ -57,19 +58,8 @@ namespace Coffer.ASPNET.Controllers
 
             if (required.Quantity == 0)
             {
-                var item = await _repository.GetItemByIdAsync(id);
-                if (item == null) return NotFound();
-
-                bool isPermissionGranted = await _permissionService.CanDelete(UserId.Value, id);
-                if (!isPermissionGranted)
-                {
-                    return Forbid();
-                }
-
-                if (!string.IsNullOrEmpty(item.Image))
-                    await _imageService.DeleteImageAsync(item.Image, imageFolder);
-
-                return await base.Delete(id);
+                // Same as an explicit delete: DB row, vector embedding and image file go together.
+                return await Delete(id);
             }
             else
             {
@@ -158,14 +148,14 @@ namespace Coffer.ASPNET.Controllers
                         itemIds
                     );
 
-                    if (!response.IsSuccessStatusCode)
+                    if (!await PythonServiceResponse.IsOkAsync(response))
                     {
                         await transaction.RollbackAsync();
                         foreach (var image in savedImages)
                         {
                             await _imageService.DeleteImageAsync(image, imageFolder);
                         }
-                        return StatusCode((int)response.StatusCode, "Failed to notify Python service");
+                        return StatusCode(response.IsSuccessStatusCode ? StatusCodes.Status502BadGateway : (int)response.StatusCode, "Failed to notify Python service");
                     }
                 }
 
@@ -217,43 +207,33 @@ namespace Coffer.ASPNET.Controllers
             if (item == null)
                 return NotFound();
 
-            var deletedImage = await _imageService.GetImageAsync(item.Image, imageFolder);
-
-            using var transaction = await _itemsRepository.BeginTransactionAsync();
-            try
+            using (var transaction = await _itemsRepository.BeginTransactionAsync())
             {
-                if (!string.IsNullOrEmpty(item.Image))
+                try
                 {
-                    await _imageService.DeleteImageAsync(item.Image, imageFolder);
-                }
+                    await _repository.DeleteItemAsync(id);
 
-                await _repository.DeleteItemAsync(id);
+                    var response = await _httpClient.DeleteAsync($"{pythonServiceUrl}/delete_embeddings/{id}");
 
-                var response = await _httpClient.DeleteAsync($"{pythonServiceUrl}/delete_embeddings/{id}");
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    throw new Exception($"Failed to delete embedding via FastAPI: {errorContent}");
-                }
-
-                await transaction.CommitAsync();
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                    try
+                    if (!await PythonServiceResponse.IsOkAsync(response))
                     {
-                    await _imageService.SaveImageAsync(deletedImage.Bytes, id, imageFolder, item.Image);
-                    }
-                    catch
-                    {
-
+                        throw new Exception("Failed to delete embedding via FastAPI");
                     }
 
-                return StatusCode(500, $"Failed to delete item: {ex.Message}");
+                    await transaction.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    Console.WriteLine($"Failed to delete item {id}: {ex.Message}");
+                    return StatusCode(500, "Failed to delete item");
+                }
             }
+
+            // Files cannot take part in the DB transaction, so they are only removed after a successful commit.
+            await _imageService.DeleteOwnedImageAsync(item.Image, item.Id, imageFolder);
+
+            return Ok();
         }
     }
 }

@@ -4,3 +4,6 @@ __pycache__
 *.pyo
 *.pyd
 .git
+.env
+.env.*
+tests

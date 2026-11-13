@@ -1,9 +1,7 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { navigate } from "expo-router/build/global-state/routing";
 import { useEffect } from "react";
 import { LoadingScreen } from "../components/custom_ui/loading";
-import { asyncstoragekeys } from "../const/async_storage_keys";
 import { endpoints } from "../const/endpoints";
 import { pageParams, ROUTES } from "../const/navigation_params";
 import { useCollectionTypeStore } from "../hooks/collection_type_store";
@@ -12,6 +10,7 @@ import { useUserStore } from "../hooks/user_store";
 import CollectionType from "../types/entities/collectiontype";
 import User from "../types/entities/user";
 import { getData, getSingleData } from "../utils/backend_access";
+import { getToken } from "../utils/token_store";
 
 export default function Index() {
   const resetNavigate = useResetNavigation();
@@ -20,11 +19,10 @@ export default function Index() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = await AsyncStorage.getItem(asyncstoragekeys.jwt);
+      const token = await getToken();
       if (!token) {
         navigate(ROUTES.LOGIN);
       } else {
-        console.log(token);
         try {
           const currentUser = await getSingleData<User>(
             endpoints.currentUser,

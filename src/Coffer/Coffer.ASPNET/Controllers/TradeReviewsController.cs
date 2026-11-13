@@ -2,6 +2,7 @@
 using Coffer.BusinessLogic.Services.Interfaces;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Coffer.ASPNET.Controllers
@@ -15,6 +16,7 @@ namespace Coffer.ASPNET.Controllers
             _tradeReviewRepository = repository;
         }
 
+        [Authorize]
         [HttpGet("Trade/{tradeId}")]
         public async Task<ActionResult<TradeReviewPack>> GetTradeReviewByTrade(Guid tradeId)
         {
@@ -22,6 +24,7 @@ namespace Coffer.ASPNET.Controllers
             return Ok(result);
         }
 
+        [Authorize]
         [HttpGet("User/{userId}")]
         public async Task<ActionResult<IEnumerable<TradeReviewPack>>> GetTradeReviewsForUser(Guid userId)
         {

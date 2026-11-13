@@ -1,4 +1,5 @@
 ﻿using Coffer.DataAccess.Repositories;
+using Coffer.DataAccess.Extensions;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -32,6 +33,9 @@ namespace Coffer.ASPNET.Controllers
                                                                             [FromQuery] int? page = null,
                                                                             [FromQuery] int? pageSize = null)
         {
+            if (!DynamicQueryGuard.IsAllowed(filter) || !DynamicQueryGuard.IsAllowed(orderBy))
+                return BadRequest("Filtering or ordering on this field is not allowed");
+
 
             if(!UserId.HasValue)
             {

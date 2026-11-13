@@ -1,6 +1,8 @@
 from pathlib import Path
+import hmac
 import uuid
-from fastapi import FastAPI, File, UploadFile, Body
+from fastapi import FastAPI, File, Request, UploadFile, Body
+from fastapi.responses import JSONResponse
 import os
 from dotenv import load_dotenv
 from fastapi.concurrency import asynccontextmanager
@@ -40,6 +42,26 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+INTERNAL_API_KEY_HEADER = "X-Internal-Api-Key"
+
+
+@app.middleware("http")
+async def require_internal_api_key(request: Request, call_next):
+    """Only the ASP.NET backend may call this service. When INTERNAL_API_KEY is set (same value in the
+    backend's environment), every request must carry it; when it is not set the previous behaviour stays."""
+    expected = os.getenv("INTERNAL_API_KEY")
+    if expected:
+        provided = request.headers.get(INTERNAL_API_KEY_HEADER, "")
+        if not hmac.compare_digest(provided.encode(), expected.encode()):
+            return JSONResponse(status_code=401, content={"status": "error", "message": "unauthorized"})
+    return await call_next(request)
+
+
+def error_response(e: Exception) -> JSONResponse:
+    """Failures of state-changing calls must not be reported as HTTP 200: the backend commits or rolls
+    back its database transaction based on this response."""
+    return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
+
 
 @app.get("/hello")
 async def say_hello():
@@ -70,9 +92,10 @@ async def image_check(file: UploadFile = File(...)):
     
 @app.post("/image_check/{collection_type_id}/{collection_id}")
 async def image_check(
-    collection_type_id: str,
-    collection_id: str,
+    collection_type_id: int,
+    collection_id: UUID,
     file: UploadFile = File(...)):
+    collection_id = str(collection_id)
     try:
         object_detection_model, similarity_model = initialize_models(f"{collection_type_id}_detection.pt", find_file_containing(os.getenv("MODELS_PATH"), f"{collection_type_id}_similarity"))
 
@@ -99,9 +122,10 @@ async def image_check(
 
 @app.post("/save_embeddings/{collection_id}")        
 async def save_embeddings(
-    collection_id: str,
+    collection_id: UUID,
     items: List[ItemIds] = Body(...)
 ):
+    collection_id = str(collection_id)
 
     try:
 
@@ -114,28 +138,30 @@ async def save_embeddings(
 
         return {"status": "ok"}
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        return error_response(e)
     
 @app.delete("/delete_embeddings/{item_id}")        
-async def save_embeddings(
-    item_id: str,
+async def delete_embeddings(
+    item_id: UUID,
 ):
+    item_id = str(item_id)
     try:
 
         delete_embedding_from_vectordb(app.state.collection, item_id)
 
         return {"status": "ok"}
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        return error_response(e)
     
 @app.delete("/delete_collection_embeddings/{collection_id}")        
-async def save_embeddings(
-    collection_id: str,
+async def delete_collection_embeddings(
+    collection_id: UUID,
 ):
+    collection_id = str(collection_id)
     try:
 
         delete_embeddings_from_vectordb(app.state.collection, collection_id)
 
         return {"status": "ok"}
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        return error_response(e)

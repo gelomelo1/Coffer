@@ -1,6 +1,5 @@
 import SettingsButton from "@/src/components/settings/settings_button";
 import SettingsUserCard from "@/src/components/settings/settings_user_card";
-import { asyncstoragekeys } from "@/src/const/async_storage_keys";
 import { webGoogleClientId } from "@/src/const/authAccessConfiguration";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useResetNavigation } from "@/src/hooks/navigation";
@@ -9,11 +8,11 @@ import { customTheme } from "@/src/theme/theme";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { navigate } from "expo-router/build/global-state/routing";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { removeToken } from "@/src/utils/token_store";
 
 function Settings() {
   GoogleSignin.configure({
@@ -38,7 +37,7 @@ function Settings() {
   const handleLogout = async () => {
     try {
       if (user?.provider === "google") await signOut();
-      await AsyncStorage.removeItem(asyncstoragekeys.jwt);
+      await removeToken();
     } catch (e) {
       console.log(e);
     }

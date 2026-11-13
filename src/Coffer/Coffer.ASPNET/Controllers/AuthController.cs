@@ -1,5 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Coffer.ASPNET.Extensions;
 using Coffer.BusinessLogic.Services.Interfaces;
 using Coffer.DataAccess.Repositories;
 using Coffer.DataAccess.Repositories.Interfaces;
@@ -37,9 +38,7 @@ namespace Coffer.ASPNET.Controllers
         {
             try
             {
-                var payload = await GoogleJsonWebSignature.ValidateAsync(req.IdToken);
-
-                Console.WriteLine(payload);
+                var payload = await GoogleJsonWebSignature.ValidateAsync(req.IdToken, GoogleValidationSettings());
 
                 var user = await _usersRepository.GetUserByLogin("google", payload.Subject);
 
@@ -52,11 +51,16 @@ namespace Coffer.ASPNET.Controllers
                 var tempId = _tempTokenService.StoreToken(req.IdToken);
                 return Ok(new { exists = false, tempId = tempId });
             }
-            catch(Exception e)
+            catch(Exception)
             {
-                return BadRequest(e.Message);
+                return BadRequest("Invalid Google token");
             }
         }
+
+        private static GoogleJsonWebSignature.ValidationSettings GoogleValidationSettings() => new()
+        {
+            Audience = AuthSettings.GoogleAudiences()
+        };
 
         public record RegisterRequest(string TempId, string Username, string Country);
         [HttpPost("google/register")]
@@ -70,7 +74,7 @@ namespace Coffer.ASPNET.Controllers
                     return BadRequest("Invalid registration session");
                 }
 
-                var payload = await GoogleJsonWebSignature.ValidateAsync(accessToken);
+                var payload = await GoogleJsonWebSignature.ValidateAsync(accessToken, GoogleValidationSettings());
 
                 var existingUser = await _usersRepository.GetUserByLogin("google", payload.Subject);
                 if (existingUser != null)
@@ -86,9 +90,9 @@ namespace Coffer.ASPNET.Controllers
 
                 return Ok(new { token = jwt });
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                return BadRequest(e.Message);
+                return BadRequest("Registration failed");
             }
         }
 
@@ -114,7 +118,7 @@ namespace Coffer.ASPNET.Controllers
             }
             catch(Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine($"GitHub login failed: {e.GetType().Name}");
                 return Unauthorized();
             }
         }
@@ -145,9 +149,9 @@ namespace Coffer.ASPNET.Controllers
 
                 return Ok(new { token = jwt });
             }
-            catch(Exception e)
+            catch(Exception)
             {
-                return BadRequest(e.Message);
+                return BadRequest("Registration failed");
             }
         }
 
@@ -156,8 +160,6 @@ namespace Coffer.ASPNET.Controllers
         public async Task<ActionResult<User>> GetCurrentUser()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            Console.WriteLine($"Claim: {userIdClaim}");
 
             if (userIdClaim == null)
                 return Unauthorized();

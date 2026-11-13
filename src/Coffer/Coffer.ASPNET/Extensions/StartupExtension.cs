@@ -8,7 +8,10 @@ namespace Coffer.ASPNET.Extensions
         public static WebApplicationBuilder SetupServices(this WebApplicationBuilder builder)
         {
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers(options =>
+            {
+                options.Filters.Add<SensitiveDataRedactionFilter>();
+            });
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -53,6 +56,13 @@ namespace Coffer.ASPNET.Extensions
                 : "Environment file was not loaded.");
 
             builder.Services.AddInfrastructure();
+
+            // Optional shared secret for backend -> Python service calls (set INTERNAL_API_KEY in the .env
+            // file of both services to enable it). Only added to requests that go to FASTAPI_URL.
+            builder.Services.ConfigureHttpClientDefaults(http =>
+                http.AddHttpMessageHandler(() => new InternalApiKeyHandler(
+                    Environment.GetEnvironmentVariable("FASTAPI_URL"),
+                    Environment.GetEnvironmentVariable("INTERNAL_API_KEY"))));
 
             return builder;
         }

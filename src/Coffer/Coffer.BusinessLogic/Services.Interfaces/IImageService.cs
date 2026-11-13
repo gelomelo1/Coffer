@@ -15,5 +15,6 @@ namespace Coffer.BusinessLogic.Services.Interfaces
         Task<string> SaveImageAsync(byte[] image, Guid id, string destinationFolder, string fileName);
         Task<(byte[] Bytes, string ContentType)> GetImageAsync(string fileName, string folder);
         Task DeleteImageAsync(string fileName, string folder);
+        Task DeleteOwnedImageAsync(string? fileName, Guid ownerId, string folder);
     }
 }

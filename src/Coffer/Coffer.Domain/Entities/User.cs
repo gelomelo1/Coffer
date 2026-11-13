@@ -74,6 +74,8 @@ namespace Coffer.Domain.Entities
 
     public class User: UserProvided
     {
+        // OAuth subject id: used for login lookups only, never sent to API clients.
+        [JsonIgnore]
         public string ProviderUserId { get; set; }
 
         public User() { }

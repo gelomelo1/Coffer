@@ -28,3 +28,13 @@ Coffer/Coffer.Manager
 
 .vs
 .vscode
+
+# secrets: never bake environment files into images
+
+**/.env
+**/.env.*
+**/UserTokens.txt
+
+# tests are not needed in images
+
+Coffer/Coffer.Tests
