@@ -15,6 +15,8 @@ interface User {
   provider: string;
   summary?: string;
   contacts: UserContact[];
+  /** 0 = user, 1 = moderator, 2 = admin */
+  role?: number;
 }
 
 export default User;

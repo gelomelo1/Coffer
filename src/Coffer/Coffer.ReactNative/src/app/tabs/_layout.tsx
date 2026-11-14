@@ -83,19 +83,19 @@ function CollectionLayout() {
           }}
         />
         <Tabs.Screen
-          name="barter"
+          name="market"
           options={() => {
             return {
-              title: "Barter",
+              title: "Market",
               tabBarIcon: () => (
                 <AnimatedTabIcon
-                  focused={pathname === `/${ROUTES.TABS.BARTER}`}
-                  title="Barter"
-                  icon={{ library: "fontawesome", name: "exchange" }}
+                  focused={pathname === `/${ROUTES.TABS.MARKET}`}
+                  title="Market"
+                  icon={{ library: "materialcommunityicons", name: "storefront" }}
                   navigate={() => {
                     navigate({
-                      pathname: ROUTES.TABS.BARTER,
-                      params: pageParams.barter,
+                      pathname: ROUTES.TABS.MARKET,
+                      params: pageParams.market,
                     });
                   }}
                 />

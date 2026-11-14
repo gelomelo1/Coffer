@@ -25,6 +25,7 @@ namespace Coffer.Tests
             _connection.Open();
             Options = new DbContextOptionsBuilder<CofferDbContext>()
                 .UseSqlite(_connection)
+                .UseSnakeCaseNamingConvention()
                 .Options;
             Context = new CofferDbContext(Options);
             Context.Database.EnsureCreated();
@@ -37,13 +38,16 @@ namespace Coffer.Tests
         public CollectionsRepository Collections => new(Context, new CollectionIncludeProvider());
         public ItemsRepository Items => new(Context, new ItemIncludeProvider());
         public FollowsRepository Follows => new(Context);
-        public TradesRepository Trades => new(Context, new TradeIncludeProvider());
-        public OffersRepository Offers => new(Context, new OfferIncludeProvider());
-        public TradeReviewsRepository TradeReviews => new(Context, new TradeReviewIncludeProvider());
 
-        public User AddUser(string name, UserRole role = UserRole.User)
+        /// <summary>Adds a user; by default they already accepted the current marketplace terms.</summary>
+        public User AddUser(string name, UserRole role = UserRole.User, bool acceptMarketTerms = true)
         {
             var user = new User(name, $"{name}@example.com", "google", "HU", $"sub-{name}", null, role);
+            if (acceptMarketTerms)
+            {
+                user.MarketTermsVersion = Coffer.BusinessLogic.Marketplace.Terms.MarketTerms.CurrentVersion;
+                user.MarketTermsAcceptedAt = DateTime.UtcNow;
+            }
             Context.Users.Add(user);
             Context.SaveChanges();
             return user;
@@ -75,34 +79,6 @@ namespace Coffer.Tests
                 Context.SaveChanges();
             }
             return item;
-        }
-
-        public TradeProvided AddTrade(User owner, params ItemProvided[] items)
-        {
-            var trade = new TradeProvided(owner.Id, "title", "description");
-            foreach (var item in items)
-                trade.TradeItems.Add(new TradeItem { ItemId = item.Id });
-            Context.Trades.Add(trade);
-            Context.SaveChanges();
-            return trade;
-        }
-
-        public OfferProvided AddOffer(TradeProvided trade, User offerer, string status = "pending", params ItemProvided[] items)
-        {
-            var offer = new OfferProvided(trade.Id, offerer.Id, null, status);
-            foreach (var item in items)
-                offer.OfferItems.Add(new OfferItem { ItemId = item.Id });
-            Context.Offers.Add(offer);
-            Context.SaveChanges();
-            return offer;
-        }
-
-        public TradeReviewProvided AddReview(TradeProvided trade, User reviewer, User reviewee)
-        {
-            var review = new TradeReviewProvided(trade.Id, reviewer.Id, reviewee.Id, true, "ok");
-            Context.TradeReviews.Add(review);
-            Context.SaveChanges();
-            return review;
         }
 
         public void Dispose()

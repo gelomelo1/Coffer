@@ -102,7 +102,7 @@ const SettingsUserCard = ({
       >
         <CustomText style={{ fontSize: 12, fontFamily: "VendSansItalic" }}>
           {cardIndex === 0
-            ? "Swipe to see your barter contact info"
+            ? "Swipe to see your marketplace contact info"
             : "Swipe to see your general info"}
         </CustomText>
 

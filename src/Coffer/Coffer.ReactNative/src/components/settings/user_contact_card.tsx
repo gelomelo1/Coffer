@@ -23,7 +23,7 @@ import {
 } from "react-native";
 import { Avatar, Overlay } from "react-native-elements";
 import CustomText from "../custom_ui/custom_text";
-import TradeReviewsRating from "../otheruser/trade_review_rating";
+import ReputationSummary from "../market/review/reputation_summary";
 import AddContactOverlay from "./user_settings/add_contact_overlay";
 
 interface UserContactCardProps {
@@ -439,7 +439,7 @@ function UserContactCard({
               marginLeft: 15,
             }}
           >
-            <TradeReviewsRating userId={user.id} />
+            <ReputationSummary userId={user.id} userName={user.name} isMe={!otherUser} />
           </View>
         </View>
       </View>
@@ -484,8 +484,8 @@ function UserContactCard({
         <View style={{ padding: 10, minWidth: 200 }}>
           <CustomText>
             {otherUser
-              ? "This is the user’s contact card, showing additional ways you can reach them outside of private chat if that’s more convenient. Please note, this does not replace the private chat—barters must still be completed there in order to finalize the exchange and leave reviews."
-              : "Here you can set up your barter contact card with details on how other users can reach you outside of private chat if that’s more convenient. This is an addition to—not a replacement for—the private chat, which is required to complete a barter and receive reviews from the other party. If you don’t use the barter feature, you can safely ignore this section."}
+              ? "This is the user’s contact card, showing additional ways you can reach them outside of private chat if that’s more convenient. Please note, this does not replace the in-app marketplace chat—deals must still be completed there (PIN handoff or tracked shipping) before either of you can leave a review."
+              : "Here you can set up your marketplace contact card with details on how other users can reach you outside of private chat if that’s more convenient. This is an addition to—not a replacement for—the private chat, which is required to complete a deal and receive reviews from the other party. If you don’t use the marketplace, you can safely ignore this section."}
           </CustomText>
         </View>
       </Overlay>

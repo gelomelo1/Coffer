@@ -4,6 +4,7 @@ import { webGoogleClientId } from "@/src/const/authAccessConfiguration";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useResetNavigation } from "@/src/hooks/navigation";
 import { useUserStore } from "@/src/hooks/user_store";
+import { useAgainstMeUnseen } from "@/src/hooks/market_api";
 import { customTheme } from "@/src/theme/theme";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
@@ -33,6 +34,7 @@ function Settings() {
   const resetNavigate = useResetNavigation();
 
   const { user, setUser } = useUserStore();
+  const { data: unseenReports = 0 } = useAgainstMeUnseen();
 
   const handleLogout = async () => {
     try {
@@ -87,6 +89,22 @@ function Settings() {
             navigate({
               pathname: ROUTES.SETTINGS.USER,
               params: pageParams.user,
+            })
+          }
+        />
+        <SettingsButton
+          title={unseenReports > 0 ? `Reports (${unseenReports} new)` : "Reports"}
+          icon={
+            <MaterialIcons
+              name="flag"
+              size={20}
+              color={unseenReports > 0 ? "red" : customTheme.colors.primary}
+            />
+          }
+          onPress={() =>
+            navigate({
+              pathname: ROUTES.SETTINGS.REPORTS,
+              params: pageParams.reports,
             })
           }
         />

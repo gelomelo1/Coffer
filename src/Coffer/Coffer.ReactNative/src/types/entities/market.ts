@@ -1,0 +1,341 @@
+// Mirrors the marketplace DTOs of the backend (Coffer.BusinessLogic/Marketplace). Enums travel as snake_case strings.
+
+export type ListingKind = "sell" | "exchange" | "wanted";
+export type ListingCondition = "new" | "like_new" | "good" | "fair" | "poor";
+export type ListingStatus = "active" | "pending_pickup" | "pending_shipment" | "sold" | "archived" | "removed";
+export type DeliveryMethod = "local_pickup" | "shipping";
+export type ParticipantRole = "owner" | "inquirer";
+export type MessageKind = "text" | "price_offer" | "meetup_proposal" | "system";
+export type ProposalStatus = "pending" | "accepted" | "declined" | "withdrawn";
+export type DealStatus =
+  | "proposed"
+  | "awaiting_handoff"
+  | "awaiting_shipment"
+  | "shipped"
+  | "completed"
+  | "disputed"
+  | "cancelled";
+export type CompletionReason = "handoff_verified" | "receipt_confirmed" | "auto_completed" | "moderator";
+export type ReviewerRole = "buyer" | "seller";
+export type ReviewReasonTag =
+  | "item_not_as_described"
+  | "late_to_meetup"
+  | "no_show"
+  | "poor_communication"
+  | "damaged_in_shipping"
+  | "slow_shipping"
+  | "payment_problem"
+  | "rude_behavior"
+  | "other";
+export type ReportTargetType = "listing" | "message" | "review";
+export type ReportRule =
+  | "illegal_item"
+  | "counterfeit"
+  | "scam_or_fraud"
+  | "harassment"
+  | "personal_data"
+  | "spam"
+  | "fake_review"
+  | "off_topic"
+  | "other";
+export type ReportStatus = "open" | "resolved";
+export type ReportDecision = "removed" | "no_violation";
+export type DealAction =
+  | "accept"
+  | "decline"
+  | "cancel"
+  | "show_pin"
+  | "enter_pin"
+  | "ship"
+  | "confirm_receipt"
+  | "dispute"
+  | "review";
+export type ListingSort = "nearest" | "price_asc" | "price_desc" | "newest";
+
+export interface UserSummary {
+  id: string;
+  name: string;
+  avatar?: string | null;
+}
+
+export interface City {
+  id: number;
+  name: string;
+  admin1?: string | null;
+  countryCode: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface ListingLine {
+  name: string;
+  quantity: number;
+}
+
+export interface ListingImage {
+  id: string;
+  fileName: string;
+}
+
+export interface ListingSummary {
+  id: string;
+  kind: ListingKind;
+  status: ListingStatus;
+  title: string;
+  priceCents?: number | null;
+  currency: string;
+  exchangeFor?: string | null;
+  condition?: ListingCondition | null;
+  collectionTypeId: number;
+  collectionTypeName: string;
+  collectionTypeColor: string;
+  cityId: number;
+  cityName: string;
+  distanceKm?: number | null;
+  firstImage?: string | null;
+  allowsLocalPickup: boolean;
+  allowsShipping: boolean;
+  privateSellerDeclared: boolean;
+  createdAt: string;
+  owner: UserSummary;
+}
+
+export interface ListingDetail {
+  id: string;
+  kind: ListingKind;
+  status: ListingStatus;
+  title: string;
+  description?: string | null;
+  priceCents?: number | null;
+  currency: string;
+  exchangeFor?: string | null;
+  condition?: ListingCondition | null;
+  collectionTypeId: number;
+  collectionTypeName: string;
+  collectionTypeColor: string;
+  city: City;
+  allowsLocalPickup: boolean;
+  allowsShipping: boolean;
+  privateSellerDeclared: boolean;
+  lines: ListingLine[];
+  images: ListingImage[];
+  createdAt: string;
+  updatedAt: string;
+  owner: UserSummary;
+  isMine: boolean;
+  myConversationId?: string | null;
+  openDealId?: string | null;
+}
+
+export interface ListingInput {
+  kind: ListingKind;
+  collectionTypeId: number;
+  title: string;
+  description?: string | null;
+  priceCents?: number | null;
+  exchangeFor?: string | null;
+  condition?: ListingCondition | null;
+  cityId: number;
+  allowsLocalPickup: boolean;
+  allowsShipping: boolean;
+  lines: ListingLine[];
+  keepImageIds?: string[] | null;
+  privateSellerDeclared: boolean;
+}
+
+export interface ListingFilters {
+  kind?: ListingKind;
+  collectionTypeId?: number;
+  city?: City;
+  radiusKm?: number;
+  minPriceCents?: number;
+  maxPriceCents?: number;
+  condition?: ListingCondition;
+  delivery?: DeliveryMethod;
+  sort: ListingSort;
+}
+
+export interface SubjectSummary {
+  id: string;
+  type: string;
+  title: string;
+  image?: string | null;
+  status?: string | null;
+  kind?: string | null;
+  priceCents?: number | null;
+}
+
+export interface Message {
+  id: string;
+  senderId?: string | null;
+  kind: MessageKind;
+  body: string;
+  amountCents?: number | null;
+  at?: string | null;
+  place?: string | null;
+  status?: ProposalStatus | null;
+  isRemoved: boolean;
+  createdAt: string;
+}
+
+export interface Conversation {
+  id: string;
+  subject: SubjectSummary;
+  myRole: ParticipantRole;
+  other: UserSummary;
+  agreedPriceCents?: number | null;
+  openDealId?: string | null;
+  lastMessageAt: string;
+}
+
+export interface ConversationSummary {
+  id: string;
+  subject: SubjectSummary;
+  myRole: ParticipantRole;
+  other: UserSummary;
+  lastMessagePreview?: string | null;
+  lastMessageAt: string;
+  unreadCount: number;
+}
+
+export interface PostMessageInput {
+  kind: MessageKind;
+  body?: string | null;
+  amountCents?: number | null;
+  at?: string | null;
+  place?: string | null;
+}
+
+export interface Carrier {
+  code: string;
+  label: string;
+}
+
+export interface Deal {
+  id: string;
+  listingId: string;
+  listingTitle: string;
+  listingImage?: string | null;
+  listingKind: ListingKind;
+  conversationId: string;
+  seller: UserSummary;
+  buyer: UserSummary;
+  myRole: ReviewerRole;
+  method: DeliveryMethod;
+  status: DealStatus;
+  agreedPriceCents?: number | null;
+  meetupAt?: string | null;
+  meetupPlace?: string | null;
+  handoffPin?: string | null;
+  handoffQr?: string | null;
+  pinLockedUntil?: string | null;
+  carrier?: string | null;
+  carrierLabel?: string | null;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
+  shipmentPhoto?: string | null;
+  shippedAt?: string | null;
+  autoCompleteAt?: string | null;
+  receiptPhoto?: string | null;
+  receivedAt?: string | null;
+  completedAt?: string | null;
+  completionReason?: CompletionReason | null;
+  reviewDeadline?: string | null;
+  disputeReason?: string | null;
+  disputedAt?: string | null;
+  cancelReason?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  nextActions: DealAction[];
+}
+
+export interface Review {
+  id: string;
+  dealId: string;
+  listingTitle: string;
+  reviewer?: UserSummary | null;
+  reviewee: UserSummary;
+  reviewerRole: ReviewerRole;
+  stars: number;
+  reasonTag?: ReviewReasonTag | null;
+  comment?: string | null;
+  createdAt: string;
+  publishedAt?: string | null;
+  reply?: string | null;
+  repliedAt?: string | null;
+  isFrozen: boolean;
+}
+
+export interface ReviewInput {
+  stars: number;
+  reasonTag?: ReviewReasonTag | null;
+  comment?: string | null;
+}
+
+export interface DealReviews {
+  mine?: Review | null;
+  theirs?: Review | null;
+  theyHaveSubmitted: boolean;
+  canReview: boolean;
+  deadline?: string | null;
+}
+
+export interface Reputation {
+  average?: number | null;
+  count: number;
+  completedDeals: number;
+  responseRate?: number | null;
+  typicalResponseMinutes?: number | null;
+}
+
+export interface ReportRuleInfo {
+  rule: ReportRule;
+  label: string;
+  description: string;
+  appliesTo: ReportTargetType[];
+}
+
+export interface CreateReportInput {
+  targetType: ReportTargetType;
+  targetId: string;
+  rule: ReportRule;
+  reason: string;
+}
+
+export interface MyReport {
+  id: string;
+  targetType: ReportTargetType;
+  targetId: string;
+  listingId?: string | null;
+  conversationId?: string | null;
+  targetSummary: string;
+  rule: ReportRule;
+  reason: string;
+  status: ReportStatus;
+  decision?: ReportDecision | null;
+  statement?: string | null;
+  createdAt: string;
+  resolvedAt?: string | null;
+}
+
+/** Statement of reasons for my removed content. Never says who reported it. */
+export interface ModerationActionItem {
+  id: string;
+  targetType: ReportTargetType;
+  targetId: string;
+  listingId?: string | null;
+  conversationId?: string | null;
+  rule: ReportRule;
+  ruleLabel: string;
+  statement: string;
+  contentExcerpt: string;
+  createdAt: string;
+  seen: boolean;
+}
+
+export interface TermsStatus {
+  currentVersion: string;
+  acceptedVersion?: string | null;
+  accepted: boolean;
+  acceptedAt?: string | null;
+}

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -54,6 +54,10 @@ namespace Coffer.Domain.Entities
         public string? Avatar { get; set; }
 
         public string? Summary { get; set; }
+
+        /// <summary>Marketplace terms version the user accepted (null = not accepted).</summary>
+        public string? MarketTermsVersion { get; set; }
+        public DateTime? MarketTermsAcceptedAt { get; set; }
 
         public ICollection<UserContactProvided> Contacts { get; set; } = new List<UserContactProvided>();
 

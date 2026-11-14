@@ -11,6 +11,7 @@ namespace Coffer.ASPNET.Extensions
             builder.Services.AddControllers(options =>
             {
                 options.Filters.Add<SensitiveDataRedactionFilter>();
+                options.Filters.Add<MarketplaceExceptionFilter>();
             });
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();

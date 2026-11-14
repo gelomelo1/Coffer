@@ -9,22 +9,17 @@ import Attribute from "../types/entities/attribute";
 import { Item, ItemProvided } from "../types/entities/item";
 import ItemAttribute from "../types/entities/item_attribute";
 import ItemOptions from "../types/entities/itemoptions";
-import { Offer } from "../types/entities/offer";
 import { Reaction } from "../types/entities/reaction";
-import { Trade } from "../types/entities/trade";
-import TradeReivewPack from "../types/entities/trade_review_pack";
 import AttributeValue, {
   AttributeDataTypes,
   AttributeTypes,
 } from "../types/helpers/attribute_data";
-import { TradeStatus } from "../types/helpers/barter_status";
 import {
   ImagePickerResult,
   ImageSource,
 } from "../types/helpers/image_picker_result";
 import { QuerySortData } from "../types/helpers/query_data";
 import RarityValue from "../types/helpers/rarity_value";
-import ReviewSide from "../types/helpers/review_side";
 
 export function getItemAttributeValue(
   itemAttribute: ItemAttribute,
@@ -265,107 +260,6 @@ export function getRarityVariantByValue(
   const clampedRarity = Math.min(Math.max(roundedRarity, 1), 4);
 
   return rarityVariants[clampedRarity];
-}
-
-export function getTradeStatus(offers: Offer[]): TradeStatus {
-  for (const offer of offers) {
-    if (offer.status === "traded") return "traded";
-    if (offer.status === "accepted") return "offerAccepted";
-    if (offer.status === "revertByCreator") return "offerRevertByCreator";
-    if (offer.status === "revertByOfferer") return "offerRevertByOfferer";
-  }
-
-  return "open";
-}
-
-export function isItemAvailableForTrade(
-  item: ItemProvided,
-  trades: Trade[],
-  offers: Offer[],
-  excludeTrade?: Trade,
-  excludeOffer?: Offer,
-) {
-  if (item.quantity <= 1) return false;
-
-  let itemsInTradeCount = 0;
-
-  trades.forEach((trade) => {
-    if (
-      trade !== excludeTrade &&
-      getTradeStatus(trade.offers) !== "traded" &&
-      trade.tradeItems.find((tradeItem) => tradeItem.itemId === item.id)
-    ) {
-      itemsInTradeCount++;
-    }
-  });
-
-  offers.forEach((offer) => {
-    if (
-      offer !== excludeOffer &&
-      offer.status !== "traded" &&
-      offer.offerItems.find((offerItem) => offerItem.itemId === item.id)
-    ) {
-      itemsInTradeCount++;
-    }
-  });
-
-  return item.quantity - itemsInTradeCount > 1;
-}
-
-export function getTradeReviewsRating(
-  type: "like" | "dislike",
-  tradeReviews: TradeReivewPack[],
-  userId: string,
-) {
-  let count = 0;
-
-  for (const pack of tradeReviews) {
-    if (pack.trader?.revieweeId === userId) {
-      const isLike = pack.trader.rating === true;
-      if ((type === "like" && isLike) || (type === "dislike" && !isLike)) {
-        count++;
-      }
-    }
-
-    if (pack.offerer?.revieweeId === userId) {
-      const isLike = pack.offerer.rating === true;
-      if ((type === "like" && isLike) || (type === "dislike" && !isLike)) {
-        count++;
-      }
-    }
-  }
-
-  return count;
-}
-
-export function getCurrentUserReview(
-  tradeReviews: TradeReivewPack,
-  userId: string,
-): ReviewSide | null {
-  if (tradeReviews.trader?.reviewerId === userId) {
-    return { side: "trader", review: tradeReviews.trader };
-  }
-
-  if (tradeReviews.offerer?.reviewerId === userId) {
-    return { side: "offerer", review: tradeReviews.offerer };
-  }
-
-  return null;
-}
-
-export function getCurrentUserReviewer(
-  tradeReviews: TradeReivewPack,
-  userId: string,
-): ReviewSide | null {
-  if (tradeReviews.offerer?.reviewerId !== userId && tradeReviews.offerer) {
-    return { side: "offerer", review: tradeReviews.offerer };
-  }
-
-  if (tradeReviews.trader?.reviewerId !== userId && tradeReviews.trader) {
-    return { side: "trader", review: tradeReviews.trader };
-  }
-
-  return null;
 }
 
 export const pickImage = async (

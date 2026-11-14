@@ -2,8 +2,6 @@ import { NavigationModeInfo } from "react-native-navigation-mode";
 import { Collection } from "../entities/collection";
 import CollectionType from "../entities/collectiontype";
 import { ItemProvided } from "../entities/item";
-import { Offer } from "../entities/offer";
-import { Trade } from "../entities/trade";
 import User from "../entities/user";
 
 export interface ItemStore {
@@ -43,15 +41,7 @@ export interface OtherUserStore {
   setItem: (item: ItemProvided | null) => void;
 }
 
-export interface TradeStore {
-  trade: Trade | null;
-  setTrade: (trade: Trade | null) => void;
-}
 
-export interface OfferStore {
-  offer: Offer | null;
-  setOffer: (offer: Offer | null) => void;
-}
 
 export interface CollectionTypeStore {
   collectionTypes: CollectionType[];

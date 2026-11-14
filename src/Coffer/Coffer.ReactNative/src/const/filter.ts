@@ -46,20 +46,3 @@ export const phoneRegex = /^\+?\d{7,15}$/;
 export const facebookRegex = /^[a-zA-Z0-9.\-]{5,50}$/;
 
 export const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-export const titleTradeFilterKey = "title";
-
-export const tradeUsernameFilterQuery = (value: string) => {
-  return `user.name.ToLower().Contains("${value.toLowerCase()}")`;
-};
-
-export const nestedTradeItemAttributeFilterQuery = (
-  id: number,
-  attributeName: string,
-  value: string,
-) => {
-  const lowerValue = value.toLowerCase();
-  return `TradeItems.Any(ti => ti.Item.ItemAttributes.Any(a => a.AttributeId == ${id} && a.${
-    attributeName.charAt(0).toUpperCase() + attributeName.slice(1)
-  }.ToLower().Contains("${lowerValue}")))`;
-};

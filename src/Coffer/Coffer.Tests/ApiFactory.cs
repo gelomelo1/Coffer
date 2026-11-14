@@ -74,13 +74,12 @@ namespace Coffer.Tests
                     .ToList();
                 foreach (var d in dbDescriptors)
                     services.Remove(d);
-                services.AddDbContext<CofferDbContext>(o => o.UseSqlite(Db.Connection));
+                services.AddDbContext<CofferDbContext>(o => o.UseSqlite(Db.Connection).UseSnakeCaseNamingConvention());
 
                 services.AddTransient(_ => new HttpClient(Python, disposeHandler: false));
 
-                // Background job is irrelevant for these tests.
-                var hosted = services.Where(d => d.ServiceType == typeof(IHostedService) && d.ImplementationType == typeof(TradeCleanupService)).ToList();
-                foreach (var d in hosted)
+                // Background sweeper is driven explicitly in tests.
+                foreach (var d in services.Where(d => d.ServiceType == typeof(IHostedService) && d.ImplementationType == typeof(Coffer.BusinessLogic.Marketplace.MarketplaceMaintenanceService)).ToList())
                     services.Remove(d);
             });
         }

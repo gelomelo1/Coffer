@@ -5,7 +5,7 @@ export const ROUTES = {
   LOGIN: "login" as any,
   TABS: {
     HOME: "tabs" as any,
-    BARTER: "tabs/barter" as any,
+    MARKET: "tabs/market" as any,
     COLLECTIONS: "tabs/collections" as any,
     MYFOLLOWS: "tabs/myfollows" as any,
   },
@@ -13,14 +13,15 @@ export const ROUTES = {
     ROOT: "settings" as any,
     DEVELOPER: "settings/developer" as any,
     USER: "settings/user" as any,
+    REPORTS: "settings/reports" as any,
   },
   MYCOLLECTION: "mycollection" as any,
   ITEMDETAILS: "itemdetails" as any,
   OTHERUSER: "otheruser" as any,
   OTHERUSERCOLLECTION: "otherusercollection" as any,
   OTHERUSERITEMDETAILS: "otheruseritemdetails" as any,
-  TRADEDETAILS: "tradedetails" as any,
-  OFFERDETAILS: "offerdetails" as any,
+  LISTINGDETAILS: "listingdetails" as any,
+  CHAT: "chat" as any,
 } as const;
 
 export const pageParams = {
@@ -37,8 +38,8 @@ export const pageParams = {
   home: buildNavigationData({
     screenTitle: "Home",
   }),
-  barter: buildNavigationData({
-    screenTitle: "Barter",
+  market: buildNavigationData({
+    screenTitle: "Market",
   }),
   mycollection: buildNavigationData({
     screenTitle: "My Collection",
@@ -64,14 +65,20 @@ export const pageParams = {
     title: `User settings`,
     isSettingsShown: false,
   }),
-  tradeDetails: (username: string) =>
+  listingDetails: (title: string) =>
     buildNavigationData({
-      title: username,
+      title: "Market",
+      screenTitle: title,
     }),
-  offerDetails: (username: string) =>
+  chat: (otherUserName: string, listingTitle: string) =>
     buildNavigationData({
-      title: username,
+      title: otherUserName,
+      screenTitle: listingTitle,
     }),
+  reports: buildNavigationData({
+    title: `Reports`,
+    isSettingsShown: false,
+  }),
   myfollows: buildNavigationData({
     screenTitle: "My Follows",
   }),

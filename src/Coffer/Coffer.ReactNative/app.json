@@ -68,7 +68,14 @@
       [
         "expo-image-picker"
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Coffer to use the camera to scan the handoff QR code at a marketplace meetup.",
+          "recordAudioAndroid": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from similarity_check_training.view import SimilarityCheckTrainingView
+from reports.view import ReportsView
 
 class App(tk.Tk):
     def __init__(self):
@@ -9,7 +10,7 @@ class App(tk.Tk):
         self.geometry("1600x800")
         self.resizable(False, False)
 
-        self.view_selector = ttk.Combobox(self, values=["Similarity Check Training"])
+        self.view_selector = ttk.Combobox(self, values=["Similarity Check Training", "Reports"])
         self.view_selector.current(0)
         self.view_selector.pack(anchor="nw", padx=10, pady=10)
         self.view_selector.bind("<<ComboboxSelected>>", self.switch_view)
@@ -19,7 +20,7 @@ class App(tk.Tk):
         self.container.pack_propagate(False)
 
         self.views = {}
-        for V, name in zip((SimilarityCheckTrainingView,), ("Similarity Check Training",)):
+        for V, name in zip((SimilarityCheckTrainingView, ReportsView), ("Similarity Check Training", "Reports")):
             frame = V(self.container)
             self.views[name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
