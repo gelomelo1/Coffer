@@ -32,6 +32,8 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
         public int? MaxPriceCents { get; set; }
         public ListingCondition? Condition { get; set; }
         public DeliveryMethod? Delivery { get; set; }
+        /// <summary>Seller nationality: ISO 3166-1 alpha-2 country codes of the seller's profile (any of them).</summary>
+        public List<string> SellerCountries { get; set; } = new();
         /// <summary>nearest | price_asc | price_desc | newest (default)</summary>
         public string? Sort { get; set; }
         public int Page { get; set; } = 1;
@@ -61,7 +63,9 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
         bool AllowsShipping,
         bool PrivateSellerDeclared,
         DateTime CreatedAt,
-        UserSummaryDto Owner);
+        UserSummaryDto Owner,
+        /// <summary>Seller's country (ISO alpha-2, from their profile).</summary>
+        string? SellerCountry = null);
 
     public record ListingDetailDto(
         Guid Id,

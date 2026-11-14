@@ -44,4 +44,9 @@ export const endpoints = {
   reports: "api/Reports",
   againstMe: "api/Moderation/AgainstMe",
   marketTerms: "api/Market/Terms",
+  // Comments on collection items
+  itemComments: (itemId: string) => `api/Items/${itemId}/Comments`,
+  commentCounts: "api/Comments/Counts",
+  mentionable: "api/Comments/Mentionable",
+  accountSuspension: "api/Account/Suspension",
 };

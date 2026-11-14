@@ -31,4 +31,8 @@ export const querykeys = {
   againstMe: "againstMe",
   againstMeUnseen: "againstMeUnseen",
   marketTerms: "marketTerms",
+  marketMyListingCounts: "marketMyListingCounts",
+  itemComments: "itemComments",
+  commentCounts: "commentCounts",
+  mentionable: "mentionable",
 };

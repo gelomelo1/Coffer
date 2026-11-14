@@ -59,6 +59,8 @@ namespace Coffer.Tests
         public TestDb Db { get; } = new();
         public FakePythonHandler Python { get; } = new();
         public string Environment { get; set; } = "Development";
+        /// <summary>Extra test service overrides (fake GitHub client, admin list, …), applied last.</summary>
+        public Action<IServiceCollection>? Overrides { get; set; }
 
         static ApiFactory() => TestEnvironment.Ensure();
 
@@ -81,6 +83,8 @@ namespace Coffer.Tests
                 // Background sweeper is driven explicitly in tests.
                 foreach (var d in services.Where(d => d.ServiceType == typeof(IHostedService) && d.ImplementationType == typeof(Coffer.BusinessLogic.Marketplace.MarketplaceMaintenanceService)).ToList())
                     services.Remove(d);
+
+                Overrides?.Invoke(services);
             });
         }
 
@@ -92,6 +96,15 @@ namespace Coffer.Tests
                 var token = new JwtService().GenerateToken(user);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
+            return client;
+        }
+
+        /// <summary>Client signed in to Coffer.Manager as the given admin identity (Manager-audience token).</summary>
+        public HttpClient ManagerClientFor(Coffer.Domain.Moderation.ManagerAdmin admin)
+        {
+            var client = CreateClient();
+            var (token, _) = Coffer.BusinessLogic.Moderation.ManagerTokens.Issue(admin, DateTime.UtcNow);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             return client;
         }
 

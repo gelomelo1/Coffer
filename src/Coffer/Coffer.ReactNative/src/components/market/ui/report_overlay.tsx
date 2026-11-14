@@ -10,10 +10,21 @@ const targetNames: Record<ReportTargetType, string> = {
   listing: "listing",
   message: "message",
   review: "review",
+  item: "item",
+  comment: "comment",
+};
+
+const explanations: Record<ReportTargetType, string> = {
+  listing: "An admin checks it against the marketplace rules. The author is told what was removed and why, but never who reported it.",
+  message: "An admin checks it against the marketplace rules. The author is told what was removed and why, but never who reported it.",
+  review:
+    "The review stops counting toward your rating while an admin checks it against the rules. Coffer does not decide who was right in the deal.",
+  item: "An admin checks this collection item against the Coffer rules. The owner is told what happened and why, but never who reported it.",
+  comment: "An admin checks this comment against the Coffer rules. The author is told what happened and why, but never who reported it.",
 };
 
 /**
- * Report a listing, chat message or review against one of the fixed content rules.
+ * Report a listing, chat message, review, collection item or comment against one of the fixed content rules.
  * Coffer only checks rule breaks — it never decides who was right in a deal.
  */
 function ReportOverlay({
@@ -46,11 +57,7 @@ function ReportOverlay({
       isVisible={isVisible}
       onClose={onClose}
       title={`Report ${targetNames[targetType]}`}
-      explanation={
-        targetType === "review"
-          ? "The review stops counting toward your rating while an admin checks it against the rules. Coffer does not decide who was right in the deal."
-          : "An admin checks it against the marketplace rules. The author is told what was removed and why, but never who reported it."
-      }
+      explanation={explanations[targetType]}
       placeholder="What exactly breaks the rule?"
       submitLabel="Send report"
       minLength={10}

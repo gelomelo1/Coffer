@@ -2,6 +2,7 @@ import CustomText from "@/src/components/custom_ui/custom_text";
 import { Loading } from "@/src/components/custom_ui/loading";
 import { openListing } from "@/src/components/market/browse/listing_card";
 import { openChat } from "@/src/components/market/chats/open_chat";
+import { openItem } from "@/src/components/comments/open_item";
 import { EmptyState, SectionCard, Tag } from "@/src/components/market/ui/retro";
 import { querykeys } from "@/src/const/querykeys";
 import { useAgainstMe, useAgainstMeUnseen, useMyReports, useReportRules } from "@/src/hooks/market_api";
@@ -15,13 +16,25 @@ import { FlatList, RefreshControl, TouchableOpacity, View } from "react-native";
 
 const c = customTheme.colors;
 
-const targetLabels: Record<ReportTargetType, string> = { listing: "Listing", message: "Chat message", review: "Review" };
+const targetLabels: Record<ReportTargetType, string> = {
+  listing: "Listing",
+  message: "Chat message",
+  review: "Review",
+  item: "Collection item",
+  comment: "Comment",
+};
 
-/** Opens what a report / moderation notice is about: the listing, or the chat the message or review belongs to. */
-function openTarget(item: { targetType: ReportTargetType; listingId?: string | null; conversationId?: string | null }, summary: string) {
+type Target = { targetType: ReportTargetType; listingId?: string | null; conversationId?: string | null; itemId?: string | null };
+
+/** Opens what a report / moderation notice is about: the listing, the chat of a message or review, or the item of a comment. */
+function openTarget(item: Target, summary: string) {
   if (item.targetType === "listing" && item.listingId) openListing(item.listingId, summary);
+  else if ((item.targetType === "item" || item.targetType === "comment") && item.itemId) openItem(item.itemId);
   else if (item.conversationId) openChat(item.conversationId, "Chat", summary);
 }
+
+/** Removed collection items no longer exist, so there is nothing to open. */
+const canOpen = (item: Target) => !!(item.listingId || item.conversationId || item.itemId);
 
 function OpenLink({ onPress, label }: { onPress: () => void; label: string }) {
   return (
@@ -38,7 +51,9 @@ function MyReportCard({ report, ruleLabel }: { report: MyReport; ruleLabel: stri
       ? { label: "Waiting for review", color: c.secondary }
       : report.decision === "removed"
         ? { label: "Content removed", color: "green" }
-        : { label: "No rule break found", color: c.accent };
+        : report.decision === "suspended"
+          ? { label: "Author suspended", color: "green" }
+          : { label: "No rule break found", color: c.accent };
   return (
     <SectionCard>
       <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap" }}>
@@ -55,7 +70,7 @@ function MyReportCard({ report, ruleLabel }: { report: MyReport; ruleLabel: stri
         Reported {formatDateTime(report.createdAt)}
         {report.resolvedAt ? ` · decided ${formatDateTime(report.resolvedAt)}` : ""}
       </CustomText>
-      <OpenLink onPress={() => openTarget(report, report.targetSummary)} label="Open what I reported" />
+      {canOpen(report) ? <OpenLink onPress={() => openTarget(report, report.targetSummary)} label="Open what I reported" /> : null}
     </SectionCard>
   );
 }
@@ -64,7 +79,7 @@ function ActionCard({ action }: { action: ModerationActionItem }) {
   return (
     <SectionCard accent="red">
       <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap" }}>
-        <Tag label={`${targetLabels[action.targetType]} removed`} color="red" />
+        <Tag label={`${targetLabels[action.targetType]} · moderated`} color="red" />
         {!action.seen ? <Tag label="New" color={c.secondary} textColor={c.primary} /> : null}
       </View>
       <CustomText style={{ fontFamily: "VendSansBold" }}>Rule: {action.ruleLabel}</CustomText>
@@ -73,7 +88,7 @@ function ActionCard({ action }: { action: ModerationActionItem }) {
         “{action.contentExcerpt}”
       </CustomText>
       <CustomText style={{ fontSize: 12 }}>{formatDateTime(action.createdAt)}</CustomText>
-      <OpenLink onPress={() => openTarget(action, action.contentExcerpt)} label="Open" />
+      {canOpen(action) ? <OpenLink onPress={() => openTarget(action, action.contentExcerpt)} label="Open" /> : null}
     </SectionCard>
   );
 }

@@ -36,6 +36,11 @@ venv/
 
 .env
 .env.*
+# The encrypted environment file and the placeholder example are meant to be committed.
+!.env.enc
+!.env.development.enc
+!.env.development.example
+!.env.example
 
 #Other
 UserTokens.txt

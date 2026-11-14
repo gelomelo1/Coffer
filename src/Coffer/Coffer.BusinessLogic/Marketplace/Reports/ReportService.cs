@@ -17,8 +17,8 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
     }
 
     /// <summary>
-    /// User side of notice &amp; action: anyone can flag a listing, a participant can flag a chat message, and the
-    /// reviewed person can flag a review. Reports are judged only against the fixed content rules.
+    /// User side of notice &amp; action: anyone can flag a listing, a collection item or an item comment, a participant
+    /// can flag a chat message, and the reviewed person can flag a review. Reports are judged only against the fixed content rules.
     /// </summary>
     public class ReportService : IReportService
     {
@@ -67,6 +67,12 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
                 case ReportTargetType.Review:
                     await FillReviewAsync(report, userId);
                     break;
+                case ReportTargetType.Item:
+                    await FillItemAsync(report, userId);
+                    break;
+                case ReportTargetType.Comment:
+                    await FillCommentAsync(report, userId);
+                    break;
             }
 
             if (await _db.Reports.AnyAsync(r => r.ReporterId == userId && r.TargetType == report.TargetType
@@ -89,7 +95,7 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
         {
             var actions = await _db.ModerationActions.AsNoTracking().Where(a => a.UserId == userId)
                 .OrderByDescending(a => a.CreatedAt).ToListAsync();
-            return actions.Select(a => new ModerationActionDto(a.Id, a.TargetType, a.TargetId, a.ListingId, a.ConversationId, a.Rule,
+            return actions.Select(a => new ModerationActionDto(a.Id, a.TargetType, a.TargetId, a.ListingId, a.ConversationId, a.ItemId, a.Rule,
                 ReportRules.Get(a.Rule).Label, a.Statement, a.ContentExcerpt, a.CreatedAt, a.SeenAt != null)).ToList();
         }
 
@@ -155,12 +161,39 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
             report.Snapshot = await _snapshots.ReviewAsync(review, deal);
         }
 
+        private async Task FillItemAsync(Report report, Guid userId)
+        {
+            var item = await _db.Items.AsNoTracking().Where(i => i.Id == report.TargetId)
+                .Select(i => new { i.Id, i.Description, OwnerId = i.Collection.UserId, CollectionName = i.Collection.Name })
+                .FirstOrDefaultAsync() ?? throw MarketplaceException.NotFound("Item not found.");
+            if (item.OwnerId == userId) throw MarketplaceException.Forbidden("You can't report your own item.");
+
+            report.TargetOwnerId = item.OwnerId;
+            report.ItemId = item.Id;
+            report.TargetSummary = Excerpt(string.IsNullOrWhiteSpace(item.Description) ? $"Item in “{item.CollectionName}”" : item.Description);
+            report.Snapshot = await _snapshots.ItemAsync(item.Id);
+        }
+
+        private async Task FillCommentAsync(Report report, Guid userId)
+        {
+            var comment = await _db.ItemComments.AsNoTracking().FirstOrDefaultAsync(c => c.Id == report.TargetId)
+                ?? throw MarketplaceException.NotFound("Comment not found.");
+            if (comment.DeletedAt != null) throw MarketplaceException.NotFound("Comment not found.");
+            if (comment.AuthorId == userId) throw MarketplaceException.Forbidden("You can't report your own comment.");
+            if (comment.IsRemoved) throw MarketplaceException.Conflict("This comment was already removed.");
+
+            report.TargetOwnerId = comment.AuthorId;
+            report.ItemId = comment.ItemId;
+            report.TargetSummary = Excerpt(comment.Body);
+            report.Snapshot = await _snapshots.CommentAsync(comment);
+        }
+
         public static string ReviewSummary(Review r) =>
             Excerpt($"{r.Stars}★ review" + (string.IsNullOrWhiteSpace(r.Comment) ? "" : $": {r.Comment}"));
 
         public static string Excerpt(string text) => text.Length > 200 ? text[..200] + "…" : text;
 
-        private static MyReportDto ToMine(Report r) => new(r.Id, r.TargetType, r.TargetId, r.ListingId, r.ConversationId, r.TargetSummary,
+        private static MyReportDto ToMine(Report r) => new(r.Id, r.TargetType, r.TargetId, r.ListingId, r.ConversationId, r.ItemId, r.TargetSummary,
             r.Rule, r.Reason, r.Status, r.Decision, r.Statement, r.CreatedAt, r.ResolvedAt);
     }
 }

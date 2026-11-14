@@ -10,6 +10,7 @@ namespace Coffer.ASPNET
                 .SetupServices();
             var app = builder.Build()
                 .SetupMiddleware();
+            app.RunDevelopmentSeed();
             app.Run();
         }
     }

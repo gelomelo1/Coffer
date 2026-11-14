@@ -23,9 +23,12 @@ namespace Coffer.ASPNET.Controllers
         private readonly IJwtService _jwtService;
         private readonly IGithubService _githubService;
         private readonly ITempTokenService _tempTokenService;
+        private readonly Coffer.BusinessLogic.Moderation.ISuspensionService _suspensions;
 
-        public AuthController(IUsersRepository usersRepository, IJwtService jwtService, IGithubService githubService, ITempTokenService tempTokenService)
+        public AuthController(IUsersRepository usersRepository, IJwtService jwtService, IGithubService githubService, ITempTokenService tempTokenService,
+            Coffer.BusinessLogic.Moderation.ISuspensionService suspensions)
         {
+            _suspensions = suspensions;
             _usersRepository = usersRepository;
             _jwtService = jwtService;
             _githubService = githubService;
@@ -44,6 +47,8 @@ namespace Coffer.ASPNET.Controllers
 
                 if (user != null)
                 {
+                    var suspended = await SuspendedAsync(user.Id);
+                    if (suspended != null) return suspended;
                     var jwt = _jwtService.GenerateToken(user);
                     return Ok(new { exists = true, token = jwt });
                 }
@@ -109,6 +114,8 @@ namespace Coffer.ASPNET.Controllers
 
                 if(user != null)
                 {
+                    var suspended = await SuspendedAsync(user.Id);
+                    if (suspended != null) return suspended;
                     var jwt = _jwtService.GenerateToken(user);
                     return Ok(new { exists = true, token = jwt });
                 }
@@ -153,6 +160,21 @@ namespace Coffer.ASPNET.Controllers
             {
                 return BadRequest("Registration failed");
             }
+        }
+
+        /// <summary>A suspended user gets no new token; the 403 body says why and until when.</summary>
+        private async Task<IActionResult?> SuspendedAsync(Guid userId)
+        {
+            var active = await _suspensions.GetActiveAsync(userId);
+            if (active == null) return null;
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                message = $"Your account is suspended until {active.EndsAt:yyyy-MM-dd HH:mm} UTC.",
+                code = Coffer.BusinessLogic.Moderation.SuspensionService.SuspendedCode,
+                reason = active.Reason,
+                startsAt = active.StartsAt,
+                endsAt = active.EndsAt,
+            });
         }
 
         [HttpGet("currentUser")]

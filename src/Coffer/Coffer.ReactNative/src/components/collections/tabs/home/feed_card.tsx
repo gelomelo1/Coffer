@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import { Image, TouchableOpacity, View } from "react-native";
 import { Country } from "react-native-country-picker-modal";
 import { Avatar } from "react-native-elements";
+import { FeedCommentButton } from "@/src/components/comments/comments_overlay";
 import FeedLike from "./feed_like";
 import FeedRarity from "./feed_rarity";
 
@@ -88,8 +89,6 @@ function FeedCard({ user, collectionType, feed, onTagPress }: FeedCardProps) {
       params: pageParams.otheruseritemdetails(feed.collection.name),
     });
   };
-
-  console.log(feed.item.description);
 
   return (
     <>
@@ -312,6 +311,7 @@ function FeedCard({ user, collectionType, feed, onTagPress }: FeedCardProps) {
             </CustomText>
             <FeedRarity user={user} feed={feed} />
           </View>
+          <FeedCommentButton itemId={feed.item.id} />
         </View>
       </View>
     </>

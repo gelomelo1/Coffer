@@ -15,15 +15,22 @@ namespace Coffer.Tests.Marketplace
     /// <summary>Shared helpers for user-side and admin-side report tests.</summary>
     public abstract class ReportTestBase : DealTestBase
     {
-        protected readonly User Admin;
+        /// <summary>The Coffer.Manager admin identity that resolves reports.</summary>
+        protected readonly Coffer.Domain.Moderation.ManagerAdmin Admin;
+        protected readonly FakePythonHandler Python = new();
+        private readonly Microsoft.Extensions.Caching.Memory.MemoryCache _cache = new(new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions());
 
         protected ReportTestBase()
         {
-            Admin = Db.AddUser("admin", UserRole.Admin);
+            Admin = Db.AddManagerAdmin();
         }
 
         protected ReportService Reports() => new(Db.Context, Clock, new ReportSnapshotBuilder(Db.Context, Conversations()));
-        protected AdminReportService AdminReports() => new(Db.Context, Clock, Conversations());
+        protected Coffer.BusinessLogic.Moderation.SuspensionService Suspensions() => new(Db.Context, Clock, _cache);
+        protected Coffer.BusinessLogic.Community.ItemRemovalService ItemRemoval() => new(Db.Context, new ImageService(), new HttpClient(Python, false),
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<Coffer.BusinessLogic.Community.ItemRemovalService>.Instance);
+        protected AdminReportService AdminReports() => new(Db.Context, Clock, Conversations(), Suspensions(), ItemRemoval());
+        protected Coffer.BusinessLogic.Community.ItemCommentService Comments() => new(Db.Context, Clock);
         protected ReviewService Reviews() => new(Db.Context, Clock, Sut(), new ResponsivenessService(Db.Context, Clock));
         protected ListingService Listings() => new(Db.Context, Clock, new ImageService(), new MarketplaceStorage(Folder, Folder));
 

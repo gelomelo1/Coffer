@@ -41,6 +41,12 @@ namespace Coffer.ASPNET.Extensions
                     Env.Load("/var/www/coffer/.env.production");
                     envLoaded = true;
                 }
+                else if (env.IsDevelopment() && File.Exists("../../.env.development"))
+                {
+                    // Local development configuration (copy of .env + dev seed / admin settings); never committed.
+                    Env.Load("../../.env.development");
+                    envLoaded = true;
+                }
                 else
                 {
                     Env.Load("../../.env");
@@ -84,6 +90,8 @@ namespace Coffer.ASPNET.Extensions
             app.UseCors("AllowFrontend");
 
             app.UseAuthentication();
+            // Suspended users are blocked server-side right after their token is read.
+            app.UseMiddleware<SuspensionEnforcementMiddleware>();
             app.UseAuthorization();
 
 
@@ -91,6 +99,34 @@ namespace Coffer.ASPNET.Extensions
 
             app.MapFallbackToFile("/index.html");
 
+            var managerAdmins = app.Services.GetRequiredService<Coffer.BusinessLogic.Moderation.ManagerAdminConfig>();
+            if (managerAdmins.HasAdmins)
+                app.Logger.LogInformation("Coffer.Manager: {Count} administrator GitHub id(s) configured.", managerAdmins.Ids.Count);
+            else
+                app.Logger.LogWarning("Coffer.Manager administrator provisioning required: {Problem}", managerAdmins.Problem);
+
+            return app;
+        }
+    
+        /// <summary>
+        /// Development database reset + seed from .env.development (DEV_RESET_DATABASE_ON_STARTUP, DEV_SEED_ENABLED).
+        /// Runs before the API accepts requests; throws (and stops startup) when switched on outside Development.
+        /// </summary>
+        public static WebApplication RunDevelopmentSeed(this WebApplication app)
+        {
+            Coffer.BusinessLogic.DevSeed.DevSeedGuard.CheckDevLogin(app.Environment.EnvironmentName);
+            if (Coffer.BusinessLogic.DevSeed.DevLoginService.IsEnabled(app.Environment.EnvironmentName))
+                app.Logger.LogWarning("DEV LOGIN ENABLED: seeded test users can sign in without Google/GitHub (Development only).");
+
+            var options = Coffer.BusinessLogic.DevSeed.DevSeedOptions.FromEnvironment();
+            Coffer.BusinessLogic.DevSeed.DevSeedGuard.Check(app.Environment.EnvironmentName, options);
+            if (!options.AnythingToDo)
+                return app;
+
+            using var scope = app.Services.CreateScope();
+            scope.ServiceProvider.GetRequiredService<Coffer.BusinessLogic.DevSeed.DevSeedRunner>()
+                .RunAsync(app.Environment.EnvironmentName, options)
+                .GetAwaiter().GetResult();
             return app;
         }
     }

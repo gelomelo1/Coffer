@@ -4,7 +4,7 @@ import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useMarketStore } from "@/src/hooks/market_store";
 import { customTheme } from "@/src/theme/theme";
 import { ListingSummary } from "@/src/types/entities/market";
-import { formatDistance, formatPrice, formatTimeAgo } from "@/src/utils/market_api";
+import { countryFlag, formatDistance, formatPrice, formatTimeAgo } from "@/src/utils/market_api";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { navigate } from "expo-router/build/global-state/routing";
@@ -65,6 +65,7 @@ function ListingCard({ listing, showStatus = false }: { listing: ListingSummary;
         </View>
         <CustomText style={{ fontSize: 11 }}>
           {formatTimeAgo(listing.createdAt)} · {listing.owner.name}
+          {listing.sellerCountry ? ` ${countryFlag(listing.sellerCountry)}` : ""}
         </CustomText>
       </View>
     </TouchableOpacity>

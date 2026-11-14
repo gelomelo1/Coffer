@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import React from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import SuspendedScreen from "../components/account/suspended_screen";
 import useStartup from "../hooks/startup";
 import { useUserStore } from "../hooks/user_store";
 
@@ -16,6 +17,7 @@ export default function Layout() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <Stack screenOptions={{ headerShown: false }} />
+        <SuspendedScreen />
         <Toast />
       </QueryClientProvider>
     </SafeAreaProvider>

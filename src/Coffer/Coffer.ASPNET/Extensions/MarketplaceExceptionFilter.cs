@@ -17,6 +17,8 @@ namespace Coffer.ASPNET.Extensions
                 MarketplaceError.Validation => StatusCodes.Status400BadRequest,
                 MarketplaceError.Forbidden => StatusCodes.Status403Forbidden,
                 MarketplaceError.NotFound => StatusCodes.Status404NotFound,
+                MarketplaceError.Unavailable => StatusCodes.Status503ServiceUnavailable,
+                MarketplaceError.Unauthorized => StatusCodes.Status401Unauthorized,
                 _ => StatusCodes.Status409Conflict,
             };
             context.Result = new ObjectResult(ex.Code == null ? new { message = ex.Message } : (object)new { message = ex.Message, code = ex.Code })

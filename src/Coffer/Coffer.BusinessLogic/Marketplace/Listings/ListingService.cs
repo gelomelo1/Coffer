@@ -18,7 +18,28 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
         Task<ListingDetailDto> ReactivateAsync(Guid userId, Guid id);
         Task<ListingDetailDto> GetAsync(Guid viewerId, Guid id);
         Task<List<ListingSummaryDto>> SearchAsync(Guid viewerId, ListingQuery query);
-        Task<List<ListingSummaryDto>> GetMineAsync(Guid userId);
+        Task<List<ListingSummaryDto>> GetMineAsync(Guid userId, string? filter = null);
+        Task<Dictionary<string, int>> CountMineAsync(Guid userId);
+    }
+
+    /// <summary>
+    /// My Listings tabs over the existing statuses (no new status): active = live or reserved by an open deal,
+    /// sold, archived = archived by me or removed by moderation.
+    /// </summary>
+    public static class MyListingFilters
+    {
+        public const string Active = "active";
+        public const string Sold = "sold";
+        public const string Archived = "archived";
+
+        public static readonly IReadOnlyDictionary<string, ListingStatus[]> Statuses = new Dictionary<string, ListingStatus[]>
+        {
+            [Active] = new[] { ListingStatus.Active, ListingStatus.PendingPickup, ListingStatus.PendingShipment },
+            [Sold] = new[] { ListingStatus.Sold },
+            [Archived] = new[] { ListingStatus.Archived, ListingStatus.Removed },
+        };
+
+        public static string Of(ListingStatus status) => Statuses.First(kv => kv.Value.Contains(status)).Key;
     }
 
     public class ListingService : IListingService
@@ -192,6 +213,8 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
             if (query.Delivery == DeliveryMethod.Shipping) q = q.Where(l => l.AllowsShipping);
             if (query.MinPriceCents.HasValue) q = q.Where(l => l.PriceCents != null && l.PriceCents >= query.MinPriceCents.Value);
             if (query.MaxPriceCents.HasValue) q = q.Where(l => l.PriceCents != null && l.PriceCents <= query.MaxPriceCents.Value);
+            var countries = NormalizeCountries(query.SellerCountries);
+            if (countries.Count > 0) q = q.Where(l => countries.Contains(l.Owner.Country.ToUpper()));
             if (origin != null && query.RadiusKm.HasValue)
             {
                 var (dLat, dLon) = GeoMath.BoundingBox(origin.Latitude, query.RadiusKm.Value);
@@ -218,10 +241,25 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
             return rows.Skip((page - 1) * pageSize).Take(pageSize).Select(r => ToSummary(r.Listing, r.Distance)).ToList();
         }
 
-        public async Task<List<ListingSummaryDto>> GetMineAsync(Guid userId)
+        public async Task<List<ListingSummaryDto>> GetMineAsync(Guid userId, string? filter = null)
         {
-            var mine = await BaseSummaryQuery().Where(l => l.OwnerId == userId).OrderByDescending(l => l.CreatedAt).ToListAsync();
+            var q = BaseSummaryQuery().Where(l => l.OwnerId == userId);
+            var key = (filter ?? "").Trim().ToLowerInvariant();
+            if (key.Length > 0 && key != "all")
+            {
+                if (!MyListingFilters.Statuses.TryGetValue(key, out var statuses))
+                    throw MarketplaceException.Validation("Unknown filter (use active, sold, archived or all).");
+                q = q.Where(l => statuses.Contains(l.Status));
+            }
+            var mine = await q.OrderByDescending(l => l.UpdatedAt).ToListAsync();
             return mine.Select(l => ToSummary(l, null)).ToList();
+        }
+
+        public async Task<Dictionary<string, int>> CountMineAsync(Guid userId)
+        {
+            var byStatus = await _db.Listings.AsNoTracking().Where(l => l.OwnerId == userId)
+                .GroupBy(l => l.Status).Select(g => new { g.Key, Count = g.Count() }).ToListAsync();
+            return MyListingFilters.Statuses.ToDictionary(kv => kv.Key, kv => byStatus.Where(x => kv.Value.Contains(x.Key)).Sum(x => x.Count));
         }
 
         // ------------------------------------------------------------------ helpers
@@ -234,7 +272,21 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
             l.CollectionTypeId, l.CollectionType.Name, l.CollectionType.Color, l.CityId, l.City.Name,
             distance.HasValue ? Math.Round(distance.Value, 1) : null,
             l.Images.OrderBy(i => i.Position).Select(i => i.FileName).FirstOrDefault(),
-            l.AllowsLocalPickup, l.AllowsShipping, l.PrivateSellerDeclared, l.CreatedAt, UserSummaryDto.From(l.Owner));
+            l.AllowsLocalPickup, l.AllowsShipping, l.PrivateSellerDeclared, l.CreatedAt, UserSummaryDto.From(l.Owner), l.Owner?.Country);
+
+        /// <summary>"hu, GB" → ["HU","GB"]; anything that isn't a two-letter code is rejected.</summary>
+        public static List<string> NormalizeCountries(IEnumerable<string>? codes)
+        {
+            var list = (codes ?? Enumerable.Empty<string>())
+                .SelectMany(c => (c ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                .Select(c => c.ToUpperInvariant())
+                .Distinct()
+                .ToList();
+            if (list.Any(c => c.Length != 2 || !c.All(char.IsAsciiLetterUpper)))
+                throw MarketplaceException.Validation("Seller country must be a two-letter country code, e.g. HU or GB.");
+            if (list.Count > 30) throw MarketplaceException.Validation("Choose at most 30 countries.");
+            return list;
+        }
 
         private async Task<Listing> LoadAsync(Guid id) =>
             await _db.Listings.Include(l => l.Lines).Include(l => l.Images).FirstOrDefaultAsync(l => l.Id == id)

@@ -1,7 +1,7 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import showToast from "../components/custom_ui/toast";
 import { querykeys } from "../const/querykeys";
-import { ListingFilters } from "../types/entities/market";
+import { ListingFilters, MyListingsFilter } from "../types/entities/market";
 import { apiErrorCode, apiErrorMessage, marketApi } from "../utils/market_api";
 import { useMarketStore } from "./market_store";
 
@@ -17,8 +17,12 @@ export function useListings(filters: ListingFilters) {
   });
 }
 
-export const useMyListings = () =>
-  useQuery({ queryKey: [querykeys.marketMyListings], queryFn: marketApi.myListings });
+export const useMyListings = (filter?: MyListingsFilter) =>
+  useQuery({ queryKey: [querykeys.marketMyListings, filter ?? "all"], queryFn: () => marketApi.myListings(filter) });
+
+/** { active, sold, archived } counts for the My Listings chips. */
+export const useMyListingCounts = () =>
+  useQuery({ queryKey: [querykeys.marketMyListingCounts], queryFn: marketApi.myListingCounts });
 
 export const useListing = (id?: string | null) =>
   useQuery({
@@ -108,6 +112,7 @@ export const useTerms = () => useQuery({ queryKey: [querykeys.marketTerms], quer
 const MARKET_KEYS = [
   querykeys.marketListings,
   querykeys.marketMyListings,
+  querykeys.marketMyListingCounts,
   querykeys.marketListing,
   querykeys.marketInbox,
   querykeys.marketConversation,

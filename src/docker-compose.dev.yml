@@ -8,7 +8,7 @@ services:
     ports:
       - "5141:80"
     env_file:
-      - .env
+      - .env.development
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     depends_on:
@@ -30,6 +30,8 @@ services:
       - E:\Homework\Programming\AI\szakdolgozat\data\vectors:/app/data/vectors
       - E:\Homework\Programming\AI\szakdolgozat\data\temp:/app/data/temp
       - E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.PythonService\models:/app/models
+      # Raw example photos for the development seed (DEV_SEED_IMAGE_DIR), read-only.
+      - E:\app\data\examples:/app/data/examples:ro
 
   fastapi:
     build:
@@ -38,7 +40,7 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
     env_file:
-      - .env
+      - .env.development
     volumes:
       - ./Coffer/Coffer.PythonService:/app
       - E:\Homework\Programming\AI\szakdolgozat\data\images:/app/data/images
@@ -49,7 +51,7 @@ services:
   db:
     image: postgres:15
     env_file:
-      - .env
+      - .env.development
     ports:
       - "127.0.0.1:5432:5432"
     volumes:

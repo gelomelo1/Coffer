@@ -6,6 +6,7 @@ import { endpoints } from "../const/endpoints";
 import { pageParams, ROUTES } from "../const/navigation_params";
 import { useCollectionTypeStore } from "../hooks/collection_type_store";
 import { useResetNavigation } from "../hooks/navigation";
+import { useSuspensionStore } from "../hooks/suspension_store";
 import { useUserStore } from "../hooks/user_store";
 import CollectionType from "../types/entities/collectiontype";
 import User from "../types/entities/user";
@@ -16,8 +17,11 @@ export default function Index() {
   const resetNavigate = useResetNavigation();
   const { setUser } = useUserStore();
   const { setCollectionTypes } = useCollectionTypeStore();
+  // While suspended the SuspendedScreen covers the app; once "Check again" clears it, sign-in is retried.
+  const suspension = useSuspensionStore((s) => s.suspension);
 
   useEffect(() => {
+    if (suspension) return;
     const checkAuth = async () => {
       const token = await getToken();
       if (!token) {
@@ -52,7 +56,8 @@ export default function Index() {
       }
     };
     checkAuth();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [suspension]);
 
   return <LoadingScreen label="Trying to log you in..." />;
 }

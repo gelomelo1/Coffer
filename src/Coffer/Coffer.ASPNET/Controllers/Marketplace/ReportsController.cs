@@ -37,27 +37,4 @@ namespace Coffer.ASPNET.Controllers.Marketplace
             return NoContent();
         }
     }
-
-    /// <summary>Admin-only report queue (Coffer.Manager). Moderators and users get 403.</summary>
-    [Route("api/Admin/Reports")]
-    public class AdminReportsController : MarketplaceControllerBase
-    {
-        private readonly IAdminReportService _admin;
-
-        public AdminReportsController(IAdminReportService admin)
-        {
-            _admin = admin;
-        }
-
-        [HttpGet]
-        public async Task<ActionResult<List<AdminReportSummaryDto>>> List([FromQuery] string? status, [FromQuery] string? targetType)
-            => Ok(await _admin.ListAsync(Me, ParseEnum<ReportStatus>(status, "status"), ParseEnum<ReportTargetType>(targetType, "target type")));
-
-        [HttpGet("{id:guid}")]
-        public async Task<ActionResult<AdminReportDto>> Get(Guid id) => Ok(await _admin.GetAsync(Me, id));
-
-        [HttpPost("{id:guid}/Resolve")]
-        public async Task<ActionResult<AdminReportDto>> Resolve(Guid id, [FromBody] ResolveReportInput input)
-            => Ok(await _admin.ResolveAsync(Me, id, input));
-    }
 }

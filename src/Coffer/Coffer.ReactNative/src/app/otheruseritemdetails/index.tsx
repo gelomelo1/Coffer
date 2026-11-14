@@ -21,6 +21,9 @@ import { adjustColor } from "@/src/utils/frontend_utils";
 import Fontisto from "@expo/vector-icons/Fontisto";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { navigate } from "expo-router/build/global-state/routing";
+import { useState } from "react";
+import CommentSection from "@/src/components/comments/comment_section";
+import ReportOverlay from "@/src/components/market/ui/report_overlay";
 import { ScrollView, View } from "react-native";
 import { Chip } from "react-native-elements";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -29,6 +32,8 @@ function OtherUserItemDetails() {
   const { collectionType } = useCollectionStore();
   const { user: currentUser, token } = useUserStore();
   const { user, collection, item, setItem } = useOtherUserStore();
+  const [isReporting, setIsReporting] = useState(false);
+  const isMine = currentUser?.id === collection?.userId;
 
   const darkContrastColor = adjustColor(
     collectionType!.color,
@@ -217,7 +222,17 @@ function OtherUserItemDetails() {
             />
           ))}
         </View>
+        {isMine ? null : (
+          <CustomButton
+            title="Report this item"
+            icon={<MaterialIcons name="flag" size={20} color={customTheme.colors.secondary} style={{ marginRight: 5 }} />}
+            containerStyle={{ marginBottom: 20 }}
+            onPress={() => setIsReporting(true)}
+          />
+        )}
+        <CommentSection itemId={item!.id} />
       </SafeAreaView>
+      <ReportOverlay isVisible={isReporting} onClose={() => setIsReporting(false)} targetType="item" targetId={item!.id} />
     </ScrollView>
   );
 }

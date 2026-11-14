@@ -38,8 +38,10 @@ namespace Coffer.Infrastructure
                         ValidAudience = "coffer.backend",
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Env.GetString("JWT_SECRET") ?? throw new InvalidOperationException("JWT_SECRET envionmental variable is not set")))
                     };
-                });
+                })
+                .AddManagerAuthentication();
             services.AddAuthorization();
+            services.AddModeration();
             #endregion
 
             #region SetupSwagger

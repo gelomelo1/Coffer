@@ -10,17 +10,28 @@ import {
   ListingFilters,
   ListingKind,
 } from "@/src/types/entities/market";
-import { parsePriceToCents } from "@/src/utils/market_api";
+import { countryFlag, parsePriceToCents } from "@/src/utils/market_api";
+import CountryPicker from "react-native-country-picker-modal";
 import { useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import CityAutocomplete from "../ui/city_autocomplete";
 import { useCollectionTypeDropdownItems } from "../ui/collection_type_items";
 import { Chip, ChipRow, Label } from "../ui/retro";
 
+/** Quick picks for the seller-nationality filter; any other country comes from the picker. */
+const COMMON_COUNTRIES: { code: string; label: string }[] = [
+  { code: "HU", label: "Hungarian" },
+  { code: "GB", label: "British" },
+  { code: "US", label: "American" },
+  { code: "DE", label: "German" },
+  { code: "AT", label: "Austrian" },
+  { code: "FR", label: "French" },
+];
+
 export function activeFilterCount(f: ListingFilters) {
   return [f.kind, f.collectionTypeId, f.city, f.minPriceCents, f.maxPriceCents, f.condition, f.delivery].filter(
     (v) => v !== undefined && v !== null,
-  ).length;
+  ).length + (f.sellerCountries?.length ? 1 : 0);
 }
 
 /** Full-screen filter editor; changes apply only on "Show results". */
@@ -40,6 +51,15 @@ function ListingFilterOverlay({
   const [typeOpen, setTypeOpen] = useState(false);
   const [minText, setMinText] = useState("");
   const [maxText, setMaxText] = useState("");
+  const [countryPickerOpen, setCountryPickerOpen] = useState(false);
+
+  const toggleCountry = (code: string) =>
+    setDraft((d) => {
+      const list = d.sellerCountries ?? [];
+      const next = list.includes(code) ? list.filter((c) => c !== code) : [...list, code];
+      return { ...d, sellerCountries: next.length ? next : undefined };
+    });
+  const extraCountries = (draft.sellerCountries ?? []).filter((c) => !COMMON_COUNTRIES.some((x) => x.code === c));
 
   useEffect(() => {
     if (!isVisible) return;
@@ -139,7 +159,37 @@ function ListingFilterOverlay({
             <Chip key={k} label={deliveryLabels[k]} selected={draft.delivery === k} onPress={() => toggle("delivery", k)} />
           ))}
         </ChipRow>
+
+        <Label>Seller nationality</Label>
+        <ChipRow>
+          {COMMON_COUNTRIES.map((c) => (
+            <Chip
+              key={c.code}
+              label={`${countryFlag(c.code)} ${c.label}`}
+              selected={!!draft.sellerCountries?.includes(c.code)}
+              onPress={() => toggleCountry(c.code)}
+            />
+          ))}
+          {extraCountries.map((code) => (
+            <Chip key={code} label={`${countryFlag(code)} ${code} ✕`} selected onPress={() => toggleCountry(code)} />
+          ))}
+          <Chip label="+ Other country" selected={false} onPress={() => setCountryPickerOpen(true)} />
+        </ChipRow>
       </ScrollView>
+      <CountryPicker
+        countryCode={"HU" as any}
+        visible={countryPickerOpen}
+        onClose={() => setCountryPickerOpen(false)}
+        onSelect={(country) => {
+          const code = country.cca2.toString();
+          setDraft((d) => (d.sellerCountries?.includes(code) ? d : { ...d, sellerCountries: [...(d.sellerCountries ?? []), code] }));
+          setCountryPickerOpen(false);
+        }}
+        renderFlagButton={() => null}
+        withCloseButton
+        withFilter
+        withFlag
+      />
     </CustomOverlay>
   );
 }

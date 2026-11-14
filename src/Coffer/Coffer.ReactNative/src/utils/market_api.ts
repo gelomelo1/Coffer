@@ -16,6 +16,8 @@ import {
   Message,
   CreateReportInput,
   ModerationActionItem,
+  MyListingsFilter,
+  AccountSuspension,
   MyReport,
   ReportRuleInfo,
   TermsStatus,
@@ -68,6 +70,7 @@ export function listingQueryString(filters: ListingFilters, page: number, pageSi
     ["maxPriceCents", filters.maxPriceCents],
     ["condition", filters.condition],
     ["delivery", filters.delivery],
+    ["sellerCountry", filters.sellerCountries?.length ? filters.sellerCountries.join(",") : undefined],
     ["sort", filters.sort === "nearest" && !filters.city ? "newest" : filters.sort],
     ["page", page],
     ["pageSize", pageSize],
@@ -88,7 +91,9 @@ export const marketApi = {
   // listings
   searchListings: (filters: ListingFilters, page: number, pageSize = 20) =>
     get<ListingSummary[]>(`${endpoints.listings}?${listingQueryString(filters, page, pageSize)}`),
-  myListings: () => get<ListingSummary[]>(endpoints.listingsMine),
+  myListings: (filter?: MyListingsFilter) =>
+    get<ListingSummary[]>(filter ? `${endpoints.listingsMine}?filter=${filter}` : endpoints.listingsMine),
+  myListingCounts: () => get<Record<MyListingsFilter, number>>(`${endpoints.listingsMine}/Counts`),
   getListing: (id: string) => get<ListingDetail>(`${endpoints.listings}/${id}`),
   createListing: (input: ListingInput, images: LocalImage[]) => {
     const form = new FormData();
@@ -154,6 +159,12 @@ export const marketApi = {
   againstMeUnseen: async () => (await get<{ count: number }>(`${endpoints.againstMe}/UnseenCount`)).count,
   markAgainstMeSeen: () => post<void>(`${endpoints.againstMe}/Seen`),
 
+  // account
+  accountSuspension: async () => {
+    const response = await backendAxios.get<AccountSuspension | "">(endpoints.accountSuspension);
+    return response.status === 204 || !response.data ? null : (response.data as AccountSuspension);
+  },
+
   // marketplace terms
   terms: () => get<TermsStatus>(endpoints.marketTerms),
   acceptTerms: (version: string) =>
@@ -161,6 +172,12 @@ export const marketApi = {
 };
 
 // ---------------------------------------------------------------- formatting
+
+/** "HU" → 🇭🇺 (regional indicator letters). */
+export function countryFlag(code?: string | null) {
+  if (!code || !/^[A-Za-z]{2}$/.test(code)) return "";
+  return String.fromCodePoint(...code.toUpperCase().split("").map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65));
+}
 
 export function formatPrice(cents?: number | null) {
   if (cents == null) return "";

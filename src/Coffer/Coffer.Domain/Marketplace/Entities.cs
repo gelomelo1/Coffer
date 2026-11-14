@@ -160,7 +160,7 @@ namespace Coffer.Domain.Marketplace
         public bool IsRemoved { get; set; }
     }
 
-    /// <summary>A user's notice that a listing, message or review breaks a content rule (notice &amp; action).</summary>
+    /// <summary>A user's notice that a listing, message, review, collection item or comment breaks a content rule (notice &amp; action).</summary>
     public class Report
     {
         public Guid Id { get; set; }
@@ -169,9 +169,10 @@ namespace Coffer.Domain.Marketplace
         public Guid TargetId { get; set; }
         /// <summary>Author of the reported content.</summary>
         public Guid TargetOwnerId { get; set; }
-        /// <summary>Navigation context: the listing / conversation the content belongs to.</summary>
+        /// <summary>Navigation context: the listing / conversation / collection item the content belongs to.</summary>
         public Guid? ListingId { get; set; }
         public Guid? ConversationId { get; set; }
+        public Guid? ItemId { get; set; }
         /// <summary>Short human-readable description of the target (listing title, message excerpt, …).</summary>
         public string TargetSummary { get; set; } = "";
         public ReportRule Rule { get; set; }
@@ -182,8 +183,11 @@ namespace Coffer.Domain.Marketplace
         public ReportDecision? Decision { get; set; }
         /// <summary>The admin's statement of reasons.</summary>
         public string? Statement { get; set; }
+        /// <summary>The Coffer.Manager admin (manager_admins.id) who resolved it.</summary>
         public Guid? ResolvedBy { get; set; }
         public DateTime? ResolvedAt { get; set; }
+        /// <summary>Suspension applied to the content author as part of the resolution.</summary>
+        public Guid? SuspensionId { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 
@@ -199,6 +203,7 @@ namespace Coffer.Domain.Marketplace
         public Guid TargetId { get; set; }
         public Guid? ListingId { get; set; }
         public Guid? ConversationId { get; set; }
+        public Guid? ItemId { get; set; }
         public ReportRule Rule { get; set; }
         public string Statement { get; set; } = "";
         public string ContentExcerpt { get; set; } = "";

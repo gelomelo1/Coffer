@@ -13,7 +13,7 @@ namespace Coffer.Tests
     {
         static TestServices() => TestEnvironment.Ensure();
 
-        public static IServiceProvider Create(TestDb db)
+        public static IServiceProvider Create(TestDb db, Action<IServiceCollection>? overrides = null)
         {
             var services = new ServiceCollection();
             services.AddLogging();
@@ -28,6 +28,7 @@ namespace Coffer.Tests
                 services.Remove(d);
 
             services.AddSingleton(db.Context);
+            overrides?.Invoke(services);
 
             return services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = false });
         }

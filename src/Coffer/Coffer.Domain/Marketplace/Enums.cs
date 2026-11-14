@@ -64,7 +64,7 @@ namespace Coffer.Domain.Marketplace
     }
 
     [JsonConverter(typeof(SnakeCaseEnumJsonConverter<ReportTargetType>))]
-    public enum ReportTargetType { Listing, Message, Review }
+    public enum ReportTargetType { Listing, Message, Review, Item, Comment }
 
     /// <summary>The fixed content rules moderation enforces. Moderation never judges who was right in a deal.</summary>
     [JsonConverter(typeof(SnakeCaseEnumJsonConverter<ReportRule>))]
@@ -74,7 +74,7 @@ namespace Coffer.Domain.Marketplace
     public enum ReportStatus { Open, Resolved }
 
     [JsonConverter(typeof(SnakeCaseEnumJsonConverter<ReportDecision>))]
-    public enum ReportDecision { Removed, NoViolation }
+    public enum ReportDecision { Removed, NoViolation, Suspended }
 
     public static class DealStatuses
     {

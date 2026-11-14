@@ -20,6 +20,7 @@ import { adjustColor } from "@/src/utils/frontend_utils";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import Fontisto from "@expo/vector-icons/Fontisto";
 import { useState } from "react";
+import CommentSection from "@/src/components/comments/comment_section";
 import { ScrollView, View } from "react-native";
 import { Chip } from "react-native-elements";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -282,6 +283,7 @@ function ItemDetails() {
               />
             ))}
           </View>
+          <CommentSection itemId={item.id} />
         </SafeAreaView>
       </ScrollView>
       <ItemDeleteForm

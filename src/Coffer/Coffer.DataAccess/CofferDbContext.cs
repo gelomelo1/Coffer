@@ -1,4 +1,6 @@
-﻿using Coffer.Domain.Entities;
+﻿using Coffer.Domain.Community;
+using Coffer.Domain.Entities;
+using Coffer.Domain.Moderation;
 using Coffer.Domain.Marketplace;
 using Microsoft.EntityFrameworkCore;
 using Attribute = Coffer.Domain.Entities.Attribute;
@@ -20,7 +22,14 @@ namespace Coffer.DataAccess
         public DbSet<ReactionProvided> Reactions { get; set; }
         public DbSet<FollowProvided> Follows { get; set; }
         public DbSet<UserContactProvided> UserContacts { get; set; }
-        public DbSet<ItemMessage> ItemMessages { get; set; }
+        // Community
+        public DbSet<ItemComment> ItemComments { get; set; }
+        public DbSet<ItemCommentMention> ItemCommentMentions { get; set; }
+
+        // Coffer.Manager moderation
+        public DbSet<ManagerAdmin> ManagerAdmins { get; set; }
+        public DbSet<UserSuspension> UserSuspensions { get; set; }
+        public DbSet<AdminAuditEntry> AdminAuditLog { get; set; }
 
         // Marketplace
         public DbSet<City> Cities { get; set; }
@@ -40,6 +49,7 @@ namespace Coffer.DataAccess
             base.OnModelCreating(modelBuilder);
 
             MarketplaceModel.Configure(modelBuilder);
+            CommunityModel.Configure(modelBuilder);
 
             //CollectionType
             modelBuilder.Entity<CollectionTypeProvided>()
@@ -120,17 +130,6 @@ namespace Coffer.DataAccess
                 .HasOne(u => u.User)
                 .WithMany(u => u.Contacts)
                 .HasForeignKey(u => u.UserId);
-
-            //ItemMessages
-            modelBuilder.Entity<ItemMessage>()
-                .HasOne(i => i.User)
-                .WithMany()
-                .HasForeignKey(i => i.UserId);
-
-            modelBuilder.Entity<ItemMessage>()
-                .HasOne(i => i.Item)
-                .WithMany()
-                .HasForeignKey(i => i.ItemId);
         }
     }
 

@@ -3,6 +3,7 @@ import { Image, Modal, View } from "react-native";
 import CustomButton from "../components/custom_ui/custom_button";
 import CustomText from "../components/custom_ui/custom_text";
 import showToast from "../components/custom_ui/toast";
+import DevLogin from "../components/login/dev_login";
 import RegisterForm from "../components/login/registerform";
 import { useGitHubAuth, useGoogleAuth } from "../hooks/auth";
 import { customTheme } from "../theme/theme";
@@ -114,6 +115,7 @@ function Login() {
             }
             containerStyle={{ width: "60%", alignSelf: "center" }}
           />
+          <DevLogin />
         </View>
       </View>
       <Modal

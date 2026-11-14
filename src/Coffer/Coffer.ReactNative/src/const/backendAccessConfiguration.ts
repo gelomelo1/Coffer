@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useSuspensionStore } from "../hooks/suspension_store";
 import { getToken } from "../utils/token_store";
 
 // EXPO_PUBLIC_BACKEND_URL overrides the default at bundle time, e.g. http://10.0.2.2:5141 for the Android emulator.
@@ -18,4 +19,17 @@ backendAxios.interceptors.request.use(
   },
 
   (error) => Promise.reject(error),
+);
+
+// A suspended account gets 403 { code: "account_suspended", reason, endsAt } from every endpoint (enforced by the
+// backend); the SuspendedScreen explains it and clears it via "Check again" (GET api/Account/Suspension).
+backendAxios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const data = error?.response?.data;
+    if (error?.response?.status === 403 && data?.code === "account_suspended") {
+      useSuspensionStore.getState().setSuspension({ message: data.message, reason: data.reason, startsAt: data.startsAt, endsAt: data.endsAt });
+    }
+    return Promise.reject(error);
+  },
 );

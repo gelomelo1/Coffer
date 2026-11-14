@@ -53,6 +53,15 @@ namespace Coffer.Tests
             return user;
         }
 
+        /// <summary>A Coffer.Manager admin identity (whether it may act is decided by the configured GitHub ids).</summary>
+        public Coffer.Domain.Moderation.ManagerAdmin AddManagerAdmin(string githubId = "1001", string login = "octo-admin")
+        {
+            var admin = new Coffer.Domain.Moderation.ManagerAdmin { Id = Guid.NewGuid(), GithubId = githubId, Login = login, CreatedAt = DateTime.UtcNow, LastLoginAt = DateTime.UtcNow };
+            Context.ManagerAdmins.Add(admin);
+            Context.SaveChanges();
+            return admin;
+        }
+
         public CollectionProvided AddCollection(User owner)
         {
             var type = Context.CollectionTypes.FirstOrDefault();

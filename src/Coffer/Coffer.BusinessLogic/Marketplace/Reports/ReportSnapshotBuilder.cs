@@ -71,6 +71,50 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
             });
         }
 
+        public async Task<string> ItemAsync(Guid itemId)
+        {
+            var item = await _db.Items.AsNoTracking()
+                .Include(i => i.ItemAttributes).ThenInclude(a => a.Attribute)
+                .Include(i => i.ItemTags)
+                .FirstAsync(i => i.Id == itemId);
+            var collection = await _db.Collections.AsNoTracking().Where(c => c.Id == item.CollectionId)
+                .Select(c => new { c.Id, c.Name, c.UserId, c.CollectionTypeId }).FirstAsync();
+            var type = await _db.CollectionTypes.AsNoTracking().Where(t => t.Id == collection.CollectionTypeId).Select(t => t.Name).FirstOrDefaultAsync();
+            var owner = await _db.Users.AsNoTracking().Where(u => u.Id == collection.UserId).Select(u => new { u.Id, u.Name }).FirstOrDefaultAsync();
+            return Serialize(new { item = ItemView(item, collection.Name, type, owner?.Name), owner });
+        }
+
+        public async Task<string> CommentAsync(Coffer.Domain.Community.ItemComment comment)
+        {
+            var thread = await _db.ItemComments.AsNoTracking().Where(c => c.RootId == comment.RootId).OrderBy(c => c.CreatedAt).ToListAsync();
+            var names = await NamesAsync(thread.Select(c => c.AuthorId));
+            var item = await _db.Items.AsNoTracking().Where(i => i.Id == comment.ItemId)
+                .Select(i => new { i.Id, i.Description, i.Image, collection = i.Collection.Name, ownerId = i.Collection.UserId }).FirstAsync();
+            var parent = comment.ParentId == null ? null : thread.FirstOrDefault(c => c.Id == comment.ParentId);
+            return Serialize(new
+            {
+                comment = new { comment.Id, comment.Body, author = Name(names, comment.AuthorId), comment.AuthorId, comment.CreatedAt, comment.EditedAt },
+                parent = parent == null ? null : new { parent.Id, parent.Body, author = Name(names, parent.AuthorId) },
+                item = new { item.Id, item.Description, item.Image, item.collection, owner = item.ownerId },
+                thread = thread.Select(c => new
+                {
+                    c.Id, c.ParentId, author = Name(names, c.AuthorId), c.Body, c.CreatedAt, c.EditedAt,
+                    deleted = c.DeletedAt != null, c.IsRemoved,
+                }),
+            });
+        }
+
+        public static object ItemView(Coffer.Domain.Entities.ItemProvided i, string collection, string? type, string? owner) => new
+        {
+            i.Id, i.Description, i.Quantity, i.Image, i.AcquiredAt, collection, type, owner,
+            attributes = i.ItemAttributes.Select(a => new
+            {
+                name = a.Attribute?.Name,
+                value = a.ValueString ?? a.ValueNumber?.ToString() ?? a.ValueDate?.ToString() ?? a.ValueBoolean?.ToString(),
+            }),
+            tags = i.ItemTags.Select(t => t.Tag),
+        };
+
         public static object ListingView(Listing l) => new
         {
             l.Id, l.Kind, l.Status, l.Title, l.Description, l.PriceCents, l.ExchangeFor, l.Condition,

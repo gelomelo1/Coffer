@@ -27,7 +27,10 @@ export type ReviewReasonTag =
   | "payment_problem"
   | "rude_behavior"
   | "other";
-export type ReportTargetType = "listing" | "message" | "review";
+export type ReportTargetType = "listing" | "message" | "review" | "item" | "comment";
+
+/** My Listings filter chips (backend groups the existing statuses). */
+export type MyListingsFilter = "active" | "sold" | "archived";
 export type ReportRule =
   | "illegal_item"
   | "counterfeit"
@@ -39,7 +42,7 @@ export type ReportRule =
   | "off_topic"
   | "other";
 export type ReportStatus = "open" | "resolved";
-export type ReportDecision = "removed" | "no_violation";
+export type ReportDecision = "removed" | "no_violation" | "suspended";
 export type DealAction =
   | "accept"
   | "decline"
@@ -98,6 +101,8 @@ export interface ListingSummary {
   privateSellerDeclared: boolean;
   createdAt: string;
   owner: UserSummary;
+  /** Seller's profile country (ISO alpha-2). */
+  sellerCountry?: string | null;
 }
 
 export interface ListingDetail {
@@ -152,6 +157,8 @@ export interface ListingFilters {
   maxPriceCents?: number;
   condition?: ListingCondition;
   delivery?: DeliveryMethod;
+  /** Seller nationality: ISO alpha-2 codes of the seller's profile country (any of them). */
+  sellerCountries?: string[];
   sort: ListingSort;
 }
 
@@ -308,6 +315,8 @@ export interface MyReport {
   targetId: string;
   listingId?: string | null;
   conversationId?: string | null;
+  /** Collection item the report is about (item reports, and the item a comment belongs to). */
+  itemId?: string | null;
   targetSummary: string;
   rule: ReportRule;
   reason: string;
@@ -325,6 +334,7 @@ export interface ModerationActionItem {
   targetId: string;
   listingId?: string | null;
   conversationId?: string | null;
+  itemId?: string | null;
   rule: ReportRule;
   ruleLabel: string;
   statement: string;
@@ -338,4 +348,12 @@ export interface TermsStatus {
   acceptedVersion?: string | null;
   accepted: boolean;
   acceptedAt?: string | null;
+}
+
+/** Returned by every blocked request while the account is suspended (and by GET api/Account/Suspension). */
+export interface AccountSuspension {
+  message?: string;
+  reason: string;
+  startsAt: string;
+  endsAt: string;
 }
