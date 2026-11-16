@@ -40,7 +40,7 @@ export function useKeyboardToolbarOffset(hostRef: RefObject<View | null>) {
 
 /**
  * Keyboard overlap for a full-screen view that reaches the bottom of the screen (edge-to-edge Android, iOS).
- * Uses screen coordinates only: on regular Android screens measureInWindow is offset by the status bar while the
+ * Uses display coordinates only (window height vs. keyboard screenY): on regular Android screens measureInWindow is offset by the status bar while the
  * keyboard frame is not, so measuring the host would under-count by the status bar height.
  * Returns null while the keyboard is hidden.
  */
@@ -61,5 +61,7 @@ export function useKeyboardOverlapAtScreenBottom() {
     return () => subs.forEach((s) => s.remove());
   }, []);
 
-  return computeToolbarBottom({ hostBottom: Dimensions.get("screen").height, keyboardTop, minBottom: 0 });
+  // The edge-to-edge window spans the whole display. Its height is used rather than "screen", which can go stale
+  // (e.g. after a display-size change) while the keyboard frame follows the real display.
+  return computeToolbarBottom({ hostBottom: Dimensions.get("window").height, keyboardTop, minBottom: 0 });
 }
