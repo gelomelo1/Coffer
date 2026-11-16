@@ -1,20 +1,14 @@
-import { customTheme } from "@/src/theme/theme";
+import { colors, sizes, spacing, typography } from "@/src/theme/theme";
 import CustomDropdownItem from "@/src/types/helpers/custom_dropdown_item";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useEffect, useState } from "react";
-import {
-  FlatList,
-  Text,
-  TextStyle,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from "react-native";
+import { useTranslation } from "react-i18next";
+import { FlatList, Pressable, Text, TextStyle, View, ViewStyle } from "react-native";
 import { ValueType } from "react-native-dropdown-picker";
-import { Overlay } from "react-native-elements";
-import { SafeAreaView } from "react-native-safe-area-context";
-import CustomIconButton from "./custom_icon_button";
-import CustomText from "./custom_text";
+import CustomButton from "./custom_button";
 import CustomTextInput from "./custom_text_input";
+import { disabledWrap, SelectError, SelectLabel, selectFieldStyle, SelectOptionRow, selectTextStyle } from "./select_shared";
+import SheetModal from "./sheet_modal";
 
 type CustomAutocompleteProps<T extends ValueType> = {
   label?: string;
@@ -34,9 +28,9 @@ type CustomAutocompleteProps<T extends ValueType> = {
   additionalElementPlacement?: "start" | "end";
 };
 
-function CustomAutocomplete<T extends ValueType>(
-  props: CustomAutocompleteProps<T>,
-) {
+/** Free-text value with suggestions: type anything or pick a suggestion, then confirm. */
+function CustomAutocomplete<T extends ValueType>(props: CustomAutocompleteProps<T>) {
+  const { t } = useTranslation();
   const {
     label,
     open,
@@ -49,212 +43,83 @@ function CustomAutocomplete<T extends ValueType>(
     containerStyle,
     labelStyle,
     style,
-    dropDownContainerStyle,
     textStyle,
     errorMessage,
     additionalElementPlacement = "start",
-    ...rest
   } = props;
 
   const [inputValue, setInputValue] = useState(value?.toString() ?? "");
 
-  const filteredItems = items.filter((i) =>
-    i.label?.toLowerCase().includes(inputValue.toLowerCase()),
-  );
+  const filteredItems = items.filter((i) => i.label?.toLowerCase().includes(inputValue.toLowerCase()));
 
   useEffect(() => {
     setInputValue(value?.toString() ?? "");
-  }, [open]);
+  }, [open, value]);
+
+  const confirm = () => {
+    setValue(inputValue as unknown as T);
+    setOpen(false);
+  };
 
   return (
-    <View
-      style={[
-        { width: "100%", position: "relative", zIndex: 0 },
-        containerStyle,
-      ]}
-    >
-      {label ? (
-        <Text
-          style={[
-            {
-              fontSize: 16,
-              fontWeight: "bold",
-              color: customTheme.colors.primary,
-              marginBottom: 2,
-              fontFamily: "VendSansBold",
-            },
-            labelStyle,
-          ]}
-        >
-          {label}
-        </Text>
-      ) : null}
+    <View style={[{ width: "100%" }, disabledWrap(disabled), containerStyle]}>
+      <SelectLabel label={label} style={labelStyle} />
 
-      <TouchableOpacity onPress={() => setOpen(true)} disabled={disabled}>
-        <CustomTextInput value={value?.toString() ?? ""} editable={false} />
-      </TouchableOpacity>
-
-      <Overlay
-        fullScreen
-        overlayStyle={{
-          backgroundColor: customTheme.colors.secondary,
-          margin: 0,
-          padding: 0,
-        }}
-        isVisible={open ?? false}
-        onBackdropPress={() => setOpen(false)}
+      <Pressable
+        onPress={() => setOpen(true)}
+        disabled={disabled}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityValue={{ text: value?.toString() ?? "" }}
+        style={[
+          selectFieldStyle,
+          { flexDirection: "row", alignItems: "center", gap: spacing.xs },
+          errorMessage ? { borderColor: colors.danger } : null,
+          style,
+        ]}
       >
-        <SafeAreaView>
-          <FlatList
-            data={filteredItems}
-            keyExtractor={(item) => item.label?.toString() ?? ""}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                onPress={() => {
-                  setInputValue(item.label ?? "");
-                }}
-              >
-                <View
-                  style={{
-                    marginHorizontal: 10,
-                    marginBottom: 10,
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 10,
-                  }}
-                >
-                  <View
-                    style={{
-                      flex: 1,
-                      flexDirection: "row",
-                      justifyContent: "flex-start",
-                      alignItems: "center",
-                      gap: 10,
-                    }}
-                  >
-                    {item.additionalElement &&
-                    additionalElementPlacement === "start"
-                      ? item.additionalElement
-                      : null}
-                    <Text
-                      style={{
-                        color: customTheme.colors.primary,
-                        fontSize: 22,
-                      }}
-                    >
-                      {item.label}
-                    </Text>
-                    {item.additionalElement &&
-                    additionalElementPlacement === "end"
-                      ? item.additionalElement
-                      : null}
-                  </View>
-                </View>
-              </TouchableOpacity>
-            )}
-            ListHeaderComponent={
-              <View
-                style={{
-                  flexDirection: "column",
-                  paddingHorizontal: 10,
-                  borderBottomWidth: 1,
-                }}
-              >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <CustomText>{modalTitle ?? ""}</CustomText>
-                  <Text
-                    onPress={() => setOpen(false)}
-                    style={{
-                      color: customTheme.colors.primary,
-                      fontSize: 24,
-                      fontWeight: "bold",
-                    }}
-                  >
-                    ✕
-                  </Text>
-                </View>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "center",
-                    alignItems: "flex-start",
-                    gap: 10,
-                    marginHorizontal: 5,
-                  }}
-                >
-                  <CustomTextInput
-                    value={inputValue}
-                    onChangeText={(text) => {
-                      setInputValue(text);
-                    }}
-                    style={{ flex: 1 }}
-                    autoFocus
-                  />
-                  <CustomIconButton
-                    iconName={"check"}
-                    iconType={"entypo"}
-                    color={customTheme.colors.primary}
-                    reverseColor={customTheme.colors.secondary}
-                    onPress={() => {
-                      setValue(inputValue as unknown as T);
-                      setOpen(false);
-                    }}
-                    size={16}
-                    style={{ marginTop: 10 }}
-                  />
-                </View>
-              </View>
-            }
-            stickyHeaderIndices={[0]}
-            ListEmptyComponent={
-              <CustomText
-                style={{
-                  textAlign: "center",
-                  fontFamily: "VendSansItalic",
-                  marginTop: 20,
-                }}
-              >
-                This field supports custom values in addition to the suggested
-                options.
-              </CustomText>
-            }
+        <Text style={[selectTextStyle, { flex: 1 }, !value && { color: colors.textMuted }, textStyle]} numberOfLines={2}>
+          {value?.toString() || t("common:actions.select")}
+        </Text>
+        <MaterialIcons name="edit" size={sizes.iconSm} color={colors.text} />
+      </Pressable>
+
+      <SelectError message={errorMessage} />
+
+      <SheetModal visible={open ?? false} onClose={() => setOpen(false)} title={modalTitle ?? label ?? ""}>
+        <View style={{ padding: spacing.md, gap: spacing.sm }}>
+          <CustomTextInput
+            value={inputValue}
+            onChangeText={setInputValue}
+            autoFocus
+            returnKeyType="done"
+            onSubmitEditing={confirm}
+            onClear={() => setInputValue("")}
+            variant="search"
+            accessibilityLabel={label}
           />
-        </SafeAreaView>
-      </Overlay>
-
-      {disabled && (
-        <View
-          pointerEvents="none"
-          style={{
-            position: "absolute",
-            top: 22,
-            bottom: 22,
-            left: 0,
-            right: 0,
-            backgroundColor: customTheme.colors.disabledOverlay,
-            zIndex: 9999,
-          }}
+          <CustomButton title={t("common:actions.done")} onPress={confirm} />
+        </View>
+        <FlatList
+          data={filteredItems}
+          keyboardShouldPersistTaps="handled"
+          keyExtractor={(item) => item.label?.toString() ?? ""}
+          renderItem={({ item }) => (
+            <SelectOptionRow
+              label={item.label ?? ""}
+              selected={item.label === inputValue}
+              additionalElement={item.additionalElement}
+              additionalElementPlacement={additionalElementPlacement}
+              onPress={() => setInputValue(item.label ?? "")}
+            />
+          )}
+          ListEmptyComponent={
+            <Text style={[typography.meta, { color: colors.textMuted, textAlign: "center", padding: spacing.lg }]}>
+              {t("common:autocomplete.customValueHint")}
+            </Text>
+          }
         />
-      )}
-
-      {errorMessage && (
-        <CustomText
-          style={{
-            color: "red",
-            fontSize: 12,
-            marginTop: 4,
-          }}
-        >
-          {errorMessage}
-        </CustomText>
-      )}
+      </SheetModal>
     </View>
   );
 }

@@ -1,9 +1,7 @@
-import CustomText from "@/src/components/custom_ui/custom_text";
-import { customTheme } from "@/src/theme/theme";
+import { colors, fonts } from "@/src/theme/theme";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useEffect, useRef } from "react";
-import { Animated, Easing, TouchableOpacity } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 interface AnimatedTabIconProps {
   focused: boolean;
@@ -12,66 +10,55 @@ interface AnimatedTabIconProps {
   navigate: () => void;
 }
 
-function AnimatedTabIcon({
-  focused,
-  title,
-  icon,
-  navigate,
-}: AnimatedTabIconProps) {
-  const translateY = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(translateY, {
-      toValue: focused ? -2 : 0,
-      duration: 300,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }).start();
-  }, [focused, translateY]);
+/**
+ * Bottom tab item: icon + always-visible label. Active tab = 4px gold block on the top edge, gold icon, bold label
+ * (indicated by shape and weight as well as color).
+ */
+function AnimatedTabIcon({ focused, title, icon, navigate }: AnimatedTabIconProps) {
+  const iconColor = focused ? colors.secondary : colors.primary;
+  const Icon = icon.library === "fontawesome" ? FontAwesome : MaterialCommunityIcons;
 
   return (
-    <Animated.View style={{ transform: [{ translateY }] }}>
-      <TouchableOpacity
+    <Pressable
+      onPress={navigate}
+      accessibilityRole="tab"
+      accessibilityLabel={title}
+      accessibilityState={{ selected: focused }}
+      style={({ pressed }) => ({
+        flex: 1,
+        width: "100%",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 2,
+        backgroundColor: pressed ? colors.surfaceAlt : "transparent",
+      })}
+    >
+      <View
         style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          minWidth: 80,
+          position: "absolute",
+          top: 0,
+          left: "20%",
+          right: "20%",
+          height: 4,
+          backgroundColor: focused ? colors.secondary : "transparent",
         }}
-        onPress={() => navigate()}
+      />
+      <Icon name={icon.name as any} size={26} color={iconColor} />
+      <Text
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.8}
+        style={{
+          fontSize: 12,
+          lineHeight: 16,
+          color: colors.text,
+          fontFamily: focused ? fonts.bold : fonts.regular,
+          paddingHorizontal: 2,
+        }}
       >
-        {icon.library === "fontawesome" ? (
-          <FontAwesome
-            name={icon.name as any}
-            size={32}
-            color={
-              focused
-                ? customTheme.colors.secondary
-                : customTheme.colors.primary
-            }
-          />
-        ) : icon.library === "materialcommunityicons" ? (
-          <MaterialCommunityIcons
-            name={icon.name as any}
-            size={32}
-            color={
-              focused
-                ? customTheme.colors.secondary
-                : customTheme.colors.primary
-            }
-          />
-        ) : null}
-        {focused && (
-          <CustomText
-            style={{ fontSize: 10, color: customTheme.colors.secondary }}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {title}
-          </CustomText>
-        )}
-      </TouchableOpacity>
-    </Animated.View>
+        {title}
+      </Text>
+    </Pressable>
   );
 }
 

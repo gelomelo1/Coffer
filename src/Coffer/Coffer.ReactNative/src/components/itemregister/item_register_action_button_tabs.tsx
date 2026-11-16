@@ -1,12 +1,15 @@
 import { highImageResize } from "@/src/const/image_resize_config";
 import { useCollectionTypeStore } from "@/src/hooks/collection_type_store";
 import { useNavigationModeStore } from "@/src/hooks/navigation_mode_store";
-import { customTheme } from "@/src/theme/theme";
+import { spacing } from "@/src/theme/theme";
 import { Collection } from "@/src/types/entities/collection";
 import { pickImage } from "@/src/utils/data_access_utils";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
-import { FAB, Portal } from "react-native-paper";
+import { useTranslation } from "react-i18next";
+import { Portal } from "react-native-paper";
+import { RetroFab } from "../custom_ui/fab";
+import { TAB_BAR_CONTENT_HEIGHT } from "../collections/tabs/layout/collection_tabs_custom_layout";
 import CustomImageResize from "../custom_ui/custom_image_resize";
 import CustomOverlayMessage from "../custom_ui/custom_overlay_message";
 import ItemRegisterCollectionSelectOverlay from "./item_register_collection_select_overlay";
@@ -16,6 +19,7 @@ import ItemRegisterOverlay from "./item_register_overlay";
 function ItemRegisterActionButtonTabs() {
   const { collectionTypes } = useCollectionTypeStore();
   const { navigationMode } = useNavigationModeStore();
+  const { t } = useTranslation();
 
   const [isImagePickerLoading, setIsImagePickerLoading] = useState<
     "Gallery" | "Camera" | null
@@ -109,19 +113,11 @@ function ItemRegisterActionButtonTabs() {
   return (
     <>
       <Portal>
-        <FAB
-          visible
-          icon={"plus"}
-          style={{
-            backgroundColor: customTheme.colors.primary,
-            borderWidth: 2,
-            borderColor: customTheme.colors.secondary,
-            position: "absolute",
-            right: 8,
-            bottom: navigationMode.navigationBarHeight + 60,
-          }}
-          color={customTheme.colors.secondary}
+        <RetroFab
+          icon="plus"
+          label={t("navigation:fab.addItem")}
           onPress={handlePress}
+          bottom={navigationMode.navigationBarHeight + TAB_BAR_CONTENT_HEIGHT + spacing.md}
         />
       </Portal>
       {selectedCollection ? (
@@ -163,13 +159,13 @@ function ItemRegisterActionButtonTabs() {
         onClose={handlePermissionWarningOverlayClose}
         overlayTitle={
           isImagePickerLoading === "Gallery"
-            ? "Gallery Permission"
-            : "Camera Permission"
+            ? t("items:permissions.galleryTitle")
+            : t("items:permissions.cameraTitle")
         }
         message={
           isImagePickerLoading === "Gallery"
-            ? "Gallery permission is required to add items and enable the item duplication detection feature. Please allow access to continue."
-            : "Camera permission is required to add items and enable the item duplication detection feature. Please allow access to continue."
+            ? t("items:permissions.galleryText")
+            : t("items:permissions.cameraText")
         }
       />
       {asset ? (

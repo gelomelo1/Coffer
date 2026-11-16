@@ -1,1 +1,6 @@
-{}
+{
+  "title": "Settings",
+  "developer": { "title": "Developer options" },
+  "user": { "title": "User settings" },
+  "reports": { "title": "Reports" }
+}

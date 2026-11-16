@@ -157,7 +157,10 @@ function checkFile(file, namespaces, problems) {
       }
     } else if (ts.isPropertyAssignment(node)) {
       const name = propName(node.name);
-      if (name && TEXT_PROPS.has(name) && (ts.isStringLiteral(node.initializer) || ts.isNoSubstitutionTemplateLiteral(node.initializer))) {
+      const literal = ts.isStringLiteral(node.initializer) || ts.isNoSubstitutionTemplateLiteral(node.initializer);
+      if (name && literal && /Key$/.test(name) && node.initializer.text.includes(":")) {
+        checkKey(node.initializer, node.initializer.text);
+      } else if (name && TEXT_PROPS.has(name) && literal) {
         if (userText(node.initializer.text)) report(node, `hardcoded property ${name}: "${node.initializer.text}"`);
       }
     } else if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && TEXT_CONST.test(node.name.text) && node.initializer) {

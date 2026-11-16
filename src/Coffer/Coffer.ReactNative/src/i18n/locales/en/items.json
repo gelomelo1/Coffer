@@ -1,1 +1,12 @@
-{}
+{
+  "permissions": {
+    "galleryTitle": "Gallery permission",
+    "cameraTitle": "Camera permission",
+    "galleryText": "Gallery permission is required to add items and enable the item duplication detection feature. Please allow access to continue.",
+    "cameraText": "Camera permission is required to add items and enable the item duplication detection feature. Please allow access to continue."
+  },
+  "register": {
+    "camera": "Camera",
+    "gallery": "Gallery"
+  }
+}

@@ -1,1 +1,20 @@
-{}
+{
+  "tabs": {
+    "home": "Home",
+    "collections": "Collections",
+    "myFollows": "My Follows",
+    "market": "Market"
+  },
+  "screens": {
+    "myCollection": "My Collection",
+    "itemDetails": "Item Details"
+  },
+  "header": {
+    "hello": "Hello {{name}}!",
+    "help": "Help",
+    "settings": "Settings"
+  },
+  "fab": {
+    "addItem": "Add item"
+  }
+}

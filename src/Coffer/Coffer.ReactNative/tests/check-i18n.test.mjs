@@ -82,6 +82,11 @@ test("honours i18n-ignore and punctuation-only text", () => {
   assert.equal(check(`const x = <Text>·</Text>; const y = <Text> — </Text>; const z = <Text>/</Text>;`).code, 0);
 });
 
+test("verifies keys stored in *Key properties", () => {
+  assert.equal(check(`const p = { titleKey: "common:nope" };`).code, 1);
+  assert.equal(check(`const p = { screenTitleKey: "common:a" };`, { common: { a: "A" } }).code, 0);
+});
+
 test("ignores files in the allowlist", () => {
   assert.equal(check(`const x = <Text>Hello</Text>;`, { allowlist: "src/screen.tsx\n" }).code, 0);
 });

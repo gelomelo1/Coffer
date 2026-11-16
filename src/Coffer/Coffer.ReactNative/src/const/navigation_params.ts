@@ -26,26 +26,26 @@ export const ROUTES = {
 
 export const pageParams = {
   collections: buildNavigationData({
-    screenTitle: "Collections",
+    screenTitleKey: "navigation:tabs.collections",
   }),
   settings: buildNavigationData({
     isSettingsShown: false,
   }),
   developer: buildNavigationData({
-    title: `Developer options`,
+    titleKey: "settings:developer.title",
     isSettingsShown: false,
   }),
   home: buildNavigationData({
-    screenTitle: "Home",
+    screenTitleKey: "navigation:tabs.home",
   }),
   market: buildNavigationData({
-    screenTitle: "Market",
+    screenTitleKey: "navigation:tabs.market",
   }),
   mycollection: buildNavigationData({
-    screenTitle: "My Collection",
+    screenTitleKey: "navigation:screens.myCollection",
   }),
   itemdetails: buildNavigationData({
-    screenTitle: `Item Details`,
+    screenTitleKey: "navigation:screens.itemDetails",
   }),
   otheruser: (username: string) =>
     buildNavigationData({
@@ -59,15 +59,15 @@ export const pageParams = {
   otheruseritemdetails: (collectionName: string) =>
     buildNavigationData({
       title: collectionName,
-      screenTitle: "Item Details",
+      screenTitleKey: "navigation:screens.itemDetails",
     }),
   user: buildNavigationData({
-    title: `User settings`,
+    titleKey: "settings:user.title",
     isSettingsShown: false,
   }),
   listingDetails: (title: string) =>
     buildNavigationData({
-      title: "Market",
+      titleKey: "navigation:tabs.market",
       screenTitle: title,
     }),
   chat: (otherUserName: string, listingTitle: string) =>
@@ -76,10 +76,10 @@ export const pageParams = {
       screenTitle: listingTitle,
     }),
   reports: buildNavigationData({
-    title: `Reports`,
+    titleKey: "settings:reports.title",
     isSettingsShown: false,
   }),
   myfollows: buildNavigationData({
-    screenTitle: "My Follows",
+    screenTitleKey: "navigation:tabs.myFollows",
   }),
 };

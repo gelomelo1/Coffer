@@ -1,15 +1,18 @@
-import { customTheme } from "@/src/theme/theme";
 import CustomDropdownItem from "@/src/types/helpers/custom_dropdown_item";
+import { colors } from "@/src/theme/theme";
 import { useState } from "react";
-import {
-  Text,
-  TextStyle,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from "react-native";
+import { useTranslation } from "react-i18next";
+import { TextStyle, View, ViewStyle } from "react-native";
 import DropDownPicker, { ValueType } from "react-native-dropdown-picker";
-import CustomText from "./custom_text";
+import {
+  disabledWrap,
+  SelectError,
+  SelectLabel,
+  selectFieldStyle,
+  selectModalProps,
+  SelectOptionRow,
+  selectTextStyle,
+} from "./select_shared";
 
 type CustomDropdownProps<T extends ValueType> = {
   label?: string;
@@ -31,7 +34,9 @@ type CustomDropdownProps<T extends ValueType> = {
   additionalElementPlacement?: "start" | "end";
 };
 
+/** Single select. Opens a full-screen list; tapping the selected option (or "None") clears it. */
 function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
+  const { t } = useTranslation();
   const {
     label,
     open,
@@ -54,211 +59,60 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
   } = props;
 
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const isOpen = open ?? uncontrolledOpen;
+  const setIsOpen = setOpen ?? setUncontrolledOpen;
 
   const dropdownItems: CustomDropdownItem<T>[] = [
-    {
-      label: "None",
-      value: undefined as unknown as T, // special value to represent "clear all"
-    },
+    { label: t("common:actions.none"), value: undefined as unknown as T }, // special value: clear
     ...(items ?? []),
   ];
 
   return (
-    <View
-      style={[
-        { width: "100%", position: "relative", zIndex: 0 },
-        containerStyle,
-      ]}
-    >
-      {label ? (
-        <Text
-          style={[
-            {
-              fontSize: 16,
-              fontWeight: "bold",
-              color: customTheme.colors.primary,
-              marginBottom: 2,
-              fontFamily: "VendSansBold",
-            },
-            labelStyle,
-          ]}
-        >
-          {label}
-        </Text>
-      ) : null}
+    <View style={[{ width: "100%", position: "relative", zIndex: 0 }, disabledWrap(disabled), containerStyle]}>
+      <SelectLabel label={label} style={labelStyle} />
 
       <DropDownPicker<T>
         {...rest}
-        open={open ?? uncontrolledOpen}
+        {...selectModalProps}
+        open={isOpen}
         searchable={searchable}
-        setOpen={setOpen ?? setUncontrolledOpen}
+        setOpen={setIsOpen}
         value={value ?? null}
         items={dropdownItems}
         setValue={(callback) => {
           const newValue = callback(value);
-
-          if (newValue === value) {
-            setValue(null);
-          } else {
-            setValue(newValue);
-          }
+          setValue(newValue === value ? null : newValue);
         }}
         multiple={false}
-        listMode="MODAL"
-        style={[
-          {
-            backgroundColor: customTheme.colors.secondary,
-            borderWidth: 2,
-            borderRadius: 0,
-            borderColor: customTheme.colors.primary,
-            boxShadow: `1px 1px ${customTheme.colors.primary}`,
-          },
-          style,
-        ]}
-        dropDownContainerStyle={[
-          {
-            backgroundColor: customTheme.colors.secondary,
-            borderWidth: 1,
-            borderRadius: 0,
-            borderColor: customTheme.colors.primary,
-          },
-          dropDownContainerStyle,
-        ]}
-        textStyle={[
-          {
-            color: customTheme.colors.primary,
-            fontFamily: "VendSansRegular",
-            fontSize: 18,
-          },
-          textStyle,
-        ]}
-        disabledStyle={{
-          borderWidth: 0,
-          boxShadow: "none",
-        }}
+        style={[selectFieldStyle, errorMessage ? { borderColor: colors.danger } : null, style]}
+        dropDownContainerStyle={[{ borderRadius: 0 }, dropDownContainerStyle]}
+        textStyle={[selectTextStyle, textStyle]}
         disabled={disabled}
-        modalAnimationType="slide"
-        modalTitle={modalTitle || "Select an option"}
-        placeholder={placeholder || "Select an option"}
-        modalContentContainerStyle={{
-          backgroundColor: customTheme.colors.secondary,
-          paddingTop: 50,
-        }}
-        modalTitleStyle={{
-          color: customTheme.colors.primary,
-          fontSize: 24,
-          fontWeight: "bold",
-        }}
-        searchPlaceholderTextColor={customTheme.colors.primary}
-        searchTextInputStyle={{
-          color: customTheme.colors.primary,
-          borderColor: customTheme.colors.primary,
-        }}
-        CloseIconComponent={() => (
-          <Text
-            style={{
-              color: customTheme.colors.primary,
-              fontSize: 24,
-              fontWeight: "bold",
-            }}
-          >
-            ✕
-          </Text>
-        )}
+        modalTitle={modalTitle || label || t("common:actions.select")}
+        placeholder={placeholder || t("common:actions.select")}
+        placeholderStyle={{ color: colors.textMuted }}
+        searchPlaceholder={t("common:actions.search")}
+        translation={{ NOTHING_TO_SHOW: t("common:states.empty") }}
         renderListItem={({ item }: { item: CustomDropdownItem<T> }) => {
           const isNone = item.value === undefined;
-          const isSelected = isNone ? false : item.value === value;
-
           return (
-            <TouchableOpacity
+            <SelectOptionRow
+              label={item.label ?? ""}
+              selected={!isNone && item.value === value}
+              muted={isNone}
+              additionalElement={item.additionalElement}
+              additionalElementPlacement={additionalElementPlacement}
               onPress={() => {
-                if (isNone) {
-                  setValue(null);
-                } else {
-                  setValue(item.value === value ? null : (item.value as T));
-                }
-                setOpen(false);
+                if (isNone) setValue(null);
+                else setValue(item.value === value ? null : (item.value as T));
+                setIsOpen(false);
               }}
-            >
-              <View
-                style={{
-                  marginHorizontal: 10,
-                  marginBottom: 10,
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 10,
-                }}
-              >
-                <View
-                  style={{
-                    flex: 1,
-                    flexDirection: "row",
-                    justifyContent: "flex-start",
-                    alignItems: "center",
-                    gap: 10,
-                  }}
-                >
-                  {item.additionalElement &&
-                  additionalElementPlacement === "start"
-                    ? item.additionalElement
-                    : null}
-                  <Text
-                    style={{
-                      color: customTheme.colors.primary,
-                      fontSize: 22,
-                    }}
-                  >
-                    {item.label}
-                  </Text>
-                  {item.additionalElement &&
-                  additionalElementPlacement === "end"
-                    ? item.additionalElement
-                    : null}
-                </View>
-                {isSelected ? (
-                  <Text
-                    style={{
-                      flexShrink: 0,
-                      color: customTheme.colors.primary,
-                      fontSize: 22,
-                    }}
-                  >
-                    ✓
-                  </Text>
-                ) : null}
-              </View>
-            </TouchableOpacity>
+            />
           );
         }}
       />
 
-      {disabled && (
-        <View
-          pointerEvents="none"
-          style={{
-            position: "absolute",
-            top: 22,
-            bottom: 0,
-            left: 0,
-            right: 0,
-            backgroundColor: customTheme.colors.disabledOverlay,
-            zIndex: 9999,
-          }}
-        />
-      )}
-
-      {errorMessage && (
-        <CustomText
-          style={{
-            color: "red",
-            fontSize: 12,
-            marginTop: 4,
-          }}
-        >
-          {errorMessage}
-        </CustomText>
-      )}
+      <SelectError message={errorMessage} />
     </View>
   );
 }

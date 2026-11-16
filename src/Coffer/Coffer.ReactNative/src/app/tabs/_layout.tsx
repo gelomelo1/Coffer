@@ -5,10 +5,12 @@ import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { Tabs, usePathname } from "expo-router";
 import { navigate } from "expo-router/build/global-state/routing";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Provider as PaperProvider } from "react-native-paper";
 
 function CollectionLayout() {
   const pathname = usePathname();
+  const { t } = useTranslation();
 
   return (
     <PaperProvider>
@@ -17,11 +19,11 @@ function CollectionLayout() {
           name="index"
           options={() => {
             return {
-              title: "Home",
+              title: t("navigation:tabs.home"),
               tabBarIcon: () => (
                 <AnimatedTabIcon
                   focused={pathname === `/${ROUTES.TABS.HOME}`}
-                  title="Home"
+                  title={t("navigation:tabs.home")}
                   icon={{ library: "fontawesome", name: "home" }}
                   navigate={() => {
                     navigate({
@@ -38,11 +40,11 @@ function CollectionLayout() {
           name="collections"
           options={() => {
             return {
-              title: "Collections",
+              title: t("navigation:tabs.collections"),
               tabBarIcon: () => (
                 <AnimatedTabIcon
                   focused={pathname === `/${ROUTES.TABS.COLLECTIONS}`}
-                  title="Collections"
+                  title={t("navigation:tabs.collections")}
                   icon={{
                     library: "materialcommunityicons",
                     name: "treasure-chest",
@@ -62,11 +64,11 @@ function CollectionLayout() {
           name="myfollows"
           options={() => {
             return {
-              title: "My Follows",
+              title: t("navigation:tabs.myFollows"),
               tabBarIcon: () => (
                 <AnimatedTabIcon
                   focused={pathname === `/${ROUTES.TABS.MYFOLLOWS}`}
-                  title="My Follows"
+                  title={t("navigation:tabs.myFollows")}
                   icon={{
                     library: "materialcommunityicons",
                     name: "emoticon-plus",
@@ -86,11 +88,11 @@ function CollectionLayout() {
           name="market"
           options={() => {
             return {
-              title: "Market",
+              title: t("navigation:tabs.market"),
               tabBarIcon: () => (
                 <AnimatedTabIcon
                   focused={pathname === `/${ROUTES.TABS.MARKET}`}
-                  title="Market"
+                  title={t("navigation:tabs.market")}
                   icon={{ library: "materialcommunityicons", name: "storefront" }}
                   navigate={() => {
                     navigate({

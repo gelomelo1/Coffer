@@ -1,19 +1,18 @@
-import { customTheme } from "@/src/theme/theme";
+import { colors, spacing } from "@/src/theme/theme";
 import { ViewStyle } from "react-native";
 
 interface RootViewStyleProps {
+  /** Kept for existing call sites; the redesign no longer frames screens with a colored border. */
   color?: string;
   style?: ViewStyle;
 }
 
-function rootViewStyle({ color, style }: RootViewStyleProps = {}): ViewStyle {
+/** Standard page container style: cream background, 16dp gutter. */
+function rootViewStyle({ style }: RootViewStyleProps = {}): ViewStyle {
   return {
     flex: 1,
-    padding: 10,
-    backgroundColor: customTheme.colors.background,
-    borderWidth: 2,
-    borderColor: color ?? customTheme.colors.primary,
-    boxShadow: `inset 0 4px 4px -4px ${customTheme.colors.disabledOverlay}, inset 0 -4px 4px -4px ${customTheme.colors.disabledOverlay}`,
+    padding: spacing.md,
+    backgroundColor: colors.bg,
     ...style,
   };
 }

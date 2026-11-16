@@ -1,12 +1,14 @@
 import { highImageResize } from "@/src/const/image_resize_config";
 import { useNavigationModeStore } from "@/src/hooks/navigation_mode_store";
-import { customTheme } from "@/src/theme/theme";
+import { spacing } from "@/src/theme/theme";
 import { Collection } from "@/src/types/entities/collection";
 import CollectionType from "@/src/types/entities/collectiontype";
 import { pickImage } from "@/src/utils/data_access_utils";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
-import { FAB, Portal } from "react-native-paper";
+import { useTranslation } from "react-i18next";
+import { Portal } from "react-native-paper";
+import { RetroFabGroup } from "../custom_ui/fab";
 import CustomImageResize from "../custom_ui/custom_image_resize";
 import CustomOverlayMessage from "../custom_ui/custom_overlay_message";
 import ItemRegisterImagePickerOverlay from "./item_register_image_picker_overlay";
@@ -24,6 +26,7 @@ function ItemRegisterActionButton({
   const { navigationMode } = useNavigationModeStore();
 
   const [open, setOpen] = useState(false);
+  const { t } = useTranslation();
 
   const [isImagePickerLoading, setIsImagePickerLoading] = useState<
     "Gallery" | "Camera" | null
@@ -102,47 +105,16 @@ function ItemRegisterActionButton({
   return (
     <>
       <Portal>
-        <FAB.Group
+        <RetroFabGroup
           open={open}
-          visible
-          icon={open ? "close" : "plus"}
-          fabStyle={{
-            backgroundColor: customTheme.colors.primary,
-            borderWidth: 2,
-            borderColor: customTheme.colors.secondary,
-          }}
-          style={{
-            position: "absolute",
-            paddingBottom: navigationMode.navigationBarHeight + 40,
-            paddingRight: 0,
-            marginRight: -8,
-          }}
-          color={customTheme.colors.secondary}
+          onToggle={() => setOpen(!open)}
+          bottom={navigationMode.navigationBarHeight + spacing.md}
+          openLabel={t("navigation:fab.addItem")}
+          closeLabel={t("accessibility:close")}
           actions={[
-            {
-              icon: "camera",
-              label: "Camera",
-              onPress: async () => await handleCameraImagePick(),
-              style: {
-                backgroundColor: customTheme.colors.primary,
-                borderWidth: 2,
-                borderColor: customTheme.colors.secondary,
-              },
-              color: customTheme.colors.secondary,
-            },
-            {
-              icon: "image",
-              label: "Gallery",
-              onPress: async () => await handleGalleryImagePick(),
-              style: {
-                backgroundColor: customTheme.colors.primary,
-                borderWidth: 2,
-                borderColor: customTheme.colors.secondary,
-              },
-              color: customTheme.colors.secondary,
-            },
+            { icon: "camera", label: t("items:register.camera"), onPress: handleCameraImagePick },
+            { icon: "image", label: t("items:register.gallery"), onPress: handleGalleryImagePick },
           ]}
-          onStateChange={() => setOpen(!open)}
         />
       </Portal>
       <ItemRegisterOverlay
@@ -165,13 +137,13 @@ function ItemRegisterActionButton({
         onClose={handlePermissionWarningOverlayClose}
         overlayTitle={
           isImagePickerLoading === "Gallery"
-            ? "Gallery Permission"
-            : "Camera Permission"
+            ? t("items:permissions.galleryTitle")
+            : t("items:permissions.cameraTitle")
         }
         message={
           isImagePickerLoading === "Gallery"
-            ? "Gallery permission is required to add items and enable the item duplication detection feature. Please allow access to continue."
-            : "Camera permission is required to add items and enable the item duplication detection feature. Please allow access to continue."
+            ? t("items:permissions.galleryText")
+            : t("items:permissions.cameraText")
         }
       />
       {asset ? (

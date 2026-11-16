@@ -1,1 +1,8 @@
-{}
+{
+  "stars_one": "{{count}} star",
+  "stars_other": "{{count}} stars",
+  "close": "Close",
+  "back": "Go back",
+  "clearText": "Clear text",
+  "openMenu": "Open menu"
+}

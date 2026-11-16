@@ -24,5 +24,13 @@
     "loading": "Loading",
     "empty": "Nothing here yet",
     "error": "Something went wrong"
+  },
+  "select": {
+    "multipleTitle": "Select options",
+    "selectedCount_one": "{{count}} selected",
+    "selectedCount_other": "{{count}} selected"
+  },
+  "autocomplete": {
+    "customValueHint": "No suggestion matches. You can still use what you typed."
   }
 }
