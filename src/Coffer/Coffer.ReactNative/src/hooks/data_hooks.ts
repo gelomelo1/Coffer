@@ -1,3 +1,5 @@
+import i18n from "../i18n";
+import { apiErrorText } from "../utils/api_error_text";
 import {
   QueryKey,
   useMutation,
@@ -86,7 +88,7 @@ export function useCreateData<TData, TResponse = void>(
     },
     onSuccess: () => {
       if (customSucessText !== "")
-        showToast("success", customSucessText ?? "Successfully created");
+        showToast("success", customSucessText ?? i18n.t("notifications:created"));
       if (queryKey) {
         const keys = queryKey.includes(";")
           ? queryKey
@@ -100,9 +102,9 @@ export function useCreateData<TData, TResponse = void>(
         });
       }
     },
-    onError: () => {
+    onError: (error) => {
       if (customErrorText !== "")
-        showToast("error", customErrorText ?? "Creation failed");
+        showToast("error", customErrorText ?? i18n.t("notifications:createFailed"), apiErrorText(error));
     },
   });
 }
@@ -121,7 +123,7 @@ export function useUpdateData<TData, TResponse = void>(
     },
     onSuccess: () => {
       if (customSucessText !== "")
-        showToast("success", customSucessText ?? "Successfully updated");
+        showToast("success", customSucessText ?? i18n.t("notifications:updated"));
       if (queryKey) {
         const keys = queryKey.includes(";")
           ? queryKey
@@ -135,9 +137,9 @@ export function useUpdateData<TData, TResponse = void>(
         });
       }
     },
-    onError: () => {
+    onError: (error) => {
       if (customErrorText !== "")
-        showToast("error", customErrorText ?? "Update failed");
+        showToast("error", customErrorText ?? i18n.t("notifications:updateFailed"), apiErrorText(error));
     },
   });
 }
@@ -156,7 +158,7 @@ export function useDeleteData(
     },
     onSuccess: () => {
       if (customSucessText !== "")
-        showToast("success", customSucessText ?? "Successfully deleted");
+        showToast("success", customSucessText ?? i18n.t("notifications:deleted"));
       if (queryKey) {
         const keys = queryKey.includes(";")
           ? queryKey
@@ -170,9 +172,9 @@ export function useDeleteData(
         });
       }
     },
-    onError: () => {
+    onError: (error) => {
       if (customErrorText !== "")
-        showToast("error", customErrorText ?? "Delete failed");
+        showToast("error", customErrorText ?? i18n.t("notifications:deleteFailed"), apiErrorText(error));
     },
   });
 }

@@ -1,6 +1,7 @@
 import { isAxiosError } from "axios";
 import { backendAxios } from "../const/backendAccessConfiguration";
 import { endpoints } from "../const/endpoints";
+import { apiErrorText } from "./api_error_text";
 import {
   Carrier,
   City,
@@ -39,16 +40,9 @@ export function apiErrorCode(error: unknown): string | undefined {
   return isAxiosError(error) ? (error.response?.data as { code?: string } | undefined)?.code : undefined;
 }
 
-/** The backend answers business-rule errors as { message }; fall back to a generic text. */
-export function apiErrorMessage(error: unknown, fallback = "Something went wrong"): string {
-  if (isAxiosError(error)) {
-    const data = error.response?.data as { message?: string; title?: string } | undefined;
-    if (data?.message) return data.message;
-    if (error.response?.status === 403) return "You are not allowed to do this.";
-    if (error.response?.status === 404) return "Not found.";
-    if (!error.response) return "Can't reach the server.";
-  }
-  return fallback;
+/** Translated message for a failed API call (backend messages are mapped to frontend keys). */
+export function apiErrorMessage(error: unknown, fallbackKey = "errors:unknown"): string {
+  return apiErrorText(error, fallbackKey);
 }
 
 const multipart = { headers: { "Content-Type": "multipart/form-data" } };

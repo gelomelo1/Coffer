@@ -1,1 +1,8 @@
-{}
+{
+  "created": "Saved",
+  "updated": "Changes saved",
+  "deleted": "Deleted",
+  "createFailed": "Couldn't save",
+  "updateFailed": "Couldn't save the changes",
+  "deleteFailed": "Couldn't delete"
+}

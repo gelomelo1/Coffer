@@ -1,6 +1,11 @@
 import axios from "axios";
 import { navigate } from "expo-router/build/global-state/routing";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View } from "react-native";
+import { ErrorState } from "../components/custom_ui/states";
+import { colors } from "../theme/theme";
+import { apiErrorText } from "../utils/api_error_text";
 import { LoadingScreen } from "../components/custom_ui/loading";
 import { endpoints } from "../const/endpoints";
 import { pageParams, ROUTES } from "../const/navigation_params";
@@ -19,6 +24,9 @@ export default function Index() {
   const { setCollectionTypes } = useCollectionTypeStore();
   // While suspended the SuspendedScreen covers the app; once "Check again" clears it, sign-in is retried.
   const suspension = useSuspensionStore((s) => s.suspension);
+  const { t } = useTranslation();
+  const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     if (suspension) return;
@@ -50,14 +58,26 @@ export default function Index() {
               error.response?.status === 404
             ) {
               navigate(ROUTES.LOGIN);
+              return;
             }
           }
+          // Server unreachable / failing: say so and offer a retry instead of spinning forever.
+          setError(apiErrorText(error));
         }
       }
     };
+    setError(null);
     checkAuth();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [suspension]);
+  }, [suspension, attempt]);
 
-  return <LoadingScreen label="Trying to log you in..." />;
+  if (error) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", backgroundColor: colors.bg }}>
+        <ErrorState message={error} onRetry={() => setAttempt((a) => a + 1)} />
+      </View>
+    );
+  }
+
+  return <LoadingScreen label={t("auth:signingIn")} />;
 }
