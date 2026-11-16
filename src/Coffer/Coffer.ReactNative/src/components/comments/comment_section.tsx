@@ -1,29 +1,55 @@
-import CustomText from "@/src/components/custom_ui/custom_text";
+import { Avatar } from "@/src/components/custom_ui/avatar";
+import { SectionHeader } from "@/src/components/custom_ui/card";
+import { ConfirmDialog } from "@/src/components/custom_ui/confirm_dialog";
 import { Loading } from "@/src/components/custom_ui/loading";
+import { ErrorState } from "@/src/components/custom_ui/states";
+import { Tag } from "@/src/components/custom_ui/tag";
 import ReportOverlay from "@/src/components/market/ui/report_overlay";
-import { Tag } from "@/src/components/market/ui/retro";
 import { commentApi, useCommentMutation, useItemComments } from "@/src/hooks/comment_api";
-import { customTheme } from "@/src/theme/theme";
+import { borders, colors, sizes, spacing, typography } from "@/src/theme/theme";
 import { ItemComment } from "@/src/types/entities/comment";
-import { apiErrorMessage, formatTimeAgo } from "@/src/utils/market_api";
+import { apiErrorText } from "@/src/utils/api_error_text";
+import { formatTimeAgo } from "@/src/utils/market_api";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useState } from "react";
-import { Alert, TouchableOpacity, View } from "react-native";
-import { Avatar } from "react-native-elements";
+import { useTranslation } from "react-i18next";
+import { Pressable, Text, View } from "react-native";
 import CommentBody from "./comment_body";
 import CommentComposer from "./comment_composer";
 
-const c = customTheme.colors;
 const MAX_INDENT_LEVEL = 3;
+const INDENT = 12;
 
 type Mode = { kind: "new" } | { kind: "reply"; to: ItemComment } | { kind: "edit"; comment: ItemComment };
 
-function Action({ icon, label, onPress }: { icon: React.ComponentProps<typeof MaterialIcons>["name"]; label: string; onPress: () => void }) {
+function Action({
+  icon,
+  label,
+  onPress,
+  danger = false,
+}: {
+  icon: React.ComponentProps<typeof MaterialIcons>["name"];
+  label: string;
+  onPress: () => void;
+  danger?: boolean;
+}) {
+  const color = danger ? colors.danger : colors.text;
   return (
-    <TouchableOpacity onPress={onPress} hitSlop={6} style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
-      <MaterialIcons name={icon} size={14} color={c.primary} />
-      <CustomText style={{ fontSize: 13 }}>{label}</CustomText>
-    </TouchableOpacity>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      style={({ pressed }) => ({
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.xxs,
+        minHeight: sizes.touch,
+        paddingHorizontal: spacing.xs,
+        backgroundColor: pressed ? colors.surfaceAlt : "transparent",
+      })}
+    >
+      <MaterialIcons name={icon} size={18} color={color} />
+      <Text style={[typography.label, { color }]}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -44,55 +70,51 @@ function CommentRow({
   onDelete: (c: ItemComment) => void;
   onReport: (c: ItemComment) => void;
 }) {
+  const { t } = useTranslation();
   const hidden = comment.isDeleted || comment.isRemoved;
   const indent = Math.min(level, MAX_INDENT_LEVEL);
   // Deeper than the indent limit: say who it answers, so the thread stays readable.
-  const answering = level > MAX_INDENT_LEVEL && parentAuthor ? `↪ ${parentAuthor} · ` : "";
+  const answering = level > MAX_INDENT_LEVEL && parentAuthor ? t("comments:row.answering", { name: parentAuthor }) : null;
+  const meta = [answering, formatTimeAgo(comment.createdAt), comment.editedAt ? t("comments:row.edited") : null].filter(Boolean).join(" · "); // i18n-ignore
 
   return (
     <View>
       <View
         style={{
-          marginLeft: indent * 14,
-          borderLeftWidth: level > 0 ? 2 : 0,
-          borderLeftColor: c.primary,
-          paddingLeft: level > 0 ? 8 : 0,
-          paddingVertical: 6,
-          gap: 3,
+          marginLeft: indent * INDENT,
+          borderLeftWidth: level > 0 ? borders.width : 0,
+          borderLeftColor: colors.borderMuted,
+          paddingLeft: level > 0 ? spacing.sm : 0,
+          paddingTop: spacing.sm,
+          gap: spacing.xxs,
         }}
       >
         {hidden ? (
-          <CustomText style={{ fontFamily: "VendSansItalic", fontSize: 14 }}>
-            {comment.isRemoved ? "[comment removed by a moderator]" : "[deleted comment]"}
-          </CustomText>
+          <Text style={[typography.meta, { color: colors.textMuted, fontStyle: "italic", paddingBottom: spacing.sm }]}>
+            {comment.isRemoved ? t("comments:row.removed") : t("comments:row.deleted")}
+          </Text>
         ) : (
           <>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-              <Avatar
-                size={22}
-                rounded
-                source={comment.author?.avatar ? { uri: comment.author.avatar } : undefined}
-                title={comment.author?.name?.[0]?.toUpperCase()}
-                containerStyle={{ backgroundColor: c.primary }}
-              />
-              <CustomText style={{ fontFamily: "VendSansBold" }}>{comment.author?.name}</CustomText>
-              {comment.isOwner ? <Tag label="OWNER" color={c.secondary} textColor={c.primary} /> : null}
-              <CustomText style={{ fontSize: 12 }}>
-                {answering}
-                {formatTimeAgo(comment.createdAt)}
-                {comment.editedAt ? " · edited" : ""}
-              </CustomText>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
+              <Avatar uri={comment.author?.avatar} size={32} />
+              <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs, flexWrap: "wrap" }}>
+                  <Text style={[typography.label, { color: colors.text }]}>{comment.author?.name ?? t("comments:row.deletedUser")}</Text>
+                  {comment.isOwner ? <Tag label={t("comments:row.owner")} color={colors.secondary} /> : null}
+                </View>
+                <Text style={[typography.caption, { color: colors.textMuted }]}>{meta}</Text>
+              </View>
             </View>
             <CommentBody body={comment.body} mentions={comment.mentions} />
-            <View style={{ flexDirection: "row", gap: 14 }}>
-              <Action icon="reply" label="Reply" onPress={() => onReply(comment)} />
+            <View style={{ flexDirection: "row", flexWrap: "wrap", marginLeft: -spacing.xs }}>
+              <Action icon="reply" label={t("comments:row.reply")} onPress={() => onReply(comment)} />
               {comment.canEdit ? (
                 <>
-                  <Action icon="edit" label="Edit" onPress={() => onEdit(comment)} />
-                  <Action icon="delete-outline" label="Delete" onPress={() => onDelete(comment)} />
+                  <Action icon="edit" label={t("common:actions.edit")} onPress={() => onEdit(comment)} />
+                  <Action icon="delete-outline" label={t("common:actions.delete")} danger onPress={() => onDelete(comment)} />
                 </>
               ) : (
-                <Action icon="flag" label="Report" onPress={() => onReport(comment)} />
+                <Action icon="flag" label={t("comments:row.report")} danger onPress={() => onReport(comment)} />
               )}
             </View>
           </>
@@ -119,9 +141,11 @@ function CommentRow({
  * Rendered without a virtualized list so it can live inside the details ScrollView.
  */
 function CommentSection({ itemId }: { itemId: string }) {
+  const { t } = useTranslation();
   const { data, isLoading, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } = useItemComments(itemId);
   const [mode, setMode] = useState<Mode>({ kind: "new" });
   const [reporting, setReporting] = useState<ItemComment | null>(null);
+  const [deleting, setDeleting] = useState<ItemComment | null>(null);
 
   const create = useCommentMutation(itemId, (args: { body: string; mentionUserIds: string[]; parentId?: string | null }) =>
     commentApi.create(itemId, args),
@@ -129,7 +153,7 @@ function CommentSection({ itemId }: { itemId: string }) {
   const update = useCommentMutation(itemId, (args: { id: string; body: string; mentionUserIds: string[] }) =>
     commentApi.update(itemId, args.id, { body: args.body, mentionUserIds: args.mentionUserIds }),
   );
-  const remove = useCommentMutation(itemId, (id: string) => commentApi.remove(itemId, id), "Comment deleted");
+  const remove = useCommentMutation(itemId, (id: string) => commentApi.remove(itemId, id), t("comments:deleted"));
 
   const threads = data?.pages.flatMap((p) => p.threads) ?? [];
   const total = data?.pages[0]?.totalComments ?? 0;
@@ -140,18 +164,16 @@ function CommentSection({ itemId }: { itemId: string }) {
     setMode({ kind: "new" });
   };
 
-  const confirmDelete = (comment: ItemComment) =>
-    Alert.alert("Delete comment?", "Replies to it stay visible.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => remove.mutate(comment.id) },
-    ]);
-
   const context =
-    mode.kind === "reply" ? `Replying to ${mode.to.author?.name ?? "comment"}` : mode.kind === "edit" ? "Editing your comment" : null;
+    mode.kind === "reply"
+      ? t("comments:composer.replyingTo", { name: mode.to.author?.name ?? t("comments:row.deletedUser") })
+      : mode.kind === "edit"
+        ? t("comments:composer.editing")
+        : null;
 
   return (
-    <View style={{ gap: 8, marginBottom: 20 }}>
-      <CustomText style={{ fontSize: 20 }}>Comments{total > 0 ? ` (${total})` : ""}</CustomText>
+    <View style={{ gap: spacing.sm, marginBottom: spacing.lg }}>
+      <SectionHeader title={total > 0 ? t("comments:titleCount", { count: total }) : t("comments:title")} />
       <CommentComposer
         context={context}
         onCancelContext={() => setMode({ kind: "new" })}
@@ -163,7 +185,7 @@ function CommentSection({ itemId }: { itemId: string }) {
               ? [{ userId: mode.to.author.id, name: mode.to.author.name }]
               : []
         }
-        submitLabel={mode.kind === "edit" ? "Save" : mode.kind === "reply" ? "Reply" : "Post"}
+        submitLabel={mode.kind === "edit" ? t("common:actions.save") : mode.kind === "reply" ? t("comments:row.reply") : t("comments:composer.post")}
         loading={create.isPending || update.isPending}
         onSubmit={submit}
       />
@@ -171,37 +193,50 @@ function CommentSection({ itemId }: { itemId: string }) {
       {isLoading ? (
         <Loading />
       ) : isError ? (
-        <TouchableOpacity onPress={() => refetch()}>
-          <CustomText style={{ color: "red" }}>{apiErrorMessage(error, "Couldn't load the comments.")} Tap to retry.</CustomText>
-        </TouchableOpacity>
+        <ErrorState message={apiErrorText(error, "comments:loadFailed")} onRetry={() => refetch()} />
       ) : threads.length === 0 ? (
-        <CustomText style={{ fontFamily: "VendSansItalic" }}>No comments yet. Start the conversation!</CustomText>
+        <Text style={[typography.body, { color: colors.textMuted, fontStyle: "italic" }]}>{t("comments:empty")}</Text>
       ) : (
-        threads.map((thread) => (
-          <CommentRow
-            key={thread.id}
-            comment={thread}
-            level={0}
-            onReply={(to) => setMode({ kind: "reply", to })}
-            onEdit={(comment) => setMode({ kind: "edit", comment })}
-            onDelete={confirmDelete}
-            onReport={setReporting}
-          />
-        ))
+        <View>
+          {threads.map((thread, i) => (
+            <View key={thread.id} style={{ borderTopWidth: i === 0 ? 0 : borders.hairline, borderColor: colors.borderMuted }}>
+              <CommentRow
+                comment={thread}
+                level={0}
+                onReply={(to) => setMode({ kind: "reply", to })}
+                onEdit={(comment) => setMode({ kind: "edit", comment })}
+                onDelete={setDeleting}
+                onReport={setReporting}
+              />
+            </View>
+          ))}
+        </View>
       )}
 
       {hasNextPage ? (
-        <TouchableOpacity onPress={() => fetchNextPage()} disabled={isFetchingNextPage} style={{ alignSelf: "center", padding: 6 }}>
-          <CustomText style={{ textDecorationLine: "underline" }}>{isFetchingNextPage ? "Loading…" : "Show older comments"}</CustomText>
-        </TouchableOpacity>
+        <Pressable
+          onPress={() => fetchNextPage()}
+          disabled={isFetchingNextPage}
+          accessibilityRole="button"
+          style={({ pressed }) => ({ alignSelf: "center", minHeight: sizes.touch, justifyContent: "center", paddingHorizontal: spacing.md, opacity: pressed ? 0.6 : 1 })}
+        >
+          <Text style={[typography.label, { color: colors.text, textDecorationLine: "underline" }]}>
+            {isFetchingNextPage ? t("common:states.loading") : t("comments:older")}
+          </Text>
+        </Pressable>
       ) : null}
 
-      <ReportOverlay
-        isVisible={!!reporting}
-        onClose={() => setReporting(null)}
-        targetType="comment"
-        targetId={reporting?.id ?? ""}
+      <ConfirmDialog
+        isVisible={!!deleting}
+        title={t("comments:deleteTitle")}
+        message={t("comments:deleteText")}
+        confirmLabel={t("common:actions.delete")}
+        destructive
+        loading={remove.isPending}
+        onCancel={() => setDeleting(null)}
+        onConfirm={() => deleting && remove.mutate(deleting.id, { onSettled: () => setDeleting(null) })}
       />
+      <ReportOverlay isVisible={!!reporting} onClose={() => setReporting(null)} targetType="comment" targetId={reporting?.id ?? ""} />
     </View>
   );
 }

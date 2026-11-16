@@ -1,1 +1,33 @@
-{}
+{
+  "title": "Comments",
+  "titleCount_one": "Comments ({{count}})",
+  "titleCount_other": "Comments ({{count}})",
+  "empty": "No comments yet. Start the conversation!",
+  "loadFailed": "Couldn't load the comments.",
+  "older": "Show older comments",
+  "deleted": "Comment deleted",
+  "deleteTitle": "Delete comment?",
+  "deleteText": "Replies to it stay visible.",
+  "itemGone": "This item no longer exists.",
+  "composer": {
+    "placeholder": "Write a comment… use @ to mention someone",
+    "label": "Comment",
+    "post": "Post",
+    "count": "{{length}}/{{max}}",
+    "replyingTo": "Replying to {{name}}",
+    "editing": "Editing your comment",
+    "cancelContext": "Cancel reply or edit",
+    "mentionHint": "Tap a name to mention them",
+    "mention": "Mention {{name}}"
+  },
+  "row": {
+    "answering": "↪ {{name}}",
+    "edited": "edited",
+    "removed": "[comment removed by a moderator]",
+    "deleted": "[deleted comment]",
+    "deletedUser": "Deleted user",
+    "owner": "Owner",
+    "reply": "Reply",
+    "report": "Report"
+  }
+}

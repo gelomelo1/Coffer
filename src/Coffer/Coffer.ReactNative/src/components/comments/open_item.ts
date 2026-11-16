@@ -27,6 +27,6 @@ export async function openItem(itemId: string) {
     useOtherUserStore.getState().setValues(owner, collection, item);
     navigate({ pathname: ROUTES.OTHERUSERITEMDETAILS, params: pageParams.otheruseritemdetails(collection.name) });
   } catch (error) {
-    showToast("error", apiErrorMessage(error, "This item no longer exists."));
+    showToast("error", apiErrorMessage(error, "comments:itemGone"));
   }
 }
