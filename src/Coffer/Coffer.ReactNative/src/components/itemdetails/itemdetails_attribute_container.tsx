@@ -1,35 +1,17 @@
+import { borders, colors, spacing, typography } from "@/src/theme/theme";
 import { ReactNode } from "react";
-import { View } from "react-native";
-import CustomText from "../custom_ui/custom_text";
+import { Text, View } from "react-native";
 
 interface ItemDetailsAttributeContainerProps {
-  collectionTypeColor: string;
-  darkContrastColor: string;
-  lightContrastColor: string;
   title: string;
   children: ReactNode;
 }
 
-function ItemDetailsAttributeContainer({
-  collectionTypeColor,
-  darkContrastColor,
-  lightContrastColor,
-  title,
-  children,
-}: ItemDetailsAttributeContainerProps) {
+/** One attribute row: label above value, hairline under it. */
+function ItemDetailsAttributeContainer({ title, children }: ItemDetailsAttributeContainerProps) {
   return (
-    <View
-      style={{
-        backgroundColor: collectionTypeColor,
-        borderWidth: 2,
-        borderColor: darkContrastColor,
-        borderRadius: 20,
-        padding: 10,
-      }}
-    >
-      <CustomText style={{ color: lightContrastColor, fontSize: 18 }}>
-        {title}
-      </CustomText>
+    <View style={{ paddingHorizontal: spacing.md, paddingVertical: spacing.sm, gap: 2, borderBottomWidth: borders.hairline, borderBottomColor: colors.borderMuted }}>
+      <Text style={[typography.caption, { color: colors.textMuted }]}>{title}</Text>
       {children}
     </View>
   );

@@ -1,86 +1,45 @@
-import { customTheme } from "@/src/theme/theme";
+import { borders, colors, sizes, spacing, typography } from "@/src/theme/theme";
 import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { Text, View } from "react-native";
 import CustomIconButton from "../custom_ui/custom_icon_button";
-import CustomText from "../custom_ui/custom_text";
 
 interface ItemEditQuantityProps {
   defaultValue: number;
   onValueChange: (newValue: number) => void;
 }
 
-function ItemEditQuantity({
-  defaultValue,
-  onValueChange,
-}: ItemEditQuantityProps) {
+/** Quantity stepper (minimum 1). */
+function ItemEditQuantity({ defaultValue, onValueChange }: ItemEditQuantityProps) {
+  const { t } = useTranslation();
   const [quantity, setQuantity] = useState(defaultValue);
 
   useEffect(() => {
     setQuantity(defaultValue);
   }, [defaultValue]);
 
-  const handleMinusPress = () => {
-    onValueChange(quantity - 1);
-    setQuantity((prev) => prev - 1);
-  };
-
-  const handlePlusPress = () => {
-    onValueChange(quantity + 1);
-    setQuantity((prev) => prev + 1);
+  const change = (delta: number) => {
+    onValueChange(quantity + delta);
+    setQuantity((prev) => prev + delta);
   };
 
   return (
-    <>
-      <CustomText style={{ fontFamily: "VendSansBold", marginTop: 20 }}>
-        Quantity
-      </CustomText>
-      <View
-        style={{
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexDirection: "row",
-        }}
-      >
-        <CustomIconButton
-          iconType="antdesign"
-          iconName="minus"
-          title="Decrease"
-          onPress={handleMinusPress}
-          disabled={quantity === 1}
-        />
+    <View style={{ gap: spacing.xxs }}>
+      <Text style={[typography.label, { color: colors.text }]}>{t("items:details.quantity")}</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+        <CustomIconButton iconType="antdesign" iconName="minus" accessibilityLabel={t("items:edit.decrease")} onPress={() => change(-1)} disabled={quantity === 1} />
         <View
-          style={{
-            flexShrink: 1,
-            flexDirection: "row",
-            alignItems: "flex-end",
-            justifyContent: "center",
-            marginHorizontal: 10,
-          }}
+          accessible
+          accessibilityLabel={t("items:details.pieces", { count: quantity })}
+          style={{ flex: 1, minHeight: sizes.control, borderWidth: borders.width, borderColor: colors.border, alignItems: "center", justifyContent: "center" }}
         >
-          <CustomText
-            style={{
-              fontFamily: "VendSansBold",
-              fontSize: 20,
-              flexShrink: 1,
-            }}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {quantity}
-          </CustomText>
-          <CustomText style={{ color: customTheme.colors.secondary }}>
-            {" "}
-            pcs
-          </CustomText>
+          <Text style={[typography.title, { color: colors.text }]} numberOfLines={1}>
+            {t("items:details.pieces", { count: quantity })}
+          </Text>
         </View>
-        <CustomIconButton
-          iconType="antdesign"
-          iconName="plus"
-          title="Increase"
-          onPress={handlePlusPress}
-        />
+        <CustomIconButton iconType="antdesign" iconName="plus" accessibilityLabel={t("items:edit.increase")} onPress={() => change(1)} />
       </View>
-    </>
+    </View>
   );
 }
 

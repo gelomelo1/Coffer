@@ -5,7 +5,8 @@ import { stringResource } from "@/src/const/resource";
 import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useUpdateData } from "@/src/hooks/data_hooks";
 import { useItemStore } from "@/src/hooks/item_store";
-import { customTheme } from "@/src/theme/theme";
+import { colors, spacing, typography } from "@/src/theme/theme";
+import { useTranslation } from "react-i18next";
 import { Item, ItemProvided } from "@/src/types/entities/item";
 import {
   getItemAttributeValue,
@@ -14,11 +15,11 @@ import {
   updateItemAttributeValue,
 } from "@/src/utils/data_access_utils";
 import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { Text, View } from "react-native";
+import { SectionHeader } from "../custom_ui/card";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import CustomButton from "../custom_ui/custom_button";
 import CustomOverlay from "../custom_ui/custom_overlay";
-import CustomText from "../custom_ui/custom_text";
 import CustomTextInput from "../custom_ui/custom_text_input";
 import ItemEditDynamicFields from "./item_edit_dynamic_fields";
 import ItemEditQuantity from "./item_edit_quantity";
@@ -32,6 +33,7 @@ interface ItemEditFormProps {
 }
 
 function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
+  const { t } = useTranslation();
   const { collection } = useCollectionStore();
   const { mutateAsync: updateItem, isPending: isItemUpdatePending } =
     useUpdateData<Item, ItemProvided>(
@@ -121,11 +123,10 @@ function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
     <CustomOverlay
       isVisible={isItemEditFormOverlayOpen.value}
       onClose={handleEditOverlayClose}
-      overlayTitle="Edit Item"
+      overlayTitle={t("items:edit.title")}
       footerContent={
         <CustomButton
-          title="Edit"
-          containerStyle={{ width: "90%", alignSelf: "center" }}
+          title={t("collections:edit.save")}
           loading={isItemUpdatePending}
           onPress={handleEditPress}
           disabled={isError}
@@ -134,17 +135,12 @@ function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
     >
       <KeyboardAwareScrollView
         enableOnAndroid
-        extraScrollHeight={250}
+        extraScrollHeight={120}
         enableResetScrollToCoords={false}
+        keyboardShouldPersistTaps="handled"
       >
-        <View
-          style={{
-            paddingHorizontal: 10,
-            justifyContent: "center",
-            gap: 20,
-          }}
-        >
-          <View style={{ height: 20 }} />
+        <View style={{ padding: spacing.md, paddingTop: 0, gap: spacing.md }}>
+          <SectionHeader title={t("items:edit.basics")} />
           <ItemEditDynamicFields
             attribute={primaryAttribute.itemAttribute.attribute}
             defaultValue={primaryAttribute.value!}
@@ -166,19 +162,6 @@ function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
               }));
             }}
           />
-          <CustomTextInput
-            label="Private note"
-            defaultValue={item.privateNote}
-            onChangeText={handlePrivateNoteChange}
-            multiline
-          />
-          <CustomTextInput
-            label="Description"
-            defaultValue={item.description}
-            onChangeText={handleDescriptionChange}
-            multiline
-            errorMessage={descriptionErrorMessage}
-          />
           <ItemEditQuantity
             defaultValue={item.quantity}
             onValueChange={(newValue) => {
@@ -190,13 +173,25 @@ function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
             }}
           />
           {draftItem.quantity === 1 && isQuantityPressed ? (
-            <CustomText
-              style={{ fontSize: 12, color: customTheme.colors.accent }}
-            >
-              You have to have at least 1 piece. To delete the item, please use
-              the delete button.
-            </CustomText>
+            <Text style={[typography.caption, { color: colors.textMuted }]}>{t("items:edit.minQuantity")}</Text>
           ) : null}
+          <SectionHeader title={t("items:edit.notes")} />
+          <CustomTextInput
+            label={t("items:details.privateNote")}
+            helperText={t("items:details.privateNoteHelp")}
+            defaultValue={item.privateNote}
+            onChangeText={handlePrivateNoteChange}
+            multiline
+          />
+          <CustomTextInput
+            label={t("items:details.description")}
+            helperText={t("items:details.descriptionHelp")}
+            defaultValue={item.description}
+            onChangeText={handleDescriptionChange}
+            multiline
+            errorMessage={descriptionErrorMessage}
+          />
+          {item.itemAttributes.length > 1 ? <SectionHeader title={t("items:details.attributes")} /> : null}
           {item.itemAttributes.map((itemAttribute) =>
             itemAttribute.attribute.id ===
             primaryAttribute.itemAttribute.attribute.id ? null : (
@@ -240,7 +235,6 @@ function ItemEditForm({ isItemEditFormOverlayOpen }: ItemEditFormProps) {
             itemId={item.id}
           />
         </View>
-        <View style={{ height: 50 }} />
       </KeyboardAwareScrollView>
     </CustomOverlay>
   );

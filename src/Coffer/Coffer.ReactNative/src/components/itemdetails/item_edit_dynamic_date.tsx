@@ -1,9 +1,9 @@
 import { stringResource } from "@/src/const/resource";
 import Attribute from "@/src/types/entities/attribute";
 import { useEffect, useState } from "react";
-import { TouchableOpacity } from "react-native";
 import MonthPicker from "react-native-month-year-picker";
-import CustomTextInput from "../custom_ui/custom_text_input";
+import PickerField from "../custom_ui/picker_field";
+import { useTranslation } from "react-i18next";
 
 interface ItemEditDynamicDateProps {
   attribute: Attribute;
@@ -18,6 +18,7 @@ function ItemEditDynamicDate({
   onValueChange,
   onErrorChange,
 }: ItemEditDynamicDateProps) {
+  const { t, i18n } = useTranslation();
   const [date, setDate] = useState<Date | null>(null);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
@@ -53,17 +54,13 @@ function ItemEditDynamicDate({
 
   return (
     <>
-      <TouchableOpacity
-        style={{ width: "100%" }}
+      <PickerField
+        label={attribute.name}
+        value={date ? date.toLocaleDateString(i18n.language) : null}
+        placeholder={t("items:edit.pickDate")}
         onPress={() => handleDatePickerInput()}
-      >
-        <CustomTextInput
-          label={`${attribute.name} date`}
-          editable={false}
-          value={date?.toLocaleDateString() ?? ""}
-          errorMessage={errorMessage}
-        />
-      </TouchableOpacity>
+        errorMessage={errorMessage}
+      />
       {isDatePickerOpen ? (
         <MonthPicker
           value={date ?? new Date()}

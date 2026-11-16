@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { languageFilter } from "@/src/const/filter";
 import { stringResource } from "@/src/const/resource";
 import ItemTag from "@/src/types/entities/item_tag";
@@ -17,6 +18,7 @@ function ItemEditTags({
   onErrorChange,
   itemId = "",
 }: ItemEditTagsProps) {
+  const { t } = useTranslation();
   const [internalText, setInternalText] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -105,7 +107,11 @@ function ItemEditTags({
 
   return (
     <CustomTextInput
-      label="Tags"
+      label={t("items:details.tags")}
+      placeholder={t("collections:filter.tagsPlaceholder")}
+      helperText={t("items:edit.tagsHelper")}
+      autoCapitalize="none"
+      autoCorrect={false}
       value={internalText}
       onChangeText={handleChangeText}
       onBlur={() => formatText(internalText)}

@@ -1,37 +1,23 @@
-import { customTheme } from "@/src/theme/theme";
-import { View } from "react-native";
-import { Overlay } from "react-native-elements";
-import { SafeAreaView } from "react-native-safe-area-context";
-import CustomText from "../custom_ui/custom_text";
+import { colors } from "@/src/theme/theme";
+import { useTranslation } from "react-i18next";
+import { Modal, View } from "react-native";
 import { Loading } from "../custom_ui/loading";
 
 interface ItemRegisterImagePickerOverlayProps {
   isImagePickerLoading: "Gallery" | "Camera" | null;
 }
 
-function ItemRegisterImagePickerOverlay({
-  isImagePickerLoading,
-}: ItemRegisterImagePickerOverlayProps) {
-  return isImagePickerLoading ? (
-    <Overlay
-      isVisible={isImagePickerLoading !== null}
-      fullScreen
-      overlayStyle={{ backgroundColor: customTheme.colors.background }}
-    >
-      <SafeAreaView style={{ flex: 1 }}>
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <CustomText>{isImagePickerLoading}</CustomText>
-          <Loading />
-        </View>
-      </SafeAreaView>
-    </Overlay>
-  ) : null;
+/** Blocking "opening camera / gallery…" screen while the system picker starts. */
+function ItemRegisterImagePickerOverlay({ isImagePickerLoading }: ItemRegisterImagePickerOverlayProps) {
+  const { t } = useTranslation();
+  if (!isImagePickerLoading) return null;
+  return (
+    <Modal visible transparent={false} animationType="fade" onRequestClose={() => {}} statusBarTranslucent>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.bg }}>
+        <Loading label={isImagePickerLoading === "Gallery" ? t("items:register.openingGallery") : t("items:register.openingCamera")} />
+      </View>
+    </Modal>
+  );
 }
 
 export default ItemRegisterImagePickerOverlay;

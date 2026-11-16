@@ -60,5 +60,15 @@
     "label": "Country",
     "placeholder": "Select your country",
     "searchPlaceholder": "Search countries"
+  },
+  "yes": "Yes",
+  "no": "No",
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{page}}"
+  },
+  "image": {
+    "openFullScreen": "Open the image full screen"
   }
 }

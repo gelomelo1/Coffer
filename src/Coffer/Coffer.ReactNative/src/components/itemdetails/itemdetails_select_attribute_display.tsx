@@ -3,15 +3,10 @@ import { querykeys } from "@/src/const/querykeys";
 import { useGetSingleData } from "@/src/hooks/data_hooks";
 import ItemOptions from "@/src/types/entities/itemoptions";
 import AttributeValue from "@/src/types/helpers/attribute_data";
-import CustomText from "../custom_ui/custom_text";
+import { colors, spacing, typography } from "@/src/theme/theme";
+import { Text, View } from "react-native";
 
-function ItemDetailsSelectAttributeDisplay({
-  attributeValue,
-  darkContrastColor,
-}: {
-  attributeValue: AttributeValue;
-  darkContrastColor: string;
-}) {
+function ItemDetailsSelectAttributeDisplay({ attributeValue }: { attributeValue: AttributeValue }) {
   const { data: optionsData } = useGetSingleData<ItemOptions>(
     `${endpoints.itemOptions}`,
     `${querykeys.itemOptionsData}/${attributeValue.itemAttribute.attributeId}`,
@@ -34,20 +29,13 @@ function ItemDetailsSelectAttributeDisplay({
   };
 
   return (
-    <>
+    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.xs, marginTop: 2 }}>
       {selectValues.map((value, index) => (
-        <CustomText
-          key={index}
-          style={{
-            color: darkContrastColor,
-            fontFamily: "VendSansBold",
-            fontSize: 14,
-          }}
-        >
-          {`\u2022 ${getAttributeLabel(value)}`}
-        </CustomText>
+        <View key={index} style={{ paddingHorizontal: spacing.xs, paddingVertical: 2, backgroundColor: colors.surfaceAlt, borderWidth: 1, borderColor: colors.borderMuted }}>
+          <Text style={[typography.meta, { color: colors.text }]}>{getAttributeLabel(value)}</Text>
+        </View>
       ))}
-    </>
+    </View>
   );
 }
 

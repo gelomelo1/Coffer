@@ -1,5 +1,5 @@
-import CustomButton from "@/src/components/custom_ui/custom_button";
-import CustomText from "@/src/components/custom_ui/custom_text";
+import { ConfirmDialog } from "@/src/components/custom_ui/confirm_dialog";
+import { useTranslation } from "react-i18next";
 import { endpoints } from "@/src/const/endpoints";
 import { ROUTES, pageParams } from "@/src/const/navigation_params";
 import { useCollectionStore } from "@/src/hooks/collection_store";
@@ -7,7 +7,6 @@ import { useDeleteData } from "@/src/hooks/data_hooks";
 import { useItemStore } from "@/src/hooks/item_store";
 import { useResetNavigation } from "@/src/hooks/navigation";
 import React from "react";
-import CustomOverlay from "../custom_ui/custom_overlay";
 
 interface ItemDeleteFormProps {
   isDeleteItemConfirmVisible: {
@@ -17,12 +16,13 @@ interface ItemDeleteFormProps {
 }
 
 function ItemDeleteForm({ isDeleteItemConfirmVisible }: ItemDeleteFormProps) {
+  const { t } = useTranslation();
   const resetNavigate = useResetNavigation();
   const { item } = useItemStore();
   const { collectionType } = useCollectionStore();
 
   const { mutateAsync: deleteCollection, isPending: isDeletePending } =
-    useDeleteData(endpoints.items);
+    useDeleteData(endpoints.items, undefined, t("items:delete.done"));
 
   const handleOverlayClose = () => {
     if (isDeletePending) return;
@@ -45,31 +45,16 @@ function ItemDeleteForm({ isDeleteItemConfirmVisible }: ItemDeleteFormProps) {
   };
 
   return (
-    <CustomOverlay
+    <ConfirmDialog
       isVisible={isDeleteItemConfirmVisible.value}
-      onClose={handleOverlayClose}
-      overlayTitle="Delete Item"
-      footerContent={
-        <CustomButton
-          title="Delete"
-          containerStyle={{ width: "90%", alignSelf: "center" }}
-          loading={isDeletePending}
-          onPress={handleDelete}
-        />
-      }
-    >
-      <CustomText
-        style={{
-          marginHorizontal: 10,
-          marginVertical: 10,
-          textAlign: "center",
-          fontSize: 20,
-        }}
-      >
-        Are you sure you want to delete this{" "}
-        {collectionType!.name.toLowerCase()} from your collection?
-      </CustomText>
-    </CustomOverlay>
+      title={t("items:delete.title")}
+      message={t("items:delete.message", { type: collectionType?.name ?? "" })}
+      confirmLabel={t("items:delete.confirm")}
+      destructive
+      loading={isDeletePending}
+      onConfirm={handleDelete}
+      onCancel={handleOverlayClose}
+    />
   );
 }
 

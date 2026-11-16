@@ -19,6 +19,8 @@ interface FeedRarityProps {
   onItemUpdate?: (updatedItem: ItemProvided) => void;
   fontSize?: number;
   color?: string;
+  /** Show the "Rarity" caption before the value (off where a surrounding label already says it). */
+  showLabel?: boolean;
 }
 
 function FeedRarity({
@@ -28,6 +30,7 @@ function FeedRarity({
   onItemUpdate,
   fontSize,
   color,
+  showLabel = true,
 }: FeedRarityProps) {
   const { t } = useTranslation();
   const { mutateAsync: postRarity, isSuccess: isRarityPostSuccess } =
@@ -119,7 +122,7 @@ function FeedRarity({
         accessibilityValue={{ text: variant ? t(variant.titleKey) : t("feed:rarity.none") }}
         style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: spacing.xs, minHeight: 48, opacity: pressed ? 0.6 : 1 })}
       >
-        <Text style={{ color: tint, fontFamily: fonts.regular, fontSize: (fontSize ?? 16) - 2 }}>{t("feed:card.rarity")}</Text>
+        {showLabel ? <Text style={{ color: tint, fontFamily: fonts.regular, fontSize: (fontSize ?? 16) - 2 }}>{t("feed:card.rarity")}</Text> : null}
         <Animated.View style={{ transform: [{ scale: rarityScaleAnim }], flexDirection: "row", alignItems: "center", gap: spacing.xxs }}>
           {variant ? <View style={{ width: 12, height: 12, backgroundColor: variant.color, borderWidth: 1, borderColor: colors.border }} /> : null}
           <Text style={{ color: tint, fontFamily: variant ? fonts.bold : fonts.italic, fontSize: fontSize ?? 16 }}>

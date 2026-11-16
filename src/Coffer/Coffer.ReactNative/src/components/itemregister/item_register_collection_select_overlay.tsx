@@ -2,16 +2,16 @@ import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
 import { useGetData } from "@/src/hooks/data_hooks";
 import { useUserStore } from "@/src/hooks/user_store";
-import { customTheme } from "@/src/theme/theme";
+import { pressableShadowStyle } from "@/src/theme/pressable";
+import { borders, colors, spacing, typography } from "@/src/theme/theme";
 import { Collection } from "@/src/types/entities/collection";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React, { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
-import { Overlay } from "react-native-elements";
-import { SafeAreaView } from "react-native-safe-area-context";
-import CustomText from "../custom_ui/custom_text";
-import CustomTextInput from "../custom_ui/custom_text_input";
+import { useTranslation } from "react-i18next";
+import { Pressable, ScrollView, Text, View } from "react-native";
+import PickerField from "../custom_ui/picker_field";
+import SheetModal from "../custom_ui/sheet_modal";
 import { Loading } from "../custom_ui/loading";
 import ItemRegisterCollectionSectionList from "./item_register_collection_sectionlist";
 
@@ -35,6 +35,7 @@ function ItemRegisterCollectionSelectOverlay({
   onGalleryPick,
   onPhotoPick,
 }: ItemRegisterCollectionSelectOverlayProps) {
+  const { t } = useTranslation();
   const { user } = useUserStore();
 
   const { data: collections = [], isFetching: isCollectionsFetching } =
@@ -64,149 +65,74 @@ function ItemRegisterCollectionSelectOverlay({
 
   const isDisabled = !selectedCollection.value;
 
+  const sourceTile = (icon: React.ReactNode, label: string, onPress: () => void) => (
+    <Pressable
+      disabled={isDisabled}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: isDisabled }}
+      style={({ pressed }) => [
+        {
+          flex: 1,
+          minWidth: 130,
+          minHeight: 128,
+          alignItems: "center",
+          justifyContent: "center",
+          gap: spacing.sm,
+          padding: spacing.md,
+          backgroundColor: colors.primary,
+          borderWidth: borders.width,
+          borderColor: colors.primary,
+          opacity: isDisabled ? 0.4 : 1,
+        },
+        pressableShadowStyle(pressed, isDisabled),
+      ]}
+    >
+      {icon}
+      <Text style={[typography.bodyStrong, { color: colors.onPrimary, textAlign: "center" }]}>{label}</Text>
+    </Pressable>
+  );
+
+  const step = (n: number, text: string) => (
+    <View style={{ flexDirection: "row", gap: spacing.sm, alignItems: "flex-start" }}>
+      <View style={{ width: 28, height: 28, backgroundColor: colors.secondary, borderWidth: borders.width, borderColor: colors.border, alignItems: "center", justifyContent: "center" }}>
+        <Text style={[typography.label, { color: colors.onSecondary }]}>{n}</Text>
+      </View>
+      <Text style={[typography.bodyStrong, { color: colors.text, flex: 1, paddingTop: 2 }]}>{text}</Text>
+    </View>
+  );
+
   return (
     <>
-      <Overlay
-        isVisible={isItemRegisterCollectionSelectOverlayOpen.value}
-        fullScreen
-        overlayStyle={{ backgroundColor: customTheme.colors.background }}
-        onBackdropPress={handleClose}
-      >
-        <SafeAreaView style={{ flex: 1 }}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              marginBottom: 50,
-            }}
-          >
-            <View style={{ flexDirection: "column", gap: 4 }}>
-              <CustomText style={{ fontSize: 18, fontFamily: "VendSansBold" }}>
-                Add Item & Check Collection
-              </CustomText>
-              <View style={{ marginLeft: 20 }}>
-                <CustomText>I. Select a collection</CustomText>
-                <CustomText>II. Take a photo or choose from gallery</CustomText>
-                <CustomText>
-                  The item will be checked for duplicates.
-                </CustomText>
-              </View>
+      <SheetModal visible={isItemRegisterCollectionSelectOverlayOpen.value} onClose={handleClose} title={t("items:register.title")}>
+        {isCollectionsFetching ? (
+          <Loading />
+        ) : (
+          <ScrollView contentContainerStyle={{ padding: spacing.md, gap: spacing.lg }}>
+            <Text style={[typography.meta, { color: colors.text }]}>{t("items:register.intro")}</Text>
+            {step(1, t("items:register.step1"))}
+            <PickerField
+              value={selectedCollection.value?.name ?? null}
+              placeholder={t("items:register.chooseCollection")}
+              icon="inventory-2"
+              onPress={handleOpenSectionList}
+            />
+            {step(2, t("items:register.step2"))}
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
+              {sourceTile(<FontAwesome name="camera" size={40} color={colors.secondary} />, t("items:register.takePhoto"), onPhotoPick)}
+              {sourceTile(<MaterialIcons name="image" size={44} color={colors.secondary} />, t("items:register.fromGallery"), onGalleryPick)}
             </View>
-            <Text
-              style={{
-                color: customTheme.colors.primary,
-                fontSize: 24,
-                fontWeight: "bold",
-              }}
-              onPress={handleClose}
-            >
-              ✕
-            </Text>
-          </View>
-          {isCollectionsFetching ? (
-            <Loading />
-          ) : (
-            <View style={{ flex: 1, paddingHorizontal: 20 }}>
-              <TouchableOpacity
-                style={{
-                  width: "100%",
-                  padding: 0,
-                  paddingBottom: 0,
-                  height: 59,
-                }}
-                onPress={handleOpenSectionList}
-              >
-                <CustomTextInput
-                  placeholder="Choose a collection first..."
-                  value={
-                    selectedCollection.value
-                      ? selectedCollection.value.name
-                      : ""
-                  }
-                  editable={false}
-                />
-              </TouchableOpacity>
-              <View
-                style={{
-                  flex: 1,
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  gap: 50,
-                }}
-              >
-                <TouchableOpacity disabled={isDisabled} onPress={onPhotoPick}>
-                  <View
-                    style={{
-                      height: 100,
-                      width: 100,
-                      backgroundColor: customTheme.colors.primary,
-                      borderWidth: 2,
-                      borderColor: customTheme.colors.secondary,
-                      borderRadius: 20,
-                      justifyContent: "center",
-                      alignItems: "center",
-                      marginBottom: 10,
-                      alignSelf: "center",
-                      opacity: isDisabled ? 0.4 : 1,
-                    }}
-                  >
-                    <FontAwesome
-                      name="camera"
-                      size={50}
-                      color={customTheme.colors.secondary}
-                    />
-                  </View>
-                  <CustomText
-                    style={{ fontSize: 18, opacity: isDisabled ? 0.4 : 1 }}
-                  >
-                    Take a photo
-                  </CustomText>
-                </TouchableOpacity>
-
-                <TouchableOpacity disabled={isDisabled} onPress={onGalleryPick}>
-                  <View
-                    style={{
-                      height: 100,
-                      width: 100,
-                      backgroundColor: customTheme.colors.primary,
-                      borderWidth: 2,
-                      borderColor: customTheme.colors.secondary,
-                      borderRadius: 20,
-                      justifyContent: "center",
-                      alignItems: "center",
-                      marginBottom: 10,
-                      alignSelf: "center",
-                      opacity: isDisabled ? 0.4 : 1,
-                    }}
-                  >
-                    <MaterialIcons
-                      name="image"
-                      size={50}
-                      color={customTheme.colors.secondary}
-                    />
-                  </View>
-                  <CustomText
-                    style={{ fontSize: 18, opacity: isDisabled ? 0.4 : 1 }}
-                  >
-                    Choose from gallery
-                  </CustomText>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-        </SafeAreaView>
-      </Overlay>
+            {isDisabled ? <Text style={[typography.caption, { color: colors.textMuted }]}>{t("items:register.chooseFirst")}</Text> : null}
+          </ScrollView>
+        )}
+      </SheetModal>
       <ItemRegisterCollectionSectionList
         isItemRegisterCollectionSectionListOverlayOpen={{
           value: isItemRegisterCollectionSectionListOverlayOpen,
           set: setIsItemRegisterCollectionSectionListOverlayOpen,
         }}
-        selectedCollection={{
-          value: selectedCollection.value,
-          set: selectedCollection.set,
-        }}
+        selectedCollection={{ value: selectedCollection.value, set: selectedCollection.set }}
         collections={collections}
       />
     </>

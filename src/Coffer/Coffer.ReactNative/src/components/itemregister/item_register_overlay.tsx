@@ -2,19 +2,20 @@ import { tempItemId } from "@/src/const/emptyItem";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
 import { useCreateData } from "@/src/hooks/data_hooks";
-import { customTheme } from "@/src/theme/theme";
+import { borders, colors, spacing, typography } from "@/src/theme/theme";
+import { useTranslation } from "react-i18next";
+import CustomButton from "../custom_ui/custom_button";
+import { EmptyState, ErrorState } from "../custom_ui/states";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Collection } from "@/src/types/entities/collection";
 import CollectionType from "@/src/types/entities/collectiontype";
 import ImageCheck from "@/src/types/entities/imagecheck";
 import { ItemsCreate } from "@/src/types/helpers/items_create";
-import Entypo from "@expo/vector-icons/Entypo";
 import * as ImagePicker from "expo-image-picker";
 import React, { useEffect, useState } from "react";
-import { TouchableOpacity, View } from "react-native";
-import { Overlay } from "react-native-elements";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Modal, Text, View } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import CustomPagination from "../custom_ui/custom_pagination";
-import CustomText from "../custom_ui/custom_text";
 import { Loading } from "../custom_ui/loading";
 import ItemRegisterCard from "./item_register_card";
 
@@ -39,6 +40,7 @@ function ItemRegisterOverlay({
   isItemRegisterOverlayOpen,
   asset,
 }: ItemRegisterOverlayProps) {
+  const { t } = useTranslation();
   const {
     mutateAsync: doImageCheck,
     isPending: isDoImageCheckPending,
@@ -47,7 +49,7 @@ function ItemRegisterOverlay({
   } = useCreateData<FormData, ImageCheck[]>(
     `${endpoints.itemsImageCheck}/${collection.id}`,
     undefined,
-    "Successfully checked",
+    t("items:register.checked"),
     undefined,
     {
       "Content-Type": "multipart/form-data",
@@ -58,8 +60,8 @@ function ItemRegisterOverlay({
     useCreateData<ItemsCreate[]>(
       `${endpoints.itemsUpsert}`,
       `${querykeys.itemsData}${collection.id}`,
-      "Items successfully created and updated",
-      "Create and Update Failed",
+      t("items:register.saved"),
+      t("items:register.saveFailed"),
     );
 
   const [imageCheckResponse, setImageCheckResponse] = useState<ImageCheck[]>(
@@ -122,12 +124,13 @@ function ItemRegisterOverlay({
         type: asset.value!.mimeType ?? "image/jpeg",
       } as any);
 
-      const response = await doImageCheck({
-        value: formData,
-      });
-
-      setImageCheckResponse(response);
-      if (response.length > 0) setSelectedImageCheckIndex(0);
+      try {
+        const response = await doImageCheck({ value: formData });
+        setImageCheckResponse(response);
+        if (response.length > 0) setSelectedImageCheckIndex(0);
+      } catch {
+        // The mutation's onError already shows the translated error toast; the screen shows the failed state.
+      }
     };
 
     uploadImage();
@@ -149,7 +152,6 @@ function ItemRegisterOverlay({
   };
 
   const handleFinnish = async () => {
-    console.log(JSON.stringify(remapItemsCreated(submittedItems)));
     if (submittedItems.length > 0) {
       try {
         await upsertItems({ value: remapItemsCreated(submittedItems) });
@@ -161,210 +163,99 @@ function ItemRegisterOverlay({
     isItemRegisterOverlayOpen.set(false);
   };
 
-  return (
-    <Overlay
-      isVisible={isItemRegisterOverlayOpen.value}
-      fullScreen
-      overlayStyle={{ backgroundColor: customTheme.colors.background }}
-    >
-      <SafeAreaView style={{ flex: 1 }}>
-        {isDoImageCheckPending ? (
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <CustomText>{"Checking image"}</CustomText>
-            <Loading />
-          </View>
-        ) : isUpsertItemsPending ? (
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <CustomText>{"Creating and updating items"}</CustomText>
-            <Loading />
-          </View>
-        ) : (
-          <View style={{ flex: 1 }}>
-            <View
-              style={{
-                width: "100%",
-                borderRightWidth: 2,
-                borderBottomWidth: 2,
-                borderColor: customTheme.colors.primary,
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexDirection: "row",
-              }}
-            >
-              <CustomPagination
-                totalItems={imageCheckResponse.length}
-                pageSize={1}
-                currentPage={
-                  isListEndReached ? undefined : selectedImageCheckIndex + 1
-                }
-                onPageChange={handlePagePress}
-                pagesToDisplay={2}
-                allowOverNext
-                pageChangeBtnStyle={{
-                  backgroundColor: customTheme.colors.primary,
-                  paddingVertical: 4,
-                  paddingHorizontal: 10,
-                }}
-                pageChangeTextStyle={{
-                  fontSize: 12,
-                  color: customTheme.colors.secondary,
-                }}
-                btnStyle={(page) => ({
-                  backgroundColor: submittedItemIsIdPresent(
-                    imageCheckResponse[page - 1].id,
-                  )
-                    ? "green"
-                    : "red",
-                  paddingVertical: 3,
-                  paddingHorizontal: 8,
-                })}
-                textStyle={{
-                  fontSize: 12,
-                  color: "black",
-                }}
-                activeBtnStyle={{
-                  backgroundColor: customTheme.colors.secondary,
-                }}
-                activeTextStyle={{ color: customTheme.colors.primary }}
-              />
-              <TouchableOpacity
-                style={{
-                  alignSelf: "flex-end",
-                  margin: 16,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  flexDirection: "row",
-                }}
-                onPress={() => handleFinnish()}
-              >
-                <CustomText
-                  style={{
-                    fontFamily: "VendSansBold",
-                    color: "green",
-                    fontSize: 24,
-                  }}
-                >
-                  Finish
-                </CustomText>
-                <Entypo name="check" size={24} color="green" />
-              </TouchableOpacity>
-            </View>
+  const centered = (children: React.ReactNode) => (
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: spacing.lg, gap: spacing.sm }}>{children}</View>
+  );
 
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              {isDoImageCheckError ? (
-                <CustomText
-                  style={{
-                    fontFamily: "VendSansBold",
-                    color: "red",
-                    fontSize: 20,
-                  }}
-                >
-                  Error during checking the image
-                </CustomText>
-              ) : isDoImageCheckSuccess ? (
-                imageCheckResponse.length === 0 ? (
-                  <>
-                    <CustomText
-                      style={{
-                        fontFamily: "VendSansBold",
-                        fontSize: 20,
+  return (
+    // Back does nothing here on purpose: leaving must go through Finish, which uploads the chosen items.
+    <Modal visible={isItemRegisterOverlayOpen.value} onRequestClose={() => {}} animationType="slide" statusBarTranslucent navigationBarTranslucent>
+      <SafeAreaProvider>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+          {isDoImageCheckPending ? (
+            centered(<Loading label={t("items:register.checkingImage")} />)
+          ) : isUpsertItemsPending ? (
+            centered(<Loading label={t("items:register.saving")} />)
+          ) : (
+            <View style={{ flex: 1 }}>
+              <View style={{ borderBottomWidth: borders.width, borderBottomColor: colors.border, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, gap: spacing.xs }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+                  <Text accessibilityRole="header" style={[typography.headline, { color: colors.text, flex: 1 }]} numberOfLines={2}>
+                    {t("items:register.reviewTitle")}
+                  </Text>
+                  <CustomButton
+                    title={t("items:register.finish")}
+                    size="sm"
+                    icon={<MaterialIcons name="check" size={18} color={colors.onPrimary} />}
+                    onPress={() => handleFinnish()}
+                    containerStyle={{ alignSelf: "center" }}
+                  />
+                </View>
+                {imageCheckResponse.length > 0 ? (
+                  <CustomPagination
+                    totalItems={imageCheckResponse.length}
+                    pageSize={1}
+                    currentPage={isListEndReached ? undefined : selectedImageCheckIndex + 1}
+                    onPageChange={handlePagePress}
+                    pagesToDisplay={2}
+                    allowOverNext
+                    pageIcon={(page) =>
+                      submittedItemIsIdPresent(imageCheckResponse[page - 1].id)
+                        ? { name: "check", color: colors.success }
+                        : { name: "close", color: colors.danger }
+                    }
+                  />
+                ) : null}
+              </View>
+
+              <View style={{ flex: 1 }}>
+                {isDoImageCheckError ? (
+                  <ErrorState message={t("items:register.checkFailed")} />
+                ) : isDoImageCheckSuccess ? (
+                  imageCheckResponse.length === 0 ? (
+                    <EmptyState icon="image-search" title={t("items:register.noneFound")} text={t("items:register.noneFoundHint")} />
+                  ) : isListEndReached ? (
+                    centered(
+                      <>
+                        <MaterialIcons name="flag" size={40} color={colors.secondary} />
+                        <Text style={[typography.title, { color: colors.text, textAlign: "center" }]}>{t("items:register.endTitle")}</Text>
+                        <Text style={[typography.body, { color: colors.text, textAlign: "center" }]}>{t("items:register.endText")}</Text>
+                        <View style={{ gap: spacing.xs, alignSelf: "stretch" }}>
+                          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
+                            <MaterialIcons name="check-box" size={20} color={colors.success} />
+                            <Text style={[typography.meta, { color: colors.text, flex: 1 }]}>{t("items:register.legendUpload")}</Text>
+                          </View>
+                          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
+                            <MaterialIcons name="disabled-by-default" size={20} color={colors.danger} />
+                            <Text style={[typography.meta, { color: colors.text, flex: 1 }]}>{t("items:register.legendSkip")}</Text>
+                          </View>
+                        </View>
+                      </>,
+                    )
+                  ) : selectedImageCheck ? (
+                    <ItemRegisterCard
+                      collectionType={collectionType}
+                      collection={collection}
+                      selectedImageCheckIndex={selectedImageCheckIndex}
+                      imageCheck={selectedImageCheck}
+                      handleAddItemsCreateChange={(item) => {
+                        handleAddSubittedItem(item);
+                        handleNextItem();
                       }}
-                    >
-                      No Item Found
-                    </CustomText>
-                    <CustomText
-                      style={{
-                        fontFamily: "VendSansItalic",
-                        textAlign: "center",
+                      handleRemoveItemsCreateChange={(id) => {
+                        handleRemoveSubittedItem(id);
+                        handleNextItem();
                       }}
-                    >
-                      Try taking a closer picture of the item, and make sure the
-                      lighting is good
-                    </CustomText>
-                  </>
-                ) : (
-                  <View
-                    style={{
-                      position: "relative",
-                      flex: 1,
-                      width: "100%",
-                    }}
-                  >
-                    {isListEndReached ? (
-                      <View
-                        style={{
-                          flex: 1,
-                          justifyContent: "center",
-                          alignItems: "center",
-                        }}
-                      >
-                        <CustomText
-                          style={{
-                            fontFamily: "VendSansBold",
-                            fontSize: 20,
-                          }}
-                        >
-                          List End Reached
-                        </CustomText>
-                        <CustomText>
-                          Click{" "}
-                          <CustomText style={{ fontFamily: "VendSansBold" }}>
-                            Finish
-                          </CustomText>{" "}
-                          when done. To adjust the list, go back.{" "}
-                          <CustomText style={{ color: "red" }}>Red</CustomText>{" "}
-                          page button means the change won’t upload;{" "}
-                          <CustomText style={{ color: "green" }}>
-                            green
-                          </CustomText>{" "}
-                          means it will.
-                        </CustomText>
-                      </View>
-                    ) : selectedImageCheck ? (
-                      <ItemRegisterCard
-                        collectionType={collectionType}
-                        collection={collection}
-                        selectedImageCheckIndex={selectedImageCheckIndex}
-                        imageCheck={selectedImageCheck}
-                        handleAddItemsCreateChange={(item) => {
-                          handleAddSubittedItem(item);
-                          handleNextItem();
-                        }}
-                        handleRemoveItemsCreateChange={(id) => {
-                          handleRemoveSubittedItem(id);
-                          handleNextItem();
-                        }}
-                        itemsCreate={findSubmittedItem(
-                          imageCheckResponse[selectedImageCheckIndex].id,
-                        )}
-                      />
-                    ) : null}
-                  </View>
-                )
-              ) : null}
+                      itemsCreate={findSubmittedItem(imageCheckResponse[selectedImageCheckIndex].id)}
+                    />
+                  ) : null
+                ) : null}
+              </View>
             </View>
-          </View>
-        )}
-      </SafeAreaView>
-    </Overlay>
+          )}
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </Modal>
   );
 }
 

@@ -37,7 +37,8 @@ export const nestedTagFilterQuery = (values: string[]) => {
   return closedQuery;
 };
 
-export const textInputRegex = /^[a-zA-Z0-9 .-]+$/;
+// "Letters" include accented Latin letters (Latin-1 + Latin Extended-A/B: á, é, ő, ű, ü, ß …), as the message says.
+export const textInputRegex = /^[a-zA-ZÀ-ÖØ-öø-ɏ0-9 .-]+$/;
 
 export const languageFilter = new Filter();
 

@@ -1,13 +1,8 @@
+import { borders, colors, fonts, sizes, spacing } from "@/src/theme/theme";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React from "react";
-import {
-  StyleProp,
-  StyleSheet,
-  Text,
-  TextStyle,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from "react-native";
+import { useTranslation } from "react-i18next";
+import { Pressable, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from "react-native";
 
 export interface CustomPaginationProps {
   totalItems: number;
@@ -24,6 +19,8 @@ export interface CustomPaginationProps {
   pageChangeTextStyle?: StyleProp<TextStyle>;
   allowOverPrev?: boolean;
   allowOverNext?: boolean;
+  /** Optional status marker per page (icon + color), so state is not shown by color alone. */
+  pageIcon?: (page: number) => { name: React.ComponentProps<typeof MaterialIcons>["name"]; color: string };
 }
 
 const CustomPagination: React.FC<CustomPaginationProps> = ({
@@ -41,7 +38,9 @@ const CustomPagination: React.FC<CustomPaginationProps> = ({
   pageChangeTextStyle,
   allowOverPrev = false,
   allowOverNext = false,
+  pageIcon,
 }) => {
+  const { t } = useTranslation();
   const totalPages = Math.ceil(totalItems / pageSize);
 
   const getButtonStyle = (page: number) =>
@@ -95,73 +94,57 @@ const CustomPagination: React.FC<CustomPaginationProps> = ({
     else if (allowOverNext) onPageChange(currentPage + 1);
   };
 
+  const prevDisabled = !currentPage || (!allowOverPrev && currentPage === 1);
+  const nextDisabled = !currentPage || (!allowOverNext && currentPage === totalPages);
+
+  const navButton = (dir: "prev" | "next", disabled: boolean, onPress: () => void) => (
+    <Pressable
+      disabled={disabled}
+      onPress={onPress}
+      hitSlop={4}
+      accessibilityRole="button"
+      accessibilityLabel={dir === "prev" ? t("common:pagination.previous") : t("common:pagination.next")}
+      style={({ pressed }) => [styles.button, pageChangeBtnStyle, disabled && styles.disabledButton, pressed && styles.pressed]}
+    >
+      <MaterialIcons name={dir === "prev" ? "chevron-left" : "chevron-right"} size={sizes.iconMd} color={colors.text} />
+    </Pressable>
+  );
+
   return (
     <View style={[styles.container, containerStyle]}>
-      <TouchableOpacity
-        disabled={!currentPage || (!allowOverPrev && currentPage === 1)}
-        onPress={handlePrev}
-        style={[
-          styles.button,
-          pageChangeBtnStyle,
-          (!currentPage || (!allowOverPrev && currentPage === 1)) &&
-            styles.disabledButton,
-        ]}
-      >
-        <Text style={[styles.text, pageChangeTextStyle]}>{"<"}</Text>
-      </TouchableOpacity>
-
+      {navButton("prev", prevDisabled, handlePrev)}
       {pages.map((p, index) =>
         p === "..." ? (
-          <Text
-            key={`dots-${index}`}
-            style={[
-              styles.ellipsis,
-              styles.text,
-              typeof textStyle === "function" ? undefined : textStyle,
-            ]}
-          >
-            ...
+          <Text key={`dots-${index}`} style={[styles.ellipsis, styles.text]}>
+            …
           </Text>
         ) : (
-          <TouchableOpacity
+          <Pressable
             key={p}
             onPress={() => onPageChange(p as number)}
-            style={[
-              styles.button,
-              getButtonStyle(p as number),
-              p === currentPage && activeBtnStyle,
-            ]}
+            hitSlop={4}
+            accessibilityRole="button"
+            accessibilityLabel={t("common:pagination.page", { page: p })}
+            accessibilityState={{ selected: p === currentPage }}
+            style={({ pressed }) => [styles.button, getButtonStyle(p as number), p === currentPage && styles.active, p === currentPage && activeBtnStyle, pressed && styles.pressed]}
           >
-            <Text
-              style={[
-                styles.text,
-                getTextStyle(p as number),
-                p === currentPage && activeTextStyle,
-              ]}
-            >
-              {p}
-            </Text>
-          </TouchableOpacity>
-        )
+            <Text style={[styles.text, getTextStyle(p as number), p === currentPage && styles.activeText, p === currentPage && activeTextStyle]}>{p}</Text>
+            {pageIcon ? <PageMarker {...pageIcon(p as number)} /> : null}
+          </Pressable>
+        ),
       )}
-
-      <TouchableOpacity
-        disabled={
-          !currentPage || (!allowOverNext && currentPage === totalPages)
-        }
-        onPress={handleNext}
-        style={[
-          styles.button,
-          pageChangeBtnStyle,
-          (!currentPage || (!allowOverNext && currentPage === totalPages)) &&
-            styles.disabledButton,
-        ]}
-      >
-        <Text style={[styles.text, pageChangeTextStyle]}>{">"}</Text>
-      </TouchableOpacity>
+      {navButton("next", nextDisabled, handleNext)}
     </View>
   );
 };
+
+function PageMarker({ name, color }: { name: React.ComponentProps<typeof MaterialIcons>["name"]; color: string }) {
+  return (
+    <View style={{ position: "absolute", top: -6, right: -6, backgroundColor: color, borderWidth: 1, borderColor: colors.border }}>
+      <MaterialIcons name={name} size={12} color={colors.onPrimary} />
+    </View>
+  );
+}
 
 export default CustomPagination;
 
@@ -170,23 +153,24 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginVertical: 10,
+    flexWrap: "wrap",
+    gap: spacing.xs,
+    marginVertical: spacing.xs,
   },
   button: {
-    marginHorizontal: 3,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 5,
-    backgroundColor: "#ccc",
+    minWidth: 40,
+    minHeight: 40,
+    paddingHorizontal: spacing.xs,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: borders.width,
+    borderColor: colors.border,
+    backgroundColor: colors.bg,
   },
-  text: {
-    color: "#000",
-    fontSize: 14,
-  },
-  ellipsis: {
-    marginHorizontal: 5,
-  },
-  disabledButton: {
-    opacity: 0.4,
-  },
+  active: { backgroundColor: colors.secondary },
+  pressed: { backgroundColor: colors.surfaceAlt },
+  text: { color: colors.text, fontSize: 14, fontFamily: fonts.regular },
+  activeText: { fontFamily: fonts.bold },
+  ellipsis: { marginHorizontal: spacing.xxs },
+  disabledButton: { opacity: 0.4 },
 });

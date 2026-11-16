@@ -1,237 +1,63 @@
 import FeedLike from "@/src/components/collections/tabs/home/feed_like";
 import FeedRarity from "@/src/components/collections/tabs/home/feed_rarity";
+import CommentSection from "@/src/components/comments/comment_section";
 import CustomButton from "@/src/components/custom_ui/custom_button";
-import CustomImage from "@/src/components/custom_ui/custom_image";
-import CustomText from "@/src/components/custom_ui/custom_text";
-import rootViewStyle from "@/src/components/custom_ui/root_view";
-import ItemDetailsDynamicAttributeDisplay from "@/src/components/itemdetails/itemdetails_dynamic_attribute_display";
-import { endpoints } from "@/src/const/endpoints";
+import { ItemAttributeList, ItemHero, ItemStats, ItemTags, ItemTextBlock } from "@/src/components/itemdetails/item_details_view";
+import ReportOverlay from "@/src/components/market/ui/report_overlay";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
 import { useUserStore } from "@/src/hooks/user_store";
-import { customTheme } from "@/src/theme/theme";
+import { colors, spacing } from "@/src/theme/theme";
 import { ItemProvided } from "@/src/types/entities/item";
-import {
-  getItemAttributeValue,
-  getItemPrimaryAttributeValue,
-  getRarityVariantByValue,
-} from "@/src/utils/data_access_utils";
-import { adjustColor } from "@/src/utils/frontend_utils";
-import Fontisto from "@expo/vector-icons/Fontisto";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { navigate } from "expo-router/build/global-state/routing";
 import { useState } from "react";
-import CommentSection from "@/src/components/comments/comment_section";
-import ReportOverlay from "@/src/components/market/ui/report_overlay";
-import { ScrollView, View } from "react-native";
-import { Chip } from "react-native-elements";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
+import { ScrollView } from "react-native";
 
+/** Someone else's item: details, like / rate, comments, report. */
 function OtherUserItemDetails() {
+  const { t } = useTranslation();
   const { collectionType } = useCollectionStore();
-  const { user: currentUser, token } = useUserStore();
+  const { user: currentUser } = useUserStore();
   const { user, collection, item, setItem } = useOtherUserStore();
   const [isReporting, setIsReporting] = useState(false);
   const isMine = currentUser?.id === collection?.userId;
 
-  const darkContrastColor = adjustColor(
-    collectionType!.color,
-    customTheme.colorChangePercent.dark,
-  );
-
-  const lightContrastColor = adjustColor(
-    collectionType!.color,
-    customTheme.colorChangePercent.light,
-  );
-
-  const primaryAttribute = getItemPrimaryAttributeValue(item!.itemAttributes);
-
-  const rarityVariant = getRarityVariantByValue(item!.reactions);
-
-  const handleItemListNavigation = () => {
-    navigate({
-      pathname: ROUTES.OTHERUSERCOLLECTION,
-      params: pageParams.otherusercollection(user!.name, collection!.name),
-    });
+  const goToCollection = () => {
+    navigate({ pathname: ROUTES.OTHERUSERCOLLECTION, params: pageParams.otherusercollection(user!.name, collection!.name) });
   };
 
-  const onItemUpdate = (item: ItemProvided) => {
-    setItem(item);
-  };
+  const onItemUpdate = (updated: ItemProvided) => setItem(updated);
 
   return (
-    <ScrollView style={rootViewStyle({ color: collectionType!.color })}>
+    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ padding: spacing.md, gap: spacing.lg, paddingBottom: spacing.xxl * 2 }}>
       <CustomButton
-        title={"Go to user's collections list"}
-        icon={
-          <MaterialIcons
-            name="arrow-back"
-            size={24}
-            color={customTheme.colors.secondary}
-            style={{ marginRight: 5 }}
-          />
-        }
-        containerStyle={{ marginBottom: 10, marginHorizontal: 10 }}
-        onPress={handleItemListNavigation}
+        title={t("items:details.openCollection", { user: user?.name ?? "", collection: collection?.name ?? "" })}
+        variant="outline"
+        size="sm"
+        icon={<MaterialIcons name="grid-view" size={18} color={colors.text} />}
+        onPress={goToCollection}
       />
-      <SafeAreaView>
-        <View
-          style={{
-            width: "60%",
-            alignSelf: "center",
-            borderWidth: 2,
-            borderColor: darkContrastColor,
-            borderRadius: 5,
-            boxShadow: `2px 2px 2px ${darkContrastColor}`,
-          }}
-        >
-          <CustomImage
-            uri={
-              item!.image
-                ? `${endpoints.itemsCoverImage}/${item!.image}`
-                : `${endpoints.icons}/${collectionType!.icon}`
-            }
-            style={{ width: "100%", aspectRatio: 1, resizeMode: "cover" }}
-            enableFullScreenView={true}
-          />
-        </View>
-        <CustomText
-          style={{
-            alignSelf: "center",
-            marginTop: 10,
-            fontSize: 20,
-            borderBottomWidth: 1,
-            borderColor: customTheme.colors.primary,
-          }}
-        >
-          {primaryAttribute?.itemAttribute.attribute.name}
-        </CustomText>
-        <CustomText
-          style={{
-            alignSelf: "center",
-            color: collectionType!.color,
-            fontFamily: "VendSansBold",
-            fontSize: 24,
-            borderTopWidth: 1,
-            borderColor: customTheme.colors.primary,
-            marginTop: 5,
-          }}
-          numberOfLines={1}
-          lineBreakMode="tail"
-        >
-          {primaryAttribute?.valueString}
-        </CustomText>
-        <View style={{ justifyContent: "space-between", flexDirection: "row" }}>
-          <View
-            style={{
-              justifyContent: "flex-start",
-              alignItems: "center",
-              flexDirection: "row",
-              gap: 10,
-            }}
-          >
-            <CustomText style={{ fontSize: 18 }}>Rarity:</CustomText>
-            <FeedRarity
-              user={currentUser!}
-              item={item!}
-              onItemUpdate={onItemUpdate}
-              fontSize={24}
-            />
-          </View>
-          <FeedLike
-            user={currentUser!}
-            item={item!}
-            onItemUpdate={onItemUpdate}
-            color={customTheme.colors.primary}
-            fontSize={24}
-          />
-        </View>
-        <View style={{ justifyContent: "space-between", flexDirection: "row" }}>
-          <View>
-            <View
-              style={{
-                justifyContent: "flex-start",
-                flexDirection: "row",
-                gap: 10,
-              }}
-            >
-              <Fontisto name="date" size={20} color="black" />
-              <CustomText style={{ fontFamily: "VendSansBold", fontSize: 18 }}>
-                {new Date(item!.acquiredAt).toLocaleDateString()}
-              </CustomText>
-            </View>
-            <CustomText style={{ fontFamily: "VendSansItalic", fontSize: 12 }}>
-              {"Acquisition date of the first piece"}
-            </CustomText>
-          </View>
-          <CustomText
-            style={{
-              color: customTheme.colors.secondary,
-              fontFamily: "VendSansBold",
-              fontSize: 24,
-            }}
-          >
-            {item!.quantity}
-            <CustomText>pcs</CustomText>
-          </CustomText>
-        </View>
-        <CustomText style={{ fontSize: 20, marginTop: 20 }}>
-          Description
-        </CustomText>
-        <CustomText
-          style={{
-            fontFamily: item!.description ? "VendSansRegular" : "VendSansItalic",
-            marginBottom: 10,
-          }}
-        >
-          {item!.description ??
-            "The user hasn’t added a description to this item yet."}
-        </CustomText>
-        {item!.itemAttributes.map((itemAttribute) =>
-          itemAttribute.id === primaryAttribute?.itemAttribute.id ? null : (
-            <ItemDetailsDynamicAttributeDisplay
-              key={itemAttribute.id}
-              attributeValue={getItemAttributeValue(itemAttribute)}
-              collectionType={collectionType!}
-            />
-          ),
-        )}
-        <CustomText style={{ fontSize: 20, marginTop: 20, marginBottom: 10 }}>
-          Tags
-        </CustomText>
-        <View
-          style={{
-            justifyContent: "flex-start",
-            flexDirection: "row",
-            gap: 10,
-            flexWrap: "wrap",
-            marginBottom: 20,
-          }}
-        >
-          {item!.itemTags.map((tag, index) => (
-            <Chip
-              key={index}
-              title={`#${tag.tag}`}
-              titleStyle={{ color: darkContrastColor }}
-              buttonStyle={{
-                backgroundColor: collectionType!.color,
-                borderWidth: 2,
-                borderColor: lightContrastColor,
-              }}
-            />
-          ))}
-        </View>
-        {isMine ? null : (
-          <CustomButton
-            title="Report this item"
-            icon={<MaterialIcons name="flag" size={20} color={customTheme.colors.secondary} style={{ marginRight: 5 }} />}
-            containerStyle={{ marginBottom: 20 }}
-            onPress={() => setIsReporting(true)}
-          />
-        )}
-        <CommentSection itemId={item!.id} />
-      </SafeAreaView>
+      <ItemHero item={item!} collectionType={collectionType!} />
+      <ItemStats
+        item={item!}
+        rarity={<FeedRarity user={currentUser!} item={item!} onItemUpdate={onItemUpdate} fontSize={18} showLabel={false} />}
+        likes={<FeedLike user={currentUser!} item={item!} onItemUpdate={onItemUpdate} fontSize={18} />}
+      />
+      <ItemTextBlock title={t("items:details.description")} text={item!.description} emptyText={t("items:details.noDescriptionOther")} />
+      <ItemAttributeList item={item!} collectionType={collectionType!} />
+      <ItemTags tags={item!.itemTags} />
+      {isMine ? null : (
+        <CustomButton
+          title={t("items:details.report")}
+          variant="ghost"
+          icon={<MaterialIcons name="flag" size={18} color={colors.text} />}
+          onPress={() => setIsReporting(true)}
+        />
+      )}
+      <CommentSection itemId={item!.id} />
       <ReportOverlay isVisible={isReporting} onClose={() => setIsReporting(false)} targetType="item" targetId={item!.id} />
     </ScrollView>
   );

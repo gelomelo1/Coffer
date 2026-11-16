@@ -3,7 +3,8 @@ import { languageFilter, textInputRegex } from "@/src/const/filter";
 import { querykeys } from "@/src/const/querykeys";
 import { stringResource } from "@/src/const/resource";
 import { useGetData } from "@/src/hooks/data_hooks";
-import { customTheme } from "@/src/theme/theme";
+import { colors, spacing, typography } from "@/src/theme/theme";
+import { useTranslation } from "react-i18next";
 import Attribute from "@/src/types/entities/attribute";
 import CollectionType from "@/src/types/entities/collectiontype";
 import { Item } from "@/src/types/entities/item";
@@ -16,8 +17,7 @@ import {
   updateItemAttributeValue,
 } from "@/src/utils/data_access_utils";
 import React, { useEffect, useState } from "react";
-import { View } from "react-native";
-import CustomText from "../custom_ui/custom_text";
+import { Text, View } from "react-native";
 import CustomTextInput from "../custom_ui/custom_text_input";
 import { Loading } from "../custom_ui/loading";
 import ItemEditDynamicFields from "../itemdetails/item_edit_dynamic_fields";
@@ -37,6 +37,7 @@ function ItemRegisterForm({
   newItem,
   setIsError,
 }: ItemRegisterFormProps) {
+  const { t } = useTranslation();
   const { data: attributes = [], isFetching: isAttributesFetching } =
     useGetData<Attribute>(
       endpoints.attributes,
@@ -172,29 +173,21 @@ function ItemRegisterForm({
         }}
       />
       <CustomTextInput
-        label="Private note"
-        placeholder="The private note is visible only to you. Use it to store additional information about the item, for example, its location in your physical collection."
+        label={t("items:details.privateNote")}
+        helperText={t("items:details.privateNoteHelp")}
         defaultValue={draftItem.privateNote}
         onChangeText={handlePrivateNoteInput}
-        style={{ height: 100, marginBottom: 20 }}
-        inputContainerStyle={{ height: 100 }}
         multiline
       />
       <CustomTextInput
-        label="Description"
-        placeholder="The description is public and visible to everyone. It is used to describe your item, similar to a post."
+        label={t("items:details.description")}
+        helperText={t("items:details.descriptionHelp")}
         defaultValue={draftItem.description}
         onChangeText={handleDescriptionInput}
-        style={{ height: 100, marginBottom: 20 }}
-        inputContainerStyle={{ height: 100 }}
         multiline
         errorMessage={descriptionErrorMessage}
       />
-      {draftItem.quantity === 0 ? (
-        <CustomText style={{ fontSize: 12, color: customTheme.colors.accent }}>
-          Setting the item quantity to 0 will remove it from your list
-        </CustomText>
-      ) : null}
+      {draftItem.quantity === 0 ? <Text style={[typography.caption, { color: colors.textMuted }]}>{t("items:register.zeroQuantity")}</Text> : null}
       {attributes
         .filter((attribute) => attribute.id !== primaryAttribute?.id)
         .map((attribute) => {
@@ -274,8 +267,8 @@ function ItemRegisterForm({
           }))
         }
         itemId={draftItem.id}
+        onErrorChange={(hasError) => setFieldErrors((prev) => ({ ...prev, itemTags: hasError }))}
       />
-      <View style={{ width: "100%", height: 150 }} />
     </View>
   );
 }

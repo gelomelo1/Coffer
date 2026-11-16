@@ -1,92 +1,45 @@
-import { customTheme } from "@/src/theme/theme";
+import { colors, spacing, typography } from "@/src/theme/theme";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { useTranslation } from "react-i18next";
+import { Text, View } from "react-native";
 import CollectionType from "@/src/types/entities/collectiontype";
 import AttributeValue, {
   AttributeDataTypes,
 } from "@/src/types/helpers/attribute_data";
-import { adjustColor } from "@/src/utils/frontend_utils";
 import { ReactNode } from "react";
-import { CheckBox } from "react-native-elements";
-import CustomText from "../custom_ui/custom_text";
 import ItemDetailsAttributeContainer from "./itemdetails_attribute_container";
 import ItemDetailsSelectAttributeDisplay from "./itemdetails_select_attribute_display";
 
 interface ItemDetailsDynamicAttributeDisplayProps {
   attributeValue: AttributeValue;
-  collectionType: CollectionType;
+  /** Kept for callers; the row style no longer depends on the type color. */
+  collectionType?: CollectionType;
 }
 
-function ItemDetailsDynamicAttributeDisplay({
-  attributeValue,
-  collectionType,
-}: ItemDetailsDynamicAttributeDisplayProps) {
-  const darkContrastColor = adjustColor(
-    collectionType.color,
-    customTheme.colorChangePercent.dark,
-  );
-
-  const lightContrastColor = adjustColor(
-    collectionType.color,
-    customTheme.colorChangePercent.light,
-  );
+function ItemDetailsDynamicAttributeDisplay({ attributeValue }: ItemDetailsDynamicAttributeDisplayProps) {
+  const { t, i18n } = useTranslation();
+  const valueText = (text: string) => <Text style={[typography.body, { color: colors.text }]}>{text}</Text>;
 
   const getDisplayFormat = (): ReactNode => {
     if (attributeValue.value === null) return null;
-
     switch (attributeValue.valueKey) {
-      case "valueString":
-        if (
-          attributeValue.itemAttribute.attribute.dataType ===
-            AttributeDataTypes.Select ||
-          attributeValue.itemAttribute.attribute.dataType ===
-            AttributeDataTypes.Multi_Select
-        )
-          return (
-            <ItemDetailsSelectAttributeDisplay
-              attributeValue={attributeValue}
-              darkContrastColor={darkContrastColor}
-            />
-          );
-        return (
-          <CustomText
-            style={{ color: darkContrastColor, fontSize: 20 }}
-            numberOfLines={1}
-            lineBreakMode="tail"
-          >
-            {attributeValue.value as string}
-          </CustomText>
-        );
+      case "valueString": {
+        const type = attributeValue.itemAttribute.attribute.dataType;
+        if (type === AttributeDataTypes.Select || type === AttributeDataTypes.Multi_Select)
+          return <ItemDetailsSelectAttributeDisplay attributeValue={attributeValue} />;
+        return valueText(attributeValue.value as string);
+      }
       case "valueNumber":
-        return (
-          <CustomText
-            style={{ color: darkContrastColor, fontSize: 20 }}
-            numberOfLines={1}
-            lineBreakMode="tail"
-          >
-            {attributeValue.value?.toLocaleString()}
-          </CustomText>
-        );
+        return valueText(attributeValue.value?.toLocaleString(i18n.language) ?? "");
       case "valueBoolean":
         return (
-          <CheckBox
-            size={20}
-            containerStyle={{ padding: 0 }}
-            uncheckedColor={darkContrastColor}
-            checkedColor={darkContrastColor}
-            disabled
-            checked={attributeValue.value as boolean}
-          />
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xxs }}>
+            <MaterialIcons name={attributeValue.value ? "check-box" : "check-box-outline-blank"} size={20} color={colors.text} />
+            {valueText(attributeValue.value ? t("common:yes") : t("common:no"))}
+          </View>
         );
-      case "valueDate": {
-        return (
-          <CustomText
-            style={{ color: darkContrastColor, fontSize: 20 }}
-            numberOfLines={1}
-            lineBreakMode="tail"
-          >
-            {new Date(attributeValue.value as string).toLocaleDateString()}
-          </CustomText>
-        );
-      }
+      case "valueDate":
+        return valueText(new Date(attributeValue.value as string).toLocaleDateString(i18n.language));
       default:
         return null;
     }
@@ -94,16 +47,7 @@ function ItemDetailsDynamicAttributeDisplay({
 
   if (attributeValue.value === null) return null;
 
-  return (
-    <ItemDetailsAttributeContainer
-      collectionTypeColor={collectionType.color}
-      darkContrastColor={darkContrastColor}
-      lightContrastColor={lightContrastColor}
-      title={attributeValue.itemAttribute.attribute.name}
-    >
-      {getDisplayFormat()}
-    </ItemDetailsAttributeContainer>
-  );
+  return <ItemDetailsAttributeContainer title={attributeValue.itemAttribute.attribute.name}>{getDisplayFormat()}</ItemDetailsAttributeContainer>;
 }
 
 export default ItemDetailsDynamicAttributeDisplay;

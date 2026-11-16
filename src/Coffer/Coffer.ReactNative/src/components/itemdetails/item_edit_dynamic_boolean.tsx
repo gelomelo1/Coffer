@@ -1,8 +1,9 @@
-import { customTheme } from "@/src/theme/theme";
 import Attribute from "@/src/types/entities/attribute";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { colors } from "@/src/theme/theme";
 import { useEffect, useState } from "react";
-import { Switch, View } from "react-native";
-import CustomText from "../custom_ui/custom_text";
+import { useTranslation } from "react-i18next";
+import { Chip, ChipRow } from "../custom_ui/chip";
 
 interface ItemEditDynamicBooleanProps {
   attribute: Attribute;
@@ -10,31 +11,28 @@ interface ItemEditDynamicBooleanProps {
   onValueChange: (newValue: string | number | boolean) => void;
 }
 
-function ItemEditDynamicBoolean({
-  attribute,
-  defaultValue,
-  onValueChange,
-}: ItemEditDynamicBooleanProps) {
+/** Yes/no attribute as a square toggle chip. */
+function ItemEditDynamicBoolean({ attribute, defaultValue, onValueChange }: ItemEditDynamicBooleanProps) {
+  const { t } = useTranslation();
   const [isOn, setIsOn] = useState(false);
 
   useEffect(() => {
-    if (defaultValue) setIsOn(defaultValue);
-    else setIsOn(false);
+    setIsOn(!!defaultValue);
   }, [defaultValue]);
 
   return (
-    <View style={{ justifyContent: "flex-end", flexDirection: "row" }}>
-      <CustomText>{`Is ${attribute.name}`}</CustomText>
-      <Switch
-        value={isOn}
-        onValueChange={(newValue) => {
-          setIsOn(newValue);
-          onValueChange(newValue);
+    <ChipRow>
+      <Chip
+        label={t("collections:filter.isTrue", { name: attribute.name })}
+        selected={isOn}
+        icon={<MaterialIcons name={isOn ? "check-box" : "check-box-outline-blank"} size={18} color={colors.text} />}
+        onPress={() => {
+          const next = !isOn;
+          setIsOn(next);
+          onValueChange(next);
         }}
-        trackColor={{ true: customTheme.colors.secondary }}
-        thumbColor={customTheme.colors.primary}
       />
-    </View>
+    </ChipRow>
   );
 }
 

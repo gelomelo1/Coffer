@@ -1,12 +1,15 @@
 import { endpoints } from "@/src/const/endpoints";
 import { useCollectionTypeStore } from "@/src/hooks/collection_type_store";
 import { useUserStore } from "@/src/hooks/user_store";
-import { customTheme } from "@/src/theme/theme";
+import { borders, colors, spacing, typography } from "@/src/theme/theme";
+import { useTranslation } from "react-i18next";
+import { Divider } from "../custom_ui/card";
+import ListRow from "../custom_ui/list_row";
+import SheetModal from "../custom_ui/sheet_modal";
+import { EmptyState } from "../custom_ui/states";
+import { ResultThumb } from "../collections/tabs/home/result_thumb";
 import { Collection } from "@/src/types/entities/collection";
-import { Image, SectionList, Text, TouchableOpacity, View } from "react-native";
-import { Overlay } from "react-native-elements";
-import { SafeAreaView } from "react-native-safe-area-context";
-import CustomText from "../custom_ui/custom_text";
+import { Image, SectionList, Text, View } from "react-native";
 
 interface ItemRegisterCollectionSectionListProps {
   isItemRegisterCollectionSectionListOverlayOpen: {
@@ -27,6 +30,7 @@ function ItemRegisterCollectionSectionList({
   selectedCollection,
   collections,
 }: ItemRegisterCollectionSectionListProps) {
+  const { t } = useTranslation();
   const { collectionTypes } = useCollectionTypeStore();
   const { token } = useUserStore();
 
@@ -58,109 +62,38 @@ function ItemRegisterCollectionSectionList({
     });
 
   return (
-    <Overlay
-      isVisible={isItemRegisterCollectionSectionListOverlayOpen.value}
-      fullScreen
-      overlayStyle={{ backgroundColor: customTheme.colors.background }}
-      onBackdropPress={handleClose}
-    >
-      <SafeAreaView style={{ flex: 1 }}>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            paddingHorizontal: 10,
-          }}
-        >
-          <CustomText style={{ fontSize: 18, fontFamily: "VendSansBold" }}>
-            Choose a collection...
-          </CustomText>
-          <Text
-            style={{
-              color: customTheme.colors.primary,
-              fontSize: 24,
-              fontWeight: "bold",
-            }}
-            onPress={handleClose}
-          >
-            ✕
-          </Text>
-        </View>
-        <SectionList
-          sections={sections}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item, section }) => (
-            <View
-              style={{ marginLeft: 30, marginRight: 10, marginVertical: 10 }}
-            >
-              <TouchableOpacity
-                style={{
-                  height: 48,
-                  justifyContent: "flex-start",
-                  alignItems: "center",
-                  flexDirection: "row",
-                  gap: 10,
-                }}
-                onPress={() => handleCollectionPress(item)}
-              >
-                <Image
-                  source={{
-                    uri: item.image
-                      ? `${endpoints.collectionsCoverImage}/${item.image}`
-                      : `${endpoints.icons}/${section.icon}`,
-                    headers: {
-                      Authorization: `Bearer ${token}`,
-                    },
-                    cache: "reload",
-                  }}
-                  style={{
-                    height: item.image ? "100%" : 20,
-                    aspectRatio: "1/1",
-                  }}
-                />
-                <CustomText style={{ fontFamily: "VendSansBold" }}>
-                  {item.name}
-                </CustomText>
-              </TouchableOpacity>
-            </View>
-          )}
-          renderSectionHeader={({ section }) => (
-            <View
-              style={{ paddingHorizontal: 10, flexDirection: "row", gap: 5 }}
-            >
-              <Image
-                source={{
-                  uri: `${endpoints.icons}/${section.icon}`,
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                  cache: "reload",
-                }}
-                style={{
-                  width: 28,
-                  height: 28,
-                }}
+    <SheetModal visible={isItemRegisterCollectionSectionListOverlayOpen.value} onClose={handleClose} title={t("items:register.chooseCollection")}>
+      <SectionList
+        sections={sections}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item, section }) => (
+          <ListRow
+            title={item.name}
+            leading={
+              <ResultThumb
+                uri={item.image ? `${endpoints.collectionsCoverImage}/${item.image}` : `${endpoints.icons}/${section.icon}`}
+                token={token}
               />
-              <CustomText style={{ fontSize: 20 }}>{section.title}</CustomText>
-            </View>
-          )}
-          stickySectionHeadersEnabled={true}
-          ListFooterComponent={
-            <CustomText
-              style={{
-                textAlign: "center",
-                fontFamily: "VendSansItalic",
-                marginTop: 20,
-              }}
-            >
-              End of results
-            </CustomText>
-          }
-          ListEmptyComponent={<CustomText>No collections found.</CustomText>}
-        />
-      </SafeAreaView>
-    </Overlay>
+            }
+            onPress={() => handleCollectionPress(item)}
+          />
+        )}
+        ItemSeparatorComponent={Divider}
+        renderSectionHeader={({ section }) => (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, backgroundColor: colors.surfaceAlt, borderBottomWidth: borders.width, borderTopWidth: borders.width, borderColor: colors.border }}>
+            <Image source={{ uri: `${endpoints.icons}/${section.icon}`, headers: { Authorization: `Bearer ${token}` }, cache: "reload" }} style={{ width: 24, height: 24 }} />
+            <Text style={[typography.label, { color: colors.text }]}>{section.title}</Text>
+          </View>
+        )}
+        stickySectionHeadersEnabled
+        ListFooterComponent={
+          sections.length > 0 ? (
+            <Text style={[typography.meta, { color: colors.textMuted, textAlign: "center", padding: spacing.lg }]}>{t("feed:search.endOfResults")}</Text>
+          ) : null
+        }
+        ListEmptyComponent={<EmptyState icon="inventory-2" title={t("items:register.noCollections")} text={t("collections:list.emptyText")} />}
+      />
+    </SheetModal>
   );
 }
 
