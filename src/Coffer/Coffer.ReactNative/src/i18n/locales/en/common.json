@@ -55,5 +55,10 @@
     "outdent": "Outdent",
     "undo": "Undo",
     "redo": "Redo"
+  },
+  "country": {
+    "label": "Country",
+    "placeholder": "Select your country",
+    "searchPlaceholder": "Search countries"
   }
 }

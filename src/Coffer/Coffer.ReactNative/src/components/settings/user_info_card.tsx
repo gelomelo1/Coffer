@@ -13,7 +13,8 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTranslation } from "react-i18next";
 import React, { useEffect, useState } from "react";
 import { Image, TouchableOpacity, View } from "react-native";
-import CountryPicker, { Country } from "react-native-country-picker-modal";
+import { Country } from "react-native-country-picker-modal";
+import { CountryPickerModal } from "../custom_ui/country_field";
 import { Avatar } from "react-native-elements";
 import * as RNLocalize from "react-native-localize";
 import { ActivityIndicator } from "react-native-paper";
@@ -379,18 +380,11 @@ function UserInfoCard({ user, setUser, otherUser = false }: UserInfoCardProps) {
           />
         ) : null}
       </View>
-      <CountryPicker
-        countryCode={
-          country?.cca2 ?? (locales?.[0]?.countryCode as any) ?? "EN"
-        }
+      <CountryPickerModal
         visible={isCountryPickerVisible}
         onClose={() => setIsCountryPickerVisible(false)}
         onSelect={handleCountryEdit}
-        renderFlagButton={() => null}
-        withCloseButton={false}
-        withFilter={true}
-        withFlag={true}
-        filterProps={{ style: { marginTop: 100 } }}
+        selectedCode={(editModeCountry?.cca2 ?? (locales?.[0]?.countryCode as any)) || undefined}
       />
       <RichTextEditorSheet
         visible={isSummaryEditorVisible}

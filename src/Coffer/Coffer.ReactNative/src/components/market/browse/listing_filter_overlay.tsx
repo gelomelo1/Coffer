@@ -11,7 +11,7 @@ import {
   ListingKind,
 } from "@/src/types/entities/market";
 import { countryFlag, parsePriceToCents } from "@/src/utils/market_api";
-import CountryPicker from "react-native-country-picker-modal";
+import { CountryPickerModal } from "@/src/components/custom_ui/country_field";
 import { useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import CityAutocomplete from "../ui/city_autocomplete";
@@ -176,19 +176,13 @@ function ListingFilterOverlay({
           <Chip label="+ Other country" selected={false} onPress={() => setCountryPickerOpen(true)} />
         </ChipRow>
       </ScrollView>
-      <CountryPicker
-        countryCode={"HU" as any}
+      <CountryPickerModal
         visible={countryPickerOpen}
         onClose={() => setCountryPickerOpen(false)}
         onSelect={(country) => {
           const code = country.cca2.toString();
           setDraft((d) => (d.sellerCountries?.includes(code) ? d : { ...d, sellerCountries: [...(d.sellerCountries ?? []), code] }));
-          setCountryPickerOpen(false);
         }}
-        renderFlagButton={() => null}
-        withCloseButton
-        withFilter
-        withFlag
       />
     </CustomOverlay>
   );

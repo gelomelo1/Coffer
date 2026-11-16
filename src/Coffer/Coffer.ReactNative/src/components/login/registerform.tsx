@@ -6,7 +6,8 @@ import { getData } from "@/src/utils/backend_access";
 import buildQuery from "@/src/utils/query_builder";
 import { useRef, useState } from "react";
 import { ActivityIndicator, TouchableOpacity, View } from "react-native";
-import CountryPicker, { Country } from "react-native-country-picker-modal";
+import { Country } from "react-native-country-picker-modal";
+import CountryField from "../custom_ui/country_field";
 import { Icon } from "react-native-elements";
 import * as RNLocalize from "react-native-localize";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -112,17 +113,9 @@ function RegisterForm({ submitRegistration }: RegisterFormProps) {
           }
           containerStyle={{ width: "80%", marginBottom: 20 }}
         />
-        <TouchableOpacity
-          style={{ width: "80%", marginBottom: 50 }}
-          onPress={() => setIsCountryPickerVisible(true)}
-        >
-          <CustomTextInput
-            placeholder="Select your country"
-            label="Country"
-            value={country ? country.name.toString() : ""}
-            editable={false}
-          />
-        </TouchableOpacity>
+        <View style={{ width: "80%", marginBottom: 50 }}>
+          <CountryField label="Country" value={country} onSelect={(c) => setCountry(c)} />
+        </View>
         <CustomButton
           title="Submit"
           disabled={isSubmitDisabled || country === null}
@@ -132,19 +125,6 @@ function RegisterForm({ submitRegistration }: RegisterFormProps) {
           containerStyle={{ width: "80%", alignSelf: "center" }}
         />
       </View>
-      <CountryPicker
-        countryCode={
-          country?.cca2 ?? (locales?.[0]?.countryCode as any) ?? "EN"
-        }
-        visible={isCountryPickerVisible}
-        onClose={() => setIsCountryPickerVisible(false)}
-        onSelect={(country) => setCountry(country)}
-        renderFlagButton={() => null}
-        withCloseButton={false}
-        withFilter={true}
-        withFlag={true}
-        filterProps={{ style: { marginTop: 100 } }}
-      />
     </SafeAreaView>
   );
 }
