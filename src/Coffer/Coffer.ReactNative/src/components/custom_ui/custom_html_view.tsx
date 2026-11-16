@@ -1,122 +1,69 @@
-import { customTheme } from "@/src/theme/theme";
+import { colors, fonts, spacing, typography } from "@/src/theme/theme";
 import { useState } from "react";
-import { TouchableOpacity, View } from "react-native";
-import RenderHTML from "react-native-render-html";
-import CustomText from "./custom_text";
+import { useTranslation } from "react-i18next";
+import { Pressable, Text, useWindowDimensions, View } from "react-native";
+import RenderHTML, { MixedStyleRecord } from "react-native-render-html";
+import { RICH_TEXT } from "./rich_text_css";
 
 interface CustomHTMLViewProps {
   content: string;
+  /** Collapse long content behind "Read more". */
   foldable?: boolean;
+  /** Lines visible when collapsed (foldable) or as a hard clip (preview). */
+  maxLines?: number;
 }
 
-function CustomHTMLView({ content, foldable = false }: CustomHTMLViewProps) {
+const tagsStyles: MixedStyleRecord = {
+  b: { fontFamily: fonts.bold },
+  strong: { fontFamily: fonts.bold },
+  i: { fontStyle: "italic" },
+  em: { fontStyle: "italic" },
+  u: { textDecorationLine: "underline" },
+  s: { textDecorationLine: "line-through" },
+  h1: { fontSize: RICH_TEXT.headings.h1, fontFamily: fonts.bold, marginTop: 8, marginBottom: 4 },
+  h2: { fontSize: RICH_TEXT.headings.h2, fontFamily: fonts.bold, marginTop: 8, marginBottom: 4 },
+  h3: { fontSize: RICH_TEXT.headings.h3, fontFamily: fonts.bold, marginTop: 8, marginBottom: 4 },
+  h4: { fontSize: RICH_TEXT.headings.h4, fontFamily: fonts.bold, marginTop: 8, marginBottom: 4 },
+  h5: { fontSize: RICH_TEXT.headings.h5, fontFamily: fonts.bold, marginTop: 8, marginBottom: 4 },
+  h6: { fontSize: RICH_TEXT.headings.h6, fontFamily: fonts.bold, marginTop: 8, marginBottom: 4 },
+  p: { marginTop: 0, marginBottom: 0, minHeight: RICH_TEXT.lineHeight },
+  ul: { marginTop: 4, marginBottom: 4, paddingLeft: RICH_TEXT.listIndent },
+  ol: { marginTop: 4, marginBottom: 4, paddingLeft: RICH_TEXT.listIndent },
+  li: { marginTop: 0, marginBottom: 0 },
+  blockquote: { marginVertical: 8, paddingHorizontal: 12, paddingVertical: 4, borderLeftWidth: 4, borderLeftColor: colors.secondary },
+  a: { textDecorationLine: "underline", color: colors.text, fontFamily: fonts.bold },
+  code: { fontFamily: "monospace", backgroundColor: RICH_TEXT.codeBg, fontSize: 14 },
+  pre: { fontFamily: "monospace", backgroundColor: RICH_TEXT.codeBg, borderWidth: 2, borderColor: colors.border, padding: 8, marginVertical: 8, fontSize: 14 },
+};
+
+/** Read-only rendering of user rich text (descriptions, bios). Content is shown exactly as stored. */
+function CustomHTMLView({ content, foldable = false, maxLines }: CustomHTMLViewProps) {
+  const { t } = useTranslation();
+  const { width } = useWindowDimensions();
   const [contentHeight, setContentHeight] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
 
-  const lineHeight = 18;
-
-  const maxHeight = 3 * lineHeight;
-
-  const isOverflowing = contentHeight > maxHeight;
-
-  const handleOpen = () => {
-    setIsOpen(true);
-  };
+  const clipHeight = (maxLines ?? 3) * RICH_TEXT.lineHeight;
+  const clipped = foldable ? !isOpen : maxLines !== undefined;
+  const isOverflowing = contentHeight > clipHeight;
 
   return (
-    <View style={{ paddingHorizontal: 10 }}>
-      <View
-        style={{
-          maxHeight: isOpen || !foldable ? undefined : maxHeight,
-          overflow: "hidden",
-        }}
-      >
+    <View style={{ paddingHorizontal: spacing.sm }}>
+      <View style={{ maxHeight: clipped ? clipHeight : undefined, overflow: "hidden" }}>
         <View onLayout={(e) => setContentHeight(e.nativeEvent.layout.height)}>
           <RenderHTML
-            baseStyle={{
-              color: customTheme.colors.primary,
-              fontSize: 14,
-              lineHeight: 18,
-            }}
-            tagsStyles={{
-              // Text emphasis
-              b: { fontWeight: "bold" },
-              strong: { fontWeight: "bold" },
-              i: { fontStyle: "italic" },
-              em: { fontStyle: "italic" },
-              u: { textDecorationLine: "underline" },
-
-              // Headings — scaled relative to 14px, NO spacing
-              h1: { fontSize: 20, fontWeight: "bold", marginBottom: 0 },
-              h2: { fontSize: 18, fontWeight: "bold", marginBottom: 0 },
-              h3: { fontSize: 16, fontWeight: "bold", marginBottom: 0 },
-              h4: { fontSize: 15, fontWeight: "bold", marginBottom: 0 },
-              h5: { fontSize: 14, fontWeight: "bold", marginBottom: 0 },
-              h6: { fontSize: 13, fontWeight: "bold", marginBottom: 0 },
-
-              // Paragraph — behaves like simple newline (no spacing)
-              p: {
-                marginTop: 0,
-                marginBottom: 0,
-                minHeight: 18,
-              },
-
-              // Lists — minimal spacing
-              ul: {
-                marginTop: 0,
-                marginBottom: 0,
-                paddingLeft: 16,
-              },
-              ol: {
-                marginTop: 0,
-                marginBottom: 0,
-                paddingLeft: 16,
-              },
-              li: {
-                marginTop: 0,
-                marginBottom: 0,
-              },
-
-              // Links
-              a: { textDecorationLine: "underline" },
-
-              // Code
-              code: {
-                fontFamily: "monospace",
-                backgroundColor: "#eee",
-                paddingHorizontal: 3,
-                paddingVertical: 1,
-                fontSize: 13,
-              },
-
-              pre: {
-                fontFamily: "monospace",
-                backgroundColor: "#eee",
-                padding: 6,
-                marginTop: 0,
-                marginBottom: 0,
-                fontSize: 13,
-              },
-            }}
-            classesStyles={{
-              placeholder: {
-                color: "grey",
-                fontSize: 16,
-              },
-            }}
-            source={{
-              html: content,
-            }}
+            contentWidth={width - 2 * spacing.md}
+            systemFonts={[fonts.regular, fonts.bold, fonts.italic, fonts.semibold]}
+            baseStyle={{ color: colors.text, fontFamily: fonts.regular, fontSize: RICH_TEXT.fontSize, lineHeight: RICH_TEXT.lineHeight }}
+            tagsStyles={tagsStyles}
+            source={{ html: content }}
           />
         </View>
       </View>
-      {isOverflowing && !isOpen && foldable ? (
-        <TouchableOpacity onPress={handleOpen}>
-          <CustomText style={{ fontFamily: "VendSansBold" }}>
-            <CustomText style={{ fontFamily: "VendSansRegular" }}>...</CustomText>
-            Read further
-          </CustomText>
-        </TouchableOpacity>
+      {foldable && isOverflowing && !isOpen ? (
+        <Pressable onPress={() => setIsOpen(true)} accessibilityRole="button" hitSlop={8} style={{ paddingTop: spacing.xxs }}>
+          <Text style={[typography.label, { color: colors.text, textDecorationLine: "underline" }]}>{t("common:actions.readMore")}</Text>
+        </Pressable>
       ) : null}
     </View>
   );

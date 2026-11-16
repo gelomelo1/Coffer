@@ -32,5 +32,28 @@
   },
   "autocomplete": {
     "customValueHint": "No suggestion matches. You can still use what you typed."
+  },
+  "richText": {
+    "placeholder": "Start writing…",
+    "tapToEdit": "Opens the editor",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "strike": "Strikethrough",
+    "heading": "Headings",
+    "headingLevel": "Heading {{level}}",
+    "closeHeadings": "Back to formatting",
+    "link": "Link",
+    "linkPlaceholder": "https://…",
+    "removeLink": "Remove link",
+    "bulletList": "Bulleted list",
+    "orderedList": "Numbered list",
+    "taskList": "Checklist",
+    "quote": "Quote",
+    "code": "Code",
+    "indent": "Indent",
+    "outdent": "Outdent",
+    "undo": "Undo",
+    "redo": "Redo"
   }
 }

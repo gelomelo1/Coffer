@@ -1,6 +1,14 @@
 {
   "title": "Settings",
-  "developer": { "title": "Developer options" },
-  "user": { "title": "User settings" },
-  "reports": { "title": "Reports" }
+  "developer": {
+    "title": "Developer options"
+  },
+  "user": {
+    "title": "User settings",
+    "summaryEditorTitle": "Introduce yourself",
+    "summaryPlaceholder": "Share a bit about yourself – who you are, your hobbies, what you like to collect, or anything that shows your personality. Add a fun phrase, use emojis, decorate it as much as you want, and if you have collection-related social media accounts, feel free to include links"
+  },
+  "reports": {
+    "title": "Reports"
+  }
 }

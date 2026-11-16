@@ -1,1 +1,15 @@
-{}
+{
+  "edit": {
+    "title": "Edit collection",
+    "save": "Save changes",
+    "updated": "Collection updated",
+    "coverImage": "Cover image",
+    "noCoverImage": "No cover image yet",
+    "changeCover": "Choose image",
+    "removeCover": "Remove image",
+    "name": "Collection name",
+    "namePlaceholder": "Enter a name for your collection",
+    "description": "Description",
+    "descriptionPlaceholder": "What’s in your collection, and how do you find your pieces? Rare classics, everyday finds, or a bit of everything — tell your story."
+  }
+}

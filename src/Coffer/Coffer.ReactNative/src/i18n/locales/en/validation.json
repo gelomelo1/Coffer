@@ -1,1 +1,15 @@
-{}
+{
+  "profane": "Please avoid using inappropriate language",
+  "allowedCharacters": "Allowed characters: letters, numbers, space, ., -",
+  "required": "Required field",
+  "allowedUsernameCharacters": "Allowed characters: letters, numbers, ., _, -",
+  "alreadyExists": "Already exists",
+  "invalidPhone": "Not a valid phone number",
+  "invalidFacebook": "Not a valid Facebook username",
+  "invalidEmail": "Not a valid email address",
+  "minCharacters_one": "Minimum {{count}} character required",
+  "minCharacters_other": "Minimum {{count}} characters required",
+  "checking": "Checking availability",
+  "invalid": "Not valid",
+  "available": "Available"
+}

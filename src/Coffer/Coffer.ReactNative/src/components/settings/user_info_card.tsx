@@ -10,6 +10,7 @@ import {
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useTranslation } from "react-i18next";
 import React, { useEffect, useState } from "react";
 import { Image, TouchableOpacity, View } from "react-native";
 import CountryPicker, { Country } from "react-native-country-picker-modal";
@@ -19,7 +20,7 @@ import { ActivityIndicator } from "react-native-paper";
 import CustomButton from "../custom_ui/custom_button";
 import CustomHTMLView from "../custom_ui/custom_html_view";
 import CustomOverlay from "../custom_ui/custom_overlay";
-import CustomRichTextEditor from "../custom_ui/custom_rich_text_editor";
+import { RichTextEditorSheet } from "../custom_ui/rich_text_field";
 import CustomText from "../custom_ui/custom_text";
 
 export interface UserInfoCardProps {
@@ -29,6 +30,7 @@ export interface UserInfoCardProps {
 }
 
 function UserInfoCard({ user, setUser, otherUser = false }: UserInfoCardProps) {
+  const { t } = useTranslation();
   const [isEditModeActive, setIsEditModeActive] = useState(false);
 
   const locales = RNLocalize.getLocales();
@@ -390,25 +392,16 @@ function UserInfoCard({ user, setUser, otherUser = false }: UserInfoCardProps) {
         withFlag={true}
         filterProps={{ style: { marginTop: 100 } }}
       />
-      <CustomOverlay
-        isVisible={isSummaryEditorVisible}
+      <RichTextEditorSheet
+        visible={isSummaryEditorVisible}
+        title={t("settings:user.summaryEditorTitle")}
+        initialContent={editModeSummary ?? ""}
+        onChangeValue={(value) => setEditModeSummaryContent(value)}
+        placeholder={t("settings:user.summaryPlaceholder")}
         onClose={() => setIsSummaryEditorVisible(false)}
-        overlayTitle={"Introduct yourself to others!"}
-        footerContent={
-          <CustomButton
-            title={"Apply"}
-            containerStyle={{ width: "90%", alignSelf: "center" }}
-            onPress={handleApplySummaryEdit}
-          />
-        }
-      >
-        <CustomRichTextEditor
-          initialContent={editModeSummary ?? ""}
-          onChangeValue={(value) => setEditModeSummaryContent(value)}
-          placeholder="Share a bit about yourself – who you are, your hobbies, what you like to collect, or anything that shows your personality. Add a fun phrase, use emojis, decorate it as much as you want, and if you have collection-related social media accounts, feel free to include links"
-          margin={10}
-        />
-      </CustomOverlay>
+        onDone={handleApplySummaryEdit}
+        doneLabel={t("common:actions.apply")}
+      />
     </>
   );
 }

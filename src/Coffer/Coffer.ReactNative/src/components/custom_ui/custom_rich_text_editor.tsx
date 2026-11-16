@@ -1,149 +1,71 @@
-import { customTheme } from "@/src/theme/theme";
-import {
-  CodeBridge,
-  LinkBridge,
-  PlaceholderBridge,
-  RichText,
-  TenTapStartKit,
-  Toolbar,
-  useEditorBridge,
-} from "@10play/tentap-editor";
-import { KeyboardAvoidingView, View } from "react-native";
+import { useKeyboardToolbarOffset } from "@/src/hooks/keyboard_toolbar";
+import { borders, colors, spacing } from "@/src/theme/theme";
+import { CoreBridge, LinkBridge, PlaceholderBridge, RichText, TenTapStartKit, useBridgeState, useEditorBridge } from "@10play/tentap-editor";
+import { useRef } from "react";
+import { useTranslation } from "react-i18next";
+import { DimensionValue, View } from "react-native";
+import { RICH_TEXT_EDITOR_CSS } from "./rich_text_css";
+import RichTextToolbar, { RICH_TOOLBAR_HEIGHT } from "./rich_text_toolbar";
 
 interface CustomRichTextEditorProps {
   initialContent: string;
   onChangeValue: (value: string) => void;
   placeholder?: string;
-  richTextHeight?: number;
-  keyboadVerticalOffset?: number;
+  /** Fixed height of the editing area; omit to fill the parent (recommended — e.g. inside RichTextEditorSheet). */
+  richTextHeight?: DimensionValue;
   margin?: number;
+  autofocus?: boolean;
 }
 
-function CustomRichTextEditor({
-  initialContent,
-  onChangeValue,
-  placeholder,
-  richTextHeight,
-  keyboadVerticalOffset,
-  margin,
-}: CustomRichTextEditorProps) {
-  const customCodeBlockCSS = `
-  html, body {
-  background-color: ${customTheme.colors.background};
-  margin: 0;
-  padding: 0;
-  font-size: 14px;        /* ✅ base size */
-  line-height: 1.3;
-}
-
-/* Global reset */
-* {
-  color: ${customTheme.colors.primary};
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* Paragraphs — keep block, but remove ALL spacing */
-p {
-  margin: 0 !important;
-  padding: 0 !important;
-  line-height: 1.3;
-}
-
-/* Prevent extra spacing between paragraphs */
-p + p {
-  margin-top: 0 !important;
-}
-
-/* Headings — scaled, but no spacing */
-h1 { font-size: 20px; font-weight: bold; margin: 0; }
-h2 { font-size: 18px; font-weight: bold; margin: 0; }
-h3 { font-size: 16px; font-weight: bold; margin: 0; }
-h4 { font-size: 15px; font-weight: bold; margin: 0; }
-h5 { font-size: 14px; font-weight: bold; margin: 0; }
-h6 { font-size: 13px; font-weight: bold; margin: 0; }
-
-/* Lists — tight */
-ul, ol {
-  margin: 0;
-  padding-left: 16px;
-}
-
-li {
-  margin: 0;
-}
-
-/* Text emphasis */
-b, strong { font-weight: bold; }
-i, em { font-style: italic; }
-u { text-decoration: underline; }
-
-/* Links */
-a {
-  text-decoration: underline;
-}
-
-/* Code */
-code {
-  font-family: monospace;
-  background-color: #eee;
-  padding: 1px 3px;
-  font-size: 13px;
-}
-
-/* Code block */
-pre {
-  font-family: monospace;
-  background-color: #eee;
-  padding: 6px;
-  margin: 0;
-  white-space: pre-wrap;
-  font-size: 13px;
-}
-`;
+/**
+ * Rich text editor (tentap) in Coffer style. The formatting toolbar is anchored to the real keyboard frame, so it
+ * sits directly on the keyboard on every phone size; the editing area shrinks so the caret is never under it.
+ */
+function CustomRichTextEditor({ initialContent, onChangeValue, placeholder, richTextHeight, margin, autofocus = false }: CustomRichTextEditorProps) {
+  const { t } = useTranslation();
+  const hostRef = useRef<View>(null);
+  const { bottom, onHostLayout } = useKeyboardToolbarOffset(hostRef);
 
   const editor = useEditorBridge({
-    autofocus: false,
+    autofocus,
     avoidIosKeyboard: true,
     editable: true,
-    initialContent: initialContent,
+    initialContent,
+    theme: { webview: { backgroundColor: colors.bg }, webviewContainer: { backgroundColor: colors.bg } },
     bridgeExtensions: [
       ...TenTapStartKit,
-      CodeBridge.configureCSS(customCodeBlockCSS),
-      PlaceholderBridge.configureExtension({
-        placeholder: placeholder ?? "Type something...",
-      }),
-      LinkBridge.configureExtension({}),
+      CoreBridge.configureCSS(RICH_TEXT_EDITOR_CSS),
+      PlaceholderBridge.configureExtension({ placeholder: placeholder ?? t("common:richText.placeholder") }),
+      LinkBridge.configureExtension({ openOnClick: false }),
     ],
     onChange() {
-      const provideContnet = async () => {
-        const content = await editor.getHTML();
-
-        onChangeValue(content);
-      };
-
-      provideContnet();
+      editor.getHTML().then(onChangeValue);
     },
   });
+  const { isFocused } = useBridgeState(editor);
+
+  const toolbarVisible = bottom !== null;
 
   return (
-    <View style={{ flex: 1 }}>
+    <View ref={hostRef} onLayout={onHostLayout} style={{ flex: richTextHeight ? undefined : 1, marginHorizontal: margin }}>
       <View
         style={{
-          height: richTextHeight ?? "100%",
-          marginHorizontal: margin ?? undefined,
+          height: richTextHeight,
+          flex: richTextHeight ? undefined : 1,
+          minHeight: 160,
+          borderWidth: borders.width,
+          borderColor: isFocused ? colors.secondary : colors.border,
+          backgroundColor: colors.bg,
+          marginBottom: toolbarVisible ? bottom + RICH_TOOLBAR_HEIGHT : richTextHeight ? 0 : spacing.md,
         }}
       >
         <RichText editor={editor} />
       </View>
-      <KeyboardAvoidingView
-        keyboardVerticalOffset={keyboadVerticalOffset ?? 98}
-        behavior="padding"
-        style={{ flex: 1, position: "absolute", width: "100%", bottom: 0 }}
-      >
-        <Toolbar editor={editor} shouldHideDisabledToolbarItems={false} />
-      </KeyboardAvoidingView>
+      {toolbarVisible ? (
+        <View style={{ position: "absolute", left: margin ? -margin : 0, right: margin ? -margin : 0, bottom }}>
+          <RichTextToolbar editor={editor} />
+        </View>
+      ) : null}
     </View>
   );
 }
