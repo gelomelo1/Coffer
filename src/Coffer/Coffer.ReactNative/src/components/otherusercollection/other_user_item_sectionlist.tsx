@@ -1,9 +1,10 @@
-import CustomText from "@/src/components/custom_ui/custom_text";
+import { EmptyState } from "@/src/components/custom_ui/states";
+import { colors, sizes, spacing, typography } from "@/src/theme/theme";
+import { useTranslation } from "react-i18next";
 import { Loading } from "@/src/components/custom_ui/loading";
 import { asyncstoragekeys } from "@/src/const/async_storage_keys";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
-import { customTheme } from "@/src/theme/theme";
 import Attribute from "@/src/types/entities/attribute";
 import { Collection } from "@/src/types/entities/collection";
 import CollectionType from "@/src/types/entities/collectiontype";
@@ -20,6 +21,7 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   SectionList,
+  Text,
   View,
 } from "react-native";
 import CollectionItemListCard from "../collections/tabs/mycollection/collection_item_list/collection_item_list_card";
@@ -51,6 +53,7 @@ function OtherUserItemSectionList({
   allLoading,
   queryOptions,
 }: OtherUserItemSectionListProps) {
+  const { t } = useTranslation();
   const [isLayoutModeLoading, setIsLayoutModeLoading] = useState(false);
 
   const isLoading = allLoading || isLayoutModeLoading;
@@ -123,16 +126,11 @@ function OtherUserItemSectionList({
       ListHeaderComponent={
         <>
           <CustomButton
-            title={"Go to user's collections list"}
-            icon={
-              <MaterialIcons
-                name="arrow-back"
-                size={24}
-                color={customTheme.colors.secondary}
-                style={{ marginRight: 5 }}
-              />
-            }
-            containerStyle={{ marginBottom: 10, marginHorizontal: 10 }}
+            title={t("settings:otherUser.allCollections", { name: user.name })}
+            variant="outline"
+            size="sm"
+            icon={<MaterialIcons name="person" size={sizes.iconSm} color={colors.text} />}
+            containerStyle={{ marginHorizontal: spacing.md, alignSelf: "flex-start" }}
             onPress={handleCollectionNavigation}
           />
           <OtherUserCollectionInfoCard
@@ -159,39 +157,16 @@ function OtherUserItemSectionList({
           {isLoading && <Loading />}
 
           {!isLoading && items.length === 0 ? (
-            <>
-              <View
-                style={{
-                  justifyContent: "center",
-                  alignItems: "center",
-                  marginHorizontal: 10,
-                  marginTop: 20,
-                }}
-              >
-                <CustomText
-                  style={{ fontFamily: "VendSansBold", fontSize: 20 }}
-                >
-                  No item found
-                </CustomText>
-                <CustomText style={{ textAlign: "center" }}>
-                  {queryOptions.value.filters
-                    ? `Adjust your filter to see different results`
-                    : ""}
-                </CustomText>
-              </View>
-            </>
+            <EmptyState
+              icon={queryOptions.value.filters ? "filter-alt-off" : "inventory-2"}
+              title={t("collections:items.emptyTitle")}
+              text={queryOptions.value.filters ? t("collections:items.emptyFiltered") : undefined}
+            />
           ) : null}
         </>
       )}
       renderItem={({ item }) => (
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "center",
-            gap: 10,
-            marginHorizontal: 10,
-          }}
-        >
+        <View style={{ flexDirection: "row", gap: spacing.md, marginHorizontal: spacing.md }}>
           {item.map((i) => (
             <CollectionItemListCard
               key={i.id}
@@ -205,19 +180,13 @@ function OtherUserItemSectionList({
       )}
       stickySectionHeadersEnabled
       ListFooterComponent={
-        <CustomText
-          style={{
-            textAlign: "center",
-            fontFamily: "VendSansItalic",
-            marginTop: 20,
-            marginBottom: 20,
-          }}
-        >
-          End of list
-        </CustomText>
+        items.length > 0 ? (
+          <Text style={[typography.meta, { color: colors.textMuted, textAlign: "center", paddingVertical: spacing.xl }]}>{t("collections:items.endOfList")}</Text>
+        ) : null
       }
-      contentContainerStyle={{ paddingTop: 20, paddingBottom: 40 }}
-      ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+      contentContainerStyle={{ paddingTop: spacing.md, paddingBottom: spacing.xxl * 2 }}
+      ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
+      style={{ backgroundColor: colors.bg }}
     />
   );
 }

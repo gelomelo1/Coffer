@@ -1,28 +1,21 @@
 import { none } from "@/src/const/emptyIdUpdate";
 import { endpoints } from "@/src/const/endpoints";
 import { useUpdateData } from "@/src/hooks/data_hooks";
-import { customTheme } from "@/src/theme/theme";
+import { borders, colors, sizes, spacing, typography } from "@/src/theme/theme";
 import User, { UserFrontend } from "@/src/types/entities/user";
-import {
-  getCountryByCode,
-  stringHasValue,
-} from "@/src/utils/data_access_utils";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import Entypo from "@expo/vector-icons/Entypo";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { useTranslation } from "react-i18next";
+import { getCountryByCode, stringHasValue } from "@/src/utils/data_access_utils";
+import { countryFlag, formatDate } from "@/src/utils/market_api";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React, { useEffect, useState } from "react";
-import { Image, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { Image, Text, View } from "react-native";
 import { Country } from "react-native-country-picker-modal";
-import { CountryPickerModal } from "../custom_ui/country_field";
-import { Avatar } from "react-native-elements";
-import * as RNLocalize from "react-native-localize";
-import { ActivityIndicator } from "react-native-paper";
+import { Avatar } from "../custom_ui/avatar";
+import { SectionHeader } from "../custom_ui/card";
+import { CountryField } from "../custom_ui/country_field";
 import CustomButton from "../custom_ui/custom_button";
 import CustomHTMLView from "../custom_ui/custom_html_view";
-import CustomOverlay from "../custom_ui/custom_overlay";
-import { RichTextEditorSheet } from "../custom_ui/rich_text_field";
-import CustomText from "../custom_ui/custom_text";
+import { RichTextField } from "../custom_ui/rich_text_field";
 
 export interface UserInfoCardProps {
   user: User | null;
@@ -30,373 +23,154 @@ export interface UserInfoCardProps {
   otherUser?: boolean;
 }
 
+const countryName = (c: Country | null) => (c ? (typeof c.name === "string" ? c.name : c.name.common) : null);
+
+function Meta({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }} accessible accessibilityLabel={`${label}: ${value}`}>
+      {icon}
+      <Text style={[typography.meta, { color: colors.text, flexShrink: 1 }]}>
+        <Text style={{ color: colors.textMuted }}>{label} </Text>
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+/**
+ * Profile: avatar, name, country, member since, login provider (own profile) and the rich-text summary.
+ * The owner edits country and summary in place; Save sends both, Cancel drops the draft.
+ */
 function UserInfoCard({ user, setUser, otherUser = false }: UserInfoCardProps) {
   const { t } = useTranslation();
-  const [isEditModeActive, setIsEditModeActive] = useState(false);
-
-  const locales = RNLocalize.getLocales();
-  const [isCountryPickerVisible, setIsCountryPickerVisible] = useState(false);
-  const [isSummaryEditorVisible, setIsSummaryEditorVisible] = useState(false);
-
+  const [editing, setEditing] = useState(false);
   const [country, setCountry] = useState<Country | null>(null);
-
-  const [editModeCountry, setEditModeCountry] = useState(country);
-  const [editModeSummary, setEditModeSummary] = useState(user?.summary);
-  const [editModeSummaryContent, setEditModeSummaryContent] = useState("");
+  const [draftCountry, setDraftCountry] = useState<Country | null>(null);
+  const [draftSummary, setDraftSummary] = useState(user?.summary ?? "");
 
   const providerIcon =
-    user?.provider === "google"
-      ? require("../../../assets/images/googlesignin.png")
-      : require("../../../assets/images/githubsignin.png");
+    user?.provider === "google" ? require("../../../assets/images/googlesignin.png") : require("../../../assets/images/githubsignin.png");
 
-  const { mutateAsync: updateUser, isPending: isUserUpdatePending } =
-    useUpdateData<UserFrontend, User>(endpoints.userFrontend);
+  const { mutateAsync: updateUser, isPending } = useUpdateData<UserFrontend, User>(endpoints.userFrontend);
 
   useEffect(() => {
-    const fetchCountry = async () => {
-      if (user?.country) {
-        const countryData = await getCountryByCode(user.country);
-        setCountry(countryData);
-        setEditModeCountry(countryData);
-      }
+    let cancelled = false;
+    if (user?.country) {
+      getCountryByCode(user.country).then((data) => {
+        if (!cancelled) setCountry(data);
+      });
+    } else setCountry(null);
+    return () => {
+      cancelled = true;
     };
-
-    fetchCountry();
   }, [user?.country]);
 
-  const handleEditMode = () => {
-    if (user === null) return;
+  if (!user) return null;
 
-    setEditModeCountry(country);
-    setEditModeSummary(user?.summary);
-    setIsEditModeActive(true);
+  const startEdit = () => {
+    setDraftCountry(country);
+    setDraftSummary(user.summary ?? "");
+    setEditing(true);
   };
 
-  const handleSave = async () => {
-    if (user === null) return;
-
-    setIsEditModeActive(false);
-
-    console.log(
-      JSON.stringify({
-        country: editModeCountry?.cca2.toString() ?? user.country,
-        summary: editModeSummary,
-      }),
-    );
-
-    const updatedUser = await updateUser({
-      id: none,
-      value: {
-        country: editModeCountry?.cca2.toString() ?? user.country,
-        summary: editModeSummary,
-      },
-    });
-
-    setUser?.(updatedUser);
-
-    console.log(updatedUser.summary);
-  };
-
-  const handleCountryEdit = (country: Country) => {
-    setEditModeCountry(country);
-  };
-
-  const handleBack = () => {
-    setIsEditModeActive(false);
-  };
-
-  const handleOpenSummaryEdit = () => {
-    setEditModeSummaryContent(editModeSummary ?? "");
-    setIsSummaryEditorVisible(true);
-  };
-
-  const handleApplySummaryEdit = () => {
-    if (stringHasValue(editModeSummaryContent)) {
-      console.log(editModeSummaryContent);
-      setEditModeSummary(editModeSummaryContent);
-    } else {
-      setEditModeSummary(undefined);
+  const save = async () => {
+    try {
+      const updated = await updateUser({
+        id: none,
+        value: {
+          country: draftCountry?.cca2.toString() ?? user.country,
+          summary: stringHasValue(draftSummary) ? draftSummary : undefined,
+        },
+      });
+      setUser?.(updated);
+      setEditing(false);
+    } catch {
+      // error toast comes from the mutation; keep the draft so nothing is lost
     }
-    setIsSummaryEditorVisible(false);
   };
+
+  const shownCountry = countryName(country);
 
   return (
-    <>
-      <View
-        style={{
-          backgroundColor: customTheme.colors.background,
-        }}
-      >
-        <View
-          style={{
-            width: "100%",
-            alignSelf: "center",
-            alignItems: "center",
-            backgroundColor: customTheme.colors.secondary,
-            borderBottomLeftRadius: 50,
-            borderBottomRightRadius: 50,
-            paddingTop: 10,
-            paddingHorizontal: 10,
-            paddingBottom: 10,
-          }}
-        >
-          {!otherUser ? (
-            <View style={{ position: "absolute", top: 0, right: 10 }}>
-              {isUserUpdatePending ? (
-                <ActivityIndicator
-                  size={16}
-                  color={customTheme.colors.primary}
-                />
-              ) : !isEditModeActive ? (
-                <TouchableOpacity
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    gap: 5,
-                  }}
-                  onPress={handleEditMode}
-                >
-                  <Entypo
-                    name="edit"
-                    size={16}
-                    color={customTheme.colors.primary}
-                  />
-                  <CustomText style={{ fontFamily: "VendSansBold" }}>
-                    Edit user
-                  </CustomText>
-                </TouchableOpacity>
-              ) : (
-                <View
-                  style={{
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    gap: 10,
-                  }}
-                >
-                  <TouchableOpacity
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: 5,
-                    }}
-                    onPress={handleSave}
-                  >
-                    <AntDesign
-                      name="check"
-                      size={16}
-                      color={customTheme.colors.primary}
-                    />
-                    <CustomText style={{ fontFamily: "VendSansBold" }}>
-                      Save
-                    </CustomText>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: 5,
-                    }}
-                    onPress={handleBack}
-                  >
-                    <Ionicons
-                      name="arrow-back"
-                      size={16}
-                      color={customTheme.colors.primary}
-                    />
-                    <CustomText style={{ fontFamily: "VendSansBold" }}>
-                      Back
-                    </CustomText>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          ) : null}
-
-          <Avatar
-            size={80}
-            rounded
-            source={user?.avatar ? { uri: user.avatar } : undefined}
-            icon={
-              !user?.avatar
-                ? {
-                    name: "user",
-                    type: "feather",
-                    color: customTheme.colors.secondary,
-                  }
-                : undefined
-            }
-            containerStyle={{ backgroundColor: customTheme.colors.primary }}
-          />
-          <CustomText style={{ fontFamily: "VendSansBold", fontSize: 24 }}>
-            {user?.name}
-          </CustomText>
-
-          <View
-            style={{
-              width: "100%",
-              flexDirection: "row",
-              alignItems: "center",
-            }}
-          >
-            <View style={{ flex: 1, alignItems: "center" }}>
-              {otherUser ? null : (
-                <>
-                  <CustomText
-                    style={{ fontFamily: "VendSansItalic", fontSize: 14 }}
-                  >
-                    Logged in with
-                  </CustomText>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 5,
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Image
-                      source={providerIcon}
-                      style={{ width: 16, height: 16 }}
-                    />
-                    <CustomText style={{ fontSize: 18 }}>
-                      {user?.provider}
-                    </CustomText>
-                  </View>
-                </>
-              )}
-              <CustomText
-                style={{ fontFamily: "VendSansItalic", fontSize: 14 }}
-              >
-                Member since
-              </CustomText>
-              <CustomText style={{ fontSize: 18 }}>
-                {new Date(user?.createdAt ?? "").toLocaleDateString()}
-              </CustomText>
-            </View>
-
-            <View
-              style={{
-                width: 1,
-                height: 40,
-                backgroundColor: customTheme.colors.primary,
-              }}
+    <View style={{ gap: spacing.md }}>
+      <View style={{ flexDirection: "row", gap: spacing.md, alignItems: "center" }}>
+        <Avatar uri={user.avatar} size={80} />
+        <View style={{ flex: 1, gap: spacing.xxs }}>
+          <Text accessibilityRole="header" style={[typography.headline, { color: colors.text }]}>
+            {user.name}
+          </Text>
+          {shownCountry && country ? (
+            <Meta
+              icon={
+                <Text style={{ fontSize: 18 }} importantForAccessibility="no">
+                  {countryFlag(country.cca2)}
+                </Text>
+              }
+              label={t("settings:profile.country")}
+              value={shownCountry}
             />
-
-            <View
-              style={{
-                position: "relative",
-                flex: 1,
-                alignItems: "center",
-              }}
-            >
-              {country?.flag && !isEditModeActive ? (
-                <Image
-                  source={{ uri: country.flag }}
-                  style={{ width: 16, height: 16 }}
-                />
-              ) : isEditModeActive && editModeCountry?.flag ? (
-                <Image
-                  source={{ uri: editModeCountry.flag }}
-                  style={{ width: 16, height: 16 }}
-                />
-              ) : null}
-              <CustomText style={{ fontSize: 18 }}>
-                {isEditModeActive
-                  ? editModeCountry?.name.toString()
-                  : country?.name.toString()}
-              </CustomText>
-              {isEditModeActive ? (
-                <TouchableOpacity
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    top: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: "lightgreen",
-                    opacity: 0.4,
-                    borderWidth: 4,
-                    borderColor: "green",
-                    borderRadius: 10,
-                  }}
-                  onPress={() => setIsCountryPickerVisible(true)}
-                />
-              ) : null}
-            </View>
-          </View>
+          ) : null}
+          <Meta
+            icon={<MaterialIcons name="event" size={sizes.iconSm} color={colors.text} />}
+            label={t("settings:profile.memberSince")}
+            value={formatDate(user.createdAt)}
+          />
+          {!otherUser && user.provider ? (
+            <Meta
+              icon={<Image source={providerIcon} style={{ width: 18, height: 18, tintColor: user.provider === "github" ? colors.text : undefined }} />}
+              label={t("settings:profile.loggedInWith")}
+              value={t(`settings:profile.provider.${user.provider}`, { defaultValue: user.provider })}
+            />
+          ) : null}
         </View>
       </View>
-      <View
-        style={{
-          position: "relative",
-          backgroundColor: customTheme.colors.background,
-          paddingTop: 10,
-        }}
-      >
-        <CustomText
-          style={{
-            fontSize: 18,
-            fontFamily: "VendSansBold",
-            alignSelf: "center",
-          }}
-        >
-          Summary
-        </CustomText>
-        {(!stringHasValue(user?.summary) && !isEditModeActive) ||
-        (!stringHasValue(editModeSummary) && isEditModeActive) ? (
-          <View style={{ marginHorizontal: 10 }}>
-            <CustomText style={{ fontFamily: "VendSansItalic" }}>
-              {otherUser
-                ? "This user has no summary yet."
-                : "You don’t have a summary on your profile yet—feel free to add a short introduction so others can get to know you better!"}
-            </CustomText>
-          </View>
-        ) : null}
-        <CustomHTMLView
-          content={
-            isEditModeActive ? (editModeSummary ?? "") : (user?.summary ?? "")
-          }
-          foldable={true}
+
+      {!otherUser && !editing ? (
+        <CustomButton
+          title={t("settings:profile.edit")}
+          variant="outline"
+          size="sm"
+          icon={<MaterialIcons name="edit" size={sizes.iconSm} color={colors.text} />}
+          onPress={startEdit}
+          containerStyle={{ alignSelf: "flex-start" }}
         />
-        {isEditModeActive ? (
-          <TouchableOpacity
-            style={{
-              position: "absolute",
-              left: 0,
-              top: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "lightgreen",
-              opacity: 0.4,
-              borderWidth: 4,
-              borderColor: "green",
-              borderRadius: 10,
-            }}
-            onPress={handleOpenSummaryEdit}
+      ) : null}
+
+      {editing ? (
+        <View style={{ gap: spacing.md, borderWidth: borders.width, borderColor: colors.border, padding: spacing.md, backgroundColor: colors.surface }}>
+          <CountryField label={t("settings:profile.country")} value={draftCountry} onSelect={setDraftCountry} />
+          <RichTextField
+            label={t("settings:user.summaryEditorTitle")}
+            value={draftSummary}
+            onChangeValue={setDraftSummary}
+            placeholder={t("settings:user.summaryPlaceholder")}
           />
-        ) : null}
-      </View>
-      <CountryPickerModal
-        visible={isCountryPickerVisible}
-        onClose={() => setIsCountryPickerVisible(false)}
-        onSelect={handleCountryEdit}
-        selectedCode={(editModeCountry?.cca2 ?? (locales?.[0]?.countryCode as any)) || undefined}
-      />
-      <RichTextEditorSheet
-        visible={isSummaryEditorVisible}
-        title={t("settings:user.summaryEditorTitle")}
-        initialContent={editModeSummary ?? ""}
-        onChangeValue={(value) => setEditModeSummaryContent(value)}
-        placeholder={t("settings:user.summaryPlaceholder")}
-        onClose={() => setIsSummaryEditorVisible(false)}
-        onDone={handleApplySummaryEdit}
-        doneLabel={t("common:actions.apply")}
-      />
-    </>
+          <View style={{ flexDirection: "row", gap: spacing.sm }}>
+            <CustomButton
+              title={t("common:actions.cancel")}
+              variant="outline"
+              disabled={isPending}
+              onPress={() => setEditing(false)}
+              containerStyle={{ flex: 1 }}
+            />
+            <CustomButton title={t("common:actions.save")} loading={isPending} disabled={isPending} onPress={save} containerStyle={{ flex: 1 }} />
+          </View>
+        </View>
+      ) : (
+        <View style={{ gap: spacing.xs }}>
+          <SectionHeader title={t("settings:profile.summary")} />
+          {stringHasValue(user.summary) ? (
+            <View style={{ marginHorizontal: -spacing.sm }}>
+              <CustomHTMLView content={user.summary ?? ""} foldable />
+            </View>
+          ) : (
+            <Text style={[typography.body, { color: colors.textMuted, fontStyle: "italic" }]}>
+              {otherUser ? t("settings:profile.noSummaryOther") : t("settings:profile.noSummaryOwn")}
+            </Text>
+          )}
+        </View>
+      )}
+    </View>
   );
 }
 

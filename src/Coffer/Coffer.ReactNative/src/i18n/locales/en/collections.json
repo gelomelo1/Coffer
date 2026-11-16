@@ -39,7 +39,8 @@
     "created": "Created {{date}}",
     "followers_one": "{{count}} follower",
     "followers_other": "{{count}} followers",
-    "noDescription": "No description yet. Add one with Edit so others can learn what makes your collection special."
+    "noDescription": "No description yet. Add one with Edit so others can learn what makes your collection special.",
+    "noDescriptionOther": "The owner hasn't added a description to this collection yet."
   },
   "items": {
     "cardA11y": "{{name}}, {{count}} pieces",
@@ -89,5 +90,12 @@
     "tags": "Tags",
     "tagsPlaceholder": "#tag #another",
     "tagsHelper": "Separate tags with spaces. Pick a suggestion to complete a tag."
+  },
+  "follow": {
+    "follow": "Follow",
+    "unfollow": "Unfollow",
+    "followed": "You started following this collection",
+    "unfollowed": "You stopped following this collection",
+    "since": "You follow this collection since {{date}}"
   }
 }

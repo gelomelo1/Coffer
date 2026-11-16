@@ -1,4 +1,4 @@
-import rootViewStyle from "@/src/components/custom_ui/root_view";
+import { colors } from "@/src/theme/theme";
 import OtherUserItemSectionList from "@/src/components/otherusercollection/other_user_item_sectionlist";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
@@ -65,12 +65,7 @@ function OtherUserCollection() {
   }, [queryOptions, refetch]);
 
   return (
-    <View
-      style={[
-        rootViewStyle({ color: collectionType!.color }),
-        { flex: 1, padding: 0 },
-      ]}
-    >
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <OtherUserItemSectionList
         currentUser={currentUser!}
         user={user!}

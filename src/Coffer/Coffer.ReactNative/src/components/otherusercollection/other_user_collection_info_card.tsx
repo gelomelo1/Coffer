@@ -1,20 +1,21 @@
+import { SectionHeader } from "@/src/components/custom_ui/card";
 import CustomButton from "@/src/components/custom_ui/custom_button";
-import CustomText from "@/src/components/custom_ui/custom_text";
+import CustomHTMLView from "@/src/components/custom_ui/custom_html_view";
+import CustomImage from "@/src/components/custom_ui/custom_image";
+import { isRichTextEmpty } from "@/src/components/custom_ui/rich_text_field";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
 import { useCreateData } from "@/src/hooks/data_hooks";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
-import { useUserStore } from "@/src/hooks/user_store";
-import { customTheme } from "@/src/theme/theme";
+import { borders, colors, sizes, spacing, typography } from "@/src/theme/theme";
 import { Collection } from "@/src/types/entities/collection";
 import CollectionType from "@/src/types/entities/collectiontype";
 import { FollowRequired } from "@/src/types/entities/follow";
 import User from "@/src/types/entities/user";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import React from "react";
-import { View } from "react-native";
-import CustomHTMLView from "../custom_ui/custom_html_view";
-import CustomImage from "../custom_ui/custom_image";
+import { useTranslation } from "react-i18next";
+import { Text, View } from "react-native";
 
 interface OtherUserCollectionInfoCardProps {
   currentUser: User;
@@ -22,157 +23,84 @@ interface OtherUserCollectionInfoCardProps {
   collectionType: CollectionType;
 }
 
-function OtherUserCollectionInfoCard({
-  currentUser,
-  collection,
-  collectionType,
-}: OtherUserCollectionInfoCardProps) {
-  const { token } = useUserStore();
-  const follow = collection.follows.find(
-    (follow) => follow.userId === currentUser.id,
-  );
+/** Header of someone else's collection: cover, name, stats, follow / unfollow and the description. */
+function OtherUserCollectionInfoCard({ currentUser, collection, collectionType }: OtherUserCollectionInfoCardProps) {
+  const { t, i18n } = useTranslation();
+  const follow = collection.follows.find((f) => f.userId === currentUser.id);
+  const date = (iso: string) => new Date(iso).toLocaleDateString(i18n.language);
 
-  const { mutateAsync: manageFollow, isPending } = useCreateData<
-    FollowRequired,
-    Collection
-  >(
+  const { mutateAsync: manageFollow, isPending } = useCreateData<FollowRequired, Collection>(
     endpoints.follows,
     `${querykeys.feedListData};${querykeys.otherUserCollectionsData};${querykeys.followsData}`,
-    follow
-      ? "You stopped following this collection"
-      : "You started following this collection",
+    follow ? t("collections:follow.unfollowed") : t("collections:follow.followed"),
   );
-
   const { setCollection } = useOtherUserStore();
 
   const handleFollowPress = async () => {
-    let followChange: FollowRequired = {
-      userId: currentUser.id,
-      collectionId: collection.id,
-    };
-
-    if (follow) followChange = follow;
-
-    const response = await manageFollow({ value: followChange });
-    setCollection(response);
+    const change: FollowRequired = follow ?? { userId: currentUser.id, collectionId: collection.id };
+    try {
+      setCollection(await manageFollow({ value: change }));
+    } catch {
+      // error toast comes from the mutation
+    }
   };
 
   return (
     <>
-      <View
-        style={{
-          borderWidth: 4,
-          borderColor: customTheme.colors.primary,
-          borderTopLeftRadius: 20,
-          borderTopRightRadius: 20,
-          marginHorizontal: 10,
-          marginBottom: 20,
-        }}
-      >
-        <View
-          style={{
-            height: 150,
-            flexDirection: "row",
-            margin: 5,
-            marginBottom: 10,
-            gap: 5,
-          }}
-        >
+      <View style={{ marginHorizontal: spacing.md, marginTop: spacing.md, borderWidth: borders.width, borderColor: colors.border, backgroundColor: colors.surface }}>
+        <View style={{ flexDirection: "row", gap: spacing.md, padding: spacing.md, flexWrap: "wrap" }}>
           <View
             style={{
-              position: "relative",
-              width: 150,
-              borderWidth: 1,
-              borderColor: customTheme.colors.primary,
-              justifyContent: "center",
+              width: 112,
+              height: 112,
+              borderWidth: borders.width,
+              borderColor: colors.border,
+              backgroundColor: collectionType.color ?? colors.surfaceAlt,
+              overflow: "hidden",
             }}
           >
             <CustomImage
-              uri={
-                collection.image
-                  ? `${endpoints.collectionsCoverImage}/${collection.image}`
-                  : `${endpoints.icons}/${collectionType.icon}`
-              }
-              style={{ width: "100%", aspectRatio: 1, resizeMode: "cover" }}
-              enableFullScreenView={true}
+              uri={collection.image ? `${endpoints.collectionsCoverImage}/${collection.image}` : `${endpoints.icons}/${collectionType.icon}`}
+              style={{ width: "100%", height: "100%", resizeMode: "cover" }}
+              enableFullScreenView
             />
           </View>
-          <View
-            style={{
-              flex: 1,
-            }}
-          >
-            <CustomText
-              style={{ fontFamily: "VendSansBold", fontSize: 20 }}
-              numberOfLines={2}
-              ellipsizeMode="tail"
-            >
+          <View style={{ flex: 1, minWidth: 140, gap: spacing.xxs }}>
+            <Text accessibilityRole="header" style={[typography.headline, { color: colors.text }]} numberOfLines={3}>
               {collection.name}
-            </CustomText>
-            <CustomText>
-              {new Date(collection.createdAt).toLocaleDateString()}
-            </CustomText>
-            <CustomText style={{ fontFamily: "VendSansBold" }}>
-              {collection.follows.length} <CustomText>follower</CustomText>
-            </CustomText>
+            </Text>
+            <Text style={[typography.meta, { color: colors.textMuted }]}>{t("collections:info.created", { date: date(collection.createdAt) })}</Text>
+            <Text style={[typography.bodyStrong, { color: colors.text }]}>{t("collections:info.followers", { count: collection.follows.length })}</Text>
+            {follow ? (
+              <Text style={[typography.meta, { color: colors.text }]}>{t("collections:follow.since", { date: date(follow.followedAt) })}</Text>
+            ) : null}
           </View>
         </View>
-        {follow ? (
-          <CustomText style={{ textAlign: "center", marginBottom: 5 }}>
-            You follow this collection since{" "}
-            {new Date(follow.followedAt).toLocaleDateString()}
-          </CustomText>
-        ) : null}
-        <View
-          style={{
-            flexDirection: "row",
-            marginBottom: 1,
-          }}
-        >
+        <View style={{ padding: spacing.md, paddingTop: 0 }}>
           <CustomButton
-            title={follow ? "Unfollow" : "Follow"}
+            title={follow ? t("collections:follow.unfollow") : t("collections:follow.follow")}
+            variant={follow ? "outline" : "primary"}
             icon={
-              follow ? (
-                <MaterialCommunityIcons
-                  name="emoticon-minus"
-                  size={20}
-                  color={customTheme.colors.secondary}
-                  style={{ marginRight: 5 }}
-                />
-              ) : (
-                <MaterialCommunityIcons
-                  name="emoticon-plus"
-                  size={20}
-                  color={customTheme.colors.secondary}
-                  style={{ marginRight: 5 }}
-                />
-              )
+              <MaterialCommunityIcons
+                name={follow ? "emoticon-minus" : "emoticon-plus"}
+                size={sizes.iconSm}
+                color={follow ? colors.text : colors.onPrimary}
+              />
             }
-            containerStyle={{ width: "100%" }}
             onPress={handleFollowPress}
             loading={isPending}
+            disabled={isPending}
           />
         </View>
       </View>
-      <View style={{ marginHorizontal: 10 }}>
-        <CustomText
-          style={{
-            fontSize: 18,
-            fontFamily: "VendSansBold",
-            borderLeftWidth: 4,
-            borderLeftColor: customTheme.colors.secondary,
-            paddingLeft: 5,
-            paddingVertical: 5,
-          }}
-        >
-          Description
-        </CustomText>
-        {collection!.description ? (
-          <CustomHTMLView content={collection!.description} foldable={true} />
+      <View style={{ marginHorizontal: spacing.md }}>
+        <SectionHeader title={t("collections:edit.description")} />
+        {!isRichTextEmpty(collection.description) ? (
+          <View style={{ marginHorizontal: -spacing.sm }}>
+            <CustomHTMLView content={collection.description!} foldable />
+          </View>
         ) : (
-          <CustomText style={{ fontFamily: "VendSansItalic" }}>
-            The user has not added a description to this collection yet.
-          </CustomText>
+          <Text style={[typography.meta, { color: colors.textMuted }]}>{t("collections:info.noDescriptionOther")}</Text>
         )}
       </View>
     </>

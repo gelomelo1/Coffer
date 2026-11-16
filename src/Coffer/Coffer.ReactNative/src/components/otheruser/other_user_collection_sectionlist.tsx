@@ -1,17 +1,13 @@
-import CustomText from "@/src/components/custom_ui/custom_text";
+import { SectionHeader } from "@/src/components/custom_ui/card";
 import { Loading } from "@/src/components/custom_ui/loading";
+import { EmptyState } from "@/src/components/custom_ui/states";
 import { useCollectionTypeStore } from "@/src/hooks/collection_type_store";
-import { customTheme } from "@/src/theme/theme";
+import { borders, colors, spacing } from "@/src/theme/theme";
 import { Collection } from "@/src/types/entities/collection";
 import User from "@/src/types/entities/user";
-import { chunkArray } from "@/src/utils/data_access_utils";
-import { useState } from "react";
-import {
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  SectionList,
-  View,
-} from "react-native";
+import { useTranslation } from "react-i18next";
+import { RefreshControl, ScrollView, View } from "react-native";
+import { useTileColumns } from "../collections/collections_container";
 import UserInfoCard from "../settings/user_info_card";
 import OtherUserCollectionCard from "./other_user_collection_card";
 
@@ -20,118 +16,50 @@ interface OtherUserCollectionSectionListProps {
   user: User;
   collections: Collection[];
   allLoading: boolean;
+  onRefresh?: () => void;
 }
 
-function OtherUserCollectionSectionList({
-  currentUser,
-  user,
-  collections,
-  allLoading,
-}: OtherUserCollectionSectionListProps) {
+/** Another user's profile (general info, as before the redesign — contacts stay private to the settings) followed by their collections as a tile grid. */
+function OtherUserCollectionSectionList({ currentUser, user, collections, allLoading, onRefresh }: OtherUserCollectionSectionListProps) {
+  const { t } = useTranslation();
   const { collectionTypes } = useCollectionTypeStore();
-
-  const chunkedItems = chunkArray(allLoading ? [] : collections, 2);
-
-  const sections = [{ data: chunkedItems.length > 0 ? chunkedItems : [[]] }];
-
-  const [isStickyShadow, setIsStickyShadow] = useState(false);
-
-  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const offsetY = event.nativeEvent.contentOffset.y;
-
-    setIsStickyShadow(offsetY > 260);
-  };
+  const columns = useTileColumns();
 
   return (
-    <SectionList
-      sections={sections}
-      keyExtractor={(item, index) =>
-        item.map((i) => i.id).join("_") ?? index.toString()
-      }
-      onScroll={onScroll}
-      scrollEventThrottle={16}
-      ListHeaderComponent={<UserInfoCard user={user} otherUser={true} />}
-      renderSectionHeader={() => (
-        <View
-          style={{
-            width: "100%",
-            backgroundColor: customTheme.colors.background,
-            paddingHorizontal: 10,
-            paddingVertical: 10,
-            boxShadow: isStickyShadow
-              ? ` 0 4px 4px -4px ${customTheme.colors.disabledOverlay}`
-              : "none",
-          }}
-        >
-          <CustomText
-            style={{
-              fontFamily: "VendSansBold",
-              fontSize: 24,
-              color: customTheme.colors.secondary,
-            }}
-          >
-            {user.name}
-            <CustomText style={{ fontSize: 20 }}>{"'s collections"}</CustomText>
-          </CustomText>
-          {allLoading && <Loading />}
+    <ScrollView
+      style={{ backgroundColor: colors.bg }}
+      contentContainerStyle={{ padding: spacing.md, gap: spacing.lg, paddingBottom: spacing.xxl * 2 }}
+      refreshControl={onRefresh ? <RefreshControl refreshing={false} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} /> : undefined}
+    >
+      <View style={{ borderWidth: borders.width, borderColor: colors.border, backgroundColor: colors.surface, padding: spacing.md }}>
+        <UserInfoCard user={user} otherUser />
+      </View>
 
-          {!allLoading && collections.length === 0 ? (
-            <>
-              <View
-                style={{
-                  justifyContent: "center",
-                  alignItems: "center",
-                  marginHorizontal: 10,
-                  marginTop: 20,
-                }}
-              >
-                <CustomText
-                  style={{ fontFamily: "VendSansBold", fontSize: 20 }}
-                >
-                  No collection found
-                </CustomText>
-              </View>
-            </>
-          ) : null}
-        </View>
-      )}
-      renderItem={({ item }) => (
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "center",
-            gap: 10,
-            marginHorizontal: 10,
-          }}
-        >
-          {item.map((i) => (
-            <OtherUserCollectionCard
-              key={i.id}
-              currentUser={currentUser}
-              user={user}
-              collection={i}
-              collectionType={
-                collectionTypes.find((ct) => ct.id === i.collectionTypeId)!
-              }
-            />
-          ))}
-        </View>
-      )}
-      stickySectionHeadersEnabled
-      ListFooterComponent={
-        <CustomText
-          style={{
-            textAlign: "center",
-            fontFamily: "VendSansItalic",
-            marginTop: 20,
-          }}
-        >
-          End of list
-        </CustomText>
-      }
-      contentContainerStyle={{ paddingBottom: 40 }}
-      ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-    />
+      <View style={{ gap: spacing.sm }}>
+        <SectionHeader title={t("settings:otherUser.collections", { name: user.name })} />
+        {allLoading ? (
+          <Loading />
+        ) : collections.length === 0 ? (
+          <EmptyState icon="inventory-2" title={t("settings:otherUser.noCollections")} />
+        ) : (
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
+            {collections.map((collection) => {
+              const type = collectionTypes.find((ct) => ct.id === collection.collectionTypeId);
+              return type ? (
+                <OtherUserCollectionCard
+                  key={collection.id}
+                  currentUser={currentUser}
+                  user={user}
+                  collection={collection}
+                  collectionType={type}
+                  columns={columns}
+                />
+              ) : null;
+            })}
+          </View>
+        )}
+      </View>
+    </ScrollView>
   );
 }
 

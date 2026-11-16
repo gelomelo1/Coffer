@@ -1,2 +1,4 @@
 # Files whose user-facing text is intentionally not translated (path suffixes).
 # Developer-only tooling screen (dev builds only).
+# Generated English source table of backend messages (data, translated through errors.json).
+src/i18n/backend_messages.ts

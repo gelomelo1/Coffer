@@ -1,21 +1,14 @@
-import CustomText from "@/src/components/custom_ui/custom_text";
-import AddContactOverlay from "@/src/components/settings/user_settings/add_contact_overlay";
-import { useState } from "react";
+import { Screen } from "@/src/components/custom_ui/screen";
+import SettingsUserCard from "@/src/components/settings/settings_user_card";
+import { useUserStore } from "@/src/hooks/user_store";
 
+/** Own profile: general info + marketplace contacts, both editable. */
 function User() {
-  const [isAddContactOverlayVisible, setIsAddContactOverlayVisible] =
-    useState(false);
-
+  const { user, setUser } = useUserStore();
   return (
-    <>
-      <CustomText>User settings</CustomText>
-      <AddContactOverlay
-        isAddContactOverlayVisible={{
-          value: isAddContactOverlayVisible,
-          set: setIsAddContactOverlayVisible,
-        }}
-      />
-    </>
+    <Screen scroll>
+      <SettingsUserCard user={user} setUser={setUser} />
+    </Screen>
   );
 }
 

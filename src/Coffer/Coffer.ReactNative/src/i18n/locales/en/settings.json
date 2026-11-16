@@ -1,14 +1,127 @@
 {
   "title": "Settings",
   "developer": {
-    "title": "Developer options"
+    "title": "Developer options",
+    "clear": "Delete local storage",
+    "clearTitle": "Delete local storage?",
+    "clearExplanation": "Removes everything this app stored on the device, including your sign-in. You will need to sign in again.",
+    "cleared": "Local storage cleared"
   },
   "user": {
-    "title": "User settings",
+    "title": "Profile",
     "summaryEditorTitle": "Introduce yourself",
     "summaryPlaceholder": "Share a bit about yourself – who you are, your hobbies, what you like to collect, or anything that shows your personality. Add a fun phrase, use emojis, decorate it as much as you want, and if you have collection-related social media accounts, feel free to include links"
   },
   "reports": {
-    "title": "Reports"
+    "title": "Reports",
+    "chat": "Chat",
+    "tabMine": "My reports",
+    "tabAboutMe": "About my content",
+    "introMine": "Reports are checked against the marketplace rules only. Coffer doesn't decide who was right in a deal.",
+    "introAboutMe": "When something you posted is removed for breaking a rule, you see here what and why. Who reported it is never shown.",
+    "emptyMine": "You haven't reported anything",
+    "emptyAboutMe": "Nothing of yours was removed",
+    "target": {
+      "listing": "Listing",
+      "message": "Chat message",
+      "review": "Review",
+      "item": "Collection item",
+      "comment": "Comment"
+    },
+    "outcome": {
+      "waiting": "Waiting for review",
+      "removed": "Content removed",
+      "suspended": "Author suspended",
+      "noViolation": "No rule break found"
+    },
+    "rule": "Rule",
+    "yourReason": "Your reason",
+    "decision": "Decision",
+    "why": "Why",
+    "reported": "Reported {{reported}}",
+    "reportedDecided": "Reported {{reported}} · decided {{decided}}",
+    "openReported": "Open what I reported",
+    "open": "Open",
+    "moderated": "{{target}} · moderated",
+    "new": "New",
+    "excerpt": "“{{text}}”"
+  },
+  "index": {
+    "profileSubtitle": "View and edit your profile",
+    "account": "Account",
+    "reports": "Reports",
+    "reportsSubtitle": "Your reports and moderation of your content",
+    "newCount_one": "{{count}} new",
+    "newCount_other": "{{count}} new",
+    "app": "App",
+    "logout": "Log out",
+    "logoutTitle": "Log out?",
+    "logoutText": "You can sign in again any time with the same account."
+  },
+  "profile": {
+    "tab": "Profile",
+    "edit": "Edit profile",
+    "country": "Country",
+    "memberSince": "Member since",
+    "loggedInWith": "Signed in with",
+    "provider": {
+      "google": "Google",
+      "github": "GitHub"
+    },
+    "summary": "About",
+    "noSummaryOwn": "You don't have a summary on your profile yet — add a short introduction so others can get to know you better!",
+    "noSummaryOther": "This user has no summary yet."
+  },
+  "contacts": {
+    "tab": "Contacts",
+    "title": "Marketplace contacts",
+    "reputation": "Reputation",
+    "edit": "Edit contacts",
+    "saved": "Your contact details were updated",
+    "saveFailed": "Couldn't update your contact details",
+    "none": "Not added",
+    "remove": "Remove {{platform}}",
+    "editHint": "Opens the editor for this contact",
+    "openHint": "Opens this contact",
+    "platform": {
+      "phone": "Phone",
+      "email": "E-mail",
+      "facebook": "Facebook"
+    },
+    "infoOwn": "Optional ways other traders can reach you outside the private chat. It adds to the chat, it doesn't replace it: deals are still completed there (PIN handover or tracked shipping) before reviews unlock. If you don't use the marketplace, you can ignore this.",
+    "infoOther": "Other ways to reach this user outside the private chat. Deals must still be completed in the marketplace chat (PIN handover or tracked shipping) before either of you can leave a review.",
+    "overlay": {
+      "title": {
+        "phone": "Phone contact",
+        "email": "E-mail contact",
+        "facebook": "Facebook contact"
+      },
+      "draftNote": "Changes are saved when you tap Save on the contacts card.",
+      "valueLabel": {
+        "phone": "Phone number",
+        "email": "E-mail address",
+        "facebook": "Facebook name"
+      },
+      "valuePlaceholder": {
+        "phone": "e.g. +36 30 123 4567",
+        "email": "e.g. name@example.com",
+        "facebook": "Your full name on Facebook"
+      },
+      "facebookUsername": "Facebook username",
+      "facebookUsernamePlaceholder": "The username from your profile link",
+      "facebookHowTo": "How to find your Facebook username",
+      "facebookSteps": {
+        "step1": "Open Facebook on your phone.",
+        "step2": "Tap Menu in the top corner.",
+        "step3": "Tap Settings and privacy, then Settings.",
+        "step4": "Tap Accounts Centre, then Profiles.",
+        "step5": "Choose a profile, then tap Username."
+      }
+    }
+  },
+  "otherUser": {
+    "collections": "{{name}}'s collections",
+    "noCollections": "No collections yet",
+    "allCollections": "All of {{name}}'s collections"
   }
 }

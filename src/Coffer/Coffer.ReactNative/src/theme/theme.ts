@@ -24,7 +24,7 @@ export const colors = {
   bg: "#fefdf0",
   surface: "#fefdf0",
   surfaceAlt: "#f4f3e6",
-  text: "#19283f",
+  text: "#19283f", // i18n-ignore (color token, not copy)
   textMuted: "#696969",
   onPrimary: "#fefdf0",
   onSecondary: "#19283f",

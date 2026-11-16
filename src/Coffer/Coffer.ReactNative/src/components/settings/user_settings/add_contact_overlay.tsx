@@ -1,312 +1,133 @@
 import emptyUserContact from "@/src/const/empty_user_contact";
-import {
-  emailRegex,
-  facebookRegex,
-  languageFilter,
-  phoneRegex,
-} from "@/src/const/filter";
+import { emailRegex, facebookRegex, languageFilter, phoneRegex } from "@/src/const/filter";
 import { stringResource } from "@/src/const/resource";
-import { customTheme } from "@/src/theme/theme";
+import { colors, fonts, spacing, typography } from "@/src/theme/theme";
 import User from "@/src/types/entities/user";
 import { UserContact } from "@/src/types/entities/user_contact";
 import UserContactPlatfrom from "@/src/types/helpers/user_contact_platform";
 import { stringHasValue } from "@/src/utils/data_access_utils";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import React, { useEffect, useRef, useState } from "react";
-import { View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { ScrollView, Text, View } from "react-native";
+import { SectionCard } from "../../custom_ui/card";
 import CustomButton from "../../custom_ui/custom_button";
 import CustomOverlay from "../../custom_ui/custom_overlay";
-import CustomText from "../../custom_ui/custom_text";
 import CustomTextInput from "../../custom_ui/custom_text_input";
 
 interface AddContactOverlayProps {
-  isAddContactOverlayVisible: {
-    value: boolean;
-    set: React.Dispatch<React.SetStateAction<boolean>>;
-  };
+  visible: boolean;
+  onClose: () => void;
   user: User;
   selectedPlatform: UserContactPlatfrom;
   selectedContact?: UserContact;
-  handleEditContact: (newValue: UserContact) => void;
+  /** Receives the edited contact (new ones get the id "<platform>_new"); saved later with the whole card. */
+  onSave: (contact: UserContact) => void;
 }
 
-function AddContactOverlay({
-  isAddContactOverlayVisible,
-  user,
-  selectedPlatform,
-  selectedContact,
-  handleEditContact,
-}: AddContactOverlayProps) {
-  const [value, setValue] = useState(
-    emptyUserContact("", "", UserContactPlatfrom.Phone),
-  );
+function baseError(val: string) {
+  if (!stringHasValue(val)) return stringResource.requiredError;
+  if (languageFilter.isProfane(val)) return stringResource.profaneError;
+  return undefined;
+}
 
-  const [contactError, setContactError] = useState<string | undefined>();
-  const [linkError, setLinkError] = useState<string | undefined>();
-  const [isCheckingError, setIsCheckingError] = useState(false);
+/** Validation of the main value per platform (phone number, e-mail address, Facebook display name). */
+function valueError(platform: UserContactPlatfrom, val: string) {
+  const base = baseError(val);
+  if (base) return base;
+  if (platform === UserContactPlatfrom.Phone && !phoneRegex.test(val)) return stringResource.notValidPhoneNumberError;
+  if (platform === UserContactPlatfrom.Email && !emailRegex.test(val)) return stringResource.notValidEmailAddress;
+  return undefined;
+}
 
-  const contactDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
-  const linkDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+function facebookLinkError(val: string) {
+  const base = baseError(val);
+  if (base) return base;
+  return facebookRegex.test(val) ? undefined : stringResource.notValidFacebookUsername;
+}
+
+const platformKey = (p: UserContactPlatfrom) => UserContactPlatfrom[p].toLowerCase();
+
+/** Add or edit one marketplace contact. Errors show once a field was touched; Done stays disabled while invalid. */
+function AddContactOverlay({ visible, onClose, user, selectedPlatform, selectedContact, onSave }: AddContactOverlayProps) {
+  const { t } = useTranslation();
+  const [value, setValue] = useState(emptyUserContact("", "", UserContactPlatfrom.Phone));
+  const [touched, setTouched] = useState({ value: false, link: false });
 
   useEffect(() => {
-    if (isAddContactOverlayVisible.value) {
-      if (selectedContact) {
-        setValue(selectedContact);
-      } else {
-        const existingContact = user.contacts.find(
-          (c) => c.platform === selectedPlatform,
-        );
-
-        setValue(
-          emptyUserContact(
-            existingContact ? existingContact.id : `${selectedPlatform}_new`,
-            user.id,
-            selectedPlatform,
-          ),
-        );
-      }
-
-      setContactError(
-        validateContact(selectedPlatform, selectedContact?.value ?? ""),
-      );
-      setLinkError(
-        selectedPlatform === UserContactPlatfrom.Facebook
-          ? getFacebookLinkFieldError(selectedContact?.link ?? "")
-          : undefined,
-      );
-
-      setIsCheckingError(false);
+    if (!visible) return;
+    if (selectedContact) setValue(selectedContact);
+    else {
+      const existing = user.contacts.find((c) => c.platform === selectedPlatform);
+      setValue(emptyUserContact(existing ? existing.id : `${selectedPlatform}_new`, user.id, selectedPlatform));
     }
-  }, [isAddContactOverlayVisible.value, selectedContact, selectedPlatform]);
+    setTouched({ value: false, link: false });
+  }, [visible, selectedContact, selectedPlatform, user]);
 
-  const handleOverlayClose = () => {
-    setContactError(undefined);
-    setLinkError(undefined);
-    isAddContactOverlayVisible.set(false);
-  };
-
-  /** Validation functions that take the input value */
-  const getPhoneNumberFieldError = (val: string) => {
-    if (!stringHasValue(val)) return stringResource.requiredError;
-    if (languageFilter.isProfane(val)) return stringResource.profaneError;
-    if (!phoneRegex.test(val)) return stringResource.notValidPhoneNumberError;
-    return undefined;
-  };
-
-  const getFacebookNameFieldError = (val: string) => {
-    if (!stringHasValue(val)) return stringResource.requiredError;
-    if (languageFilter.isProfane(val)) return stringResource.profaneError;
-    return undefined;
-  };
-
-  const getFacebookLinkFieldError = (val: string) => {
-    if (!stringHasValue(val)) return stringResource.requiredError;
-    if (languageFilter.isProfane(val)) return stringResource.profaneError;
-    if (!facebookRegex.test(val))
-      return stringResource.notValidFacebookUsername;
-    return undefined;
-  };
-
-  const getEmailAddressFieldError = (val: string) => {
-    if (!stringHasValue(val)) return stringResource.requiredError;
-    if (languageFilter.isProfane(val)) return stringResource.profaneError;
-    if (!emailRegex.test(val)) return stringResource.notValidEmailAddress;
-    return undefined;
-  };
-
-  /** Generic contact validation */
-  const validateContact = (platform: UserContactPlatfrom, val: string) => {
-    switch (platform) {
-      case UserContactPlatfrom.Phone:
-        return getPhoneNumberFieldError(val);
-      case UserContactPlatfrom.Facebook:
-        return getFacebookNameFieldError(val);
-      case UserContactPlatfrom.Email:
-        return getEmailAddressFieldError(val);
-      default:
-        return undefined;
-    }
-  };
-
-  /** Contact input change handler with debounce */
-  const handleContactChange = (newValue: string) => {
-    setValue((prev) => ({ ...prev, value: newValue }));
-
-    if (contactDebounceTimer.current)
-      clearTimeout(contactDebounceTimer.current);
-
-    setIsCheckingError(true);
-
-    contactDebounceTimer.current = setTimeout(() => {
-      const error = validateContact(value.platform, newValue);
-      setContactError(error);
-      setIsCheckingError(false);
-    }, 500);
-  };
-
-  /** Link input change handler with debounce */
-  const handleLinkChange = (newValue: string) => {
-    setValue((prev) => ({ ...prev, link: newValue }));
-
-    if (linkDebounceTimer.current) clearTimeout(linkDebounceTimer.current);
-
-    setIsCheckingError(true);
-
-    linkDebounceTimer.current = setTimeout(() => {
-      const error =
-        value.platform === UserContactPlatfrom.Facebook
-          ? getFacebookLinkFieldError(newValue)
-          : undefined;
-      setLinkError(error);
-      setIsCheckingError(false);
-    }, 500);
-  };
-
-  const handleEditPress = () => {
-    handleEditContact(value);
-    handleOverlayClose();
-  };
+  const isFacebook = value.platform === UserContactPlatfrom.Facebook;
+  const contactError = valueError(value.platform, value.value);
+  const linkError = isFacebook ? facebookLinkError(value.link ?? "") : undefined;
+  const key = platformKey(value.platform);
 
   return (
     <CustomOverlay
-      isVisible={isAddContactOverlayVisible.value}
-      onClose={handleOverlayClose}
-      overlayTitle={`Edit ${UserContactPlatfrom[value.platform]} contact`}
+      isVisible={visible}
+      onClose={onClose}
+      overlayTitle={t(`settings:contacts.overlay.title.${key}`)}
       footerContent={
         <CustomButton
-          title="Edit"
-          containerStyle={{ width: "90%", alignSelf: "center" }}
-          onPress={handleEditPress}
-          disabled={!!contactError || !!linkError || isCheckingError}
+          title={t("common:actions.done")}
+          disabled={!!contactError || !!linkError}
+          onPress={() => {
+            onSave({ ...value, value: value.value.trim(), link: value.link?.trim() });
+            onClose();
+          }}
         />
       }
     >
-      <SafeAreaView
-        style={{
-          flex: 1,
-          padding: 10,
-          justifyContent: "flex-start",
-          alignItems: "center",
-          gap: 20,
-        }}
-      >
-        {value.platform === UserContactPlatfrom.Facebook && (
-          <View>
-            <CustomText style={{ fontFamily: "VendSansBold", marginBottom: 5 }}>
-              How to find your Facebook username:
-            </CustomText>
-            <CustomText>• Open Facebook on your mobile device.</CustomText>
-            <CustomText>
-              • Tap{" "}
-              <AntDesign
-                name="menu"
-                size={16}
-                color={customTheme.colors.primary}
-              />{" "}
-              <CustomText style={{ fontFamily: "VendSansBold" }}>
-                Menu
-              </CustomText>{" "}
-              in the top left of Facebook.
-            </CustomText>
-            <CustomText>
-              • Tap{" "}
-              <CustomText style={{ fontFamily: "VendSansBold" }}>
-                Settings and privacy,
-              </CustomText>{" "}
-              then tap{" "}
-              <CustomText style={{ fontFamily: "VendSansBold" }}>
-                Settings.
-              </CustomText>
-            </CustomText>
-            <CustomText>
-              • Tap{" "}
-              <CustomText style={{ fontFamily: "VendSansBold" }}>
-                Accounts Centre,
-              </CustomText>{" "}
-              then tap{" "}
-              <CustomText style={{ fontFamily: "VendSansBold" }}>
-                Profiles.
-              </CustomText>
-            </CustomText>
-            <CustomText>
-              • Choose a profile, then tap{" "}
-              <CustomText style={{ fontFamily: "VendSansBold" }}>
-                Username.
-              </CustomText>
-            </CustomText>
-          </View>
-        )}
+      <ScrollView contentContainerStyle={{ padding: spacing.md, gap: spacing.sm, paddingBottom: spacing.xxl }} keyboardShouldPersistTaps="handled">
+        <Text style={[typography.meta, { color: colors.textMuted }]}>{t("settings:contacts.overlay.draftNote")}</Text>
 
-        {value.platform === UserContactPlatfrom.Phone && (
+        {isFacebook ? (
+          <SectionCard title={t("settings:contacts.overlay.facebookHowTo")}>
+            {(["step1", "step2", "step3", "step4", "step5"] as const).map((step) => (
+              <View key={step} style={{ flexDirection: "row", gap: spacing.xs }}>
+                <Text style={[typography.body, { color: colors.text }]}>•</Text>
+                <Text style={[typography.body, { color: colors.text, flex: 1 }]}>
+                  {t(`settings:contacts.overlay.facebookSteps.${step}`)}
+                </Text>
+              </View>
+            ))}
+          </SectionCard>
+        ) : null}
+
+        <CustomTextInput
+          label={t(`settings:contacts.overlay.valueLabel.${key}`)}
+          required
+          placeholder={t(`settings:contacts.overlay.valuePlaceholder.${key}`)}
+          value={value.value}
+          onChangeText={(text) => setValue((prev) => ({ ...prev, value: text }))}
+          onBlur={() => setTouched((x) => ({ ...x, value: true }))}
+          errorMessage={touched.value ? contactError : undefined}
+          keyboardType={value.platform === UserContactPlatfrom.Phone ? "phone-pad" : value.platform === UserContactPlatfrom.Email ? "email-address" : "default"}
+          autoCapitalize={isFacebook ? "words" : "none"}
+          autoComplete={value.platform === UserContactPlatfrom.Phone ? "tel" : value.platform === UserContactPlatfrom.Email ? "email" : "name"}
+        />
+
+        {isFacebook ? (
           <CustomTextInput
-            label="Phone number"
-            placeholder="Please enter your phone number"
-            value={value.value}
-            onChangeText={handleContactChange}
-            onFocus={() => setIsCheckingError(true)}
-            onBlur={() => {
-              const error = validateContact(value.platform, value.value);
-              setContactError(error);
-              setIsCheckingError(false);
-            }}
-            errorMessage={contactError}
+            label={t("settings:contacts.overlay.facebookUsername")}
+            required
+            placeholder={t("settings:contacts.overlay.facebookUsernamePlaceholder")}
+            value={value.link}
+            onChangeText={(text) => setValue((prev) => ({ ...prev, link: text }))}
+            onBlur={() => setTouched((x) => ({ ...x, link: true }))}
+            errorMessage={touched.link ? linkError : undefined}
+            autoCapitalize="none"
+            autoCorrect={false}
+            inputStyle={{ fontFamily: fonts.regular }}
           />
-        )}
-
-        {value.platform === UserContactPlatfrom.Facebook && (
-          <>
-            <CustomTextInput
-              label="Facebook name"
-              placeholder="Please enter your full name"
-              value={value.value}
-              onChangeText={handleContactChange}
-              onFocus={() => setIsCheckingError(true)}
-              onBlur={() => {
-                const error = validateContact(value.platform, value.value);
-                setContactError(error);
-                setIsCheckingError(false);
-              }}
-              errorMessage={contactError}
-            />
-
-            <CustomTextInput
-              label="Facebook username"
-              placeholder="Please enter your Facebook username"
-              value={value.link}
-              onChangeText={handleLinkChange}
-              onFocus={() => setIsCheckingError(true)}
-              onBlur={() => {
-                const error =
-                  value.platform === UserContactPlatfrom.Facebook
-                    ? getFacebookLinkFieldError(value.link ?? "")
-                    : undefined;
-                setLinkError(error);
-                setIsCheckingError(false);
-              }}
-              errorMessage={linkError}
-            />
-          </>
-        )}
-
-        {value.platform === UserContactPlatfrom.Email && (
-          <CustomTextInput
-            label="Email address"
-            placeholder="Please enter your email address"
-            value={value.value}
-            onChangeText={handleContactChange}
-            onFocus={() => setIsCheckingError(true)}
-            onBlur={() => {
-              const error = validateContact(value.platform, value.value);
-              setContactError(error);
-              setIsCheckingError(false);
-            }}
-            errorMessage={contactError}
-          />
-        )}
-      </SafeAreaView>
+        ) : null}
+      </ScrollView>
     </CustomOverlay>
   );
 }
