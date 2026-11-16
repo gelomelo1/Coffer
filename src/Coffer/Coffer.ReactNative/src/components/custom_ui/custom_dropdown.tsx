@@ -127,7 +127,7 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
         textStyle={[
           {
             color: customTheme.colors.primary,
-            fontFamily: "VendSans",
+            fontFamily: "VendSansRegular",
             fontSize: 18,
           },
           textStyle,

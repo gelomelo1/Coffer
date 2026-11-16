@@ -181,7 +181,7 @@ function OtherUserItemDetails() {
         </CustomText>
         <CustomText
           style={{
-            fontFamily: item!.description ? "VendSans" : "VendSansItalic",
+            fontFamily: item!.description ? "VendSansRegular" : "VendSansItalic",
             marginBottom: 10,
           }}
         >

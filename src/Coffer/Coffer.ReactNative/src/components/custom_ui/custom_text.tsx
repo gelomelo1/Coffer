@@ -13,7 +13,7 @@ interface CustomTextProps extends TextProps {
 const defaultStyle: TextStyle = {
   color: customTheme.colors.primary,
   fontSize: 16,
-  fontFamily: "VendSans",
+  fontFamily: "VendSansRegular",
 };
 
 const CustomText: React.FC<CustomTextProps> = ({

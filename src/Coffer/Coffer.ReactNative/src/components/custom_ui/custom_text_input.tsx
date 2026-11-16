@@ -20,7 +20,7 @@ const defaultStyles = {
   } as ViewStyle,
   inputStyle: {
     color: customTheme.colors.primary,
-    fontFamily: "VendSans",
+    fontFamily: "VendSansRegular",
   } as TextStyle,
   labelStyle: {
     color: customTheme.colors.primary,

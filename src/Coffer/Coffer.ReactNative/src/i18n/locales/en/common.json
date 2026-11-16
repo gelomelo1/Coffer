@@ -1,0 +1,28 @@
+{
+  "appName": "Coffer",
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "delete": "Delete",
+    "edit": "Edit",
+    "retry": "Retry",
+    "apply": "Apply",
+    "reset": "Reset",
+    "done": "Done",
+    "back": "Back",
+    "next": "Next",
+    "confirm": "Confirm",
+    "search": "Search",
+    "readMore": "Read more",
+    "select": "Select an option",
+    "none": "None",
+    "ok": "OK",
+    "clear": "Clear"
+  },
+  "states": {
+    "loading": "Loading",
+    "empty": "Nothing here yet",
+    "error": "Something went wrong"
+  }
+}

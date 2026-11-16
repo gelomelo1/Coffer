@@ -207,7 +207,7 @@ function ItemDetails() {
           </CustomText>
           <CustomText
             style={{
-              fontFamily: item.privateNote ? "VendSans" : "VendSansItalic",
+              fontFamily: item.privateNote ? "VendSansRegular" : "VendSansItalic",
               marginBottom: 10,
             }}
           >
@@ -232,7 +232,7 @@ function ItemDetails() {
           </CustomText>
           <CustomText
             style={{
-              fontFamily: item.description ? "VendSans" : "VendSansItalic",
+              fontFamily: item.description ? "VendSansRegular" : "VendSansItalic",
               marginBottom: 10,
             }}
           >

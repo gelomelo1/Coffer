@@ -49,7 +49,7 @@ function Composer({ conversationId, allowOffers }: { conversationId: string; all
             borderColor: c.primary,
             backgroundColor: c.background,
             color: c.primary,
-            fontFamily: "VendSans",
+            fontFamily: "VendSansRegular",
             fontSize: 16,
             paddingHorizontal: 8,
             paddingVertical: 6,

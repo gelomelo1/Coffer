@@ -129,7 +129,7 @@ function CustomDropdownMultiple<T extends ValueType>(
         textStyle={[
           {
             color: customTheme.colors.primary,
-            fontFamily: "VendSans",
+            fontFamily: "VendSansRegular",
             fontSize: 18,
           },
           textStyle,

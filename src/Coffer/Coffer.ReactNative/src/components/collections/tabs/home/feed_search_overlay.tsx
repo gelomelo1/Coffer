@@ -444,7 +444,7 @@ function FeedSearchOverlay({
                           >
                             {section.title}
                             <CustomText
-                              style={{ fontFamily: "VendSans", fontSize: 18 }}
+                              style={{ fontFamily: "VendSansRegular", fontSize: 18 }}
                             >{` - found ${section.data.length}`}</CustomText>
                           </CustomText>
                         </View>

@@ -89,7 +89,7 @@ export function Chip({
       ]}
     >
       {icon}
-      <CustomText style={{ fontSize: 14, fontFamily: selected ? "VendSansBold" : "VendSans" }}>{label}</CustomText>
+      <CustomText style={{ fontSize: 14, fontFamily: selected ? "VendSansBold" : "VendSansRegular" }}>{label}</CustomText>
     </TouchableOpacity>
   );
 }

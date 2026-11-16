@@ -113,7 +113,7 @@ function CustomHTMLView({ content, foldable = false }: CustomHTMLViewProps) {
       {isOverflowing && !isOpen && foldable ? (
         <TouchableOpacity onPress={handleOpen}>
           <CustomText style={{ fontFamily: "VendSansBold" }}>
-            <CustomText style={{ fontFamily: "VendSans" }}>...</CustomText>
+            <CustomText style={{ fontFamily: "VendSansRegular" }}>...</CustomText>
             Read further
           </CustomText>
         </TouchableOpacity>
