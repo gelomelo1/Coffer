@@ -1,21 +1,18 @@
-import CustomText from "@/src/components/custom_ui/custom_text";
-import rootViewStyle from "@/src/components/custom_ui/root_view";
+import { Loading } from "@/src/components/custom_ui/loading";
 import ListingFeed from "@/src/components/market/browse/listing_feed";
 import ChatList from "@/src/components/market/chats/chat_list";
 import DealList from "@/src/components/market/deals/deal_list";
 import MyListings from "@/src/components/market/mine/my_listings";
 import TermsGate from "@/src/components/market/terms/terms_gate";
-import { Loading } from "@/src/components/custom_ui/loading";
 import { useInbox, useMyDeals, useTerms } from "@/src/hooks/market_api";
-import { customTheme } from "@/src/theme/theme";
+import { borders, colors, fonts, spacing } from "@/src/theme/theme";
 import { useState } from "react";
-import { SafeAreaView, ScrollView, TouchableOpacity, View } from "react-native";
-import { Divider } from "react-native-elements";
+import { useTranslation } from "react-i18next";
+import { Pressable, Text, View } from "react-native";
 
-const c = customTheme.colors;
-
-/** Marketplace: browse · my listings · chats · deals. */
+/** Marketplace: browse · my listings · chats · deals, as an equal-width segmented control (labels wrap). */
 function Market() {
+  const { t } = useTranslation();
   const [tab, setTab] = useState(0);
   const { data: terms, isLoading: termsLoading } = useTerms();
   const { data: inbox = [] } = useInbox();
@@ -24,64 +21,65 @@ function Market() {
   const unread = inbox.reduce((sum, x) => sum + x.unreadCount, 0);
   const actionable = deals.filter((d) => d.nextActions.some((a) => a !== "cancel")).length;
   const tabs = [
-    { title: "BROWSE", badge: 0 },
-    { title: "MY LISTINGS", badge: 0 },
-    { title: "CHATS", badge: unread },
-    { title: "DEALS", badge: actionable },
+    { title: t("market:tabs.browse"), badge: 0 },
+    { title: t("market:tabs.mine"), badge: 0 },
+    { title: t("market:tabs.chats"), badge: unread },
+    { title: t("market:tabs.deals"), badge: actionable },
   ];
 
   return (
-    <View style={[rootViewStyle(), { flex: 1, padding: 0 }]}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={{ height: 40 }}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ flexDirection: "row", alignItems: "center", justifyContent: "center", minWidth: "100%" }}
-          >
-            {tabs.map((t, i) => (
-              <TouchableOpacity
-                key={t.title}
-                onPress={() => setTab(i)}
-                style={{
-                  paddingHorizontal: 12,
-                  paddingVertical: 8,
-                  borderBottomWidth: tab === i ? 3 : 0,
-                  borderBottomColor: c.secondary,
-                  flexDirection: "row",
-                  gap: 4,
-                  alignItems: "center",
-                }}
-              >
-                <CustomText style={{ fontFamily: "VendSansBold", color: tab === i ? c.secondary : c.primary, fontSize: 14 }}>
-                  {t.title}
-                </CustomText>
-                {t.badge > 0 ? (
-                  <View style={{ backgroundColor: "red", paddingHorizontal: 5, minWidth: 18, alignItems: "center" }}>
-                    <CustomText style={{ color: c.background, fontSize: 11, fontFamily: "VendSansBold" }}>{t.badge}</CustomText>
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <View accessibilityRole="tablist" style={{ flexDirection: "row", borderBottomWidth: borders.width, borderBottomColor: colors.border }}>
+        {tabs.map((item, i) => {
+          const active = tab === i;
+          return (
+            <Pressable
+              key={item.title}
+              onPress={() => setTab(i)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: active }}
+              accessibilityLabel={item.badge > 0 ? `${item.title}, ${t("market:tabs.badge", { count: item.badge })}` : item.title}
+              style={({ pressed }) => ({
+                flex: 1,
+                minHeight: 52,
+                alignItems: "center",
+                justifyContent: "center",
+                paddingHorizontal: spacing.xxs,
+                paddingVertical: spacing.xs,
+                backgroundColor: active ? colors.secondary : pressed ? colors.surfaceAlt : colors.bg,
+                borderLeftWidth: i === 0 ? 0 : borders.hairline,
+                borderLeftColor: colors.borderMuted,
+              })}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 4, flexWrap: "wrap", justifyContent: "center" }}>
+                <Text numberOfLines={2} style={{ color: colors.text, fontFamily: active ? fonts.bold : fonts.regular, fontSize: 14, lineHeight: 18, textAlign: "center" }}>
+                  {item.title}
+                </Text>
+                {item.badge > 0 ? (
+                  <View style={{ backgroundColor: colors.danger, minWidth: 20, paddingHorizontal: 4, alignItems: "center" }}>
+                    <Text style={{ color: colors.onPrimary, fontFamily: fonts.bold, fontSize: 12, lineHeight: 16 }}>{item.badge}</Text>
                   </View>
                 ) : null}
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-        <Divider width={2} color={c.primary} />
-        <View style={{ flex: 1 }}>
-          {termsLoading ? (
-            <Loading />
-          ) : terms && !terms.accepted ? (
-            <TermsGate />
-          ) : tab === 0 ? (
-            <ListingFeed />
-          ) : tab === 1 ? (
-            <MyListings />
-          ) : tab === 2 ? (
-            <ChatList />
-          ) : (
-            <DealList />
-          )}
-        </View>
-      </SafeAreaView>
+              </View>
+            </Pressable>
+          );
+        })}
+      </View>
+      <View style={{ flex: 1 }}>
+        {termsLoading ? (
+          <Loading />
+        ) : terms && !terms.accepted ? (
+          <TermsGate />
+        ) : tab === 0 ? (
+          <ListingFeed />
+        ) : tab === 1 ? (
+          <MyListings />
+        ) : tab === 2 ? (
+          <ChatList />
+        ) : (
+          <DealList />
+        )}
+      </View>
     </View>
   );
 }

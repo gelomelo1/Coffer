@@ -1,35 +1,23 @@
+import { SectionHeader } from "@/src/components/custom_ui/card";
+import { Checkbox } from "@/src/components/custom_ui/checkbox";
 import CustomButton from "@/src/components/custom_ui/custom_button";
 import CustomDropdown from "@/src/components/custom_ui/custom_dropdown";
 import CustomOverlay from "@/src/components/custom_ui/custom_overlay";
-import CustomText from "@/src/components/custom_ui/custom_text";
 import CustomTextInput from "@/src/components/custom_ui/custom_text_input";
-import {
-  conditionLabels,
-  listingKindLabels,
-  MAX_LISTING_IMAGES,
-  MAX_LISTING_LINES,
-} from "@/src/const/market";
+import { conditionLabels, listingKindLabels, MAX_LISTING_IMAGES, MAX_LISTING_LINES } from "@/src/const/market";
 import { useMarketMutation } from "@/src/hooks/market_api";
-import { customTheme } from "@/src/theme/theme";
-import {
-  City,
-  ListingCondition,
-  ListingDetail,
-  ListingImage,
-  ListingInput,
-  ListingKind,
-} from "@/src/types/entities/market";
+import { borders, colors, hitSlopFor, sizes, spacing, typography } from "@/src/theme/theme";
+import { City, ListingCondition, ListingDetail, ListingImage, ListingInput, ListingKind } from "@/src/types/entities/market";
 import { pickImage } from "@/src/utils/data_access_utils";
 import { LocalImage, marketApi, parsePriceToCents } from "@/src/utils/market_api";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useEffect, useState } from "react";
-import { Image, ScrollView, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import showToast from "../../custom_ui/toast";
 import CityAutocomplete from "../ui/city_autocomplete";
 import { useCollectionTypeDropdownItems } from "../ui/collection_type_items";
-import { Chip, ChipRow, ErrorText, Label, ListingImageView, WarningBanner } from "../ui/retro";
-
-const c = customTheme.colors;
+import { Chip, ChipRow, ErrorText, ListingImageView, WarningBanner } from "../ui/retro";
 
 interface LineDraft {
   name: string;
@@ -37,6 +25,8 @@ interface LineDraft {
 }
 
 type Errors = Partial<Record<"title" | "type" | "city" | "price" | "exchange" | "condition" | "delivery" | "lines" | "images" | "private", string>>;
+
+const THUMB = 88;
 
 /**
  * Create or edit a listing. The kind and item type are fixed after creation (backend rule).
@@ -55,6 +45,7 @@ function ListingFormOverlay({
   editing?: ListingDetail | null;
   onSaved?: (listing: ListingDetail) => void;
 }) {
+  const { t } = useTranslation();
   const typeItems = useCollectionTypeDropdownItems();
   const [kind, setKind] = useState<ListingKind>(initialKind);
   const [typeId, setTypeId] = useState<number | null>(null);
@@ -112,7 +103,7 @@ function ListingFormOverlay({
   const save = useMarketMutation(
     ({ input, images }: { input: ListingInput; images: LocalImage[] }) =>
       editing ? marketApi.updateListing(editing.id, input, images) : marketApi.createListing(input, images),
-    editing ? "Listing updated" : "Listing published",
+    editing ? t("market:form.updated") : t("market:form.published"),
   );
 
   const imageCount = keptImages.length + newImages.length;
@@ -128,44 +119,38 @@ function ListingFormOverlay({
     });
     if (result.status === "success") {
       setNewImages((prev) =>
-        [...prev, ...result.assets.map((a) => ({ uri: a.uri, fileName: a.fileName, mimeType: a.mimeType }))].slice(
-          0,
-          MAX_LISTING_IMAGES - keptImages.length,
-        ),
+        [...prev, ...result.assets.map((a) => ({ uri: a.uri, fileName: a.fileName, mimeType: a.mimeType }))].slice(0, MAX_LISTING_IMAGES - keptImages.length),
       );
     } else if (result.status === "permission_denied") {
-      showToast("error", "Permission needed", "Allow camera / photo access in the system settings.");
+      showToast("error", t("market:photo.permissionTitle"), t("market:photo.permissionText"));
     }
   };
 
   const validate = (): ListingInput | null => {
     const e: Errors = {};
-    const t = title.trim();
-    if (t.length < 1 || t.length > 80) e.title = "Give a title (max 80 characters).";
-    if (!typeId) e.type = "Choose the item type.";
-    if (!city) e.city = "Choose the city you sell in.";
+    const cleanTitle = title.trim();
+    if (cleanTitle.length < 1 || cleanTitle.length > 80) e.title = t("market:form.error.title");
+    if (!typeId) e.type = t("market:form.error.type");
+    if (!city) e.city = t("market:form.error.city");
     const priceCents = parsePriceToCents(priceText);
-    if (kind === "sell" && !priceCents) e.price = "Enter a price in euro.";
-    if (kind === "wanted" && priceText.trim() && !priceCents) e.price = "Budget must be a positive amount.";
-    if (kind === "exchange" && !exchangeFor.trim()) e.exchange = "Describe what you want in exchange.";
-    if (kind !== "wanted" && !condition) e.condition = "Choose the condition.";
-    if (!pickup && !shipping) e.delivery = "Choose personal pickup, shipping or both.";
-    const cleanLines = lines
-      .map((l) => ({ name: l.name.trim(), quantity: Number(l.qty) }))
-      .filter((l) => l.name.length > 0);
-    if (cleanLines.length === 0) e.lines = "List at least one item that is included.";
-    else if (cleanLines.some((l) => !Number.isInteger(l.quantity) || l.quantity < 1 || l.quantity > 9999))
-      e.lines = "Quantities must be whole numbers from 1 to 9999.";
-    else if (cleanLines.some((l) => l.name.length > 80)) e.lines = "Item names can be at most 80 characters.";
-    if (imagesRequired && imageCount < 1) e.images = "Add at least one photo.";
-    if (kind !== "wanted" && !privateSeller) e.private = "Confirm that you sell as a private person.";
+    if (kind === "sell" && !priceCents) e.price = t("market:form.error.price");
+    if (kind === "wanted" && priceText.trim() && !priceCents) e.price = t("market:form.error.budget");
+    if (kind === "exchange" && !exchangeFor.trim()) e.exchange = t("market:form.error.exchange");
+    if (kind !== "wanted" && !condition) e.condition = t("market:form.error.condition");
+    if (!pickup && !shipping) e.delivery = t("market:form.error.delivery");
+    const cleanLines = lines.map((l) => ({ name: l.name.trim(), quantity: Number(l.qty) })).filter((l) => l.name.length > 0);
+    if (cleanLines.length === 0) e.lines = t("market:form.error.linesEmpty");
+    else if (cleanLines.some((l) => !Number.isInteger(l.quantity) || l.quantity < 1 || l.quantity > 9999)) e.lines = t("market:form.error.linesQty");
+    else if (cleanLines.some((l) => l.name.length > 80)) e.lines = t("market:form.error.linesName");
+    if (imagesRequired && imageCount < 1) e.images = t("market:form.error.images");
+    if (kind !== "wanted" && !privateSeller) e.private = t("market:form.error.private");
 
     setErrors(e);
     if (Object.keys(e).length > 0) return null;
     return {
       kind,
       collectionTypeId: typeId!,
-      title: t,
+      title: cleanTitle,
       description: description.trim() || null,
       priceCents: kind === "exchange" ? null : priceCents,
       exchangeFor: kind === "exchange" ? exchangeFor.trim() : null,
@@ -182,7 +167,7 @@ function ListingFormOverlay({
   const submit = () => {
     const input = validate();
     if (!input) {
-      showToast("error", "Check the highlighted fields");
+      showToast("error", t("market:form.checkFields"));
       return;
     }
     save.mutate(
@@ -196,26 +181,21 @@ function ListingFormOverlay({
     );
   };
 
+  const setLine = (i: number, patch: Partial<LineDraft>) => setLines((ls) => ls.map((l, j) => (j === i ? { ...l, ...patch } : l)));
+
   return (
     <CustomOverlay
       isVisible={isVisible}
       onClose={() => !save.isPending && onClose()}
-      overlayTitle={editing ? "Edit listing" : kind === "wanted" ? "I'm searching for…" : "New listing"}
+      overlayTitle={editing ? t("market:form.editTitle") : kind === "wanted" ? t("market:form.wantedTitle") : t("market:form.newTitle")}
       footerContent={
-        <View style={{ width: "90%" }}>
-          <CustomButton
-            title={editing ? "Save changes" : "Publish"}
-            onPress={submit}
-            loading={save.isPending}
-            disabled={save.isPending}
-          />
-        </View>
+        <CustomButton title={editing ? t("market:form.save") : t("market:form.publish")} onPress={submit} loading={save.isPending} disabled={save.isPending} />
       }
     >
-      <ScrollView contentContainerStyle={{ padding: 12, gap: 6, paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={{ padding: spacing.md, gap: spacing.xs, paddingBottom: spacing.xxl * 2 }} keyboardShouldPersistTaps="handled">
         {!editing ? (
           <>
-            <Label>What do you want to do?</Label>
+            <SectionHeader title={t("market:form.whatToDo")} />
             <ChipRow>
               {(Object.keys(listingKindLabels) as ListingKind[]).map((k) => (
                 <Chip key={k} label={listingKindLabels[k]} selected={kind === k} onPress={() => setKind(k)} />
@@ -224,35 +204,38 @@ function ListingFormOverlay({
           </>
         ) : null}
 
-        <Label>Item type</Label>
+        <SectionHeader title={t("market:form.itemType")} />
         <CustomDropdown<number>
           value={typeId}
           open={typeOpen}
           setOpen={setTypeOpen}
           setValue={setTypeId}
           items={typeItems}
-          placeholder="Choose item type"
-          modalTitle="Item type"
+          placeholder={t("market:form.chooseItemType")}
+          modalTitle={t("market:form.itemType")}
           disabled={!!editing}
         />
+        {editing ? <Text style={[typography.caption, { color: colors.textMuted }]}>{t("market:form.fixedAfterCreate")}</Text> : null}
         <ErrorText>{errors.type}</ErrorText>
 
         <CustomTextInput
-          label="Title"
-          placeholder={kind === "wanted" ? "e.g. Looking for 1990s forint coins" : "e.g. Hungarian forint coin set"}
+          label={t("market:form.title")}
+          required
+          placeholder={kind === "wanted" ? t("market:form.titlePlaceholderWanted") : t("market:form.titlePlaceholder")}
           value={title}
           onChangeText={setTitle}
           maxLength={80}
           errorMessage={errors.title}
         />
 
-        <CityAutocomplete label="City" value={city} onChange={setCity} errorMessage={errors.city} />
-        <ErrorText>{errors.city}</ErrorText>
+        <CityAutocomplete value={city} onChange={setCity} errorMessage={errors.city} />
+        {city ? <ErrorText>{errors.city}</ErrorText> : null}
 
         {kind === "exchange" ? (
           <CustomTextInput
-            label="What do you want in exchange?"
-            placeholder="e.g. Austrian schillings, stamps from the 60s"
+            label={t("market:form.exchangeFor")}
+            required
+            placeholder={t("market:form.exchangePlaceholder")}
             value={exchangeFor}
             onChangeText={setExchangeFor}
             maxLength={300}
@@ -260,17 +243,18 @@ function ListingFormOverlay({
           />
         ) : (
           <CustomTextInput
-            label={kind === "sell" ? "Price (€)" : "Budget (€, optional)"}
-            placeholder="0"
+            label={kind === "sell" ? t("market:form.price") : t("market:form.budget")}
+            required={kind === "sell"}
+            placeholder="0" // i18n-ignore
             keyboardType="decimal-pad"
             value={priceText}
             onChangeText={setPriceText}
             errorMessage={errors.price}
-            rightIcon={<CustomText style={{ fontFamily: "VendSansBold" }}>EUR</CustomText>}
+            rightIcon={<Text style={[typography.label, { color: colors.text }]}>EUR</Text>} // i18n-ignore
           />
         )}
 
-        <Label>{kind === "wanted" ? "Condition (optional)" : "Condition"}</Label>
+        <SectionHeader title={kind === "wanted" ? t("market:form.conditionOptional") : t("market:form.condition")} />
         <ChipRow>
           {(Object.keys(conditionLabels) as ListingCondition[]).map((k) => (
             <Chip key={k} label={conditionLabels[k]} selected={condition === k} onPress={() => setCondition(condition === k ? null : k)} />
@@ -278,118 +262,159 @@ function ListingFormOverlay({
         </ChipRow>
         <ErrorText>{errors.condition}</ErrorText>
 
-        <Label>Handover</Label>
+        <SectionHeader title={t("market:form.handover")} />
         <ChipRow>
-          <Chip label="Personal pickup" selected={pickup} onPress={() => setPickup(!pickup)} />
-          <Chip label="Shipping" selected={shipping} onPress={() => setShipping(!shipping)} />
+          <Chip
+            label={t("market:delivery.local_pickup")}
+            selected={pickup}
+            icon={<MaterialIcons name={pickup ? "check-box" : "check-box-outline-blank"} size={18} color={colors.text} />}
+            onPress={() => setPickup(!pickup)}
+          />
+          <Chip
+            label={t("market:delivery.shipping")}
+            selected={shipping}
+            icon={<MaterialIcons name={shipping ? "check-box" : "check-box-outline-blank"} size={18} color={colors.text} />}
+            onPress={() => setShipping(!shipping)}
+          />
         </ChipRow>
         <ErrorText>{errors.delivery}</ErrorText>
         {shipping ? <WarningBanner /> : null}
 
-        <Label>{kind === "wanted" ? "What are you looking for?" : "What's included?"}</Label>
+        <SectionHeader title={kind === "wanted" ? t("market:form.lookingFor") : t("market:form.included")} />
         {lines.map((line, i) => (
-          <View key={i} style={{ flexDirection: "row", alignItems: "flex-start", gap: 6 }}>
-            <CustomText style={{ fontSize: 22, marginTop: 8 }}>•</CustomText>
+          <View key={i} style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.xs }}>
             <View style={{ flex: 3 }}>
               <CustomTextInput
-                placeholder="Item"
+                placeholder={t("market:form.itemPlaceholder")}
+                accessibilityLabel={t("market:form.itemA11y", { number: i + 1 })}
                 value={line.name}
                 maxLength={80}
-                onChangeText={(v) => setLines((ls) => ls.map((l, j) => (j === i ? { ...l, name: v } : l)))}
+                onChangeText={(v) => setLine(i, { name: v })}
               />
             </View>
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, minWidth: 64 }}>
               <CustomTextInput
-                placeholder="Qty"
+                placeholder={t("market:form.qty")}
+                accessibilityLabel={t("market:form.qtyA11y", { number: i + 1 })}
                 keyboardType="number-pad"
                 value={line.qty}
                 maxLength={4}
-                onChangeText={(v) => setLines((ls) => ls.map((l, j) => (j === i ? { ...l, qty: v.replace(/[^0-9]/g, "") } : l)))}
+                onChangeText={(v) => setLine(i, { qty: v.replace(/[^0-9]/g, "") })}
               />
             </View>
-            <TouchableOpacity
-              accessibilityLabel="Remove item"
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t("market:form.removeLine", { number: i + 1 })}
+              accessibilityState={{ disabled: lines.length === 1 }}
               disabled={lines.length === 1}
               onPress={() => setLines((ls) => ls.filter((_, j) => j !== i))}
-              style={{ marginTop: 10, opacity: lines.length === 1 ? 0.3 : 1 }}
+              style={({ pressed }) => ({
+                width: sizes.touch,
+                height: sizes.control,
+                alignItems: "center",
+                justifyContent: "center",
+                opacity: lines.length === 1 ? 0.3 : pressed ? 0.6 : 1,
+              })}
             >
-              <MaterialIcons name="remove-circle-outline" size={26} color="red" />
-            </TouchableOpacity>
+              <MaterialIcons name="remove-circle-outline" size={sizes.iconMd} color={colors.danger} />
+            </Pressable>
           </View>
         ))}
         {lines.length < MAX_LISTING_LINES ? (
-          <Chip
-            label="Add item"
-            icon={<MaterialIcons name="add" size={16} color={c.primary} />}
-            onPress={() => setLines((ls) => [...ls, { name: "", qty: "1" }])}
-            style={{ alignSelf: "flex-start" }}
-          />
+          <ChipRow>
+            <Chip
+              label={t("market:form.addLine")}
+              icon={<MaterialIcons name="add" size={18} color={colors.text} />}
+              onPress={() => setLines((ls) => [...ls, { name: "", qty: "1" }])}
+            />
+          </ChipRow>
         ) : null}
         <ErrorText>{errors.lines}</ErrorText>
 
-        <Label>
-          Photos ({imageCount}/{MAX_LISTING_IMAGES}){imagesRequired ? "" : " — optional"}
-        </Label>
-        <ScrollView horizontal contentContainerStyle={{ gap: 8, paddingVertical: 4 }}>
-          {keptImages.map((img) => (
-            <View key={img.id}>
-              <ListingImageView fileName={img.fileName} style={{ width: 80, height: 80 }} />
-              <RemoveBadge onPress={() => setKeptImages((list) => list.filter((x) => x.id !== img.id))} />
-            </View>
-          ))}
-          {newImages.map((img, i) => (
-            <View key={img.uri + i}>
-              <Image source={{ uri: img.uri }} style={{ width: 80, height: 80 }} />
-              <RemoveBadge onPress={() => setNewImages((list) => list.filter((_, j) => j !== i))} />
-            </View>
-          ))}
-        </ScrollView>
+        <SectionHeader
+          title={
+            imagesRequired
+              ? t("market:form.photos", { count: imageCount, max: MAX_LISTING_IMAGES })
+              : t("market:form.photosOptional", { count: imageCount, max: MAX_LISTING_IMAGES })
+          }
+        />
+        {imageCount > 0 ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm, paddingTop: spacing.xs, paddingRight: spacing.xs }}>
+            {keptImages.map((img, i) => (
+              <View key={img.id}>
+                <ListingImageView fileName={img.fileName} style={{ width: THUMB, height: THUMB, borderWidth: borders.width, borderColor: colors.border }} />
+                <RemoveBadge label={t("market:form.removePhoto", { number: i + 1 })} onPress={() => setKeptImages((list) => list.filter((x) => x.id !== img.id))} />
+              </View>
+            ))}
+            {newImages.map((img, i) => (
+              <View key={img.uri + i}>
+                <Image source={{ uri: img.uri }} style={{ width: THUMB, height: THUMB, borderWidth: borders.width, borderColor: colors.border }} />
+                <RemoveBadge
+                  label={t("market:form.removePhoto", { number: keptImages.length + i + 1 })}
+                  onPress={() => setNewImages((list) => list.filter((_, j) => j !== i))}
+                />
+              </View>
+            ))}
+          </ScrollView>
+        ) : null}
         {imageCount < MAX_LISTING_IMAGES ? (
           <ChipRow>
-            <Chip label="Camera" icon={<MaterialIcons name="photo-camera" size={16} color={c.primary} />} onPress={() => addImages("camera")} />
-            <Chip label="Gallery" icon={<MaterialIcons name="photo-library" size={16} color={c.primary} />} onPress={() => addImages("gallery")} />
+            <Chip label={t("market:photo.camera")} icon={<MaterialIcons name="photo-camera" size={18} color={colors.text} />} onPress={() => addImages("camera")} />
+            <Chip label={t("market:photo.gallery")} icon={<MaterialIcons name="photo-library" size={18} color={colors.text} />} onPress={() => addImages("gallery")} />
           </ChipRow>
         ) : null}
         <ErrorText>{errors.images}</ErrorText>
 
         {kind !== "wanted" ? (
           <>
-            <TouchableOpacity
+            <Checkbox
+              checked={privateSeller}
+              error={!!errors.private}
               onPress={() => setPrivateSeller(!privateSeller)}
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: privateSeller }}
-              style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 }}
-            >
-              <MaterialIcons name={privateSeller ? "check-box" : "check-box-outline-blank"} size={26} color={c.primary} />
-              <CustomText style={{ flex: 1 }}>I&apos;m selling as a private person, not as a business.</CustomText>
-            </TouchableOpacity>
+              label={t("market:form.privateSeller")}
+              style={{ marginTop: spacing.xs }}
+            />
             <ErrorText>{errors.private}</ErrorText>
           </>
         ) : null}
 
         <CustomTextInput
-          label="Description (optional)"
-          placeholder="Anything else a buyer should know"
+          label={t("market:form.description")}
+          placeholder={t("market:form.descriptionPlaceholder")}
           value={description}
           onChangeText={setDescription}
           multiline
           maxLength={2000}
-          containerStyle={{ maxHeight: 200 }}
+          containerStyle={{ maxHeight: 220 }}
         />
       </ScrollView>
     </CustomOverlay>
   );
 }
 
-function RemoveBadge({ onPress }: { onPress: () => void }) {
+/** 48dp remove target in the photo's corner. */
+function RemoveBadge({ onPress, label }: { onPress: () => void; label: string }) {
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
-      accessibilityLabel="Remove photo"
-      style={{ position: "absolute", top: -6, right: -6, backgroundColor: c.background, borderRadius: 12 }}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      hitSlop={hitSlopFor(28)}
+      style={({ pressed }) => ({
+        position: "absolute",
+        top: -spacing.xs,
+        right: -spacing.xs,
+        width: 28,
+        height: 28,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: pressed ? colors.surfaceAlt : colors.surface,
+        borderWidth: borders.width,
+        borderColor: colors.border,
+      })}
     >
-      <MaterialIcons name="cancel" size={24} color="red" />
-    </TouchableOpacity>
+      <MaterialIcons name="close" size={18} color={colors.danger} />
+    </Pressable>
   );
 }
 

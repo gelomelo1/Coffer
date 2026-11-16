@@ -1,35 +1,37 @@
 import { Loading } from "@/src/components/custom_ui/loading";
+import { ErrorState } from "@/src/components/custom_ui/states";
 import { useMyListingCounts, useMyListings } from "@/src/hooks/market_api";
+import { colors, spacing } from "@/src/theme/theme";
 import { MyListingsFilter } from "@/src/types/entities/market";
+import { apiErrorText } from "@/src/utils/api_error_text";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FlatList, RefreshControl } from "react-native";
 import ListingCard from "../browse/listing_card";
 import { Chip, ChipRow, EmptyState } from "../ui/retro";
 
-const FILTERS: { key: MyListingsFilter; label: string; empty: string }[] = [
-  { key: "active", label: "Active", empty: "Nothing on sale right now. Use “+ Sell / Swap” on the Browse tab to post a listing." },
-  { key: "sold", label: "Sold", empty: "No sold listings yet. Completed deals show up here." },
-  { key: "archived", label: "Archived", empty: "Nothing archived. Archived and moderation-removed listings show up here." },
-];
+const FILTERS: MyListingsFilter[] = ["active", "sold", "archived"];
 
 /**
  * MY LISTINGS tab, filtered by status: Active (live or reserved by a deal), Sold, Archived (incl. removed by
  * moderation). Filtering happens on the server, so the chips always match the real listing statuses.
  */
 function MyListings() {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState<MyListingsFilter>("active");
-  const { data = [], isFetching, refetch } = useMyListings(filter);
+  const { data = [], isFetching, isError, error, refetch } = useMyListings(filter);
   const { data: counts, refetch: refetchCounts } = useMyListingCounts();
-  const current = FILTERS.find((f) => f.key === filter)!;
 
   return (
     <FlatList
       data={data}
       keyExtractor={(l) => l.id}
-      contentContainerStyle={{ padding: 10, paddingBottom: 120 }}
+      contentContainerStyle={{ padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl * 2 }}
       refreshControl={
         <RefreshControl
           refreshing={isFetching}
+          colors={[colors.primary]}
+          tintColor={colors.primary}
           onRefresh={() => {
             refetch();
             refetchCounts();
@@ -37,18 +39,26 @@ function MyListings() {
         />
       }
       ListHeaderComponent={
-        <ChipRow style={{ marginBottom: 10 }}>
+        <ChipRow>
           {FILTERS.map((f) => (
             <Chip
-              key={f.key}
-              label={counts ? `${f.label} (${counts[f.key] ?? 0})` : f.label}
-              selected={filter === f.key}
-              onPress={() => setFilter(f.key)}
+              key={f}
+              label={counts ? t(`market:mine.filterCount.${f}`, { count: counts[f] ?? 0 }) : t(`market:mine.filter.${f}`)}
+              selected={filter === f}
+              onPress={() => setFilter(f)}
             />
           ))}
         </ChipRow>
       }
-      ListEmptyComponent={isFetching ? <Loading /> : <EmptyState icon="sell" title={`No ${current.label.toLowerCase()} listings`} text={current.empty} />}
+      ListEmptyComponent={
+        isFetching ? (
+          <Loading />
+        ) : isError ? (
+          <ErrorState message={apiErrorText(error)} onRetry={() => refetch()} />
+        ) : (
+          <EmptyState icon="sell" title={t(`market:mine.emptyTitle.${filter}`)} text={t(`market:mine.emptyText.${filter}`)} />
+        )
+      }
       renderItem={({ item }) => <ListingCard listing={item} showStatus />}
     />
   );

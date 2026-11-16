@@ -1,59 +1,79 @@
-import CustomText from "@/src/components/custom_ui/custom_text";
 import { Loading } from "@/src/components/custom_ui/loading";
+import { ErrorState } from "@/src/components/custom_ui/states";
 import { useInbox } from "@/src/hooks/market_api";
-import { customTheme } from "@/src/theme/theme";
+import { pressableShadowStyle } from "@/src/theme/pressable";
+import { borders, colors, spacing, typography } from "@/src/theme/theme";
+import { apiErrorText } from "@/src/utils/api_error_text";
 import { formatTimeAgo } from "@/src/utils/market_api";
-import { FlatList, RefreshControl, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { EmptyState, ListingImageView, Tag } from "../ui/retro";
 import { openChat } from "./open_chat";
 
-const c = customTheme.colors;
-
 /** CHATS tab: all my listing conversations, newest first, with unread counters. */
 function ChatList() {
-  const { data = [], isFetching, refetch } = useInbox();
+  const { t } = useTranslation();
+  const { data = [], isFetching, isError, error, refetch } = useInbox();
 
   return (
     <FlatList
       data={data}
       keyExtractor={(x) => x.id}
-      contentContainerStyle={{ padding: 10, paddingBottom: 120 }}
-      refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
+      contentContainerStyle={{ padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl * 2 }}
+      refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} colors={[colors.primary]} tintColor={colors.primary} />}
       ListEmptyComponent={
-        isFetching ? <Loading /> : <EmptyState icon="chat-bubble-outline" title="No chats yet" text="Open a listing and message the seller." />
+        isFetching ? (
+          <Loading />
+        ) : isError ? (
+          <ErrorState message={apiErrorText(error)} onRetry={() => refetch()} />
+        ) : (
+          <EmptyState icon="chat-bubble-outline" title={t("market:chats.emptyTitle")} text={t("market:chats.emptyText")} />
+        )
       }
       renderItem={({ item }) => {
         const selling = (item.subject.kind === "wanted") === (item.myRole === "inquirer");
+        const unread = item.unreadCount > 0;
+        const role = selling ? t("market:chats.selling") : t("market:chats.buying");
+        const preview = item.lastMessagePreview ?? t("market:details.noPreview");
         return (
-          <TouchableOpacity
+          <Pressable
             onPress={() => openChat(item.id, item.other.name, item.subject.title)}
-            style={{
-              flexDirection: "row",
-              gap: 10,
-              alignItems: "center",
-              borderWidth: 2,
-              borderColor: c.primary,
-              backgroundColor: item.unreadCount > 0 ? `${c.secondary}55` : c.background,
-              boxShadow: `2px 2px ${c.primary}`,
-              padding: 8,
-              marginBottom: 10,
-            }}
+            accessibilityRole="button"
+            accessibilityLabel={[role, item.subject.title, item.other.name, preview, unread ? t("market:tabs.badge", { count: item.unreadCount }) : null]
+              .filter(Boolean)
+              .join(", ")}
+            style={({ pressed }) => [
+              {
+                flexDirection: "row",
+                gap: spacing.sm,
+                alignItems: "center",
+                borderWidth: borders.width,
+                borderColor: colors.border,
+                borderLeftWidth: unread ? 6 : borders.width,
+                borderLeftColor: unread ? colors.secondary : colors.border,
+                backgroundColor: colors.surface,
+                padding: spacing.sm,
+              },
+              pressableShadowStyle(pressed),
+            ]}
           >
-            <ListingImageView fileName={item.subject.image} style={{ width: 54, height: 54 }} />
+            <ListingImageView fileName={item.subject.image} style={{ width: 56, height: 56 }} />
             <View style={{ flex: 1, gap: 2 }}>
-              <View style={{ flexDirection: "row", gap: 6, alignItems: "center" }}>
-                <Tag label={selling ? "Selling" : "Buying"} color={selling ? c.secondary : c.primary} />
-                <CustomText style={{ fontSize: 11 }}>{formatTimeAgo(item.lastMessageAt)}</CustomText>
+              <View style={{ flexDirection: "row", gap: spacing.xs, alignItems: "center" }}>
+                <Tag label={role} color={selling ? colors.secondary : colors.primary} textColor={selling ? colors.onSecondary : colors.onPrimary} />
+                <Text style={[typography.caption, { color: colors.textMuted, flex: 1 }]} numberOfLines={1}>
+                  {formatTimeAgo(item.lastMessageAt)}
+                </Text>
               </View>
-              <CustomText style={{ fontFamily: "VendSansBold" }} numberOfLines={1}>
+              <Text style={[typography.bodyStrong, { color: colors.text }]} numberOfLines={1}>
                 {item.subject.title}
-              </CustomText>
-              <CustomText style={{ fontSize: 14 }} numberOfLines={1}>
-                {item.other.name}: {item.lastMessagePreview ?? "—"}
-              </CustomText>
+              </Text>
+              <Text style={[unread ? typography.label : typography.meta, { color: colors.text }]} numberOfLines={1}>
+                {t("market:chats.preview", { name: item.other.name, text: preview })}
+              </Text>
             </View>
-            {item.unreadCount > 0 ? <Tag label={String(item.unreadCount)} color="red" /> : null}
-          </TouchableOpacity>
+            {unread ? <Tag label={String(item.unreadCount)} color={colors.danger} /> : null}
+          </Pressable>
         );
       }}
     />

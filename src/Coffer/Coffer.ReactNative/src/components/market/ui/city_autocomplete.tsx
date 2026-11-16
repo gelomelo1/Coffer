@@ -1,25 +1,23 @@
-import CustomText from "@/src/components/custom_ui/custom_text";
 import CustomTextInput from "@/src/components/custom_ui/custom_text_input";
 import { useCitySearch } from "@/src/hooks/market_api";
-import { customTheme } from "@/src/theme/theme";
+import { borders, colors, hitSlopFor, sizes, spacing, typography } from "@/src/theme/theme";
 import { City } from "@/src/types/entities/market";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, TouchableOpacity, View } from "react-native";
-
-const c = customTheme.colors;
+import { useTranslation } from "react-i18next";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 export function cityLabel(city: City) {
   return [city.name, city.admin1 && city.admin1 !== city.name ? city.admin1 : null, city.countryCode]
     .filter(Boolean)
-    .join(", ");
+    .join(", "); // i18n-ignore
 }
 
 /** Type 2+ letters → pick a city (looked up through the backend's free geocoding proxy). */
 function CityAutocomplete({
   value,
   onChange,
-  label = "City",
+  label,
   errorMessage,
 }: {
   value?: City | null;
@@ -27,8 +25,10 @@ function CityAutocomplete({
   label?: string;
   errorMessage?: string;
 }) {
+  const { t } = useTranslation();
   const [text, setText] = useState("");
   const [debounced, setDebounced] = useState("");
+  const fieldLabel = label ?? t("market:city.label");
 
   useEffect(() => {
     const timeout = setTimeout(() => setDebounced(text), 350);
@@ -39,56 +39,84 @@ function CityAutocomplete({
 
   if (value) {
     return (
-      <View style={{ gap: 4, marginBottom: 6 }}>
-        <CustomText style={{ fontFamily: "VendSansBold" }}>{label}</CustomText>
+      <View style={{ gap: spacing.xxs, marginBottom: spacing.sm }}>
+        <Text style={[typography.label, { color: colors.text }]}>{fieldLabel}</Text>
         <View
           style={{
             flexDirection: "row",
             alignItems: "center",
-            borderWidth: 2,
-            borderColor: c.primary,
-            backgroundColor: c.secondary,
-            padding: 8,
-            gap: 6,
+            minHeight: sizes.control,
+            borderWidth: borders.width,
+            borderColor: colors.border,
+            backgroundColor: colors.surfaceAlt,
+            paddingLeft: spacing.sm,
+            gap: spacing.xs,
           }}
         >
-          <MaterialIcons name="place" size={18} color={c.primary} />
-          <CustomText style={{ flex: 1 }}>{cityLabel(value)}</CustomText>
-          <TouchableOpacity onPress={() => onChange(null)} accessibilityLabel="Clear city" hitSlop={8}>
-            <MaterialIcons name="close" size={20} color={c.primary} />
-          </TouchableOpacity>
+          <MaterialIcons name="place" size={sizes.iconSm} color={colors.text} />
+          <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{cityLabel(value)}</Text>
+          <Pressable
+            onPress={() => onChange(null)}
+            accessibilityRole="button"
+            accessibilityLabel={t("market:city.clear")}
+            hitSlop={hitSlopFor(sizes.touch)}
+            style={({ pressed }) => ({
+              width: sizes.touch,
+              height: sizes.touch,
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: pressed ? 0.5 : 1,
+            })}
+          >
+            <MaterialIcons name="close" size={sizes.iconMd} color={colors.text} />
+          </Pressable>
         </View>
       </View>
     );
   }
 
   return (
-    <View>
+    <View style={{ marginBottom: spacing.sm }}>
       <CustomTextInput
-        label={label}
-        placeholder="Start typing a city…"
+        label={fieldLabel}
+        placeholder={t("market:city.placeholder")}
         value={text}
         onChangeText={setText}
         errorMessage={errorMessage}
-        rightIcon={isFetching ? <ActivityIndicator color={c.primary} /> : undefined}
+        autoCorrect={false}
+        rightIcon={isFetching ? <ActivityIndicator color={colors.primary} /> : undefined}
       />
-      {isError ? <CustomText style={{ color: "red", fontSize: 13 }}>City search is unavailable right now.</CustomText> : null}
+      {isError ? <Text style={[typography.meta, { color: colors.danger }]}>{t("market:city.unavailable")}</Text> : null}
       {debounced.trim().length >= 2 && !isFetching && cities.length === 0 && !isError ? (
-        <CustomText style={{ fontSize: 13 }}>No city found.</CustomText>
+        <Text style={[typography.meta, { color: colors.textMuted }]}>{t("market:city.noResults")}</Text>
       ) : null}
-      {cities.map((city) => (
-        <TouchableOpacity
-          key={city.id}
-          onPress={() => {
-            onChange(city);
-            setText("");
-          }}
-          style={{ padding: 8, borderBottomWidth: 1, borderColor: c.primary, flexDirection: "row", gap: 6 }}
-        >
-          <MaterialIcons name="place" size={18} color={c.secondary} />
-          <CustomText>{cityLabel(city)}</CustomText>
-        </TouchableOpacity>
-      ))}
+      {cities.length > 0 ? (
+        <View style={{ borderWidth: borders.width, borderColor: colors.border, marginTop: spacing.xxs }}>
+          {cities.map((city, i) => (
+            <Pressable
+              key={city.id}
+              onPress={() => {
+                onChange(city);
+                setText("");
+              }}
+              accessibilityRole="button"
+              style={({ pressed }) => ({
+                minHeight: sizes.touch,
+                paddingHorizontal: spacing.sm,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: spacing.xs,
+                borderTopWidth: i === 0 ? 0 : borders.hairline,
+                borderColor: colors.borderMuted,
+                backgroundColor: pressed ? colors.surfaceAlt : colors.surface,
+              })}
+            >
+              <MaterialIcons name="place" size={sizes.iconSm} color={colors.text} />
+              <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{cityLabel(city)}</Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
     </View>
   );
 }

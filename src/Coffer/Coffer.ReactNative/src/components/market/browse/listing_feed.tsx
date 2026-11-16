@@ -1,27 +1,30 @@
 import CustomButton from "@/src/components/custom_ui/custom_button";
-import CustomText from "@/src/components/custom_ui/custom_text";
 import { Loading } from "@/src/components/custom_ui/loading";
+import { ErrorState } from "@/src/components/custom_ui/states";
 import { sortLabels } from "@/src/const/market";
 import { useListings } from "@/src/hooks/market_api";
 import { useMarketStore } from "@/src/hooks/market_store";
-import { customTheme } from "@/src/theme/theme";
+import { colors, spacing, typography } from "@/src/theme/theme";
 import { ListingKind, ListingSort } from "@/src/types/entities/market";
+import { apiErrorText } from "@/src/utils/api_error_text";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useState } from "react";
-import { FlatList, RefreshControl, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { FlatList, RefreshControl, Text, useWindowDimensions, View } from "react-native";
 import ListingFormOverlay from "../listing_form/listing_form_overlay";
 import { Chip, ChipRow, EmptyState, WarningBanner } from "../ui/retro";
 import ListingCard from "./listing_card";
 import ListingFilterOverlay, { activeFilterCount } from "./listing_filter_overlay";
 
-const c = customTheme.colors;
-
-/** BROWSE tab: warning, create buttons, sort + filters, infinite list of other users' active listings. */
+/** BROWSE tab: warning, create buttons, sort + filters, infinite grid of other users' active listings. */
 function ListingFeed() {
+  const { t } = useTranslation();
+  const { width } = useWindowDimensions();
+  const columns = width >= 360 ? 2 : 1;
   const { filters, setFilters } = useMarketStore();
   const [filterOpen, setFilterOpen] = useState(false);
   const [formKind, setFormKind] = useState<ListingKind | null>(null);
-  const { data, isFetching, isError, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } = useListings(filters);
+  const { data, isFetching, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } = useListings(filters);
 
   const listings = data?.pages.flat() ?? [];
   const filterCount = activeFilterCount(filters);
@@ -37,63 +40,71 @@ function ListingFeed() {
   return (
     <View style={{ flex: 1 }}>
       <FlatList
+        key={`cols-${columns}`}
         data={listings}
+        numColumns={columns}
         keyExtractor={(l) => l.id}
-        contentContainerStyle={{ padding: 10, paddingBottom: 120 }}
-        refreshControl={<RefreshControl refreshing={isFetching && !isFetchingNextPage} onRefresh={refetch} />}
+        columnWrapperStyle={columns > 1 ? { gap: spacing.md } : undefined}
+        contentContainerStyle={{ padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl * 2 }}
+        refreshControl={<RefreshControl refreshing={isFetching && !isFetchingNextPage} onRefresh={refetch} colors={[colors.primary]} tintColor={colors.primary} />}
         onEndReached={() => hasNextPage && !isFetchingNextPage && fetchNextPage()}
         onEndReachedThreshold={0.4}
         ListHeaderComponent={
-          <View style={{ gap: 8, marginBottom: 8 }}>
+          <View style={{ gap: spacing.sm }}>
             <WarningBanner collapsible />
-            <View style={{ flexDirection: "row", gap: 10 }}>
-              <View style={{ flex: 1 }}>
-                <CustomButton title="+ Sell / Swap" onPress={() => setFormKind("sell")} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <CustomButton title="+ I'm searching" onPress={() => setFormKind("wanted")} />
-              </View>
+            <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
+              <CustomButton
+                title={t("market:feed.sell")}
+                icon={<MaterialIcons name="add" size={20} color={colors.onPrimary} />}
+                onPress={() => setFormKind("sell")}
+                containerStyle={{ flex: 1, minWidth: 140 }}
+              />
+              <CustomButton
+                title={t("market:feed.searching")}
+                variant="outline"
+                icon={<MaterialIcons name="search" size={20} color={colors.text} />}
+                onPress={() => setFormKind("wanted")}
+                containerStyle={{ flex: 1, minWidth: 140 }}
+              />
             </View>
             <ChipRow>
               <Chip
-                label={filterCount ? `Filters (${filterCount})` : "Filters"}
+                label={filterCount ? t("market:feed.filtersCount", { count: filterCount }) : t("market:feed.filters")}
                 selected={filterCount > 0}
-                icon={<MaterialIcons name="tune" size={16} color={c.primary} />}
+                icon={<MaterialIcons name="tune" size={16} color={colors.text} />}
                 onPress={() => setFilterOpen(true)}
               />
               {(Object.keys(sortLabels) as ListingSort[]).map((s) => (
                 <Chip key={s} label={sortLabels[s]} selected={filters.sort === s} onPress={() => setSort(s)} />
               ))}
             </ChipRow>
-            {filters.city ? (
-              <CustomText style={{ fontSize: 13 }}>
-                Around {filters.city.name}
-                {filters.radiusKm ? ` · within ${filters.radiusKm} km` : ""}
-              </CustomText>
-            ) : (
-              <CustomText style={{ fontSize: 13 }}>Tip: pick a city in Filters to sort by closeness.</CustomText>
-            )}
+            <Text style={[typography.meta, { color: colors.textMuted }]}>
+              {filters.city
+                ? filters.radiusKm
+                  ? t("market:feed.aroundWithin", { city: filters.city.name, km: filters.radiusKm })
+                  : t("market:feed.around", { city: filters.city.name })
+                : t("market:feed.cityTip")}
+            </Text>
           </View>
         }
         ListEmptyComponent={
           isFetching ? (
             <Loading />
           ) : isError ? (
-            <EmptyState icon="cloud-off" title="Couldn't load listings" text="Pull down to try again." />
+            <ErrorState message={apiErrorText(error)} onRetry={() => refetch()} />
           ) : (
-            <EmptyState icon="storefront" title="Nothing here yet" text="Try other filters, or post the first listing!" />
+            <EmptyState icon="storefront" title={t("market:feed.emptyTitle")} text={t("market:feed.emptyText")} />
           )
         }
         ListFooterComponent={isFetchingNextPage ? <Loading /> : null}
-        renderItem={({ item }) => <ListingCard listing={item} />}
+        renderItem={({ item }) => (
+          <View style={{ flex: 1, maxWidth: columns > 1 ? "50%" : "100%" }}>
+            <ListingCard listing={item} layout={columns > 1 ? "grid" : "row"} />
+          </View>
+        )}
       />
 
-      <ListingFilterOverlay
-        isVisible={filterOpen}
-        onClose={() => setFilterOpen(false)}
-        value={filters}
-        onApply={setFilters}
-      />
+      <ListingFilterOverlay isVisible={filterOpen} onClose={() => setFilterOpen(false)} value={filters} onApply={setFilters} />
       <ListingFormOverlay isVisible={formKind !== null} onClose={() => setFormKind(null)} initialKind={formKind ?? "sell"} />
     </View>
   );

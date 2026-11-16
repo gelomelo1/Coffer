@@ -1,38 +1,63 @@
 import CustomButton from "@/src/components/custom_ui/custom_button";
 import CustomOverlay from "@/src/components/custom_ui/custom_overlay";
-import CustomText from "@/src/components/custom_ui/custom_text";
-import { customTheme } from "@/src/theme/theme";
+import i18n from "@/src/i18n";
+import { borders, colors, fonts, sizes, spacing, typography } from "@/src/theme/theme";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useEffect, useRef, useState } from "react";
-import { TextInput, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { Text, TextInput, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
-
-const c = customTheme.colors;
 
 /** Buyer side: 4-digit PIN + QR. Shown only after the buyer has checked the item. */
 export function PinDisplay({ pin, qr }: { pin: string; qr: string }) {
+  const { t } = useTranslation();
   const [revealed, setRevealed] = useState(false);
   return (
-    <View style={{ alignItems: "center", gap: 8 }}>
-      <CustomText style={{ textAlign: "center" }}>
-        Check the item first. Only then show this code to the seller — it completes the deal and unlocks reviews.
-      </CustomText>
+    <View style={{ alignItems: "center", gap: spacing.sm }}>
+      <Text style={[typography.body, { color: colors.text, textAlign: "center" }]}>{t("market:pin.checkFirst")}</Text>
       {revealed ? (
         <>
-          <View style={{ flexDirection: "row", gap: 8 }}>
+          <View accessible accessibilityLabel={t("market:pin.yourPin", { pin: pin.split("").join(" ") })} style={{ flexDirection: "row", gap: spacing.xs }}>
             {pin.split("").map((digit, i) => (
-              <View key={i} style={{ width: 48, height: 60, borderWidth: 2, borderColor: c.primary, backgroundColor: c.secondary, justifyContent: "center", alignItems: "center", boxShadow: `2px 2px ${c.primary}` }}>
-                <CustomText style={{ fontFamily: "VendSansBold", fontSize: 30 }}>{digit}</CustomText>
+              <View
+                key={i}
+                style={{
+                  width: 52,
+                  height: 64,
+                  borderWidth: borders.width,
+                  borderColor: colors.border,
+                  backgroundColor: colors.secondary,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontFamily: fonts.bold, fontSize: 32, lineHeight: 38, color: colors.onSecondary }}>{digit}</Text>
               </View>
             ))}
           </View>
-          <View style={{ padding: 8, backgroundColor: c.background, borderWidth: 2, borderColor: c.primary }}>
-            <QRCode value={qr} size={170} color={c.primary} backgroundColor={c.background} />
+          <View
+            accessible
+            accessibilityRole="image"
+            accessibilityLabel={t("market:pin.qrLabel")}
+            style={{ padding: spacing.sm, backgroundColor: colors.surface, borderWidth: borders.width, borderColor: colors.border }}
+          >
+            <QRCode value={qr} size={180} color={colors.primary} backgroundColor={colors.surface} />
           </View>
-          <CustomButton title="Hide code" onPress={() => setRevealed(false)} />
+          <CustomButton
+            title={t("market:pin.hide")}
+            variant="outline"
+            icon={<MaterialIcons name="visibility-off" size={sizes.iconSm} color={colors.text} />}
+            onPress={() => setRevealed(false)}
+          />
         </>
       ) : (
-        <CustomButton title="I checked the item — show my PIN" onPress={() => setRevealed(true)} />
+        <CustomButton
+          title={t("market:pin.show")}
+          icon={<MaterialIcons name="visibility" size={sizes.iconSm} color={colors.onPrimary} />}
+          onPress={() => setRevealed(true)}
+          containerStyle={{ alignSelf: "stretch" }}
+        />
       )}
     </View>
   );
@@ -40,52 +65,60 @@ export function PinDisplay({ pin, qr }: { pin: string; qr: string }) {
 
 /** Seller side: type the buyer's 4 digits or scan their QR code. */
 export function PinEntry({ onSubmit, loading, lockedUntil }: { onSubmit: (pinOrQr: string) => void; loading: boolean; lockedUntil?: string | null }) {
+  const { t } = useTranslation();
   const [pin, setPin] = useState("");
   const [scanning, setScanning] = useState(false);
   const locked = !!lockedUntil && new Date(lockedUntil).getTime() > Date.now();
 
   return (
-    <View style={{ gap: 8 }}>
-      <CustomText>Ask the buyer for their 4-digit PIN once they checked the item, then enter it here.</CustomText>
+    <View style={{ gap: spacing.sm }}>
+      <Text style={[typography.body, { color: colors.text }]}>{t("market:pin.askBuyer")}</Text>
       {locked ? (
-        <CustomText style={{ color: "red" }}>
-          Too many wrong tries. Try again after {new Date(lockedUntil!).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}.
-        </CustomText>
+        <Text accessibilityLiveRegion="polite" style={[typography.bodyStrong, { color: colors.danger }]}>
+          {t("market:pin.locked", {
+            time: new Date(lockedUntil!).toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" }),
+          })}
+        </Text>
       ) : null}
       <TextInput
         value={pin}
         onChangeText={(v) => setPin(v.replace(/[^0-9]/g, "").slice(0, 4))}
         keyboardType="number-pad"
         maxLength={4}
-        placeholder="••••"
-        placeholderTextColor={c.accent}
-        accessibilityLabel="Buyer PIN"
+        placeholder="••••" // i18n-ignore
+        placeholderTextColor={colors.textMuted}
+        accessibilityLabel={t("market:pin.inputLabel")}
+        editable={!locked}
         style={{
           alignSelf: "center",
-          width: 160,
+          width: 180,
+          minHeight: 64,
           textAlign: "center",
           letterSpacing: 16,
           fontSize: 32,
-          fontFamily: "VendSansBold",
-          color: c.primary,
-          borderWidth: 2,
-          borderColor: c.primary,
-          backgroundColor: c.secondary,
-          boxShadow: `2px 2px ${c.primary}`,
+          fontFamily: fonts.bold,
+          color: colors.text,
+          borderWidth: borders.focus,
+          borderColor: colors.border,
+          backgroundColor: colors.surface,
         }}
       />
-      <View style={{ flexDirection: "row", gap: 10 }}>
-        <View style={{ flex: 1 }}>
-          <CustomButton title="Scan QR" disabled={locked || loading} onPress={() => setScanning(true)} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <CustomButton
-            title="Confirm handoff"
-            disabled={pin.length !== 4 || locked || loading}
-            loading={loading}
-            onPress={() => onSubmit(pin)}
-          />
-        </View>
+      <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
+        <CustomButton
+          title={t("market:pin.scan")}
+          variant="outline"
+          icon={<MaterialIcons name="qr-code-scanner" size={sizes.iconSm} color={colors.text} />}
+          disabled={locked || loading}
+          onPress={() => setScanning(true)}
+          containerStyle={{ flex: 1, minWidth: 140 }}
+        />
+        <CustomButton
+          title={t("market:pin.confirm")}
+          disabled={pin.length !== 4 || locked || loading}
+          loading={loading}
+          onPress={() => onSubmit(pin)}
+          containerStyle={{ flex: 1, minWidth: 140 }}
+        />
       </View>
       <QrScannerOverlay
         isVisible={scanning}
@@ -100,6 +133,7 @@ export function PinEntry({ onSubmit, loading, lockedUntil }: { onSubmit: (pinOrQ
 }
 
 function QrScannerOverlay({ isVisible, onClose, onScanned }: { isVisible: boolean; onClose: () => void; onScanned: (value: string) => void }) {
+  const { t } = useTranslation();
   const [permission, requestPermission] = useCameraPermissions();
   const handled = useRef(false);
 
@@ -111,7 +145,7 @@ function QrScannerOverlay({ isVisible, onClose, onScanned }: { isVisible: boolea
   }, [isVisible, permission, requestPermission]);
 
   return (
-    <CustomOverlay isVisible={isVisible} onClose={onClose} overlayTitle="Scan the buyer's QR code">
+    <CustomOverlay isVisible={isVisible} onClose={onClose} overlayTitle={t("market:pin.scanTitle")}>
       {permission?.granted ? (
         <CameraView
           style={{ flex: 1 }}
@@ -124,9 +158,9 @@ function QrScannerOverlay({ isVisible, onClose, onScanned }: { isVisible: boolea
           }}
         />
       ) : (
-        <View style={{ padding: 20, gap: 12 }}>
-          <CustomText>Camera access is needed to scan the code. You can also type the 4-digit PIN instead.</CustomText>
-          <CustomButton title="Allow camera" onPress={requestPermission} />
+        <View style={{ padding: spacing.md, gap: spacing.md }}>
+          <Text style={[typography.body, { color: colors.text }]}>{t("market:pin.cameraNeeded")}</Text>
+          <CustomButton title={t("market:pin.allowCamera")} onPress={requestPermission} />
         </View>
       )}
     </CustomOverlay>

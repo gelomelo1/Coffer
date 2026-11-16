@@ -1,25 +1,30 @@
+import { SectionHeader } from "@/src/components/custom_ui/card";
 import CustomButton from "@/src/components/custom_ui/custom_button";
 import CustomOverlay from "@/src/components/custom_ui/custom_overlay";
-import CustomText from "@/src/components/custom_ui/custom_text";
 import CustomTextInput from "@/src/components/custom_ui/custom_text_input";
 import { useMarketMutation } from "@/src/hooks/market_api";
-import { customTheme } from "@/src/theme/theme";
+import { pressableShadowStyle } from "@/src/theme/pressable";
+import { borders, colors, fonts, sizes, spacing, typography } from "@/src/theme/theme";
 import { PostMessageInput } from "@/src/types/entities/market";
+import i18n from "@/src/i18n";
 import { formatPrice, marketApi, parsePriceToCents } from "@/src/utils/market_api";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useEffect, useMemo, useState } from "react";
-import { ScrollView, TextInput, TouchableOpacity, View } from "react-native";
-import { Chip, ChipRow, ErrorText, Label } from "../ui/retro";
+import { useTranslation } from "react-i18next";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Chip, ChipRow, ErrorText } from "../ui/retro";
 
-const c = customTheme.colors;
+const MAX_MESSAGE = 2000;
 
-/** Message input + "€ Offer" and "Meetup" actions. */
-function Composer({ conversationId, allowOffers }: { conversationId: string; allowOffers: boolean }) {
+/** Message input + "Price offer" and "Propose meetup" actions. `bottomInset` keeps it above the gesture bar. */
+function Composer({ conversationId, allowOffers, bottomInset = 0 }: { conversationId: string; allowOffers: boolean; bottomInset?: number }) {
+  const { t } = useTranslation();
   const [text, setText] = useState("");
   const [offerOpen, setOfferOpen] = useState(false);
   const [meetupOpen, setMeetupOpen] = useState(false);
   const send = useMarketMutation((input: PostMessageInput) => marketApi.postMessage(conversationId, input));
 
+  const canSend = !!text.trim() && !send.isPending;
   const sendText = () => {
     const body = text.trim();
     if (!body) return;
@@ -27,48 +32,78 @@ function Composer({ conversationId, allowOffers }: { conversationId: string; all
   };
 
   return (
-    <View style={{ borderTopWidth: 2, borderColor: c.primary, backgroundColor: c.background, padding: 8, gap: 6 }}>
-      <ChipRow>
+    <View
+      style={{
+        borderTopWidth: borders.width,
+        borderColor: colors.border,
+        backgroundColor: colors.bg,
+        paddingHorizontal: spacing.sm,
+        paddingTop: spacing.xs,
+        paddingBottom: spacing.xs + bottomInset,
+        gap: spacing.xs,
+      }}
+    >
+      {/* One scrollable row: wrapping would stack the chips on narrow screens and eat the message area. */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: spacing.xs, paddingRight: spacing.xs, paddingBottom: 4 }}>
         {allowOffers ? (
-          <Chip label="Price offer" icon={<MaterialIcons name="euro" size={16} color={c.primary} />} onPress={() => setOfferOpen(true)} />
+          <Chip
+            label={t("market:chat.priceOffer")}
+            icon={<MaterialIcons name="euro" size={18} color={colors.text} />}
+            onPress={() => setOfferOpen(true)}
+          />
         ) : null}
-        <Chip label="Propose meetup" icon={<MaterialIcons name="event" size={16} color={c.primary} />} onPress={() => setMeetupOpen(true)} />
-      </ChipRow>
-      <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8 }}>
+        <Chip
+          label={t("market:chat.proposeMeetup")}
+          icon={<MaterialIcons name="event" size={18} color={colors.text} />}
+          onPress={() => setMeetupOpen(true)}
+        />
+      </ScrollView>
+      <View style={{ flexDirection: "row", alignItems: "flex-end", gap: spacing.xs }}>
         <TextInput
           value={text}
           onChangeText={setText}
-          placeholder="Write a message…"
-          placeholderTextColor={c.accent}
+          placeholder={t("market:chat.placeholder")}
+          accessibilityLabel={t("market:chat.messageLabel")}
+          placeholderTextColor={colors.textMuted}
           multiline
-          maxLength={2000}
+          maxLength={MAX_MESSAGE}
           style={{
             flex: 1,
+            minHeight: sizes.control,
             maxHeight: 120,
-            borderWidth: 2,
-            borderColor: c.primary,
-            backgroundColor: c.background,
-            color: c.primary,
-            fontFamily: "VendSansRegular",
+            borderWidth: borders.width,
+            borderColor: colors.border,
+            backgroundColor: colors.surface,
+            color: colors.text,
+            fontFamily: fonts.regular,
             fontSize: 16,
-            paddingHorizontal: 8,
-            paddingVertical: 6,
+            lineHeight: 22,
+            paddingHorizontal: spacing.sm,
+            paddingVertical: spacing.sm - 2,
+            textAlignVertical: "center",
           }}
         />
-        <TouchableOpacity
+        <Pressable
           onPress={sendText}
-          disabled={!text.trim() || send.isPending}
-          accessibilityLabel="Send"
-          style={{
-            backgroundColor: c.primary,
-            padding: 10,
-            borderWidth: 2,
-            borderColor: c.secondary,
-            opacity: !text.trim() || send.isPending ? 0.5 : 1,
-          }}
+          disabled={!canSend}
+          accessibilityRole="button"
+          accessibilityLabel={t("market:chat.send")}
+          accessibilityState={{ disabled: !canSend, busy: send.isPending }}
+          style={({ pressed }) => [
+            {
+              width: sizes.control,
+              height: sizes.control,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: canSend ? colors.primary : colors.surfaceAlt,
+              borderWidth: borders.width,
+              borderColor: colors.border,
+            },
+            pressableShadowStyle(pressed, !canSend),
+          ]}
         >
-          <MaterialIcons name="send" size={22} color={c.secondary} />
-        </TouchableOpacity>
+          <MaterialIcons name="send" size={sizes.iconMd} color={canSend ? colors.onPrimary : colors.textMuted} />
+        </Pressable>
       </View>
 
       <OfferOverlay
@@ -83,9 +118,7 @@ function Composer({ conversationId, allowOffers }: { conversationId: string; all
         isVisible={meetupOpen}
         onClose={() => setMeetupOpen(false)}
         loading={send.isPending}
-        onSubmit={(at, place) =>
-          send.mutate({ kind: "meetup_proposal", at, place }, { onSuccess: () => setMeetupOpen(false) })
-        }
+        onSubmit={(at, place) => send.mutate({ kind: "meetup_proposal", at, place }, { onSuccess: () => setMeetupOpen(false) })}
       />
     </View>
   );
@@ -102,6 +135,7 @@ function OfferOverlay({
   onSubmit: (amountCents: number, note: string) => void;
   loading: boolean;
 }) {
+  const { t } = useTranslation();
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   useEffect(() => {
@@ -116,25 +150,36 @@ function OfferOverlay({
     <CustomOverlay
       isVisible={isVisible}
       onClose={onClose}
-      overlayTitle="Make a price offer"
+      overlayTitle={t("market:chat.offerTitle")}
       footerContent={
-        <View style={{ width: "90%" }}>
-          <CustomButton
-            title={cents ? `Offer ${formatPrice(cents)}` : "Offer"}
-            disabled={!cents || loading}
-            loading={loading}
-            onPress={() => cents && onSubmit(cents, note.trim())}
-          />
-        </View>
+        <CustomButton
+          title={cents ? t("market:chat.offerSubmitAmount", { price: formatPrice(cents) }) : t("market:chat.offerSubmit")}
+          disabled={!cents || loading}
+          loading={loading}
+          onPress={() => cents && onSubmit(cents, note.trim())}
+        />
       }
     >
-      <ScrollView contentContainerStyle={{ padding: 12, gap: 8 }} keyboardShouldPersistTaps="handled">
-        <CustomText>The other side can accept or decline. An accepted offer becomes the deal price.</CustomText>
-        <CustomTextInput label="Amount (€)" keyboardType="decimal-pad" value={amount} onChangeText={setAmount} placeholder="0" />
-        <CustomTextInput label="Note (optional)" value={note} onChangeText={setNote} maxLength={500} />
+      <ScrollView contentContainerStyle={{ padding: spacing.md, gap: spacing.sm, paddingBottom: spacing.xxl }} keyboardShouldPersistTaps="handled">
+        <Text style={[typography.body, { color: colors.text }]}>{t("market:chat.offerExplanation")}</Text>
+        <CustomTextInput
+          label={t("market:chat.amount")}
+          required
+          keyboardType="decimal-pad"
+          value={amount}
+          onChangeText={setAmount}
+          placeholder="0" // i18n-ignore
+        />
+        <CustomTextInput label={t("market:chat.noteOptional")} value={note} onChangeText={setNote} maxLength={500} />
       </ScrollView>
     </CustomOverlay>
   );
+}
+
+function dayLabel(date: Date, offset: number) {
+  if (offset === 0) return i18n.t("market:chat.today");
+  if (offset === 1) return i18n.t("market:chat.tomorrow");
+  return date.toLocaleDateString(i18n.language, { weekday: "short", day: "numeric", month: "short" });
 }
 
 /** Day chips + HH:MM: avoids a native date picker dependency. */
@@ -149,16 +194,14 @@ function MeetupOverlay({
   onSubmit: (atIso: string, place: string) => void;
   loading: boolean;
 }) {
+  const { t } = useTranslation();
   const days = useMemo(() => {
     const list: { label: string; date: Date }[] = [];
     for (let i = 0; i < 14; i++) {
       const d = new Date();
       d.setHours(0, 0, 0, 0);
       d.setDate(d.getDate() + i);
-      list.push({
-        label: i === 0 ? "Today" : i === 1 ? "Tomorrow" : d.toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" }),
-        date: d,
-      });
+      list.push({ label: dayLabel(d, i), date: d });
     }
     return list;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -181,39 +224,51 @@ function MeetupOverlay({
     at.setHours(Number(match[1]), Number(match[2]));
   }
   const error = !match
-    ? "Use the HH:MM format, e.g. 17:30."
+    ? t("market:chat.errorTime")
     : at && at.getTime() <= Date.now()
-      ? "Pick a time in the future."
+      ? t("market:chat.errorPast")
       : !place.trim()
-        ? "Where do you meet?"
+        ? t("market:chat.errorPlace")
         : null;
 
   return (
     <CustomOverlay
       isVisible={isVisible}
       onClose={onClose}
-      overlayTitle="Propose a meetup"
+      overlayTitle={t("market:chat.meetupTitle")}
       footerContent={
-        <View style={{ width: "90%" }}>
-          <CustomButton
-            title="Send proposal"
-            disabled={!!error || loading}
-            loading={loading}
-            onPress={() => at && onSubmit(at.toISOString(), place.trim())}
-          />
-        </View>
+        <CustomButton
+          title={t("market:chat.meetupSubmit")}
+          disabled={!!error || loading}
+          loading={loading}
+          onPress={() => at && onSubmit(at.toISOString(), place.trim())}
+        />
       }
     >
-      <ScrollView contentContainerStyle={{ padding: 12, gap: 8 }} keyboardShouldPersistTaps="handled">
-        <CustomText>Meet in a busy public place. Check the item before showing your PIN.</CustomText>
-        <Label>Day</Label>
+      <ScrollView contentContainerStyle={{ padding: spacing.md, gap: spacing.sm, paddingBottom: spacing.xxl }} keyboardShouldPersistTaps="handled">
+        <Text style={[typography.body, { color: colors.text }]}>{t("market:chat.meetupExplanation")}</Text>
+        <SectionHeader title={t("market:chat.day")} />
         <ChipRow>
           {days.map((d, i) => (
             <Chip key={i} label={d.label} selected={dayIndex === i} onPress={() => setDayIndex(i)} />
           ))}
         </ChipRow>
-        <CustomTextInput label="Time (HH:MM)" value={time} onChangeText={setTime} keyboardType="numbers-and-punctuation" maxLength={5} />
-        <CustomTextInput label="Place" value={place} onChangeText={setPlace} placeholder="e.g. Deák tér, metro exit" maxLength={120} />
+        <CustomTextInput
+          label={t("market:chat.time")}
+          helperText={t("market:chat.timeHelp")}
+          value={time}
+          onChangeText={setTime}
+          keyboardType="numbers-and-punctuation"
+          maxLength={5}
+        />
+        <CustomTextInput
+          label={t("market:chat.place")}
+          required
+          value={place}
+          onChangeText={setPlace}
+          placeholder={t("market:chat.placePlaceholder")}
+          maxLength={120}
+        />
         <ErrorText>{error}</ErrorText>
       </ScrollView>
     </CustomOverlay>

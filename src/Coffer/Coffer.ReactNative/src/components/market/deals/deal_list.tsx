@@ -1,72 +1,97 @@
-import CustomText from "@/src/components/custom_ui/custom_text";
+import { SectionHeader } from "@/src/components/custom_ui/card";
 import { Loading } from "@/src/components/custom_ui/loading";
+import { ErrorState } from "@/src/components/custom_ui/states";
 import { dealStatusColors, dealStatusLabels, deliveryLabels } from "@/src/const/market";
 import { useMyDeals } from "@/src/hooks/market_api";
-import { customTheme } from "@/src/theme/theme";
-import { Deal } from "@/src/types/entities/market";
+import { pressableShadowStyle } from "@/src/theme/pressable";
+import { borders, colors, spacing, typography } from "@/src/theme/theme";
+import { Deal, DealStatus } from "@/src/types/entities/market";
+import { apiErrorText } from "@/src/utils/api_error_text";
 import { formatPrice, formatTimeAgo } from "@/src/utils/market_api";
-import { RefreshControl, SectionList, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { Pressable, RefreshControl, SectionList, Text, View } from "react-native";
 import { openChat } from "../chats/open_chat";
 import { EmptyState, ListingImageView, Tag } from "../ui/retro";
 
-const c = customTheme.colors;
-
+const FINISHED: DealStatus[] = ["completed", "cancelled", "disputed"];
 const needsMe = (d: Deal) => d.nextActions.some((a) => a !== "cancel");
+/** Gold status tags need navy text; the darker ones take cream. */
+const statusTextColor = (status: DealStatus) => (dealStatusColors[status] === colors.secondary ? colors.onSecondary : colors.onPrimary);
 
 /** DEALS tab: grouped by what needs my attention. Tapping opens the chat with the deal panel. */
 function DealList() {
-  const { data = [], isFetching, refetch } = useMyDeals();
+  const { t } = useTranslation();
+  const { data = [], isFetching, isError, error, refetch } = useMyDeals();
 
   const sections = [
-    { title: "Needs your action", data: data.filter(needsMe) },
-    { title: "In progress", data: data.filter((d) => !needsMe(d) && !["completed", "cancelled", "disputed"].includes(d.status)) },
-    { title: "Finished", data: data.filter((d) => !needsMe(d) && ["completed", "cancelled", "disputed"].includes(d.status)) },
+    { title: t("market:deals.needsAction"), data: data.filter(needsMe) },
+    { title: t("market:deals.inProgress"), data: data.filter((d) => !needsMe(d) && !FINISHED.includes(d.status)) },
+    { title: t("market:deals.finished"), data: data.filter((d) => !needsMe(d) && FINISHED.includes(d.status)) },
   ].filter((s) => s.data.length > 0);
 
   return (
     <SectionList
       sections={sections}
       keyExtractor={(d) => d.id}
-      contentContainerStyle={{ padding: 10, paddingBottom: 120 }}
-      refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
+      stickySectionHeadersEnabled={false}
+      contentContainerStyle={{ padding: spacing.md, paddingBottom: spacing.xxl * 2 }}
+      refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} colors={[colors.primary]} tintColor={colors.primary} />}
       ListEmptyComponent={
-        isFetching ? <Loading /> : <EmptyState icon="handshake" title="No deals yet" text="Deals start from a chat when the seller proposes one." />
+        isFetching ? (
+          <Loading />
+        ) : isError ? (
+          <ErrorState message={apiErrorText(error)} onRetry={() => refetch()} />
+        ) : (
+          <EmptyState icon="handshake" title={t("market:deals.emptyTitle")} text={t("market:deals.emptyText")} />
+        )
       }
-      renderSectionHeader={({ section }) => (
-        <CustomText style={{ fontFamily: "VendSansBold", fontSize: 16, marginVertical: 6 }}>{section.title.toUpperCase()}</CustomText>
-      )}
+      renderSectionHeader={({ section }) => <SectionHeader title={section.title} style={{ marginTop: spacing.xs }} />}
       renderItem={({ item }) => {
         const other = item.myRole === "buyer" ? item.seller : item.buyer;
+        const meta = [
+          item.myRole === "buyer" ? t("market:deals.buyingFrom", { name: other.name }) : t("market:deals.sellingTo", { name: other.name }),
+          deliveryLabels[item.method],
+          item.agreedPriceCents ? formatPrice(item.agreedPriceCents) : null,
+          formatTimeAgo(item.updatedAt),
+        ]
+          .filter(Boolean)
+          .join(" · "); // i18n-ignore
+        const wantsReview = item.nextActions.includes("review");
         return (
-          <TouchableOpacity
+          <Pressable
             onPress={() => openChat(item.conversationId, other.name, item.listingTitle)}
-            style={{
-              flexDirection: "row",
-              gap: 10,
-              alignItems: "center",
-              borderWidth: 2,
-              borderColor: c.primary,
-              borderLeftWidth: 8,
-              borderLeftColor: dealStatusColors[item.status],
-              backgroundColor: c.background,
-              boxShadow: `2px 2px ${c.primary}`,
-              padding: 8,
-              marginBottom: 10,
-            }}
+            accessibilityRole="button"
+            accessibilityLabel={[item.listingTitle, dealStatusLabels[item.status], meta, wantsReview ? t("market:deals.review") : null]
+              .filter(Boolean)
+              .join(", ")}
+            style={({ pressed }) => [
+              {
+                flexDirection: "row",
+                gap: spacing.sm,
+                alignItems: "center",
+                borderWidth: borders.width,
+                borderColor: colors.border,
+                borderLeftWidth: 8,
+                borderLeftColor: dealStatusColors[item.status],
+                backgroundColor: colors.surface,
+                padding: spacing.sm,
+                marginBottom: spacing.md,
+              },
+              pressableShadowStyle(pressed),
+            ]}
           >
-            <ListingImageView fileName={item.listingImage} style={{ width: 54, height: 54 }} />
-            <View style={{ flex: 1, gap: 2 }}>
-              <CustomText style={{ fontFamily: "VendSansBold" }} numberOfLines={1}>
+            <ListingImageView fileName={item.listingImage} style={{ width: 56, height: 56 }} />
+            <View style={{ flex: 1, gap: spacing.xxs }}>
+              <Text style={[typography.bodyStrong, { color: colors.text }]} numberOfLines={2}>
                 {item.listingTitle}
-              </CustomText>
-              <CustomText style={{ fontSize: 14, color: dealStatusColors[item.status] }}>{dealStatusLabels[item.status]}</CustomText>
-              <CustomText style={{ fontSize: 12 }}>
-                {item.myRole === "buyer" ? "Buying from" : "Selling to"} {other.name} · {deliveryLabels[item.method]}
-                {item.agreedPriceCents ? ` · ${formatPrice(item.agreedPriceCents)}` : ""} · {formatTimeAgo(item.updatedAt)}
-              </CustomText>
+              </Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.xxs }}>
+                <Tag label={dealStatusLabels[item.status]} color={dealStatusColors[item.status]} textColor={statusTextColor(item.status)} />
+                {wantsReview ? <Tag label={t("market:deals.review")} color={colors.secondary} textColor={colors.onSecondary} /> : null}
+              </View>
+              <Text style={[typography.caption, { color: colors.text }]}>{meta}</Text>
             </View>
-            {item.nextActions.includes("review") ? <Tag label="★ Review" color={c.secondary} textColor={c.primary} /> : null}
-          </TouchableOpacity>
+          </Pressable>
         );
       }}
     />

@@ -1,61 +1,74 @@
+import CustomButton from "@/src/components/custom_ui/custom_button";
 import CustomText from "@/src/components/custom_ui/custom_text";
 import { MAX_REPLY, reasonTagLabels } from "@/src/const/market";
 import { useMarketMutation } from "@/src/hooks/market_api";
-import { customTheme } from "@/src/theme/theme";
+import { colors, sizes, spacing, typography } from "@/src/theme/theme";
 import { Review } from "@/src/types/entities/market";
 import { formatDate, marketApi } from "@/src/utils/market_api";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useState } from "react";
-import { TouchableOpacity, View } from "react-native";
-import { SectionCard, StarRating, Tag } from "../ui/retro";
+import { useTranslation } from "react-i18next";
+import { Text, View } from "react-native";
 import ReportOverlay from "../ui/report_overlay";
+import { SectionCard, StarRating, Tag } from "../ui/retro";
 import TextPromptOverlay from "../ui/text_prompt_overlay";
-
-const c = customTheme.colors;
 
 /** One published review. The reviewee (canRespond) may reply once or report it to moderators. */
 function ReviewCard({ review, canRespond }: { review: Review; canRespond: boolean }) {
+  const { t } = useTranslation();
   const [replyOpen, setReplyOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
 
-  const reply = useMarketMutation(
-    (text: string) => marketApi.replyToReview(review.id, text),
-    "Reply posted",
-  );
+  const reply = useMarketMutation((text: string) => marketApi.replyToReview(review.id, text), t("market:review.replyPosted"));
 
   return (
-    <SectionCard accent={review.isFrozen ? c.accent : undefined}>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+    <SectionCard accent={review.isFrozen ? colors.accent : undefined}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.sm }}>
         <StarRating value={review.stars} />
-        <CustomText style={{ fontSize: 12 }}>{formatDate(review.publishedAt ?? review.createdAt)}</CustomText>
+        <Text style={[typography.caption, { color: colors.textMuted }]}>{formatDate(review.publishedAt ?? review.createdAt)}</Text>
       </View>
-      <CustomText style={{ fontSize: 13 }}>
-        {review.reviewer?.name ?? "Deleted user"} · as {review.reviewerRole} · {review.listingTitle}
-      </CustomText>
-      {review.isFrozen ? <Tag label="Under review — not counted" color={c.accent} /> : null}
-      {review.reasonTag ? <Tag label={reasonTagLabels[review.reasonTag]} color="red" /> : null}
+      <Text style={[typography.meta, { color: colors.text }]}>
+        {t("market:review.byline", {
+          name: review.reviewer?.name ?? t("market:review.deletedUser"),
+          role: t(`market:review.role.${review.reviewerRole}`),
+          listing: review.listingTitle,
+        })}
+      </Text>
+      {review.isFrozen || review.reasonTag ? (
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.xxs }}>
+          {review.isFrozen ? <Tag label={t("market:review.frozen")} color={colors.accent} /> : null}
+          {review.reasonTag ? <Tag label={reasonTagLabels[review.reasonTag]} color={colors.danger} /> : null}
+        </View>
+      ) : null}
       {review.comment ? <CustomText foldable>{review.comment}</CustomText> : null}
 
       {review.reply ? (
-        <View style={{ borderLeftWidth: 4, borderLeftColor: c.secondary, paddingLeft: 8, marginTop: 4 }}>
-          <CustomText style={{ fontFamily: "VendSansBold", fontSize: 13 }}>Reply from {review.reviewee.name}</CustomText>
-          <CustomText>{review.reply}</CustomText>
+        <View style={{ borderLeftWidth: 4, borderLeftColor: colors.secondary, paddingLeft: spacing.sm, gap: 2 }}>
+          <Text style={[typography.label, { color: colors.text }]}>{t("market:review.replyFrom", { name: review.reviewee.name })}</Text>
+          <Text style={[typography.body, { color: colors.text }]}>{review.reply}</Text>
         </View>
       ) : null}
 
-      {canRespond ? (
-        <View style={{ flexDirection: "row", gap: 16, marginTop: 4 }}>
+      {canRespond && (!review.reply || !review.isFrozen) ? (
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
           {!review.reply ? (
-            <TouchableOpacity onPress={() => setReplyOpen(true)} style={{ flexDirection: "row", gap: 4, alignItems: "center" }}>
-              <MaterialIcons name="reply" size={18} color={c.primary} />
-              <CustomText style={{ fontFamily: "VendSansBold" }}>Reply</CustomText>
-            </TouchableOpacity>
+            <CustomButton
+              title={t("market:review.reply")}
+              size="sm"
+              variant="outline"
+              icon={<MaterialIcons name="reply" size={sizes.iconSm} color={colors.text} />}
+              onPress={() => setReplyOpen(true)}
+            />
           ) : null}
           {!review.isFrozen ? (
-            <TouchableOpacity onPress={() => setReportOpen(true)} style={{ flexDirection: "row", gap: 4, alignItems: "center" }}>
-              <MaterialIcons name="flag" size={18} color="red" />
-              <CustomText style={{ fontFamily: "VendSansBold", color: "red" }}>Report</CustomText>
-            </TouchableOpacity>
+            <CustomButton
+              title={t("market:review.report")}
+              size="sm"
+              variant="ghost"
+              titleStyle={{ color: colors.danger }}
+              icon={<MaterialIcons name="flag" size={sizes.iconSm} color={colors.danger} />}
+              onPress={() => setReportOpen(true)}
+            />
           ) : null}
         </View>
       ) : null}
@@ -63,10 +76,10 @@ function ReviewCard({ review, canRespond }: { review: Review; canRespond: boolea
       <TextPromptOverlay
         isVisible={replyOpen}
         onClose={() => setReplyOpen(false)}
-        title="Reply to review"
-        explanation="You can reply once. Your reply is public and can't be edited."
-        placeholder="Your reply…"
-        submitLabel="Post reply"
+        title={t("market:review.replyTitle")}
+        explanation={t("market:review.replyExplanation")}
+        label={t("market:review.replyLabel")}
+        submitLabel={t("market:review.replySubmit")}
         minLength={1}
         maxLength={MAX_REPLY}
         loading={reply.isPending}

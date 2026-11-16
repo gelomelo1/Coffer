@@ -1,6 +1,7 @@
 import { isAxiosError } from "axios";
 import { backendAxios } from "../const/backendAccessConfiguration";
 import { endpoints } from "../const/endpoints";
+import i18n from "../i18n";
 import { apiErrorText } from "./api_error_text";
 import {
   Carrier,
@@ -189,36 +190,36 @@ export function parsePriceToCents(text: string): number | null {
 
 export function formatDistance(km?: number | null) {
   if (km == null) return "";
-  return km < 1 ? "< 1 km" : `${Math.round(km)} km`;
+  return km < 1 ? i18n.t("market:format.underOneKm") : i18n.t("market:format.km", { km: Math.round(km) });
 }
 
 export function formatDate(iso?: string | null) {
   if (!iso) return "";
-  return new Date(iso).toLocaleDateString();
+  return new Date(iso).toLocaleDateString(i18n.language);
 }
 
 export function formatDateTime(iso?: string | null) {
   if (!iso) return "";
   const d = new Date(iso);
-  return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+  return `${d.toLocaleDateString(i18n.language)} ${d.toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" })}`;
 }
 
 export function formatTimeAgo(iso?: string | null) {
   if (!iso) return "";
   const minutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes} min ago`;
+  if (minutes < 1) return i18n.t("market:format.justNow");
+  if (minutes < 60) return i18n.t("market:format.minutesAgo", { count: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} h ago`;
+  if (hours < 24) return i18n.t("market:format.hoursAgo", { count: hours });
   const days = Math.floor(hours / 24);
-  return days < 30 ? `${days} d ago` : formatDate(iso);
+  return days < 30 ? i18n.t("market:format.daysAgo", { count: days }) : formatDate(iso);
 }
 
 export function formatResponseTime(minutes?: number | null) {
   if (minutes == null) return null;
-  if (minutes < 60) return "within an hour";
-  if (minutes < 60 * 24) return `within ${Math.round(minutes / 60)} hours`;
-  return `within ${Math.round(minutes / 60 / 24)} days`;
+  if (minutes < 60) return i18n.t("market:format.withinHour");
+  if (minutes < 60 * 24) return i18n.t("market:format.withinHours", { count: Math.round(minutes / 60) });
+  return i18n.t("market:format.withinDays", { count: Math.round(minutes / 60 / 24) });
 }
 
 export function daysLeft(iso?: string | null) {

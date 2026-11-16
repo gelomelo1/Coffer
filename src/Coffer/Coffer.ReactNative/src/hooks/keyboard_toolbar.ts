@@ -1,5 +1,5 @@
 import { RefObject, useCallback, useEffect, useState } from "react";
-import { Keyboard, KeyboardEvent, Platform, View } from "react-native";
+import { Dimensions, Keyboard, KeyboardEvent, Platform, View } from "react-native";
 import { computeToolbarBottom } from "../utils/keyboard_toolbar";
 
 /**
@@ -36,4 +36,30 @@ export function useKeyboardToolbarOffset(hostRef: RefObject<View | null>) {
   }, [measure]);
 
   return { bottom: computeToolbarBottom({ hostBottom, keyboardTop }), onHostLayout: measure };
+}
+
+/**
+ * Keyboard overlap for a full-screen view that reaches the bottom of the screen (edge-to-edge Android, iOS).
+ * Uses screen coordinates only: on regular Android screens measureInWindow is offset by the status bar while the
+ * keyboard frame is not, so measuring the host would under-count by the status bar height.
+ * Returns null while the keyboard is hidden.
+ */
+export function useKeyboardOverlapAtScreenBottom() {
+  const [keyboardTop, setKeyboardTop] = useState<number | null>(null);
+
+  useEffect(() => {
+    const onShow = (e: KeyboardEvent) => setKeyboardTop(e.endCoordinates.screenY);
+    const onHide = () => setKeyboardTop(null);
+    const subs =
+      Platform.OS === "ios"
+        ? [
+            Keyboard.addListener("keyboardWillShow", onShow),
+            Keyboard.addListener("keyboardWillChangeFrame", onShow),
+            Keyboard.addListener("keyboardWillHide", onHide),
+          ]
+        : [Keyboard.addListener("keyboardDidShow", onShow), Keyboard.addListener("keyboardDidHide", onHide)];
+    return () => subs.forEach((s) => s.remove());
+  }, []);
+
+  return computeToolbarBottom({ hostBottom: Dimensions.get("screen").height, keyboardTop, minBottom: 0 });
 }

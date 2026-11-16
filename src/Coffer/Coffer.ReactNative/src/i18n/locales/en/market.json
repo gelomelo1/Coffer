@@ -2,5 +2,547 @@
   "warning": {
     "title": "Trade safely",
     "text": "Coffer does not handle payments. Advance payment and shipping are at your own risk — only pay in advance or ship to people you trust. Prefer personal pickup and pay on the spot."
+  },
+  "kind": {
+    "sell": "Sell",
+    "exchange": "Exchange",
+    "wanted": "Searching for"
+  },
+  "condition": {
+    "new": "New",
+    "like_new": "Like new",
+    "good": "Good",
+    "fair": "Fair",
+    "poor": "Poor"
+  },
+  "listingStatus": {
+    "active": "Active",
+    "pending_pickup": "Reserved · pickup",
+    "pending_shipment": "Reserved · shipping",
+    "sold": "Sold",
+    "archived": "Archived",
+    "removed": "Removed by moderation"
+  },
+  "delivery": {
+    "local_pickup": "Personal pickup",
+    "shipping": "Shipping"
+  },
+  "sort": {
+    "nearest": "Nearest",
+    "price_asc": "Price ↑",
+    "price_desc": "Price ↓",
+    "newest": "Newest"
+  },
+  "dealStatus": {
+    "proposed": "Waiting for buyer to accept",
+    "awaiting_handoff": "Meet up & verify with PIN",
+    "awaiting_shipment": "Waiting for shipment",
+    "shipped": "On its way",
+    "completed": "Completed",
+    "disputed": "Disputed — not resolved by Coffer",
+    "cancelled": "Cancelled"
+  },
+  "reasonTag": {
+    "item_not_as_described": "Item not as described",
+    "late_to_meetup": "Late to meetup",
+    "no_show": "Didn't show up",
+    "poor_communication": "Poor communication",
+    "damaged_in_shipping": "Damaged in shipping",
+    "slow_shipping": "Slow shipping",
+    "payment_problem": "Payment problem",
+    "rude_behavior": "Rude behavior",
+    "other": "Other"
+  },
+  "stars": {
+    "1": "Terrible",
+    "2": "Bad",
+    "3": "OK",
+    "4": "Good",
+    "5": "Excellent"
+  },
+  "privateSellerNote": "Private seller — consumer rights that apply to shops and businesses (e.g. 14-day return) don't apply.",
+  "terms": {
+    "sections": {
+      "venue": {
+        "title": "Coffer is only the venue",
+        "text": "Coffer helps you find each other, chat and confirm the handover. Coffer is not a party to any deal, does not handle payments and gives no guarantee about items, payments or deliveries."
+      },
+      "responsibility": {
+        "title": "Deals are your own responsibility",
+        "text": "Price, payment and shipping are agreed between buyer and seller. Advance payment and shipping are at your own risk — only do it with people you trust. Prefer personal pickup and paying on the spot."
+      },
+      "disputes": {
+        "title": "Coffer does not settle disputes",
+        "text": "If something goes wrong, sort it out with the other person. A buyer can mark a shipped deal as disputed; the deal then closes and both of you can leave an honest review. Coffer never decides who is right."
+      },
+      "adults": {
+        "title": "Private persons, 18+",
+        "text": "The marketplace is for private persons aged 18 or over selling their own collectibles. Businesses may not sell here."
+      },
+      "contentRules": {
+        "title": "Content rules",
+        "text": "No illegal or banned items, counterfeits sold as originals, scams, harassment, other people's personal data, spam, or fake reviews. Anyone can report content; Coffer removes what breaks these rules and tells the author why."
+      },
+      "reviews": {
+        "title": "Verified reviews",
+        "text": "Only the buyer and seller of a deal completed with a PIN handover or a tracked shipment (or closed as disputed) can review each other. Reviews stay hidden until both have reviewed or 14 days pass."
+      }
+    },
+    "title": "Before you start trading",
+    "welcome": "Welcome to the market!",
+    "adult": "I am 18 or older.",
+    "privatePerson": "I trade as a private person, not as a business.",
+    "accept": "I accept the marketplace terms",
+    "version": "Terms version {{version}}"
+  },
+  "format": {
+    "underOneKm": "< 1 km",
+    "km": "{{km}} km",
+    "justNow": "just now",
+    "minutesAgo_one": "{{count}} min ago",
+    "minutesAgo_other": "{{count}} min ago",
+    "hoursAgo_one": "{{count}} h ago",
+    "hoursAgo_other": "{{count}} h ago",
+    "daysAgo_one": "{{count}} d ago",
+    "daysAgo_other": "{{count}} d ago",
+    "withinHour": "within an hour",
+    "withinHours_one": "within {{count}} hour",
+    "withinHours_other": "within {{count}} hours",
+    "withinDays_one": "within {{count}} day",
+    "withinDays_other": "within {{count}} days"
+  },
+  "price": {
+    "swapFor": "Swap for: {{what}}",
+    "budget": "Budget {{price}}",
+    "searching": "Searching"
+  },
+  "tabs": {
+    "browse": "Browse",
+    "mine": "My listings",
+    "chats": "Chats",
+    "deals": "Deals",
+    "badge_one": "{{count}} new",
+    "badge_other": "{{count}} new"
+  },
+  "feed": {
+    "sell": "Sell / Swap",
+    "searching": "I'm searching",
+    "filters": "Filters",
+    "filtersCount_one": "Filters ({{count}})",
+    "filtersCount_other": "Filters ({{count}})",
+    "around": "Around {{city}}",
+    "aroundWithin": "Around {{city}} · within {{km}} km",
+    "cityTip": "Tip: pick a city in Filters to sort by closeness.",
+    "emptyTitle": "Nothing here yet",
+    "emptyText": "Try other filters, or post the first listing!"
+  },
+  "filter": {
+    "title": "Filter listings",
+    "showResults": "Show results",
+    "listingType": "Listing type",
+    "itemType": "Item type",
+    "anyItemType": "Any item type",
+    "location": "Location",
+    "anyDistance": "Any distance",
+    "price": "Price (€)",
+    "min": "Min",
+    "max": "Max",
+    "minA11y": "Minimum price in euros",
+    "maxA11y": "Maximum price in euros",
+    "condition": "Condition",
+    "delivery": "Delivery",
+    "nationality": "Seller nationality",
+    "otherCountry": "+ Other country",
+    "removeCountry": "Remove {{code}}"
+  },
+  "nationality": {
+    "HU": "Hungarian",
+    "GB": "British",
+    "US": "American",
+    "DE": "German",
+    "AT": "Austrian",
+    "FR": "French",
+    "IT": "Italian",
+    "ES": "Spanish",
+    "PL": "Polish",
+    "CZ": "Czech",
+    "SK": "Slovak",
+    "RO": "Romanian",
+    "HR": "Croatian",
+    "NL": "Dutch",
+    "BE": "Belgian",
+    "CH": "Swiss"
+  },
+  "details": {
+    "archived": "Listing archived",
+    "reactivated": "Listing is active again",
+    "unavailableTitle": "Listing not available",
+    "unavailableText": "It may have been archived or removed.",
+    "haveThis": "I have this — message",
+    "messageSeller": "Message seller",
+    "photoOf": "Photo {{current}} of {{total}}",
+    "privateSeller": "Private seller",
+    "removedTitle": "Removed by moderation",
+    "removedText": "This listing broke the marketplace rules and is no longer visible to others. See Settings › Reports › Moderation of my content for the reason.",
+    "lookingFor": "Looking for",
+    "included": "What's included",
+    "quantity_one": "×{{count}}",
+    "quantity_other": "×{{count}}",
+    "wantsInExchange": "Wants in exchange",
+    "description": "Description",
+    "postedBy": "Posted by",
+    "seller": "Seller",
+    "openChat": "Open chat",
+    "report": "Report this listing",
+    "archive": "Archive",
+    "reactivate": "Reactivate",
+    "chatsAbout_one": "Chats about this listing ({{count}})",
+    "chatsAbout_other": "Chats about this listing ({{count}})",
+    "noMessages": "No messages yet.",
+    "noPreview": "No messages yet"
+  },
+  "prompt": {
+    "count": "{{length}}/{{max}}",
+    "countWithMin": "At least {{min}} characters · {{length}}/{{max}}"
+  },
+  "report": {
+    "sent": "Report sent — you'll see the outcome in Settings › Reports",
+    "title": {
+      "listing": "Report listing",
+      "message": "Report message",
+      "review": "Report review",
+      "item": "Report item",
+      "comment": "Report comment"
+    },
+    "explanation": {
+      "listing": "An admin checks it against the marketplace rules. The author is told what was removed and why, but never who reported it.",
+      "message": "An admin checks it against the marketplace rules. The author is told what was removed and why, but never who reported it.",
+      "review": "The review stops counting toward your rating while an admin checks it against the rules. Coffer does not decide who was right in the deal.",
+      "item": "An admin checks this collection item against the Coffer rules. The owner is told what happened and why, but never who reported it.",
+      "comment": "An admin checks this comment against the Coffer rules. The author is told what happened and why, but never who reported it."
+    },
+    "whichRule": "Which rule does it break?",
+    "chooseRule": "Choose a rule.",
+    "reasonLabel": "What exactly breaks the rule?",
+    "reasonPlaceholder": "Describe it in a few words…",
+    "submit": "Send report"
+  },
+  "reportRule": {
+    "illegal_item": {
+      "label": "Illegal or banned item",
+      "description": "Weapons, drugs, stolen goods, live animals or anything illegal to sell or show."
+    },
+    "counterfeit": {
+      "label": "Counterfeit or replica",
+      "description": "A copy or replica offered or shown as an original."
+    },
+    "scam_or_fraud": {
+      "label": "Scam or fraud attempt",
+      "description": "Phishing, fake payment requests, asking for passwords or bank details."
+    },
+    "harassment": {
+      "label": "Harassment, threats or hate",
+      "description": "Insults, threats, hate speech or sexual content."
+    },
+    "personal_data": {
+      "label": "Someone's personal data",
+      "description": "Publishing addresses, phone numbers or documents of another person."
+    },
+    "spam": {
+      "label": "Spam or advertising",
+      "description": "Repeated posts, ads for other services or links unrelated to the item."
+    },
+    "fake_review": {
+      "label": "Fake or unrelated review",
+      "description": "A review that is about something other than this deal, or clearly invented."
+    },
+    "off_topic": {
+      "label": "Off-topic",
+      "description": "Content that is not about a collectible item or the deal."
+    },
+    "other": {
+      "label": "Other rule break",
+      "description": "Breaks the Coffer rules in another way — explain in the reason."
+    }
+  },
+  "review": {
+    "replyPosted": "Reply posted",
+    "byline": "{{name}} · as {{role}} · {{listing}}",
+    "deletedUser": "Deleted user",
+    "role": {
+      "buyer": "buyer",
+      "seller": "seller"
+    },
+    "frozen": "Under review — not counted",
+    "replyFrom": "Reply from {{name}}",
+    "reply": "Reply",
+    "report": "Report",
+    "replyTitle": "Reply to review",
+    "replyExplanation": "You can reply once. Your reply is public and can't be edited.",
+    "replyLabel": "Your reply",
+    "replySubmit": "Post reply",
+    "submitted": "Review submitted",
+    "title": "Review {{name}}",
+    "submit": "Submit review",
+    "errorStars": "Tap the stars to rate.",
+    "errorReason": "Pick what went wrong.",
+    "errorLength": "Explain in at least {{min}} characters ({{length}}/{{min}}).",
+    "blindNote": "Double-blind: your review stays hidden until {{name}} reviews you too, or the review window closes. Reviews can't be edited later.",
+    "blindNoteDays_one": "Double-blind: your review stays hidden until {{name}} reviews you too, or the review window closes in {{count}} day. Reviews can't be edited later.",
+    "blindNoteDays_other": "Double-blind: your review stays hidden until {{name}} reviews you too, or the review window closes in {{count}} days. Reviews can't be edited later.",
+    "yours": "Your review",
+    "hiddenUntil": "Hidden until {{name}} reviews you or until {{date}}.",
+    "theirs": "{{name}}'s review of you",
+    "theySubmitted": "{{name}} already reviewed you — submit yours to see it.",
+    "howWasIt": "How was the deal?",
+    "whatWentWrong": "What went wrong?",
+    "explainRequired": "Explain what happened",
+    "commentOptional": "Comment (optional)",
+    "closed": "The review window for this deal is closed."
+  },
+  "reputation": {
+    "ratingWithCount": "{{rating}} ({{count}})",
+    "noRatings": "No ratings",
+    "deals_one": "{{count}} completed deal",
+    "deals_other": "{{count}} completed deals",
+    "answers": "answers {{percent}}% of chats",
+    "usually": "usually {{time}}",
+    "showReviews": "Shows the reviews",
+    "title": "Reviews",
+    "titleOf": "Reviews of {{name}}",
+    "verifiedNote": "Verified reviews only: just the buyer and seller of a deal completed with a PIN handover or a tracked shipment (or closed as disputed) can review each other. Reviews appear when both sides have reviewed, or after 14 days.",
+    "empty": "No reviews yet"
+  },
+  "city": {
+    "label": "City",
+    "placeholder": "Start typing a city…",
+    "clear": "Clear city",
+    "unavailable": "City search is unavailable right now.",
+    "noResults": "No city found."
+  },
+  "mine": {
+    "filter": {
+      "active": "Active",
+      "sold": "Sold",
+      "archived": "Archived"
+    },
+    "filterCount": {
+      "active_one": "Active ({{count}})",
+      "active_other": "Active ({{count}})",
+      "sold_one": "Sold ({{count}})",
+      "sold_other": "Sold ({{count}})",
+      "archived_one": "Archived ({{count}})",
+      "archived_other": "Archived ({{count}})"
+    },
+    "emptyTitle": {
+      "active": "No active listings",
+      "sold": "No sold listings",
+      "archived": "No archived listings"
+    },
+    "emptyText": {
+      "active": "Nothing on sale right now. Use “Sell / Swap” on the Browse tab to post a listing.",
+      "sold": "No sold listings yet. Completed deals show up here.",
+      "archived": "Nothing archived. Archived and moderation-removed listings show up here."
+    }
+  },
+  "chats": {
+    "emptyTitle": "No chats yet",
+    "emptyText": "Open a listing and message the seller.",
+    "selling": "Selling",
+    "buying": "Buying",
+    "preview": "{{name}}: {{text}}"
+  },
+  "deals": {
+    "needsAction": "Needs your action",
+    "inProgress": "In progress",
+    "finished": "Finished",
+    "emptyTitle": "No deals yet",
+    "emptyText": "Deals start from a chat when the seller proposes one.",
+    "buyingFrom": "Buying from {{name}}",
+    "sellingTo": "Selling to {{name}}",
+    "review": "Review due"
+  },
+  "chat": {
+    "unavailable": "Chat not available",
+    "sayHi": "Say hi to {{name}}",
+    "emptyText": "Ask about the item, make a price offer or propose a meetup.",
+    "priceOffer": "Price offer",
+    "proposeMeetup": "Propose meetup",
+    "placeholder": "Write a message…",
+    "messageLabel": "Message",
+    "send": "Send",
+    "offerTitle": "Make a price offer",
+    "offerSubmit": "Offer",
+    "offerSubmitAmount": "Offer {{price}}",
+    "offerExplanation": "The other side can accept or decline. An accepted offer becomes the deal price.",
+    "amount": "Amount (€)",
+    "noteOptional": "Note (optional)",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "errorTime": "Use the HH:MM format, e.g. 17:30.",
+    "errorPast": "Pick a time in the future.",
+    "errorPlace": "Where do you meet?",
+    "meetupTitle": "Propose a meetup",
+    "meetupSubmit": "Send proposal",
+    "meetupExplanation": "Meet in a busy public place. Check the item before showing your PIN.",
+    "day": "Day",
+    "time": "Time",
+    "timeHelp": "24-hour format, e.g. 17:30",
+    "place": "Place",
+    "placePlaceholder": "e.g. Deák tér, metro exit",
+    "reportHint": "Long-press to report this message",
+    "reportMessage": "Report message",
+    "offer": "Offer: {{price}}",
+    "meetup": "Meetup: {{time}}",
+    "status": {
+      "pending": "Waiting for answer",
+      "accepted": "Accepted",
+      "declined": "Declined",
+      "withdrawn": "Withdrawn"
+    },
+    "withdraw": "Withdraw",
+    "accept": "Accept",
+    "decline": "Decline"
+  },
+  "deal": {
+    "toast": {
+      "proposed": "Deal proposed",
+      "accepted": "Deal accepted",
+      "declined": "Deal declined",
+      "cancelled": "Deal cancelled",
+      "handoff": "Handoff verified — deal completed!",
+      "shipped": "Shipment registered",
+      "completed": "Deal completed",
+      "disputed": "Deal closed as disputed"
+    },
+    "listing": "Listing",
+    "noDeal": "No deal yet",
+    "expandHint": "Shows the deal steps",
+    "collapseHint": "Hides the deal steps",
+    "meetup": "Meetup: {{time}} · {{place}}",
+    "proposes": "{{name}} proposes a deal with {{method}}.",
+    "proposesFor": "{{name}} proposes a deal with {{method}} for {{price}}.",
+    "decline": "Decline",
+    "accept": "Accept deal",
+    "registerShipment": "Register shipment",
+    "waitingShipment": "Waiting for {{name}} to ship and add the tracking number.",
+    "tracking": "{{carrier}}:",
+    "checkCarrier": "Check on the carrier's website",
+    "autoComplete": "Completes automatically on {{date}} unless a problem is reported.",
+    "reportProblem": "Report a problem",
+    "received": "I received it",
+    "disputed": "The buyer reported a problem.",
+    "disputedWithReason": "The buyer reported a problem: “{{reason}}”",
+    "disputedNote": "Coffer doesn't decide who is right — please sort it out together. You can both leave an honest review.",
+    "reviewPrompt_one": "Deal done! Rate each other within {{count}} day. Reviews stay hidden until both of you submit.",
+    "reviewPrompt_other": "Deal done! Rate each other within {{count}} days. Reviews stay hidden until both of you submit.",
+    "leaveReview": "Leave a review",
+    "seeReviews": "See reviews",
+    "cancel": "Cancel deal",
+    "proposeTitle": "Agreed? Propose the deal",
+    "propose": "Propose deal",
+    "buyerHint": "When you agree, the seller proposes the deal here and you accept it.",
+    "cancelTitle": "Cancel deal",
+    "cancelExplanation": "The listing becomes available again. No review is possible for a cancelled deal.",
+    "cancelReason": "Reason (optional)",
+    "disputeExplanation": "This closes the deal as disputed and shows your description to the seller in this chat. Coffer does not decide who is right or handle refunds — sort it out with the seller. You can both leave an honest review afterwards.",
+    "disputeLabel": "What went wrong?",
+    "disputePlaceholder": "e.g. not arrived, damaged, different item",
+    "disputeSubmit": "Close as disputed",
+    "trackingNoCarrier": "Tracking number:"
+  },
+  "pin": {
+    "checkFirst": "Check the item first. Only then show this code to the seller — it completes the deal and unlocks reviews.",
+    "yourPin": "Your PIN: {{pin}}",
+    "qrLabel": "QR code of your PIN",
+    "hide": "Hide code",
+    "show": "I checked the item — show my PIN",
+    "askBuyer": "Ask the buyer for their 4-digit PIN once they checked the item, then enter it here.",
+    "locked": "Too many wrong tries. Try again after {{time}}.",
+    "inputLabel": "Buyer PIN",
+    "scan": "Scan QR",
+    "confirm": "Confirm handoff",
+    "scanTitle": "Scan the buyer's QR code",
+    "cameraNeeded": "Camera access is needed to scan the code. You can also type the 4-digit PIN instead.",
+    "allowCamera": "Allow camera"
+  },
+  "photo": {
+    "permissionTitle": "Permission needed",
+    "permissionText": "Allow camera / photo access in the system settings.",
+    "selected": "Selected photo",
+    "remove": "Remove",
+    "camera": "Camera",
+    "gallery": "Gallery"
+  },
+  "ship": {
+    "title": "Register shipment",
+    "submit": "Mark as shipped",
+    "errorCarrier": "Choose the carrier.",
+    "errorLength": "Tracking number: 4–40 characters.",
+    "errorChars": "Only letters, digits, spaces and dashes.",
+    "explanation": "The buyer will see the carrier and tracking number and can check it on the carrier's website. If the buyer doesn't confirm or report a problem within 14 days, the deal completes automatically.",
+    "carrier": "Carrier",
+    "chooseCarrier": "Choose carrier",
+    "tracking": "Tracking number",
+    "photo": "Photo of the packed item (optional)"
+  },
+  "receipt": {
+    "title": "Confirm receipt",
+    "submit": "I received the item",
+    "explanation": "Confirm only when the parcel is in your hands. This completes the deal; if something is wrong, use “Report a problem” instead.",
+    "photo": "Photo of the item's condition (optional)"
+  },
+  "form": {
+    "updated": "Listing updated",
+    "published": "Listing published",
+    "checkFields": "Check the highlighted fields",
+    "editTitle": "Edit listing",
+    "wantedTitle": "I'm searching for…",
+    "newTitle": "New listing",
+    "save": "Save changes",
+    "publish": "Publish",
+    "whatToDo": "What do you want to do?",
+    "itemType": "Item type",
+    "chooseItemType": "Choose item type",
+    "fixedAfterCreate": "The listing type and item type can't be changed after publishing.",
+    "title": "Title",
+    "titlePlaceholder": "e.g. Hungarian forint coin set",
+    "titlePlaceholderWanted": "e.g. Looking for 1990s forint coins",
+    "exchangeFor": "What do you want in exchange?",
+    "exchangePlaceholder": "e.g. Austrian schillings, stamps from the 60s",
+    "price": "Price (€)",
+    "budget": "Budget (€, optional)",
+    "condition": "Condition",
+    "conditionOptional": "Condition (optional)",
+    "handover": "Handover",
+    "lookingFor": "What are you looking for?",
+    "included": "What's included?",
+    "itemPlaceholder": "Item",
+    "itemA11y": "Item {{number}} name",
+    "qty": "Qty",
+    "qtyA11y": "Item {{number}} quantity",
+    "removeLine": "Remove item {{number}}",
+    "addLine": "Add item",
+    "photos": "Photos ({{count}}/{{max}})",
+    "photosOptional": "Photos ({{count}}/{{max}}) — optional",
+    "removePhoto": "Remove photo {{number}}",
+    "privateSeller": "I'm selling as a private person, not as a business.",
+    "description": "Description (optional)",
+    "descriptionPlaceholder": "Anything else a buyer should know",
+    "error": {
+      "title": "Give a title (max 80 characters).",
+      "type": "Choose the item type.",
+      "city": "Choose the city you sell in.",
+      "price": "Enter a price in euro.",
+      "budget": "Budget must be a positive amount.",
+      "exchange": "Describe what you want in exchange.",
+      "condition": "Choose the condition.",
+      "delivery": "Choose personal pickup, shipping or both.",
+      "linesEmpty": "List at least one item that is included.",
+      "linesQty": "Quantities must be whole numbers from 1 to 9999.",
+      "linesName": "Item names can be at most 80 characters.",
+      "images": "Add at least one photo.",
+      "private": "Confirm that you sell as a private person."
+    }
   }
 }

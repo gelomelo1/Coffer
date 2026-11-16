@@ -1,9 +1,10 @@
 import CustomButton from "@/src/components/custom_ui/custom_button";
 import CustomOverlay from "@/src/components/custom_ui/custom_overlay";
-import CustomText from "@/src/components/custom_ui/custom_text";
 import CustomTextInput from "@/src/components/custom_ui/custom_text_input";
+import { colors, spacing, typography } from "@/src/theme/theme";
 import { useEffect, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { ScrollView, Text } from "react-native";
 
 /** Reusable "write a text and confirm" overlay: reply, report, dispute, cancel reason. */
 function TextPromptOverlay({
@@ -11,6 +12,7 @@ function TextPromptOverlay({
   onClose,
   title,
   explanation,
+  label,
   placeholder,
   submitLabel,
   minLength = 0,
@@ -24,6 +26,8 @@ function TextPromptOverlay({
   onClose: () => void;
   title: string;
   explanation?: string;
+  /** Visible field label (falls back to the placeholder for screen readers). */
+  label?: string;
   placeholder?: string;
   submitLabel: string;
   minLength?: number;
@@ -34,6 +38,7 @@ function TextPromptOverlay({
   onSubmit: (text: string) => void;
   children?: React.ReactNode;
 }) {
+  const { t } = useTranslation();
   const [text, setText] = useState("");
   useEffect(() => {
     if (!isVisible) setText("");
@@ -48,31 +53,32 @@ function TextPromptOverlay({
       onClose={onClose}
       overlayTitle={title}
       footerContent={
-        <View style={{ width: "90%" }}>
-          <CustomButton
-            title={submitLabel}
-            disabled={tooShort || length > maxLength || loading || submitDisabled}
-            loading={loading}
-            onPress={() => onSubmit(text.trim())}
-          />
-        </View>
+        <CustomButton
+          title={submitLabel}
+          disabled={tooShort || length > maxLength || loading || submitDisabled}
+          loading={loading}
+          onPress={() => onSubmit(text.trim())}
+        />
       }
     >
-      <ScrollView contentContainerStyle={{ padding: 12, gap: 10 }} keyboardShouldPersistTaps="handled">
-        {explanation ? <CustomText>{explanation}</CustomText> : null}
+      <ScrollView contentContainerStyle={{ padding: spacing.md, gap: spacing.sm, paddingBottom: spacing.xxl }} keyboardShouldPersistTaps="handled">
+        {explanation ? <Text style={[typography.body, { color: colors.text }]}>{explanation}</Text> : null}
         {children}
         <CustomTextInput
+          label={label}
           placeholder={placeholder}
+          accessibilityLabel={label ?? placeholder}
           value={text}
           onChangeText={setText}
           multiline
           maxLength={maxLength}
-          containerStyle={{ maxHeight: 220 }}
+          containerStyle={{ maxHeight: 240 }}
         />
-        <CustomText style={{ fontSize: 13, color: tooShort ? "red" : undefined }}>
-          {minLength > 0 ? `${length}/${minLength} characters minimum · ` : ""}
-          {length}/{maxLength}
-        </CustomText>
+        <Text style={[typography.caption, { color: tooShort && length > 0 ? colors.danger : colors.textMuted }]}>
+          {minLength > 1
+            ? t("market:prompt.countWithMin", { length, min: minLength, max: maxLength })
+            : t("market:prompt.count", { length, max: maxLength })}
+        </Text>
       </ScrollView>
     </CustomOverlay>
   );
