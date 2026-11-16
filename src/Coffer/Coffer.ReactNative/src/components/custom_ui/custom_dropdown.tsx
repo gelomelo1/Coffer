@@ -10,6 +10,7 @@ import {
   SelectLabel,
   selectFieldStyle,
   selectModalProps,
+  useSelectModalInsets,
   SelectOptionRow,
   selectTextStyle,
 } from "./select_shared";
@@ -59,6 +60,7 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
   } = props;
 
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const modalInsets = useSelectModalInsets();
   const isOpen = open ?? uncontrolledOpen;
   const setIsOpen = setOpen ?? setUncontrolledOpen;
 
@@ -74,6 +76,7 @@ function CustomDropdown<T extends ValueType>(props: CustomDropdownProps<T>) {
       <DropDownPicker<T>
         {...rest}
         {...selectModalProps}
+        {...modalInsets}
         open={isOpen}
         searchable={searchable}
         setOpen={setIsOpen}

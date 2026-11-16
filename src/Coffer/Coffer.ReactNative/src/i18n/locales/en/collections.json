@@ -11,5 +11,83 @@
     "namePlaceholder": "Enter a name for your collection",
     "description": "Description",
     "descriptionPlaceholder": "What’s in your collection, and how do you find your pieces? Rare classics, everyday finds, or a bit of everything — tell your story."
+  },
+  "list": {
+    "create": "Create new collection",
+    "sortName": "A–Z",
+    "sortNewest": "Newest",
+    "sortToggle": "Sort order: {{order}}. Tap to change.",
+    "emptyTitle": "No collections yet",
+    "emptyText": "Create your first collection, then add items with the + button."
+  },
+  "create": {
+    "title": "New collection",
+    "submit": "Create",
+    "type": "Collection type",
+    "typePlaceholder": "Choose a collection type",
+    "nameHelper": "Letters, numbers, ., _ and - only.",
+    "nameTaken": "You already have a collection with this name",
+    "created": "Collection created"
+  },
+  "delete": {
+    "title": "Delete collection?",
+    "message": "“{{name}}” and every item in it will be deleted. This can’t be undone.",
+    "confirm": "Delete collection",
+    "done": "Collection deleted"
+  },
+  "info": {
+    "created": "Created {{date}}",
+    "followers_one": "{{count}} follower",
+    "followers_other": "{{count}} followers",
+    "noDescription": "No description yet. Add one with Edit so others can learn what makes your collection special."
+  },
+  "items": {
+    "cardA11y": "{{name}}, {{count}} pieces",
+    "quantity": "×{{count}}",
+    "firstAcquired": "First acquired {{date}}",
+    "filtersOn": "Filtered",
+    "titleOwn": "Your {{type}} collection",
+    "titleOther": "{{user}}'s {{type}} collection",
+    "layoutThree": "Show three per row",
+    "layoutTwo": "Show two per row",
+    "filter": "Filter",
+    "filterCount_one": "Filter ({{count}})",
+    "filterCount_other": "Filter ({{count}})",
+    "emptyTitle": "No items found",
+    "emptyFiltered": "Adjust your filters to see different results.",
+    "emptyText": "Add items to your collection with the + button at the bottom right.",
+    "endOfList": "End of list",
+    "kinds_one": "{{count}} kind of item",
+    "kinds_other": "{{count}} kinds of items",
+    "pieces_one": "{{count}} piece",
+    "pieces_other": "{{count}} pieces"
+  },
+  "sort": {
+    "ascending": "{{field}} ↑",
+    "descending": "{{field}} ↓",
+    "fields": {
+      "quantity": "Quantity",
+      "acquiredAt": "Acquisition date"
+    }
+  },
+  "filter": {
+    "title": "Sort and filter",
+    "sortSection": "Sort",
+    "sortBy": "Sort by",
+    "filterSection": "Filter",
+    "duplicates": "Only duplicates",
+    "firstAcquired": "First piece acquired",
+    "after": "After",
+    "before": "Before",
+    "anyDate": "Any",
+    "contains": "{{name}} contains",
+    "keywords": "Keywords",
+    "equals": "{{name}} equals",
+    "matchingValue": "Exact value",
+    "isTrue": "{{name}}: yes",
+    "dateOf": "{{name}} date",
+    "tags": "Tags",
+    "tagsPlaceholder": "#tag #another",
+    "tagsHelper": "Separate tags with spaces. Pick a suggestion to complete a tag."
   }
 }

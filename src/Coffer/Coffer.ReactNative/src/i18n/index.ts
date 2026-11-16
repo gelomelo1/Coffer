@@ -35,6 +35,11 @@ if (!i18n.isInitialized) {
       console.warn(`[i18n] missing key ${ns}:${key} (${lngs.join(",")})`);
     },
   });
+} else {
+  // Fast Refresh re-runs this module after a locale JSON changes: refresh the loaded bundles in place.
+  for (const [lng, bundles] of Object.entries(resources)) {
+    for (const [ns, bundle] of Object.entries(bundles)) i18n.addResourceBundle(lng, ns, bundle, true, true);
+  }
 }
 
 export default i18n;

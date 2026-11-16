@@ -1,7 +1,8 @@
 import { borders, colors, fonts, sizes, spacing, typography } from "@/src/theme/theme";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React from "react";
-import { Pressable, StyleProp, Text, TextStyle, View, ViewStyle } from "react-native";
+import { Platform, Pressable, StyleProp, Text, TextStyle, View, ViewStyle } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /** Field look shared by every select-like control (dropdowns, autocomplete, country field). */
 export const selectFieldStyle: ViewStyle = {
@@ -18,6 +19,14 @@ export const selectTextStyle: TextStyle = {
   fontFamily: fonts.regular,
   fontSize: 16,
 };
+
+/** Android draws the picker's modal edge-to-edge (under the status bar); iOS presents it inside a safe area. */
+export function useSelectModalInsets() {
+  const insets = useSafeAreaInsets();
+  return {
+    modalContentContainerStyle: { backgroundColor: colors.bg, paddingTop: Platform.OS === "android" ? insets.top : 0, paddingBottom: Platform.OS === "android" ? insets.bottom : 0 },
+  };
+}
 
 /** Props spread into react-native-dropdown-picker for the modal list (MODAL mode). */
 export const selectModalProps = {

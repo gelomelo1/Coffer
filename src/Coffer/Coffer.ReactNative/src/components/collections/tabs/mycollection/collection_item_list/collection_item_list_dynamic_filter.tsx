@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import CustomTextInput from "@/src/components/custom_ui/custom_text_input";
 import { nestedAttributeFilterQuery } from "@/src/const/filter";
 import Attribute from "@/src/types/entities/attribute";
@@ -37,6 +38,7 @@ function CollectionItemListDynamicFilter({
   draftQueryFilterData,
   filterQuery,
 }: CollectionItemListDynamicFilterProps) {
+  const { t } = useTranslation();
   switch (attribute.dataType) {
     case AttributeDataTypes.Multi_Select:
     case AttributeDataTypes.Select:
@@ -55,8 +57,8 @@ function CollectionItemListDynamicFilter({
     case AttributeDataTypes.String: {
       return (
         <CustomTextInput
-          label={`${attribute.name} contains`}
-          placeholder="Write keywords"
+          label={t("collections:filter.contains", { name: attribute.name })}
+          placeholder={t("collections:filter.keywords")}
           defaultValue={(draftQueryFilterData[0]?.value?.value as string) ?? ""}
           onChangeText={(newValue) => {
             if (newValue === "") {
@@ -81,8 +83,8 @@ function CollectionItemListDynamicFilter({
     case AttributeDataTypes.Autocomplete: {
       return (
         <CustomTextInput
-          label={`${attribute.name} contains`}
-          placeholder="Write keywords"
+          label={t("collections:filter.contains", { name: attribute.name })}
+          placeholder={t("collections:filter.keywords")}
           defaultValue={(draftQueryFilterData[0]?.value?.value as string) ?? ""}
           onChangeText={(newValue) => {
             if (newValue === "") {
@@ -107,11 +109,9 @@ function CollectionItemListDynamicFilter({
     case AttributeDataTypes.Number:
       return (
         <CustomTextInput
-          label={`${attribute.name} equals`}
-          placeholder="Write a matching value"
-          defaultValue={
-            (draftQueryFilterData[0]?.value?.value as string).toString() ?? ""
-          }
+          label={t("collections:filter.equals", { name: attribute.name })}
+          placeholder={t("collections:filter.matchingValue")}
+          defaultValue={draftQueryFilterData[0]?.value?.value != null ? String(draftQueryFilterData[0]?.value?.value) : ""}
           onChangeText={(newValue) => {
             if (newValue === "") {
               onQueryFilterDataChange(undefined);

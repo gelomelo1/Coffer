@@ -1,12 +1,11 @@
-import CustomButton from "@/src/components/custom_ui/custom_button";
-import CustomOverlay from "@/src/components/custom_ui/custom_overlay";
-import CustomText from "@/src/components/custom_ui/custom_text";
+import { ConfirmDialog } from "@/src/components/custom_ui/confirm_dialog";
 import { endpoints } from "@/src/const/endpoints";
-import { ROUTES, pageParams } from "@/src/const/navigation_params";
+import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useDeleteData } from "@/src/hooks/data_hooks";
 import { useResetNavigation } from "@/src/hooks/navigation";
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 interface CollectionDeleteFormProps {
   isDeleteCollectionConfirmVisible: {
@@ -15,64 +14,42 @@ interface CollectionDeleteFormProps {
   };
 }
 
-function CollectionDeleteForm({
-  isDeleteCollectionConfirmVisible,
-}: CollectionDeleteFormProps) {
+/** Destructive confirmation before deleting the current collection; returns to the Collections tab. */
+function CollectionDeleteForm({ isDeleteCollectionConfirmVisible }: CollectionDeleteFormProps) {
+  const { t } = useTranslation();
   const resetNavigate = useResetNavigation();
   const { collection } = useCollectionStore();
 
-  const { mutateAsync: deleteCollection, isPending: isDeletePending } =
-    useDeleteData(endpoints.collections);
+  const { mutateAsync: deleteCollection, isPending } = useDeleteData(endpoints.collections, undefined, t("collections:delete.done"));
 
-  const handleOverlayClose = () => {
-    if (isDeletePending) return;
-
+  const close = () => {
+    if (isPending) return;
     isDeleteCollectionConfirmVisible.set(false);
   };
 
   const handleDelete = async () => {
+    if (!collection) return;
     try {
       await deleteCollection(collection.id);
-      handleOverlayClose();
-      resetNavigate({
-        pathname: ROUTES.COLLECTIONS.ROOT,
-        params: pageParams.collections,
-      });
+      isDeleteCollectionConfirmVisible.set(false);
+      resetNavigate({ pathname: ROUTES.TABS.COLLECTIONS, params: pageParams.collections });
     } catch (error) {
-      handleOverlayClose();
+      isDeleteCollectionConfirmVisible.set(false);
       console.error("Failed to delete collection:", error);
     }
   };
 
   return (
-    <CustomOverlay
+    <ConfirmDialog
       isVisible={isDeleteCollectionConfirmVisible.value}
-      onClose={handleOverlayClose}
-      overlayTitle={"Delete Collection"}
-      footerContent={
-        <CustomButton
-          title="Delete"
-          containerStyle={{ width: "90%", alignSelf: "center" }}
-          loading={isDeletePending}
-          onPress={handleDelete}
-        />
-      }
-    >
-      <CustomText
-        style={{
-          marginHorizontal: 10,
-          marginVertical: 10,
-          textAlign: "center",
-          fontSize: 20,
-        }}
-      >
-        Are you sure you want to delete{" "}
-        <CustomText style={{ fontSize: 20, fontFamily: "VendSansBold" }}>
-          {collection.name}
-        </CustomText>{" "}
-        collection?
-      </CustomText>
-    </CustomOverlay>
+      title={t("collections:delete.title")}
+      message={t("collections:delete.message", { name: collection?.name ?? "" })}
+      confirmLabel={t("collections:delete.confirm")}
+      destructive
+      loading={isPending}
+      onConfirm={handleDelete}
+      onCancel={close}
+    />
   );
 }
 

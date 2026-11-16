@@ -1,4 +1,6 @@
-import CustomText from "@/src/components/custom_ui/custom_text";
+import { EmptyState } from "@/src/components/custom_ui/states";
+import { colors, spacing, typography } from "@/src/theme/theme";
+import { useTranslation } from "react-i18next";
 import { Loading } from "@/src/components/custom_ui/loading";
 import { asyncstoragekeys } from "@/src/const/async_storage_keys";
 import Attribute from "@/src/types/entities/attribute";
@@ -10,12 +12,7 @@ import { QueryOptions } from "@/src/types/helpers/query_data";
 import { chunkArray } from "@/src/utils/data_access_utils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
-import {
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  SectionList,
-  View,
-} from "react-native";
+import { NativeScrollEvent, NativeSyntheticEvent, SectionList, Text, View } from "react-native";
 import CollectionInfoCard from "../collection_info/collection_info_card";
 import CollectionItemListCard from "./collection_item_list_card";
 import CollectionItemHeader from "./collection_list_header";
@@ -40,6 +37,7 @@ function CollectionSectionList({
   allLoading,
   queryOptions,
 }: CollectionSectionListProps) {
+  const { t } = useTranslation();
   const [isLayoutModeLoading, setIsLayoutModeLoading] = useState(false);
 
   const isLoading = allLoading || isLayoutModeLoading;
@@ -109,39 +107,16 @@ function CollectionSectionList({
           {isLoading && <Loading />}
 
           {!isLoading && items.length === 0 ? (
-            <>
-              <View
-                style={{
-                  justifyContent: "center",
-                  alignItems: "center",
-                  marginHorizontal: 10,
-                  marginTop: 20,
-                }}
-              >
-                <CustomText
-                  style={{ fontFamily: "VendSansBold", fontSize: 20 }}
-                >
-                  No item found
-                </CustomText>
-                <CustomText style={{ textAlign: "center" }}>
-                  {queryOptions.value.filters
-                    ? `Adjust your filter to see different results`
-                    : "Let's start adding items to your collection, by pressing the + button on the bottom right."}
-                </CustomText>
-              </View>
-            </>
+            <EmptyState
+              icon={queryOptions.value.filters ? "filter-alt-off" : "add-photo-alternate"}
+              title={t("collections:items.emptyTitle")}
+              text={queryOptions.value.filters ? t("collections:items.emptyFiltered") : t("collections:items.emptyText")}
+            />
           ) : null}
         </>
       )}
       renderItem={({ item }) => (
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "center",
-            gap: 10,
-            marginHorizontal: 10,
-          }}
-        >
+        <View style={{ flexDirection: "row", gap: spacing.md, marginHorizontal: spacing.md }}>
           {item.map((i) => (
             <CollectionItemListCard
               key={i.id}
@@ -154,19 +129,13 @@ function CollectionSectionList({
       )}
       stickySectionHeadersEnabled
       ListFooterComponent={
-        <CustomText
-          style={{
-            textAlign: "center",
-            fontFamily: "VendSansItalic",
-            marginTop: 20,
-            marginBottom: 20,
-          }}
-        >
-          End of list
-        </CustomText>
+        items.length > 0 ? (
+          <Text style={[typography.meta, { color: colors.textMuted, textAlign: "center", paddingVertical: spacing.xl }]}>{t("collections:items.endOfList")}</Text>
+        ) : null
       }
-      contentContainerStyle={{ paddingTop: 20, paddingBottom: 40 }}
-      ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+      contentContainerStyle={{ paddingBottom: spacing.xxl * 2 }}
+      ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
+      style={{ backgroundColor: colors.bg }}
     />
   );
 }

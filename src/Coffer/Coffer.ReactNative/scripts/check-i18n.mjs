@@ -186,6 +186,9 @@ function checkFile(file, namespaces, problems) {
           const s = stringValue(a);
           if (userText(s)) report(a, `hardcoded toast text "${s}"`);
         }
+      } else if (ts.isIdentifier(callee) && /^set\w*(Error|Message|Text|Title|Label)\w*$/.test(callee.text)) {
+        const s = stringValue(node.arguments[0]);
+        if (userText(s)) report(node.arguments[0], `hardcoded text passed to ${callee.text}("${s}")`);
       } else if (calleeText === "Alert.alert") {
         for (const a of node.arguments.slice(0, 2)) {
           const s = stringValue(a);

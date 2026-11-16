@@ -1,187 +1,94 @@
+import { SectionHeader } from "@/src/components/custom_ui/card";
 import CustomButton from "@/src/components/custom_ui/custom_button";
 import CustomHTMLView from "@/src/components/custom_ui/custom_html_view";
 import CustomImage from "@/src/components/custom_ui/custom_image";
-import CustomText from "@/src/components/custom_ui/custom_text";
+import { isRichTextEmpty } from "@/src/components/custom_ui/rich_text_field";
 import { endpoints } from "@/src/const/endpoints";
 import { useCollectionStore } from "@/src/hooks/collection_store";
-import { useUserStore } from "@/src/hooks/user_store";
-import { customTheme } from "@/src/theme/theme";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import Entypo from "@expo/vector-icons/Entypo";
+import { borders, colors, spacing, typography } from "@/src/theme/theme";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React, { useState } from "react";
-import { TouchableOpacity, View } from "react-native";
-import { Button } from "react-native-elements";
+import { useTranslation } from "react-i18next";
+import { Text, View } from "react-native";
 import CollectionDeleteForm from "./collection_delete_form";
 import CollectionInfoEditForm from "./collection_info_edit_form";
 
+/** Header of the user's own collection: cover, name, stats, edit / delete, description. */
 function CollectionInfoCard() {
-  const { token } = useUserStore();
-  const { collection } = useCollectionStore();
+  const { t, i18n } = useTranslation();
+  const { collection, collectionType } = useCollectionStore();
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
-  const [
-    isDeleteCollectionConfirmVisible,
-    setIsDeleteCollectionConfirmVisible,
-  ] = useState(false);
-
-  const [isCollectionInfoEditFormOpen, setIsCollectionInfoEditFormOpen] =
-    useState(false);
+  if (!collection) return null;
 
   return (
     <>
-      <View
-        style={{
-          borderWidth: 4,
-          borderColor: customTheme.colors.primary,
-          borderTopLeftRadius: 20,
-          borderTopRightRadius: 20,
-          marginHorizontal: 10,
-          marginBottom: 10,
-        }}
-      >
-        <View
-          style={{
-            height: 150,
-            flexDirection: "row",
-            margin: 5,
-            marginBottom: 10,
-            gap: 5,
-          }}
-        >
+      <View style={{ marginHorizontal: spacing.md, marginTop: spacing.md, borderWidth: borders.width, borderColor: colors.border, backgroundColor: colors.surface }}>
+        <View style={{ flexDirection: "row", gap: spacing.md, padding: spacing.md, flexWrap: "wrap" }}>
           <View
             style={{
-              position: "relative",
-              width: 150,
-              borderWidth: 1,
-              borderColor: customTheme.colors.primary,
+              width: 112,
+              height: 112,
+              borderWidth: borders.width,
+              borderColor: colors.border,
+              backgroundColor: collectionType?.color ?? colors.surfaceAlt,
+              alignItems: "center",
               justifyContent: "center",
+              overflow: "hidden",
             }}
           >
-            {collection!.image ? (
+            {collection.image ? (
               <CustomImage
-                uri={`${endpoints.collectionsCoverImage}/${collection!.image}`}
-                style={{ width: "100%", aspectRatio: 1, resizeMode: "cover" }}
-                enableFullScreenView={true}
+                uri={`${endpoints.collectionsCoverImage}/${collection.image}`}
+                style={{ width: "100%", height: "100%", resizeMode: "cover" }}
+                enableFullScreenView
               />
             ) : (
-              <CustomText
-                style={{
-                  fontFamily: "VendSansItalic",
-                  fontSize: 14,
-                  textAlign: "center",
-                }}
-              >
-                No cover image uploaded
-              </CustomText>
+              <MaterialIcons name="image-not-supported" size={32} color={colors.text} accessibilityLabel={t("collections:edit.noCoverImage")} />
             )}
           </View>
-          <View
-            style={{
-              flex: 1,
-            }}
-          >
-            <CustomText
-              style={{ fontFamily: "VendSansBold", fontSize: 20 }}
-              numberOfLines={2}
-              ellipsizeMode="tail"
-            >
-              {collection!.name}
-            </CustomText>
-            <CustomText>
-              {new Date(collection!.createdAt).toLocaleDateString()}
-            </CustomText>
-            <CustomText style={{ fontFamily: "VendSansBold" }}>
-              {collection!.follows.length} <CustomText>follower</CustomText>
-            </CustomText>
+          <View style={{ flex: 1, minWidth: 140, gap: spacing.xxs }}>
+            <Text accessibilityRole="header" style={[typography.headline, { color: colors.text }]} numberOfLines={3}>
+              {collection.name}
+            </Text>
+            <Text style={[typography.meta, { color: colors.textMuted }]}>
+              {t("collections:info.created", { date: new Date(collection.createdAt).toLocaleDateString(i18n.language) })}
+            </Text>
+            <Text style={[typography.bodyStrong, { color: colors.text }]}>{t("collections:info.followers", { count: collection.follows.length })}</Text>
           </View>
         </View>
-        <View
-          style={{
-            flexDirection: "row",
-            marginBottom: 1,
-          }}
-        >
-          <View
-            style={{
-              flex: 1,
-              marginRight: 1,
-            }}
-          >
-            <CustomButton
-              title={"Edit"}
-              icon={
-                <Entypo
-                  name="edit"
-                  size={20}
-                  color={customTheme.colors.secondary}
-                  style={{ marginRight: 5 }}
-                />
-              }
-              onPress={() => setIsCollectionInfoEditFormOpen(true)}
-            />
-          </View>
-          <TouchableOpacity
-            style={{ flex: 1, marginBottom: -1 }}
-            onPress={() => setIsDeleteCollectionConfirmVisible(true)}
-          >
-            <Button
-              title={"Delete"}
-              containerStyle={{
-                flex: 1,
-                borderRadius: 0,
-              }}
-              disabled={true}
-              disabledStyle={{
-                flex: 1,
-                backgroundColor: "red",
-                borderRadius: 0,
-              }}
-              disabledTitleStyle={{ color: "white" }}
-              icon={
-                <AntDesign
-                  name="delete"
-                  size={20}
-                  color={"white"}
-                  style={{ marginRight: 5 }}
-                />
-              }
-            />
-          </TouchableOpacity>
+        <View style={{ flexDirection: "row", gap: spacing.sm, padding: spacing.md, paddingTop: 0 }}>
+          <CustomButton
+            title={t("common:actions.edit")}
+            variant="outline"
+            size="sm"
+            icon={<MaterialIcons name="edit" size={18} color={colors.text} />}
+            onPress={() => setIsEditOpen(true)}
+            containerStyle={{ flex: 1 }}
+          />
+          <CustomButton
+            title={t("common:actions.delete")}
+            variant="danger"
+            size="sm"
+            icon={<MaterialIcons name="delete-outline" size={18} color={colors.onPrimary} />}
+            onPress={() => setIsDeleteOpen(true)}
+            containerStyle={{ flex: 1 }}
+          />
         </View>
       </View>
-      <View style={{ marginHorizontal: 10 }}>
-        <CustomText
-          style={{
-            fontSize: 18,
-            fontFamily: "VendSansBold",
-            borderLeftWidth: 4,
-            borderLeftColor: customTheme.colors.secondary,
-            paddingLeft: 5,
-            paddingVertical: 5,
-          }}
-        >
-          Description
-        </CustomText>
-        {collection!.description ? (
-          <CustomHTMLView content={collection!.description} foldable={true} />
+      <View style={{ marginHorizontal: spacing.md }}>
+        <SectionHeader title={t("collections:edit.description")} />
+        {!isRichTextEmpty(collection.description) ? (
+          <View style={{ marginHorizontal: -spacing.sm }}>
+            <CustomHTMLView content={collection.description!} foldable />
+          </View>
         ) : (
-          <CustomText style={{ fontFamily: "VendSansItalic" }}>
-            You don’t have an introduction for your collection yet—add one so
-            others can learn more about what makes your collection special!
-          </CustomText>
+          <Text style={[typography.meta, { color: colors.textMuted }]}>{t("collections:info.noDescription")}</Text>
         )}
       </View>
-      <CollectionDeleteForm
-        isDeleteCollectionConfirmVisible={{
-          value: isDeleteCollectionConfirmVisible,
-          set: setIsDeleteCollectionConfirmVisible,
-        }}
-      />
-      <CollectionInfoEditForm
-        isCollectionInfoEditOverlayOpen={{
-          value: isCollectionInfoEditFormOpen,
-          set: setIsCollectionInfoEditFormOpen,
-        }}
-      />
+      <CollectionDeleteForm isDeleteCollectionConfirmVisible={{ value: isDeleteOpen, set: setIsDeleteOpen }} />
+      <CollectionInfoEditForm isCollectionInfoEditOverlayOpen={{ value: isEditOpen, set: setIsEditOpen }} />
     </>
   );
 }

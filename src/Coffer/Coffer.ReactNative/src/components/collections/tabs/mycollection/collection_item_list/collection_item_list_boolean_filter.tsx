@@ -1,6 +1,8 @@
-import CustomText from "@/src/components/custom_ui/custom_text";
+import { Chip, ChipRow } from "@/src/components/custom_ui/chip";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { useTranslation } from "react-i18next";
 import { nestedAttributeFilterQuery } from "@/src/const/filter";
-import { customTheme } from "@/src/theme/theme";
+import { colors } from "@/src/theme/theme";
 import Attribute from "@/src/types/entities/attribute";
 import {
   AttributeTypes,
@@ -8,7 +10,6 @@ import {
 } from "@/src/types/helpers/attribute_data";
 import { QueryFilterData } from "@/src/types/helpers/query_data";
 import { useEffect, useState } from "react";
-import { Switch, View } from "react-native";
 
 interface CollectionItemListBooleanFilterProps {
   attribute: Attribute;
@@ -32,6 +33,7 @@ function CollectionItemListBooleanFilter({
   draftQueryFilterData,
   filterQuery,
 }: CollectionItemListBooleanFilterProps) {
+  const { t } = useTranslation();
   const [isOn, setIsOn] = useState(false);
 
   useEffect(() => {
@@ -39,32 +41,25 @@ function CollectionItemListBooleanFilter({
       setIsOn((draftQueryFilterData?.value?.value as boolean) ?? false);
   }, [isBottomSheetVisible]);
 
+  const toggle = () => {
+    const newValue = !isOn;
+    setIsOn(newValue);
+    if (filterQuery) {
+      onQueryFilterDataChange({ filter: "None", field: filterQuery(attribute.id, "valueBoolean", newValue), value: "" });
+    } else {
+      onQueryFilterDataChange({ field: nestedAttributeFilterQuery(attribute.id, "valueBoolean"), value: newValue });
+    }
+  };
+
   return (
-    <View style={{ justifyContent: "flex-end", flexDirection: "row" }}>
-      <CustomText>{`Is ${attribute.name}`}</CustomText>
-      <Switch
-        value={isOn}
-        onValueChange={(newValue) => {
-          setIsOn(newValue);
-          if (filterQuery) {
-            onQueryFilterDataChange({
-              filter: "None",
-              field: filterQuery
-                ? filterQuery(attribute.id, "valueBoolean", newValue)
-                : nestedAttributeFilterQuery(attribute.id, "valueBoolean"),
-              value: "",
-            });
-          } else {
-            onQueryFilterDataChange({
-              field: nestedAttributeFilterQuery(attribute.id, "valueBoolean"),
-              value: newValue,
-            });
-          }
-        }}
-        trackColor={{ true: customTheme.colors.secondary }}
-        thumbColor={customTheme.colors.primary}
+    <ChipRow>
+      <Chip
+        label={t("collections:filter.isTrue", { name: attribute.name })}
+        selected={isOn}
+        icon={<MaterialIcons name={isOn ? "check-box" : "check-box-outline-blank"} size={18} color={colors.text} />}
+        onPress={toggle}
       />
-    </View>
+    </ChipRow>
   );
 }
 

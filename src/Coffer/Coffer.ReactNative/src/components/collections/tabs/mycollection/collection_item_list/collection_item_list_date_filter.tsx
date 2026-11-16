@@ -1,5 +1,5 @@
-import CustomText from "@/src/components/custom_ui/custom_text";
-import CustomTextInput from "@/src/components/custom_ui/custom_text_input";
+import MonthRangeField from "@/src/components/custom_ui/month_range_field";
+import { useTranslation } from "react-i18next";
 import { nestedAttributeFilterQuery } from "@/src/const/filter";
 import Attribute from "@/src/types/entities/attribute";
 import {
@@ -8,7 +8,7 @@ import {
 } from "@/src/types/helpers/attribute_data";
 import { QueryFilterData } from "@/src/types/helpers/query_data";
 import { useEffect, useState } from "react";
-import { TouchableOpacity, View } from "react-native";
+import { View } from "react-native";
 import MonthPicker from "react-native-month-year-picker";
 
 interface CollectionItemListDateFilterProps {
@@ -39,6 +39,7 @@ function CollectionItemListDateFilter({
   const [acquiredAtAfterDate, setAcquiredAtAfterDate] = useState<Date | null>(
     null,
   );
+  const { t } = useTranslation();
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [datePickerId, setDatePickerId] = useState<"before" | "after">(
     "before",
@@ -100,46 +101,15 @@ function CollectionItemListDateFilter({
   };
 
   return (
-    <>
-      <CustomText style={{ marginTop: 10 }}>
-        {`${attribute.name} date`}
-      </CustomText>
-      <View
-        style={{
-          position: "relative",
-          width: "100%",
-          justifyContent: "space-between",
-          flexDirection: "row",
-        }}
-      >
-        <TouchableOpacity
-          style={{ width: "48%" }}
-          onPress={() => handleDatePickerInput("after")}
-        >
-          <CustomTextInput
-            label="After Date"
-            editable={false}
-            value={acquiredAtAfterDate?.toLocaleDateString() ?? ""}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={{ width: "48%" }}
-          onPress={() => handleDatePickerInput("before")}
-        >
-          <CustomTextInput
-            label="Before Date"
-            editable={false}
-            value={acquiredAtBeforeDate?.toLocaleDateString() ?? ""}
-          />
-        </TouchableOpacity>
-        {isDatePickerOpen ? (
-          <MonthPicker
-            value={getDateValue()}
-            onChange={(event, newDate) => handleDateChange(newDate)}
-          />
-        ) : null}
-      </View>
-    </>
+    <View>
+      <MonthRangeField
+        label={t("collections:filter.dateOf", { name: attribute.name })}
+        after={acquiredAtAfterDate}
+        before={acquiredAtBeforeDate}
+        onPick={handleDatePickerInput}
+      />
+      {isDatePickerOpen ? <MonthPicker value={getDateValue()} onChange={(event, newDate) => handleDateChange(newDate)} /> : null}
+    </View>
   );
 }
 

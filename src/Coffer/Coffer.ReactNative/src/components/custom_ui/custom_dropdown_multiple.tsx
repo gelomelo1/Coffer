@@ -10,6 +10,7 @@ import {
   SelectLabel,
   selectFieldStyle,
   selectModalProps,
+  useSelectModalInsets,
   SelectOptionRow,
   selectTextStyle,
 } from "./select_shared";
@@ -63,6 +64,7 @@ function CustomDropdownMultiple<T extends ValueType>(props: CustomDropdownMultip
   } = props;
 
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const modalInsets = useSelectModalInsets();
 
   const dropdownItems: CustomDropdownItem<T>[] = [
     { label: t("common:actions.none"), value: undefined as unknown as T }, // special value: clear all
@@ -76,6 +78,7 @@ function CustomDropdownMultiple<T extends ValueType>(props: CustomDropdownMultip
       <DropDownPicker<T>
         {...rest}
         {...selectModalProps}
+        {...modalInsets}
         open={open ?? uncontrolledOpen}
         searchable={searchable}
         setOpen={setOpen ?? setUncontrolledOpen}

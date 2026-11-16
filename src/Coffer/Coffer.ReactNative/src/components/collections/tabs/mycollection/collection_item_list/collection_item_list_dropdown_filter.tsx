@@ -63,7 +63,7 @@ function CollectionItemListDropdownFilter({
   return (
     <CustomDropdownMultiple
       open={dropDownIsOpen}
-      label={`${attribute.name} select`}
+      label={attribute.name}
       value={selectValue}
       setOpen={setDropDownIsOpen}
       setValue={(newValue) => {
@@ -77,7 +77,6 @@ function CollectionItemListDropdownFilter({
         if (newValue === null || newValue.length === 0) {
           onQueryFilterDataChange(undefined, undefined, undefined);
         } else {
-          console.log(newValue);
           onQueryFilterDataChange(undefined, undefined, {
             conjunction: "OR",
             filters: newValue.map((value) => ({

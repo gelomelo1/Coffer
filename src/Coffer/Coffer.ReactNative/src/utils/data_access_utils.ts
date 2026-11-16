@@ -1,3 +1,4 @@
+import i18n from "../i18n";
 import * as ImagePicker from "expo-image-picker";
 import { FlagType, getAllCountries } from "react-native-country-picker-modal";
 import {
@@ -105,15 +106,11 @@ export function parseSortKeysToQuerySortData(keys: string[]): QuerySortData[] {
 export function generateSortRecordDataForItem(
   attributes: Attribute[],
 ): { value: string; label: string }[] {
+  // Built-in sort fields are app text (translated); attribute names are collection-type data (shown as stored).
+  const fieldName = (option: string) => i18n.t(`collections:sort.fields.${option}`, { defaultValue: lowerCamelCaseToNormalFormat(option) });
   const records = itemSortDefaultOptions.flatMap((option) => [
-    {
-      value: `${option}_asc`,
-      label: `${lowerCamelCaseToNormalFormat(option)} ascending`,
-    },
-    {
-      value: `${option}_desc`,
-      label: `${lowerCamelCaseToNormalFormat(option)} descending`,
-    },
+    { value: `${option}_asc`, label: i18n.t("collections:sort.ascending", { field: fieldName(option) }) },
+    { value: `${option}_desc`, label: i18n.t("collections:sort.descending", { field: fieldName(option) }) },
   ]);
 
   const primaryAttribute = attributes.find((attribute) => attribute.primary);
@@ -123,14 +120,8 @@ export function generateSortRecordDataForItem(
     const key = getAttributeValue(primaryAttribute);
     const nestedSortQuery = nestedAttributeFilterQuery(id, key);
     records.push(
-      {
-        value: `${nestedSortQuery}_asc`,
-        label: `${lowerCamelCaseToNormalFormat(name)} ascending`,
-      },
-      {
-        value: `${nestedSortQuery}_desc`,
-        label: `${lowerCamelCaseToNormalFormat(name)} descending`,
-      },
+      { value: `${nestedSortQuery}_asc`, label: i18n.t("collections:sort.ascending", { field: name }) },
+      { value: `${nestedSortQuery}_desc`, label: i18n.t("collections:sort.descending", { field: name }) },
     );
   }
 

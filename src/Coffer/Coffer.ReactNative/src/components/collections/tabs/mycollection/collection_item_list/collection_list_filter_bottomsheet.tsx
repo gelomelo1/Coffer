@@ -1,14 +1,16 @@
 import CustomButton from "@/src/components/custom_ui/custom_button";
 import CustomDropdown from "@/src/components/custom_ui/custom_dropdown";
-import CustomText from "@/src/components/custom_ui/custom_text";
-import CustomTextInput from "@/src/components/custom_ui/custom_text_input";
+import { SectionHeader } from "@/src/components/custom_ui/card";
+import { Chip, ChipRow } from "@/src/components/custom_ui/chip";
+import MonthRangeField from "@/src/components/custom_ui/month_range_field";
+import SheetModal from "@/src/components/custom_ui/sheet_modal";
 import {
   acquiredAtItemFilterKey,
   nestedTagFilterQuery,
   quantityItemFilterKey,
   tagItemFilterKey,
 } from "@/src/const/filter";
-import { customTheme } from "@/src/theme/theme";
+import { colors, spacing } from "@/src/theme/theme";
 import Attribute from "@/src/types/entities/attribute";
 import { ItemProvided } from "@/src/types/entities/item";
 import {
@@ -26,11 +28,10 @@ import {
 } from "@/src/utils/data_access_utils";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useEffect, useState } from "react";
-import { TouchableOpacity, View } from "react-native";
-import { Overlay, Switch } from "react-native-elements";
+import { useTranslation } from "react-i18next";
+import { View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import MonthPicker from "react-native-month-year-picker";
-import { SafeAreaView } from "react-native-safe-area-context";
 import CollectionItemListDynamicFilter from "./collection_item_list_dynamic_filter";
 import CollectionListTagFilter from "./collection_list_tag_filter";
 
@@ -52,6 +53,7 @@ function CollectionListFilterBottomSheet({
   setQueryOptions,
   itemTags,
 }: CollectionListFilterBottomSheetProps) {
+  const { t } = useTranslation();
   const [isSortingDropdownOpen, setIsSortingDropdownOpen] = useState(false);
 
   const [selectedSortId, setSelectedSortId] = useState<string | null>(null);
@@ -215,238 +217,87 @@ function CollectionListFilterBottomSheet({
   };
 
   return (
-    <Overlay
-      isVisible={isCollectionListFilterBottomSheetOpen.value}
-      onBackdropPress={handleCloseBottomSheet}
-      overlayStyle={{
-        backgroundColor: customTheme.colors.background,
-        margin: 0,
-        padding: 0,
-      }}
-      fullScreen
-      animationType="slide"
+    <SheetModal
+      visible={isCollectionListFilterBottomSheetOpen.value}
+      onClose={handleCloseBottomSheet}
+      title={t("collections:filter.title")}
+      headerRight={<CustomButton title={t("common:actions.reset")} variant="ghost" size="sm" onPress={resetFilters} containerStyle={{ alignSelf: "center" }} />}
+      footer={<CustomButton title={t("common:actions.apply")} onPress={handleOnApply} />}
     >
-      <SafeAreaView style={{ flex: 1 }}>
-        <View>
-          <View
-            style={{
-              position: "relative",
-              backgroundColor: customTheme.colors.background,
-
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              borderBottomWidth: 2,
-              borderBottomColor: customTheme.colors.primary,
-              paddingBottom: 10,
-              paddingHorizontal: 10,
-              zIndex: 1,
-              boxShadow: `0px 2px 2px ${customTheme.colors.primary}`,
-            }}
-          >
-            <CustomButton
-              title={"Reset"}
-              containerStyle={{
-                width: 80,
-                alignSelf: "flex-start",
-                borderRadius: 40,
-              }}
-              buttonStyle={{
-                borderRadius: 40,
-                margin: 0,
-                padding: 0,
-              }}
-              onPress={resetFilters}
-            />
-            <MaterialIcons
-              name="clear"
-              size={32}
-              color={customTheme.colors.primary}
-              onPress={handleCloseBottomSheet}
-              style={{ alignSelf: "flex-end" }}
-            />
-          </View>
-        </View>
-        <View style={{ flex: 1 }}>
-          {
-            <KeyboardAwareScrollView
-              enableOnAndroid
-              extraScrollHeight={250}
-              enableResetScrollToCoords={false}
-            >
-              <View
-                style={{
-                  paddingHorizontal: 10,
-                  justifyContent: "center",
-                }}
-              >
-                <CustomText style={{ fontSize: 24, marginLeft: 20 }}>
-                  Sort
-                </CustomText>
-                <CustomDropdown
-                  open={isSortingDropdownOpen}
-                  label={"Sort by"}
-                  value={draftSortId}
-                  setOpen={setIsSortingDropdownOpen}
-                  setValue={setDraftSortId}
-                  items={generateSortRecordDataForItem(attributes)}
-                />
-                <CustomText
-                  style={{ fontSize: 24, marginLeft: 20, marginTop: 20 }}
-                >
-                  Filter
-                </CustomText>
-                <View style={{ marginBottom: 10 }}>
-                  <View
-                    style={{ justifyContent: "flex-end", flexDirection: "row" }}
-                  >
-                    <CustomText>Duplicate</CustomText>
-                    <Switch
-                      value={isDuplicateSwitchOn}
-                      trackColor={{ true: customTheme.colors.secondary }}
-                      thumbColor={customTheme.colors.primary}
-                      onValueChange={(newValue) => {
-                        setIsDuplicateSwitchOn(newValue);
-                        handleChangeFilterData({
-                          id: quantityItemFilterKey,
-                          value: {
-                            filter: ">",
-                            field: quantityItemFilterKey,
-                            value: newValue ? 1 : 0,
-                          },
-                        });
-                      }}
-                    />
-                  </View>
-                  <CollectionListTagFilter
-                    defaultValue={
-                      (getFilterData(tagItemFilterKey)?.value
-                        ?.value as string) ?? ""
-                    }
-                    setValue={(newValue) => {
-                      if (newValue.length === 0) {
-                        handleChangeFilterData({
-                          id: tagItemFilterKey,
-                          value: undefined,
-                          filterTree: undefined,
-                        });
-                      } else {
-                        handleChangeFilterData({
-                          id: tagItemFilterKey,
-                          value: {
-                            filter: "None",
-                            field: nestedTagFilterQuery(newValue),
-                            value: `#${newValue.join(" #")}`,
-                          },
-                        });
-                      }
-                    }}
-                    items={itemTags}
-                  />
-                  <CustomText style={{ marginTop: 10 }}>
-                    First piece acquisition date
-                  </CustomText>
-                  <View
-                    style={{
-                      position: "relative",
-                      width: "100%",
-                      justifyContent: "space-between",
-                      flexDirection: "row",
-                    }}
-                  >
-                    <TouchableOpacity
-                      style={{ width: "48%" }}
-                      onPress={() => handleDatePickerInput("after")}
-                    >
-                      <CustomTextInput
-                        label="After Date"
-                        editable={false}
-                        value={acquiredAtAfterDate?.toLocaleDateString() ?? ""}
-                      />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={{ width: "48%" }}
-                      onPress={() => handleDatePickerInput("before")}
-                    >
-                      <CustomTextInput
-                        label="Before Date"
-                        editable={false}
-                        value={acquiredAtBeforeDate?.toLocaleDateString() ?? ""}
-                      />
-                    </TouchableOpacity>
-                    {isDatePickerOpen ? (
-                      <MonthPicker
-                        value={getDateValue()}
-                        onChange={(event, newDate) => handleDateChange(newDate)}
-                      />
-                    ) : null}
-                  </View>
-                  {attributes
-                    .slice()
-                    .sort((a, b) => {
-                      if (a.primary && !b.primary) return -1;
-                      if (!a.primary && b.primary) return 1;
-                      return 0;
-                    })
-                    .map((attribute) => (
-                      <CollectionItemListDynamicFilter
-                        key={attribute.id}
-                        attribute={attribute}
-                        isBottomSheetVisible={
-                          isCollectionListFilterBottomSheetOpen.value
-                        }
-                        onQueryFilterDataChange={(filter, id, filterTree) => {
-                          console.log(filterTree);
-                          handleChangeFilterData({
-                            id: id ?? attribute.id,
-                            value: filter,
-                            filterTree: filterTree,
-                          });
-                        }}
-                        draftQueryFilterData={
-                          attribute.dataType === AttributeDataTypes.Date
-                            ? [
-                                getFilterData(`${attribute.id}_before`),
-                                getFilterData(`${attribute.id}_after`),
-                              ].filter(
-                                (f): f is QueryFilterDataItem =>
-                                  f !== undefined,
-                              )
-                            : [getFilterData(attribute.id)].filter(
-                                (f): f is QueryFilterDataItem =>
-                                  f !== undefined,
-                              )
-                        }
-                      />
-                    ))}
-                </View>
-              </View>
-            </KeyboardAwareScrollView>
-          }
-        </View>
-        <View
-          style={{
-            height: 80,
-            backgroundColor: customTheme.colors.background,
-            borderTopWidth: 2,
-            borderLeftWidth: 2,
-            borderRightWidth: 2,
-            borderBottomColor: customTheme.colors.primary,
-            borderTopLeftRadius: 10,
-            borderTopRightRadius: 10,
-            justifyContent: "center",
-            alignItems: "center",
-            boxShadow: `0px -2px 2px ${customTheme.colors.primary}`,
-          }}
-        >
-          <CustomButton
-            title={"Apply"}
-            containerStyle={{ width: "90%", alignSelf: "center" }}
-            onPress={handleOnApply}
+      <KeyboardAwareScrollView enableOnAndroid extraScrollHeight={120} enableResetScrollToCoords={false} keyboardShouldPersistTaps="handled">
+        <View style={{ padding: spacing.md, paddingTop: 0, gap: spacing.md }}>
+          <SectionHeader title={t("collections:filter.sortSection")} />
+          <CustomDropdown
+            open={isSortingDropdownOpen}
+            label={t("collections:filter.sortBy")}
+            value={draftSortId}
+            setOpen={setIsSortingDropdownOpen}
+            setValue={setDraftSortId}
+            items={generateSortRecordDataForItem(attributes)}
           />
+
+          <SectionHeader title={t("collections:filter.filterSection")} />
+          <ChipRow>
+            <Chip
+              label={t("collections:filter.duplicates")}
+              selected={isDuplicateSwitchOn}
+              icon={<MaterialIcons name={isDuplicateSwitchOn ? "check-box" : "check-box-outline-blank"} size={18} color={colors.text} />}
+              onPress={() => {
+                const newValue = !isDuplicateSwitchOn;
+                setIsDuplicateSwitchOn(newValue);
+                handleChangeFilterData({
+                  id: quantityItemFilterKey,
+                  value: { filter: ">", field: quantityItemFilterKey, value: newValue ? 1 : 0 },
+                });
+              }}
+            />
+          </ChipRow>
+          <CollectionListTagFilter
+            defaultValue={(getFilterData(tagItemFilterKey)?.value?.value as string) ?? ""}
+            setValue={(newValue) => {
+              if (newValue.length === 0) {
+                handleChangeFilterData({ id: tagItemFilterKey, value: undefined, filterTree: undefined });
+              } else {
+                handleChangeFilterData({
+                  id: tagItemFilterKey,
+                  value: { filter: "None", field: nestedTagFilterQuery(newValue), value: `#${newValue.join(" #")}` },
+                });
+              }
+            }}
+            items={itemTags}
+          />
+          <View style={{ gap: spacing.xs }}>
+            <MonthRangeField
+              label={t("collections:filter.firstAcquired")}
+              after={acquiredAtAfterDate}
+              before={acquiredAtBeforeDate}
+              onPick={handleDatePickerInput}
+            />
+            {isDatePickerOpen ? <MonthPicker value={getDateValue()} onChange={(event, newDate) => handleDateChange(newDate)} /> : null}
+          </View>
+          {attributes
+            .slice()
+            .sort((a, b) => (a.primary && !b.primary ? -1 : !a.primary && b.primary ? 1 : 0))
+            .map((attribute) => (
+              <CollectionItemListDynamicFilter
+                key={attribute.id}
+                attribute={attribute}
+                isBottomSheetVisible={isCollectionListFilterBottomSheetOpen.value}
+                onQueryFilterDataChange={(filter, id, filterTree) => {
+                  handleChangeFilterData({ id: id ?? attribute.id, value: filter, filterTree: filterTree });
+                }}
+                draftQueryFilterData={
+                  attribute.dataType === AttributeDataTypes.Date
+                    ? [getFilterData(`${attribute.id}_before`), getFilterData(`${attribute.id}_after`)].filter(
+                        (f): f is QueryFilterDataItem => f !== undefined,
+                      )
+                    : [getFilterData(attribute.id)].filter((f): f is QueryFilterDataItem => f !== undefined)
+                }
+              />
+            ))}
         </View>
-      </SafeAreaView>
-    </Overlay>
+      </KeyboardAwareScrollView>
+    </SheetModal>
   );
 }
 

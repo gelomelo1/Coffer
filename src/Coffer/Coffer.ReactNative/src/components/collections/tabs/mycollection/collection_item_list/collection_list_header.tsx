@@ -1,10 +1,11 @@
-import CustomText from "@/src/components/custom_ui/custom_text";
+import { Chip } from "@/src/components/custom_ui/chip";
+import CustomIconButton from "@/src/components/custom_ui/custom_icon_button";
 import { asyncstoragekeys } from "@/src/const/async_storage_keys";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
 import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useGetData } from "@/src/hooks/data_hooks";
-import { customTheme } from "@/src/theme/theme";
+import { borders, colors, spacing, typography } from "@/src/theme/theme";
 import Attribute from "@/src/types/entities/attribute";
 import { Collection } from "@/src/types/entities/collection";
 import { ItemProvided } from "@/src/types/entities/item";
@@ -12,12 +13,11 @@ import ItemTag from "@/src/types/entities/item_tag";
 import User from "@/src/types/entities/user";
 import ItemsLayoutMode from "@/src/types/helpers/items_layout_mode";
 import { QueryOptions } from "@/src/types/helpers/query_data";
-import Feather from "@expo/vector-icons/Feather";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useState } from "react";
-import { TouchableOpacity, View } from "react-native";
-import { ActivityIndicator } from "react-native-paper";
+import { useTranslation } from "react-i18next";
+import { ActivityIndicator, Text, View } from "react-native";
 import CollectionItemListNumbers from "./collection_item_list_numbers";
 import CollectionListFilterBottomSheet from "./collection_list_filter_bottomsheet";
 
@@ -46,6 +46,7 @@ function CollectionItemHeader({
   layoutMode,
   user = undefined,
 }: CollectionItemHeaderProps) {
+  const { t } = useTranslation();
   const { collectionType } = useCollectionStore();
 
   const { data: itemTags = [], isFetching: isItemTagsFetching } =
@@ -68,92 +69,41 @@ function CollectionItemHeader({
     await AsyncStorage.setItem(asyncstoragekeys.itemsLayoutMode, newLayoutMode);
   };
 
+  const activeFilters = queryOptions.value.filters?.length ?? 0;
+
   return (
     <View
       style={{
-        width: "100%",
-        backgroundColor: customTheme.colors.background,
-        paddingHorizontal: 10,
-        paddingVertical: 10,
-        boxShadow: isStickyShadow
-          ? ` 0 4px 4px -4px ${customTheme.colors.disabledOverlay}`
-          : "none",
+        backgroundColor: colors.bg,
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        gap: spacing.sm,
+        borderBottomWidth: isStickyShadow ? borders.width : 0,
+        borderBottomColor: colors.border,
       }}
     >
-      <CollectionItemListNumbers
-        items={items}
-        queryOptions={queryOptions.value}
-      />
-      <View
-        style={{
-          width: "100%",
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <View
-          style={{
-            flexShrink: 1,
-          }}
-        >
-          <CustomText
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            style={{
-              fontSize: 20,
-              flexShrink: 1,
-            }}
-          >
-            {user ? `${user.name}'s ` : "Your "}
-            <CustomText
-              style={{
-                fontSize: 24,
-                fontFamily: "VendSansBold",
-                color: customTheme.colors.secondary,
-              }}
-            >
-              {collectionType!.name}
-            </CustomText>{" "}
-            collection
-          </CustomText>
-        </View>
-        <View style={{ flexDirection: "row" }}>
-          <TouchableOpacity onPress={handleLayoutPress}>
-            <Feather
-              name="layout"
-              size={24}
-              color={customTheme.colors.primary}
-            />
-          </TouchableOpacity>
-          {isItemTagsFetching ? (
-            <ActivityIndicator color={customTheme.colors.primary} />
-          ) : (
-            <TouchableOpacity
-              style={{
-                justifyContent: "center",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 10,
-                marginLeft: 10,
-              }}
-              onPress={() => setIsCollectionListFilterBottemSheetOpen(true)}
-            >
-              <CustomText style={{ fontSize: 20 }}>Filter</CustomText>
-              <Ionicons
-                name="filter"
-                size={24}
-                color={customTheme.colors.primary}
-              />
-            </TouchableOpacity>
-          )}
-        </View>
+      <CollectionItemListNumbers items={items} queryOptions={queryOptions.value} />
+      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
+        <Text accessibilityRole="header" style={[typography.title, { color: colors.text, flex: 1 }]} numberOfLines={2}>
+          {user ? t("collections:items.titleOther", { user: user.name, type: collectionType?.name ?? "" }) : t("collections:items.titleOwn", { type: collectionType?.name ?? "" })}
+        </Text>
+        <CustomIconButton
+          variant="plain"
+          iconName="layout"
+          iconType="feather"
+          accessibilityLabel={layoutMode.value === "two" ? t("collections:items.layoutThree") : t("collections:items.layoutTwo")}
+          onPress={handleLayoutPress}
+        />
+        <Chip
+          label={activeFilters > 0 ? t("collections:items.filterCount", { count: activeFilters }) : t("collections:items.filter")}
+          selected={activeFilters > 0}
+          disabled={isItemTagsFetching}
+          icon={isItemTagsFetching ? <ActivityIndicator size="small" color={colors.text} /> : <Ionicons name="filter" size={18} color={colors.text} />}
+          onPress={() => setIsCollectionListFilterBottemSheetOpen(true)}
+        />
       </View>
       <CollectionListFilterBottomSheet
-        isCollectionListFilterBottomSheetOpen={{
-          value: isCollectionListFilterBottomSheetOpen,
-          set: setIsCollectionListFilterBottemSheetOpen,
-        }}
+        isCollectionListFilterBottomSheetOpen={{ value: isCollectionListFilterBottomSheetOpen, set: setIsCollectionListFilterBottemSheetOpen }}
         items={items}
         attributes={attributes}
         setQueryOptions={queryOptions.set}

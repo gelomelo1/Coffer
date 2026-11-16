@@ -1,74 +1,29 @@
-import CustomText from "@/src/components/custom_ui/custom_text";
-import { customTheme } from "@/src/theme/theme";
+import { colors, spacing, typography } from "@/src/theme/theme";
 import { ItemProvided } from "@/src/types/entities/item";
 import { QueryOptions } from "@/src/types/helpers/query_data";
 import { getItemsQuantity } from "@/src/utils/data_access_utils";
-import { View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { Text, View } from "react-native";
 
 interface CollectionItemListNumbersProps {
   items: ItemProvided[];
   queryOptions: QueryOptions;
 }
 
-function CollectionItemListNumbers({
-  items,
-  queryOptions,
-}: CollectionItemListNumbersProps) {
+/** Navy strip with item kind and piece counts, and a marker when filters are active. */
+function CollectionItemListNumbers({ items, queryOptions }: CollectionItemListNumbersProps) {
+  const { t } = useTranslation();
   return (
-    <>
-      <View
-        style={{
-          backgroundColor: customTheme.colors.primary,
-          justifyContent: "space-between",
-          flexDirection: "row",
-          borderRadius: 20,
-          paddingHorizontal: 10,
-        }}
-      >
-        <CustomText
-          style={{
-            color: customTheme.colors.secondary,
-            fontSize: 12,
-            flex: 1,
-            marginRight: 10,
-          }}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
-          <CustomText
-            style={{
-              color: customTheme.colors.secondary,
-              fontFamily: "VendSansBold",
-              fontSize: 14,
-            }}
-          >
-            {items.length.toLocaleString()}
-          </CustomText>
-          {` types of items, totaling `}
-          <CustomText
-            style={{
-              color: customTheme.colors.secondary,
-              fontFamily: "VendSansBold",
-              fontSize: 12,
-            }}
-          >
-            {getItemsQuantity(items).toLocaleString()}
-          </CustomText>
-          {` pieces`}
-        </CustomText>
-        {queryOptions.filters ? (
-          <CustomText
-            style={{
-              color: customTheme.colors.secondary,
-              fontFamily: "VendSansBold",
-              fontSize: 12,
-            }}
-          >
-            Filters on
-          </CustomText>
-        ) : null}
-      </View>
-    </>
+    <View style={{ backgroundColor: colors.primary, flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingHorizontal: spacing.sm, paddingVertical: spacing.xxs }}>
+      <Text style={[typography.meta, { color: colors.onPrimary, flex: 1 }]}>
+        {[t("collections:items.kinds", { count: items.length }), t("collections:items.pieces", { count: getItemsQuantity(items) })].join(" · ") /* i18n-ignore: two independent counts */}
+      </Text>
+      {queryOptions.filters ? (
+        <View style={{ backgroundColor: colors.secondary, paddingHorizontal: spacing.xs, paddingVertical: 2 }}>
+          <Text style={[typography.label, { color: colors.onSecondary }]}>{t("collections:items.filtersOn")}</Text>
+        </View>
+      ) : null}
+    </View>
   );
 }
 

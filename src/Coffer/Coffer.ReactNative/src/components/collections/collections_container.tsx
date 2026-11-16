@@ -2,136 +2,79 @@ import { endpoints } from "@/src/const/endpoints";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useUserStore } from "@/src/hooks/user_store";
-import { customTheme } from "@/src/theme/theme";
+import { pressableShadowStyle } from "@/src/theme/pressable";
+import { borders, colors, spacing, typography } from "@/src/theme/theme";
 import { Collection } from "@/src/types/entities/collection";
 import CollectionType from "@/src/types/entities/collectiontype";
-import { adjustColor } from "@/src/utils/frontend_utils";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { navigate } from "expo-router/build/global-state/routing";
-import React, { useEffect, useRef, useState } from "react";
-import {
-  Animated,
-  FlatList,
-  Image,
-  Pressable,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { Divider } from "react-native-elements";
-import CustomText from "../custom_ui/custom_text";
+import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Image, Pressable, Text, useWindowDimensions, View } from "react-native";
+import { Chip } from "../custom_ui/chip";
 
 interface CollectionsContainerProps {
   collectionTypes: CollectionType[];
   collections: Collection[];
 }
 
-export default function CollectionsContainer({
-  collectionTypes,
-  collections,
-}: CollectionsContainerProps) {
-  const { user, token } = useUserStore();
+/** Columns for collection tiles: 2 on phones, 3 on wide screens. */
+export function useTileColumns() {
+  const { width } = useWindowDimensions();
+  return width >= 600 ? 3 : 2;
+}
+
+/** The user's collections grouped by collection type, each group a grid of cover tiles. */
+export default function CollectionsContainer({ collectionTypes, collections }: CollectionsContainerProps) {
+  const { t } = useTranslation();
   const { setCollectionType, setCollection } = useCollectionStore();
+  const { token } = useUserStore();
+  const columns = useTileColumns();
 
   const [sorts, setSorts] = useState<Record<string, keyof Collection>>(
-    Object.fromEntries(
-      collectionTypes.map((collectionType) => [collectionType.id, "createdAt"]),
-    ),
+    Object.fromEntries(collectionTypes.map((collectionType) => [collectionType.id, "createdAt"])),
   );
 
-  const handleSorts = (typeId: number) => {
-    setSorts((prev) => ({
-      ...prev,
-      [typeId]: prev[typeId] === "name" ? "createdAt" : "name",
-    }));
+  const toggleSort = (typeId: number) =>
+    setSorts((prev) => ({ ...prev, [typeId]: prev[typeId] === "name" ? "createdAt" : "name" }));
+
+  const open = (type: CollectionType, item: Collection) => {
+    setCollectionType(type);
+    setCollection(item);
+    navigate({ pathname: ROUTES.MYCOLLECTION, params: pageParams.mycollection });
   };
 
   return (
-    <View
-      style={{
-        width: "100%",
-        gap: 20,
-      }}
-    >
+    <View style={{ gap: spacing.xl }}>
       {collectionTypes.map((type) => {
-        const matchingCollections = collections.filter(
-          (collection) => collection.collectionTypeId === type.id,
-        );
-        if (matchingCollections.length === 0) return null;
-
-        if (sorts[type.id] === "name" && matchingCollections.length > 1) {
-          matchingCollections.sort((a, b) => a.name.localeCompare(b.name));
-        } else if (matchingCollections.length > 1) {
-          matchingCollections.sort(
-            (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt),
-          );
-        }
+        const matching = collections.filter((collection) => collection.collectionTypeId === type.id);
+        if (matching.length === 0) return null;
+        const byName = sorts[type.id] === "name";
+        matching.sort(byName ? (a, b) => a.name.localeCompare(b.name) : (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
 
         return (
-          <View key={type.id}>
-            <View
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexDirection: "row",
-                marginHorizontal: 10,
-              }}
-            >
-              <Pressable
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  flexDirection: "row",
-                }}
-                onPress={() => handleSorts(type.id)}
-              >
-                <CustomText
-                  style={{
-                    fontFamily: "VendSansBold",
-                    fontSize: 18,
-                  }}
-                >
-                  {type.name}
-                </CustomText>
-                <MaterialIcons
-                  name="sort"
-                  size={18}
-                  color={customTheme.colors.primary}
-                />
-                <CustomText
-                  style={{
-                    color: customTheme.colors.secondary,
-                  }}
-                >
-                  {sorts[type.id] === "name" ? "-> Name" : "-> Date"}
-                </CustomText>
-              </Pressable>
-
-              <CustomText
-                style={{
-                  fontFamily: "VendSansBold",
-                  fontSize: 18,
-                }}
-              >
-                {matchingCollections.length}
-              </CustomText>
-            </View>
-            <Divider
-              width={2}
-              color={customTheme.colors.primary}
-              style={{ marginBottom: 8, marginHorizontal: 10 }}
-            />
-            {
-              <CollectionCarousel
-                matchingCollections={matchingCollections}
-                matchingCollectionType={type}
-                setCollectionType={setCollectionType}
-                setCollection={setCollection}
-                triggerAnimation={sorts[type.id]}
-                token={token!}
+          <View key={type.id} style={{ gap: spacing.sm }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" }}>
+              <View style={{ width: 32, height: 32, backgroundColor: type.color, borderWidth: borders.width, borderColor: colors.border, alignItems: "center", justifyContent: "center" }}>
+                <Image source={{ uri: `${endpoints.icons}/${type.icon}` }} style={{ width: 22, height: 22 }} />
+              </View>
+              <Text accessibilityRole="header" style={[typography.title, { color: colors.text, flexShrink: 1 }]}>
+                {type.name}
+              </Text>
+              <View style={{ paddingHorizontal: spacing.xs, paddingVertical: 2, backgroundColor: colors.primary }}>
+                <Text style={[typography.label, { color: colors.onPrimary }]}>{matching.length}</Text>
+              </View>
+              <View style={{ flex: 1 }} />
+              <Chip
+                label={byName ? t("collections:list.sortName") : t("collections:list.sortNewest")}
+                accessibilityLabel={t("collections:list.sortToggle", { order: byName ? t("collections:list.sortName") : t("collections:list.sortNewest") })}
+                onPress={() => toggleSort(type.id)}
               />
-            }
+            </View>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
+              {matching.map((item) => (
+                <CollectionTile key={item.id} item={item} type={type} token={token} columns={columns} onPress={() => open(type, item)} />
+              ))}
+            </View>
           </View>
         );
       })}
@@ -139,112 +82,52 @@ export default function CollectionsContainer({
   );
 }
 
-function CollectionCarousel({
-  matchingCollections,
-  matchingCollectionType,
-  setCollectionType,
-  setCollection,
-  triggerAnimation,
+/** Pressable cover tile: square image on the type color, name below (2 lines). */
+export function CollectionTile({
+  item,
+  type,
   token,
+  columns,
+  onPress,
 }: {
-  matchingCollections: Collection[];
-  matchingCollectionType: CollectionType;
-  setCollectionType: (collectionType: CollectionType) => void;
-  setCollection: (collection: Collection) => void;
-  triggerAnimation: string;
-  token: string;
+  item: Collection;
+  type: CollectionType;
+  token?: string | null;
+  columns: number;
+  onPress: () => void;
 }) {
-  const contrastColor = adjustColor(
-    matchingCollectionType.color,
-    customTheme.colorChangePercent.dark,
-  );
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (triggerAnimation) {
-      fadeAnim.setValue(0);
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [fadeAnim, triggerAnimation]);
-
-  const handleNavigation = (item: Collection) => {
-    setCollectionType(matchingCollectionType);
-    setCollection(item);
-    navigate({
-      pathname: ROUTES.MYCOLLECTION,
-      params: pageParams.mycollection,
-    });
-  };
-
   return (
-    <Animated.View
-      style={{
-        opacity: fadeAnim,
-      }}
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={item.name}
+      style={({ pressed }) => [
+        {
+          // (100% - gaps) / columns, expressed as a flex basis so it adapts to any width
+          flexBasis: `${100 / columns - 6}%`,
+          flexGrow: 1,
+          maxWidth: `${100 / columns - 2}%`,
+          backgroundColor: colors.surface,
+          borderWidth: borders.width,
+          borderColor: colors.border,
+        },
+        pressableShadowStyle(pressed),
+      ]}
     >
-      <FlatList
-        data={matchingCollections}
-        keyExtractor={(item) => item.id.toString()}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 10 }}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() => handleNavigation(item)}
-            style={{
-              width: 100,
-              height: 120,
-              marginRight: 12,
-              marginBottom: 2,
-              padding: 4,
-              backgroundColor: matchingCollectionType.color,
-              borderWidth: 2,
-              borderColor: contrastColor,
-            }}
-          >
-            <Image
-              source={{
-                uri: item.image
-                  ? `${endpoints.collectionsCoverImage}/${item.image}`
-                  : `${endpoints.icons}/${matchingCollectionType.icon}`,
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-                cache: "reload",
-              }}
-              style={{
-                width: "100%",
-                aspectRatio: "1/1",
-                borderWidth: 2,
-                borderColor: contrastColor,
-              }}
-            />
-            <View
-              style={{
-                height: 24,
-                justifyContent: "center",
-              }}
-            >
-              <CustomText
-                numberOfLines={2}
-                ellipsizeMode="tail"
-                style={{
-                  fontFamily: "VendSansBold",
-                  fontSize: 14,
-                  color: contrastColor,
-                  lineHeight: 12,
-                }}
-              >
-                {item.name}
-              </CustomText>
-            </View>
-          </TouchableOpacity>
-        )}
-      />
-    </Animated.View>
+      <View style={{ backgroundColor: type.color, aspectRatio: 1, padding: spacing.sm, borderBottomWidth: borders.width, borderBottomColor: colors.border }}>
+        <Image
+          source={{
+            uri: item.image ? `${endpoints.collectionsCoverImage}/${item.image}` : `${endpoints.icons}/${type.icon}`,
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+            cache: "reload",
+          }}
+          style={{ width: "100%", height: "100%" }}
+          resizeMode={item.image ? "cover" : "contain"}
+        />
+      </View>
+      <Text numberOfLines={2} style={[typography.label, { color: colors.text, padding: spacing.sm, minHeight: 56 }]}>
+        {item.name}
+      </Text>
+    </Pressable>
   );
 }

@@ -1,11 +1,13 @@
-import CustomIconButton from "@/src/components/custom_ui/custom_icon_button";
-import CustomText from "@/src/components/custom_ui/custom_text";
+import CustomButton from "@/src/components/custom_ui/custom_button";
+import { SelectLabel, selectFieldStyle, selectTextStyle } from "@/src/components/custom_ui/select_shared";
+import SheetModal from "@/src/components/custom_ui/sheet_modal";
+import { pressableShadowStyle } from "@/src/theme/pressable";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { useTranslation } from "react-i18next";
 import CustomTextInput from "@/src/components/custom_ui/custom_text_input";
-import { customTheme } from "@/src/theme/theme";
+import { borders, colors, spacing, typography } from "@/src/theme/theme";
 import { useEffect, useRef, useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
-import { Overlay } from "react-native-elements";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Pressable, Text, View } from "react-native";
 
 interface CollectionListTagFilterProps {
   defaultValue: string;
@@ -18,6 +20,7 @@ function CollectionListTagFilter({
   setValue,
   items,
 }: CollectionListTagFilterProps) {
+  const { t } = useTranslation();
   const [internalText, setInternalText] = useState("");
   const [displayText, setDisplayText] = useState("");
   const [selection, setSelection] = useState({ start: 0, end: 0 });
@@ -95,108 +98,79 @@ function CollectionListTagFilter({
     }, 0);
   };
 
+  const close = () => {
+    setInternalText(displayText);
+    setOpen(false);
+  };
+
+  const apply = () => {
+    const data = internalText
+      .split("#")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    setDisplayText(internalText);
+    setValue(data);
+    setOpen(false);
+  };
+
   return (
     <View style={{ width: "100%" }}>
-      <TouchableOpacity onPress={() => setOpen(true)}>
-        <CustomTextInput
-          value={displayText}
-          editable={false}
-          label="Tags contains"
-          placeholder="Write any tags keyword"
-        />
-      </TouchableOpacity>
-
-      <Overlay
-        fullScreen
-        isVisible={open}
-        onBackdropPress={() => setOpen(false)}
-        overlayStyle={{
-          backgroundColor: customTheme.colors.secondary,
-          margin: 0,
-          padding: 0,
-        }}
+      <SelectLabel label={t("collections:filter.tags")} />
+      <Pressable
+        onPress={() => setOpen(true)}
+        accessibilityRole="button"
+        accessibilityLabel={t("collections:filter.tags")}
+        accessibilityValue={{ text: displayText }}
+        style={({ pressed }) => [selectFieldStyle, { flexDirection: "row", alignItems: "center", gap: spacing.xs }, pressed && { backgroundColor: colors.surfaceAlt }]}
       >
-        <SafeAreaView>
-          <View style={{ padding: 10 }}>
-            <Text
-              onPress={() => {
-                setInternalText(displayText);
-                setOpen(false);
-              }}
-              style={{
-                color: customTheme.colors.primary,
-                fontSize: 24,
-                textAlign: "right",
-              }}
-            >
-              ✕
-            </Text>
+        <Text style={[selectTextStyle, { flex: 1 }, !displayText && { color: colors.textMuted }]} numberOfLines={2}>
+          {displayText || t("collections:filter.tagsPlaceholder")}
+        </Text>
+        <MaterialIcons name="edit" size={20} color={colors.text} />
+      </Pressable>
 
-            <View
-              style={{
-                flexDirection: "row",
-                gap: 10,
-                marginTop: 10,
-              }}
-            >
-              <CustomTextInput
-                ref={inputRef}
-                value={internalText}
-                onChangeText={handleChangeText}
-                onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
-                onBlur={() => {
-                  if (isSelectingRef.current) return;
-                  formatText(internalText);
-                }}
-                placeholder="Write any tags keyword"
-                autoFocus
-                style={{ flex: 1 }}
-              />
-
-              <CustomIconButton
-                iconName="check"
-                iconType="entypo"
-                color={customTheme.colors.primary}
-                reverseColor={customTheme.colors.secondary}
-                size={16}
-                onPress={() => {
-                  const data = internalText
-                    .split("#")
-                    .map((s) => s.trim())
-                    .filter(Boolean);
-
-                  setDisplayText(internalText);
-                  setValue(data);
-                  setOpen(false);
-                }}
-                style={{ marginBottom: 20 }}
-              />
-            </View>
-          </View>
-
-          {filteredTags.length > 0 && (
-            <View
-              style={{
-                flexDirection: "row",
-                flexWrap: "wrap",
-                gap: 8,
-                paddingHorizontal: 10,
-              }}
-            >
+      <SheetModal
+        visible={open}
+        onClose={close}
+        title={t("collections:filter.tags")}
+        footer={<CustomButton title={t("common:actions.apply")} onPress={apply} />}
+      >
+        <View style={{ padding: spacing.md, gap: spacing.md }}>
+          <CustomTextInput
+            ref={inputRef}
+            value={internalText}
+            onChangeText={handleChangeText}
+            onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
+            onBlur={() => {
+              if (isSelectingRef.current) return;
+              formatText(internalText);
+            }}
+            placeholder={t("collections:filter.tagsPlaceholder")}
+            helperText={t("collections:filter.tagsHelper")}
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoFocus
+          />
+          {filteredTags.length > 0 ? (
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.xs }}>
               {filteredTags.map((item, i) => (
-                <TouchableOpacity
+                <Pressable
                   key={i}
+                  // onPressIn: pick the tag before the input's blur reformats the text
                   onPressIn={() => handleSelectTag(item)}
+                  accessibilityRole="button"
+                  style={({ pressed }) => [
+                    { minHeight: 40, justifyContent: "center", paddingHorizontal: spacing.sm, borderWidth: borders.width, borderColor: colors.border, backgroundColor: colors.bg },
+                    pressableShadowStyle(pressed),
+                  ]}
                 >
-                  <CustomText style={{ fontFamily: "VendSansBold" }}>
-                    #{item}
-                  </CustomText>
-                </TouchableOpacity>
+                  <Text style={[typography.label, { color: colors.text }]}>#{item}</Text>
+                </Pressable>
               ))}
             </View>
-          )}
-        </SafeAreaView>
-      </Overlay>
+          ) : null}
+        </View>
+      </SheetModal>
     </View>
   );
 }

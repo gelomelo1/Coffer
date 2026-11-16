@@ -10,8 +10,11 @@ import CollectionType from "@/src/types/entities/collectiontype";
 import User from "@/src/types/entities/user";
 import { Filter } from "profanity-check";
 import React, { useRef, useState } from "react";
-import { ActivityIndicator, Image, View } from "react-native";
-import { Icon } from "react-native-elements";
+import { useTranslation } from "react-i18next";
+import { Image, ScrollView } from "react-native";
+import NameCheckIcon from "../custom_ui/name_check_icon";
+import { stringResource } from "@/src/const/resource";
+import { spacing } from "@/src/theme/theme";
 import CustomButton from "../custom_ui/custom_button";
 import CustomDropdown from "../custom_ui/custom_dropdown";
 import CustomOverlay from "../custom_ui/custom_overlay";
@@ -31,6 +34,7 @@ function CreateCollectionForm({
   collectionTypes,
   user,
 }: CreateCollectionFormProps) {
+  const { t } = useTranslation();
   const { token } = useUserStore();
   const [open, setOpen] = useState(false);
   const [collectionName, setCollectionName] = useState("");
@@ -92,7 +96,7 @@ function CreateCollectionForm({
   const { mutateAsync, isPending } = useCreateData<
     CollectionRequired,
     Collection
-  >(endpoints.collections, querykeys.collectionsData);
+  >(endpoints.collections, querykeys.collectionsData, t("collections:create.created"));
 
   const resetFormData = () => {
     setOpen(false);
@@ -126,19 +130,19 @@ function CreateCollectionForm({
       const usernameRegex = /^[a-zA-Z0-9._-]+$/;
 
       if (!usernameRegex.test(newValue)) {
-        setErrorMessage("Allowed characters: letters, numbers, ., _, -");
+        setErrorMessage(stringResource.loginTextInputRegexError);
         return;
       }
 
       if (languageFilter.isProfane(newValue)) {
-        setErrorMessage("Please avoid using inappropriate language");
+        setErrorMessage(stringResource.profaneError);
         return;
       }
 
       const collectionsWithCurrentName = (await refetch()).data ?? [];
 
       if (collectionsWithCurrentName?.length !== 0) {
-        setErrorMessage("You already have a collection with this name");
+        setErrorMessage(t("collections:create.nameTaken"));
         return;
       }
 
@@ -164,50 +168,32 @@ function CreateCollectionForm({
     <CustomOverlay
       isVisible={isCreateNewCollectionOverlayOpen.value}
       onClose={handleOverlayClose}
-      overlayTitle={"Create New Collection"}
+      overlayTitle={t("collections:create.title")}
       footerContent={
-        <CustomButton
-          title="Create"
-          disabled={isSubmitDisabled}
-          containerStyle={{ width: "90%", alignSelf: "center" }}
-          loading={isPending}
-          onPress={handleSubmitCollectionCreation}
-        />
+        <CustomButton title={t("collections:create.submit")} disabled={isSubmitDisabled} loading={isPending} onPress={handleSubmitCollectionCreation} />
       }
     >
-      <View
-        style={{
-          paddingHorizontal: 10,
-          justifyContent: "center",
-          gap: 20,
-          marginTop: 20,
-        }}
-      >
+      <ScrollView contentContainerStyle={{ padding: spacing.md, gap: spacing.lg }} keyboardShouldPersistTaps="handled">
         <CustomDropdown
           open={open}
           value={selectedCollectionTypeId}
           items={dropdownItems}
           setOpen={setOpen}
           setValue={setSelectedCollectionTypeId}
-          label="Collection type"
+          label={t("collections:create.type")}
+          placeholder={t("collections:create.typePlaceholder")}
         />
         <CustomTextInput
-          placeholder="Enter a name for your collection"
-          label="Collection name"
+          placeholder={t("collections:edit.namePlaceholder")}
+          label={t("collections:edit.name")}
+          helperText={t("collections:create.nameHelper")}
           value={collectionName}
           onChangeText={(newValue) => handleChangeCollectionName(newValue)}
           errorMessage={errorMessage}
-          rightIcon={
-            isFetching ? (
-              <ActivityIndicator size="small" color="dimgray" />
-            ) : !!errorMessage ? (
-              <Icon name="close" size={20} color="red" />
-            ) : !isInputCheck ? (
-              <Icon name="check" size={20} color="green" />
-            ) : undefined
-          }
+          maxLength={100}
+          rightIcon={<NameCheckIcon checking={isFetching} error={!!errorMessage} ok={!isInputCheck && collectionName !== ""} />}
         />
-      </View>
+      </ScrollView>
     </CustomOverlay>
   );
 }
