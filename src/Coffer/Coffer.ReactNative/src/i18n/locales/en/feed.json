@@ -1,1 +1,70 @@
-{}
+{
+  "hero": {
+    "title": "Explore <1>community</1> finds!",
+    "recentPosts_one": "{{count}} recent post",
+    "recentPosts_other": "{{count}} recent posts"
+  },
+  "searchPlaceholder": "Search collectors, items, #tags",
+  "filter": {
+    "placeholder": "All collection types",
+    "label": "Collection types",
+    "modalTitle": "Filter by collection type",
+    "selected_one": "{{count}} collection type",
+    "selected_other": "{{count}} collection types"
+  },
+  "empty": {
+    "title": "No recent activity",
+    "text": "See what's new later."
+  },
+  "caughtUp": "All caught up! See what's new later.",
+  "card": {
+    "followed": "Followed",
+    "rarity": "Rarity",
+    "openUser": "Open {{name}}'s profile",
+    "openCollection": "Open the {{name}} collection",
+    "openItem": "Open {{name}}",
+    "searchTag": "Search for #{{tag}}",
+    "like": "Like",
+    "unlike": "Unlike",
+    "likes_one": "{{count}} like",
+    "likes_other": "{{count}} likes",
+    "rate": "Rate the rarity",
+    "comments": "Comments"
+  },
+  "rarity": {
+    "common": "Common",
+    "uncommon": "Uncommon",
+    "rare": "Rare",
+    "relic": "Relic",
+    "none": "Not rated",
+    "selectTitle": "Rate the rarity",
+    "noRating": "No rating"
+  },
+  "search": {
+    "minChars": "Type at least 3 characters (or # and 3 characters for tags) to search.",
+    "scopes": {
+      "all": "All",
+      "users": "Users",
+      "collections": "Collections",
+      "items": "Items"
+    },
+    "found_one": "{{count}} found",
+    "found_other": "{{count}} found",
+    "sectionCount": "{{title}} · {{count}}",
+    "endOfResults": "End of results",
+    "noResults": "No results found",
+    "noResultsHint": "Try another spelling or fewer words.",
+    "itemSubtitle": "{{user}}'s {{collection}} collection",
+    "followers_one": "{{count}} follower",
+    "followers_other": "{{count}} followers",
+    "tagResultsTitle": "#{{tag}}"
+  },
+  "follows": {
+    "title_one": "You follow {{count}} collection",
+    "title_other": "You follow {{count}} collections",
+    "empty": "You are not following any collections yet.",
+    "emptyHint": "Open a collection from the feed or search and follow it to see it here.",
+    "expand": "Show {{name}}",
+    "collapse": "Hide {{name}}"
+  }
+}

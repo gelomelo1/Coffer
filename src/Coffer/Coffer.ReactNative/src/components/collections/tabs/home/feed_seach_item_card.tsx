@@ -1,4 +1,5 @@
-import CustomText from "@/src/components/custom_ui/custom_text";
+import ListRow from "@/src/components/custom_ui/list_row";
+import { ResultThumb } from "./result_thumb";
 import { endpoints } from "@/src/const/endpoints";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useCollectionStore } from "@/src/hooks/collection_store";
@@ -10,7 +11,7 @@ import ItemSearch from "@/src/types/entities/item_search";
 import User from "@/src/types/entities/user";
 import { getItemPrimaryAttributeValue } from "@/src/utils/data_access_utils";
 import { navigate } from "expo-router/build/global-state/routing";
-import { Image, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 interface FeedSearchItemCardProps {
   currentUser: User;
@@ -23,6 +24,7 @@ function FeedSearchItemCard({
   itemSearch,
   closeOverlay,
 }: FeedSearchItemCardProps) {
+  const { t } = useTranslation();
   const { collectionTypes } = useCollectionTypeStore();
   const { token } = useUserStore();
   const { setValues } = useOtherUserStore();
@@ -56,38 +58,12 @@ function FeedSearchItemCard({
   );
 
   return (
-    <TouchableOpacity
-      style={{
-        height: 48,
-        justifyContent: "flex-start",
-        alignItems: "center",
-        flexDirection: "row",
-        gap: 10,
-      }}
+    <ListRow
+      title={primaryAttribute?.valueString ?? ""}
+      subtitle={t("feed:search.itemSubtitle", { user: itemSearch.user.name, collection: itemSearch.collection.name })}
+      leading={<ResultThumb uri={`${endpoints.itemsCoverImage}/${itemSearch.item.image}`} token={token} />}
       onPress={handleNavigation}
-    >
-      <Image
-        source={{
-          uri: `${endpoints.itemsCoverImage}/${itemSearch.item.image}`,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          cache: "reload",
-        }}
-        style={{
-          height: "100%",
-          aspectRatio: "1/1",
-        }}
-      />
-      <View>
-        <CustomText style={{ fontFamily: "VendSansBold" }}>
-          {primaryAttribute?.valueString}
-        </CustomText>
-        <CustomText style={{ fontSize: 14 }}>
-          {`${itemSearch.user.name}'s ${itemSearch.collection.name} collection`}
-        </CustomText>
-      </View>
-    </TouchableOpacity>
+    />
   );
 }
 

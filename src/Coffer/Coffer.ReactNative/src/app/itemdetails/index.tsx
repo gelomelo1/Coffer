@@ -1,3 +1,4 @@
+import i18n from "@/src/i18n";
 import CustomIconButton from "@/src/components/custom_ui/custom_icon_button";
 import CustomImage from "@/src/components/custom_ui/custom_image";
 import CustomText from "@/src/components/custom_ui/custom_text";
@@ -119,7 +120,7 @@ function ItemDetails() {
                   color: rarityVariant?.color ?? customTheme.colors.primary,
                 }}
               >
-                {rarityVariant?.title ?? "None"}
+                {rarityVariant ? i18n.t(rarityVariant.titleKey) : i18n.t("feed:rarity.none")}
               </CustomText>
             </View>
             <View

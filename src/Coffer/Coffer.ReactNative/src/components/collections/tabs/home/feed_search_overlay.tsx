@@ -1,5 +1,8 @@
 import CustomDropdownMultiple from "@/src/components/custom_ui/custom_dropdown_multiple";
-import CustomText from "@/src/components/custom_ui/custom_text";
+import { Divider, SectionHeader } from "@/src/components/custom_ui/card";
+import { Chip, ChipRow } from "@/src/components/custom_ui/chip";
+import { EmptyState } from "@/src/components/custom_ui/states";
+import { HeaderIconButton } from "@/src/components/layout/app_header";
 import CustomTextInput from "@/src/components/custom_ui/custom_text_input";
 import { Loading } from "@/src/components/custom_ui/loading";
 import { endpoints } from "@/src/const/endpoints";
@@ -7,24 +10,16 @@ import { querykeys } from "@/src/const/querykeys";
 import { useCollectionTypeStore } from "@/src/hooks/collection_type_store";
 import { useGetData, useGetSingleData } from "@/src/hooks/data_hooks";
 import { useUserStore } from "@/src/hooks/user_store";
-import { customTheme } from "@/src/theme/theme";
+import { borders, colors, spacing, typography } from "@/src/theme/theme";
 import CollectionSearch from "@/src/types/entities/collection_search";
 import ItemSearch from "@/src/types/entities/item_search";
 import ItemTagSearch from "@/src/types/entities/item_tags_search";
 import MixedSearch from "@/src/types/entities/mixed_search";
 import User from "@/src/types/entities/user";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useEffect, useRef, useState } from "react";
-import {
-  FlatList,
-  Image,
-  ScrollView,
-  SectionList,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { Divider, Overlay } from "react-native-elements";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
+import { FlatList, Image, Modal, SectionList, Text, View } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import FeedSearchItemTagCard from "./feed_card_item_tags_card";
 import FeedSearchItemCard from "./feed_seach_item_card";
 import FeedSearchUserCard from "./feed_seach_user_card";
@@ -59,10 +54,9 @@ function FeedSearchOverlay({
   onClose,
   initialSearchText,
 }: FeedSearchOverlayProps) {
+  const { t } = useTranslation();
   const { token, user } = useUserStore();
   const { collectionTypes } = useCollectionTypeStore();
-
-  const collectionType = collectionTypes.find((ct) => ct.id === 1)!;
 
   const [searchText, setSearchText] = useState("");
 
@@ -202,444 +196,141 @@ function FeedSearchOverlay({
     };
   }, [searchText]);
 
-  useEffect(() => {
-    console.log(itemTagsSearchData);
-  }, [itemTagsSearchData]);
+  const closeOnly = () => isFeedSearchOverlayVisible.set(false);
+  const selectedCount = searchSelectedCollectionTypeIds?.length ?? 0;
+  const scopes = ["all", "users", "collections", "items"] as const;
+
+  const endOfResults = (
+    <Text style={[typography.meta, { color: colors.textMuted, textAlign: "center", padding: spacing.lg }]}>{t("feed:search.endOfResults")}</Text>
+  );
+  const noResults = <EmptyState icon="search-off" title={t("feed:search.noResults")} text={t("feed:search.noResultsHint")} />;
+
+  const renderMixedItem = (item: FeedSectionItem) => {
+    switch (item.type) {
+      case "user":
+        return <FeedSearchUserCard user={item.data} />;
+      case "collection":
+        return <FeedSearchCollectionCard currentUser={user!} collectionSearch={item.data} closeOverlay={closeOnly} />;
+      case "item":
+        return <FeedSearchItemCard currentUser={user!} itemSearch={item.data} closeOverlay={closeOnly} />;
+    }
+  };
+
+  const mixedSections: FeedSection[] = mixedSearchData
+    ? [
+        { title: t("feed:search.scopes.users"), data: mixedSearchData.foundUsers.map((u) => ({ type: "user" as const, data: u })) },
+        { title: t("feed:search.scopes.collections"), data: mixedSearchData.foundCollections.map((c) => ({ type: "collection" as const, data: c })) },
+        { title: t("feed:search.scopes.items"), data: mixedSearchData.foundItems.map((i) => ({ type: "item" as const, data: i })) },
+      ]
+    : [];
+  const scopedData: FeedSectionItem[] = selectedTabIndex === 0 ? [] : (mixedSections[selectedTabIndex - 1]?.data ?? []);
+
+  const listProps = { keyboardShouldPersistTaps: "handled" as const, keyboardDismissMode: "on-drag" as const };
+
+  const renderResults = () => {
+    if (!shouldSearch) {
+      return <Text style={[typography.meta, { color: colors.textMuted, padding: spacing.md }]}>{t("feed:search.minChars")}</Text>;
+    }
+    if (isLoading) return <Loading />;
+    if (isTyping) return null;
+
+    if (hasTagValue) {
+      if (itemTagsSearchData.length === 0) return noResults;
+      return (
+        <FlatList
+          {...listProps}
+          data={itemTagsSearchData}
+          keyExtractor={(item, index) => `${item.value}-${index}`}
+          renderItem={({ item }) => <FeedSearchItemTagCard currentUser={user!} itemTagsSearch={item} closeOverlay={closeOnly} />}
+          ItemSeparatorComponent={Divider}
+          ListHeaderComponent={
+            <SectionHeader title={t("feed:search.found", { count: itemTagsSearchData.length })} style={{ marginTop: spacing.sm, paddingHorizontal: spacing.md }} />
+          }
+          ListFooterComponent={endOfResults}
+        />
+      );
+    }
+
+    if (!mixedSearchData) return noResults;
+
+    if (selectedTabIndex === 0) {
+      if (mixedSections.every((section) => section.data.length === 0)) return noResults;
+      return (
+        <SectionList<FeedSectionItem, FeedSection>
+          {...listProps}
+          sections={mixedSections.filter((section) => section.data.length > 0)}
+          keyExtractor={(item, index) => `${item.type}-${index}`}
+          renderItem={({ item }) => renderMixedItem(item)}
+          renderSectionHeader={({ section }) => (
+            <View style={{ backgroundColor: colors.bg, paddingHorizontal: spacing.md }}>
+              <SectionHeader title={t("feed:search.sectionCount", { title: section.title, count: section.data.length })} style={{ marginTop: spacing.md }} />
+            </View>
+          )}
+          ItemSeparatorComponent={Divider}
+          stickySectionHeadersEnabled
+          ListFooterComponent={endOfResults}
+        />
+      );
+    }
+
+    if (scopedData.length === 0) return noResults;
+    return (
+      <FlatList
+        {...listProps}
+        data={scopedData}
+        keyExtractor={(item, index) => `${item.type}-${index}`}
+        renderItem={({ item }) => renderMixedItem(item)}
+        ItemSeparatorComponent={Divider}
+        ListHeaderComponent={
+          <SectionHeader title={t("feed:search.found", { count: scopedData.length })} style={{ marginTop: spacing.sm, paddingHorizontal: spacing.md }} />
+        }
+        ListFooterComponent={endOfResults}
+      />
+    );
+  };
 
   return (
-    <Overlay
-      fullScreen
-      overlayStyle={{
-        backgroundColor: customTheme.colors.background,
-      }}
-      isVisible={isFeedSearchOverlayVisible.value}
-      onBackdropPress={handleCloseFeedSearch}
-    >
-      <SafeAreaView style={{ flex: 1 }}>
-        <CustomTextInput
-          ref={inputRef}
-          value={searchText}
-          onChangeText={(newValue) => setSearchText(newValue)}
-          placeholder="Search collectors, items"
-          leftIcon={
-            <FontAwesome
-              name="search"
-              size={18}
-              color={customTheme.colors.primary}
+    <Modal visible={isFeedSearchOverlayVisible.value} onRequestClose={handleCloseFeedSearch} animationType="slide" statusBarTranslucent navigationBarTranslucent>
+      <SafeAreaProvider>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+          <View style={{ padding: spacing.md, gap: spacing.sm, borderBottomWidth: borders.width, borderBottomColor: colors.border }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
+              <CustomTextInput
+                ref={inputRef}
+                variant="search"
+                value={searchText}
+                onChangeText={setSearchText}
+                onClear={() => setSearchText("")}
+                placeholder={t("feed:searchPlaceholder")}
+                autoCapitalize="none"
+                autoCorrect={false}
+                style={{ flex: 1 }}
+              />
+              <HeaderIconButton icon="close" label={t("accessibility:close")} onPress={handleCloseFeedSearch} />
+            </View>
+            <CustomDropdownMultiple
+              value={searchSelectedCollectionTypeIds}
+              open={open}
+              setOpen={setOpen}
+              setValue={setSearchSelectedCollectionTypeIds}
+              items={dropdownItems}
+              placeholder={t("feed:filter.placeholder")}
+              modalTitle={t("feed:filter.modalTitle")}
+              multipleText={selectedCount > 0 ? t("feed:filter.selected", { count: selectedCount }) : undefined}
+              onClose={handleFilterSelect}
             />
-          }
-          containerStyle={{
-            minHeight: undefined,
-            maxHeight: undefined,
-            height: 60,
-          }}
-        />
-        <CustomDropdownMultiple
-          value={searchSelectedCollectionTypeIds}
-          open={open}
-          setOpen={setOpen}
-          setValue={setSearchSelectedCollectionTypeIds}
-          items={dropdownItems}
-          placeholder="Collection type"
-          modalTitle="Filter your feed by Collection type"
-          multipleText={
-            searchSelectedCollectionTypeIds!.length > 0
-              ? `Collection type (${searchSelectedCollectionTypeIds?.length})`
-              : undefined
-          }
-          onClose={handleFilterSelect}
-          containerStyle={{
-            paddingHorizontal: 5,
-            paddingVertical: 10,
-            backgroundColor: customTheme.colors.background,
-            borderRadius: 20,
-          }}
-          style={{ height: 36, minHeight: 36, borderRadius: 10 }}
-        />
-        {!shouldSearch ? (
-          <CustomText>Please enter at least 3 characters</CustomText>
-        ) : (
-          <>
-            {hasSimpleValue ? (
-              <View style={{ height: 40 }}>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingHorizontal: 10,
-                  }}
-                >
-                  <View style={{ flexDirection: "row" }}>
-                    {["ALL", "USERS", "COLLECTIONS", "ITEMS"].map(
-                      (title, i) => (
-                        <TouchableOpacity
-                          key={title}
-                          onPress={() => setSelectedTabIndex(i)}
-                          style={{
-                            paddingHorizontal: 16,
-                            paddingVertical: 8,
-                            borderBottomWidth: selectedTabIndex === i ? 3 : 0,
-                            borderBottomColor: customTheme.colors.secondary,
-                            marginRight: 16,
-                          }}
-                        >
-                          <CustomText
-                            style={{
-                              fontFamily: "VendSansBold",
-                              color:
-                                selectedTabIndex === i
-                                  ? customTheme.colors.secondary
-                                  : customTheme.colors.primary,
-                              fontSize: 14,
-                              textAlign: "center",
-                            }}
-                          >
-                            {title}
-                          </CustomText>
-                        </TouchableOpacity>
-                      ),
-                    )}
-                  </View>
-                </ScrollView>
-              </View>
+            {shouldSearch && hasSimpleValue ? (
+              <ChipRow>
+                {scopes.map((scope, i) => (
+                  <Chip key={scope} label={t(`feed:search.scopes.${scope}`)} selected={selectedTabIndex === i} onPress={() => setSelectedTabIndex(i)} />
+                ))}
+              </ChipRow>
             ) : null}
-            <Divider width={2} color={customTheme.colors.primary} />
-            {hasSimpleValue || hasTagValue ? (
-              isLoading ? (
-                <Loading />
-              ) : hasTagValue ? (
-                itemTagsSearchData.length > 0 && !isTyping ? (
-                  <FlatList
-                    data={itemTagsSearchData}
-                    keyExtractor={(item, index) => `${item.value}-${index}`}
-                    renderItem={({ item }) => (
-                      <FeedSearchItemTagCard
-                        currentUser={user!}
-                        itemTagsSearch={item}
-                        closeOverlay={() =>
-                          isFeedSearchOverlayVisible.set(false)
-                        }
-                      />
-                    )}
-                    ListHeaderComponent={
-                      <View
-                        style={{
-                          width: "100%",
-                          backgroundColor: customTheme.colors.background,
-                        }}
-                      >
-                        <CustomText
-                          style={{ fontSize: 18, marginBottom: 5 }}
-                        >{`found ${itemTagsSearchData.length}`}</CustomText>
-                      </View>
-                    }
-                    stickyHeaderIndices={[0]}
-                    ItemSeparatorComponent={() => (
-                      <View style={{ height: 12 }} />
-                    )}
-                    ListFooterComponent={
-                      <CustomText
-                        style={{
-                          textAlign: "center",
-                          fontFamily: "VendSansItalic",
-                          marginTop: 20,
-                        }}
-                      >
-                        End of results
-                      </CustomText>
-                    }
-                  />
-                ) : isLoading || isTyping ? null : (
-                  <CustomText
-                    style={{
-                      fontFamily: "VendSansBold",
-                      textAlign: "center",
-                      marginTop: 20,
-                      color: "red",
-                    }}
-                  >
-                    No results found
-                  </CustomText>
-                )
-              ) : mixedSearchData && !isTyping ? (
-                selectedTabIndex === 0 ? (
-                  mixedSearchData.foundUsers.length === 0 &&
-                  mixedSearchData.foundCollections.length === 0 &&
-                  mixedSearchData.foundItems.length === 0 ? (
-                    isLoading || isTyping ? null : (
-                      <CustomText
-                        style={{
-                          fontFamily: "VendSansBold",
-                          textAlign: "center",
-                          marginTop: 20,
-                        }}
-                      >
-                        No results found
-                      </CustomText>
-                    )
-                  ) : (
-                    <SectionList<FeedSectionItem, FeedSection>
-                      sections={[
-                        {
-                          title: "Users",
-                          data: mixedSearchData.foundUsers.map((u) => ({
-                            type: "user" as const,
-                            data: u,
-                          })),
-                        },
-                        {
-                          title: "Collections",
-                          data: mixedSearchData.foundCollections.map((c) => ({
-                            type: "collection" as const,
-                            data: c,
-                          })),
-                        },
-                        {
-                          title: "Items",
-                          data: mixedSearchData.foundItems.map((i) => ({
-                            type: "item" as const,
-                            data: i,
-                          })),
-                        },
-                      ]}
-                      keyExtractor={(item, index) => `${item.type}-${index}`}
-                      renderItem={({ item }) => {
-                        switch (item.type) {
-                          case "user":
-                            return <FeedSearchUserCard user={item.data} />;
-                          case "collection":
-                            return (
-                              <FeedSearchCollectionCard
-                                currentUser={user!}
-                                collectionSearch={item.data}
-                                closeOverlay={() =>
-                                  isFeedSearchOverlayVisible.set(false)
-                                }
-                              />
-                            );
-                          case "item":
-                            return (
-                              <FeedSearchItemCard
-                                currentUser={user!}
-                                itemSearch={item.data}
-                                closeOverlay={() =>
-                                  isFeedSearchOverlayVisible.set(false)
-                                }
-                              />
-                            );
-                        }
-                      }}
-                      renderSectionHeader={({ section }) => (
-                        <View
-                          style={{
-                            width: "100%",
-                            backgroundColor: customTheme.colors.background,
-                            marginBottom: section.data.length === 0 ? 0 : 5,
-                          }}
-                        >
-                          <CustomText
-                            style={{ fontFamily: "VendSansBold", fontSize: 20 }}
-                          >
-                            {section.title}
-                            <CustomText
-                              style={{ fontFamily: "VendSansRegular", fontSize: 18 }}
-                            >{` - found ${section.data.length}`}</CustomText>
-                          </CustomText>
-                        </View>
-                      )}
-                      stickySectionHeadersEnabled
-                      ListFooterComponent={
-                        <CustomText
-                          style={{
-                            textAlign: "center",
-                            fontFamily: "VendSansItalic",
-                            marginTop: 20,
-                          }}
-                        >
-                          End of results
-                        </CustomText>
-                      }
-                      ItemSeparatorComponent={() => (
-                        <View style={{ height: 12 }} />
-                      )}
-                    />
-                  )
-                ) : selectedTabIndex === 1 ? (
-                  mixedSearchData.foundUsers.length === 0 ? (
-                    isLoading || isTyping ? null : (
-                      <CustomText
-                        style={{
-                          fontFamily: "VendSansBold",
-                          textAlign: "center",
-                          marginTop: 20,
-                        }}
-                      >
-                        No results found
-                      </CustomText>
-                    )
-                  ) : (
-                    <FlatList
-                      data={mixedSearchData.foundUsers}
-                      keyExtractor={(item) => item.id.toString()}
-                      renderItem={({ item }) => (
-                        <FeedSearchUserCard user={item} />
-                      )}
-                      ListHeaderComponent={
-                        <View
-                          style={{
-                            width: "100%",
-                            backgroundColor: customTheme.colors.background,
-                          }}
-                        >
-                          <CustomText
-                            style={{ fontSize: 18, marginBottom: 5 }}
-                          >{`found ${mixedSearchData.foundUsers.length}`}</CustomText>
-                        </View>
-                      }
-                      stickyHeaderIndices={[0]}
-                      ItemSeparatorComponent={() => (
-                        <View style={{ height: 12 }} />
-                      )}
-                      ListFooterComponent={
-                        <CustomText
-                          style={{
-                            textAlign: "center",
-                            fontFamily: "VendSansItalic",
-                            marginTop: 20,
-                          }}
-                        >
-                          End of results
-                        </CustomText>
-                      }
-                    />
-                  )
-                ) : selectedTabIndex === 2 ? (
-                  mixedSearchData.foundCollections.length === 0 ? (
-                    isLoading || isTyping ? null : (
-                      <CustomText
-                        style={{
-                          fontFamily: "VendSansBold",
-                          textAlign: "center",
-                          marginTop: 20,
-                        }}
-                      >
-                        No results found
-                      </CustomText>
-                    )
-                  ) : (
-                    <FlatList
-                      data={mixedSearchData.foundCollections}
-                      keyExtractor={(item) => item.collection.id}
-                      renderItem={({ item }) => (
-                        <FeedSearchCollectionCard
-                          currentUser={user!}
-                          collectionSearch={item}
-                          closeOverlay={() =>
-                            isFeedSearchOverlayVisible.set(false)
-                          }
-                        />
-                      )}
-                      ListHeaderComponent={
-                        <View
-                          style={{
-                            width: "100%",
-                            backgroundColor: customTheme.colors.background,
-                          }}
-                        >
-                          <CustomText
-                            style={{ fontSize: 18, marginBottom: 5 }}
-                          >{`found ${mixedSearchData.foundCollections.length}`}</CustomText>
-                        </View>
-                      }
-                      stickyHeaderIndices={[0]}
-                      ItemSeparatorComponent={() => (
-                        <View style={{ height: 12 }} />
-                      )}
-                      ListFooterComponent={
-                        <CustomText
-                          style={{
-                            textAlign: "center",
-                            fontFamily: "VendSansItalic",
-                            marginTop: 20,
-                          }}
-                        >
-                          End of results
-                        </CustomText>
-                      }
-                    />
-                  )
-                ) : mixedSearchData.foundItems.length === 0 ? (
-                  isLoading || isTyping ? null : (
-                    <CustomText
-                      style={{
-                        fontFamily: "VendSansBold",
-                        textAlign: "center",
-                        marginTop: 20,
-                      }}
-                    >
-                      No results found
-                    </CustomText>
-                  )
-                ) : (
-                  <FlatList
-                    data={mixedSearchData.foundItems}
-                    keyExtractor={(item) => item.item.id.toString()}
-                    renderItem={({ item }) => (
-                      <FeedSearchItemCard
-                        currentUser={user!}
-                        itemSearch={item}
-                        closeOverlay={() =>
-                          isFeedSearchOverlayVisible.set(false)
-                        }
-                      />
-                    )}
-                    ListHeaderComponent={
-                      <View
-                        style={{
-                          width: "100%",
-                          backgroundColor: customTheme.colors.background,
-                        }}
-                      >
-                        <CustomText
-                          style={{ fontSize: 18, marginBottom: 5 }}
-                        >{`found ${mixedSearchData.foundItems.length}`}</CustomText>
-                      </View>
-                    }
-                    stickyHeaderIndices={[0]}
-                    ItemSeparatorComponent={() => (
-                      <View style={{ height: 12 }} />
-                    )}
-                    ListFooterComponent={
-                      <CustomText
-                        style={{
-                          textAlign: "center",
-                          fontFamily: "VendSansItalic",
-                          marginTop: 20,
-                        }}
-                      >
-                        End of results
-                      </CustomText>
-                    }
-                  />
-                )
-              ) : isLoading || isTyping ? null : (
-                <CustomText
-                  style={{
-                    fontFamily: "VendSansBold",
-                    textAlign: "center",
-                    marginTop: 20,
-                  }}
-                >
-                  No results found
-                </CustomText>
-              )
-            ) : null}
-          </>
-        )}
-      </SafeAreaView>
-    </Overlay>
+          </View>
+          <View style={{ flex: 1 }}>{renderResults()}</View>
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </Modal>
   );
 }
 

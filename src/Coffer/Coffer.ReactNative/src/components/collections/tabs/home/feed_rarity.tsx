@@ -1,15 +1,15 @@
-import CustomText from "@/src/components/custom_ui/custom_text";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
 import rarityVariants from "@/src/const/rarity_variants";
 import { useCreateData } from "@/src/hooks/data_hooks";
-import { customTheme } from "@/src/theme/theme";
+import { colors, fonts, spacing } from "@/src/theme/theme";
 import Feed from "@/src/types/entities/feed";
 import { ItemProvided } from "@/src/types/entities/item";
 import { ReactionRequired } from "@/src/types/entities/reaction";
 import User from "@/src/types/entities/user";
 import { useEffect, useState } from "react";
-import { Animated, Easing, TouchableOpacity } from "react-native";
+import { useTranslation } from "react-i18next";
+import { Animated, Easing, Pressable, Text, View } from "react-native";
 import FeedRaritySelector from "./feed_rarity_selector";
 
 interface FeedRarityProps {
@@ -18,6 +18,7 @@ interface FeedRarityProps {
   item?: ItemProvided;
   onItemUpdate?: (updatedItem: ItemProvided) => void;
   fontSize?: number;
+  color?: string;
 }
 
 function FeedRarity({
@@ -26,7 +27,9 @@ function FeedRarity({
   item,
   onItemUpdate,
   fontSize,
+  color,
 }: FeedRarityProps) {
+  const { t } = useTranslation();
   const { mutateAsync: postRarity, isSuccess: isRarityPostSuccess } =
     useCreateData<ReactionRequired>(
       endpoints.reactions,
@@ -104,39 +107,29 @@ function FeedRarity({
     }
   };
 
+  const variant = rarityValue ? rarityVariants[rarityValue] : null;
+  const tint = color ?? colors.text;
+
   return (
     <>
-      <TouchableOpacity onPress={() => setIsSelectorVisible(true)}>
-        <Animated.View style={{ transform: [{ scale: rarityScaleAnim }] }}>
-          {rarityValue ? (
-            <CustomText
-              style={{
-                fontFamily: "VendSansItalic",
-                color: rarityVariants[rarityValue].color,
-                fontSize: fontSize ?? 16,
-              }}
-            >
-              {rarityVariants[rarityValue].title}
-            </CustomText>
-          ) : (
-            <CustomText
-              style={{
-                fontFamily: "VendSansItalic",
-                color: customTheme.colors.secondary,
-                fontSize: fontSize ?? 16,
-              }}
-            >
-              Not rated
-            </CustomText>
-          )}
+      <Pressable
+        onPress={() => setIsSelectorVisible(true)}
+        accessibilityRole="button"
+        accessibilityLabel={t("feed:card.rate")}
+        accessibilityValue={{ text: variant ? t(variant.titleKey) : t("feed:rarity.none") }}
+        style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: spacing.xs, minHeight: 48, opacity: pressed ? 0.6 : 1 })}
+      >
+        <Text style={{ color: tint, fontFamily: fonts.regular, fontSize: (fontSize ?? 16) - 2 }}>{t("feed:card.rarity")}</Text>
+        <Animated.View style={{ transform: [{ scale: rarityScaleAnim }], flexDirection: "row", alignItems: "center", gap: spacing.xxs }}>
+          {variant ? <View style={{ width: 12, height: 12, backgroundColor: variant.color, borderWidth: 1, borderColor: colors.border }} /> : null}
+          <Text style={{ color: tint, fontFamily: variant ? fonts.bold : fonts.italic, fontSize: fontSize ?? 16 }}>
+            {variant ? t(variant.titleKey) : t("feed:rarity.none")}
+          </Text>
         </Animated.View>
-      </TouchableOpacity>
+      </Pressable>
 
       <FeedRaritySelector
-        isFeedRaritySelectorVisible={{
-          value: isSelectorVisible,
-          set: setIsSelectorVisible,
-        }}
+        isFeedRaritySelectorVisible={{ value: isSelectorVisible, set: setIsSelectorVisible }}
         selectedRarity={rarityValue}
         onRaritySelect={handleRaritySelect}
       />

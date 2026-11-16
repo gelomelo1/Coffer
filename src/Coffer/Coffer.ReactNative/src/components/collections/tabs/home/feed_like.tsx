@@ -2,7 +2,7 @@ import CustomText from "@/src/components/custom_ui/custom_text";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
 import { useCreateData } from "@/src/hooks/data_hooks";
-import { customTheme } from "@/src/theme/theme";
+import { colors, fonts, spacing } from "@/src/theme/theme";
 import Feed from "@/src/types/entities/feed";
 import { ItemProvided } from "@/src/types/entities/item";
 import { ReactionRequired } from "@/src/types/entities/reaction";
@@ -10,7 +10,8 @@ import User from "@/src/types/entities/user";
 import { getReactionsLikeCount } from "@/src/utils/data_access_utils";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useEffect, useState } from "react";
-import { Animated, Easing, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { Animated, Easing, Pressable } from "react-native";
 
 interface FeedLikeProps {
   user: User;
@@ -29,6 +30,7 @@ function FeedLike({
   color,
   fontSize,
 }: FeedLikeProps) {
+  const { t } = useTranslation();
   const { mutateAsync: postLike, isSuccess: isLikePostSuccess } =
     useCreateData<ReactionRequired>(
       endpoints.reactions,
@@ -106,38 +108,25 @@ function FeedLike({
     }
   }, [isLikePostSuccess]);
 
+  const likeCount = getReactionsLikeCount(currentItem!.reactions);
+  const tint = color ?? colors.text;
+
   return (
-    <View
-      style={{
-        justifyContent: "flex-start",
-        alignItems: "center",
-        flexDirection: "row",
-        gap: 5,
-      }}
+    <Pressable
+      onPress={handleLikePress}
+      accessibilityRole="button"
+      accessibilityLabel={effectiveLiked ? t("feed:card.unlike") : t("feed:card.like")}
+      accessibilityValue={{ text: t("feed:card.likes", { count: likeCount }) }}
+      accessibilityState={{ selected: effectiveLiked }}
+      style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: spacing.xs, minHeight: 48, minWidth: 48, opacity: pressed ? 0.6 : 1 })}
     >
       <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-        <TouchableOpacity onPress={handleLikePress}>
-          <FontAwesome
-            name={effectiveLiked ? "heart" : "heart-o"}
-            size={24}
-            color={
-              effectiveLiked ? "red" : (color ?? customTheme.colors.secondary)
-            }
-          />
-        </TouchableOpacity>
+        <FontAwesome name={effectiveLiked ? "heart" : "heart-o"} size={22} color={effectiveLiked ? colors.danger : tint} />
       </Animated.View>
-
-      <CustomText
-        style={{
-          fontFamily: "VendSansBold",
-          color: color ?? customTheme.colors.secondary,
-          fontSize: fontSize ?? 16,
-        }}
-        concatNumber={true}
-      >
-        {getReactionsLikeCount(currentItem!.reactions)}
+      <CustomText style={{ fontFamily: fonts.bold, color: tint, fontSize: fontSize ?? 16 }} concatNumber>
+        {likeCount}
       </CustomText>
-    </View>
+    </Pressable>
   );
 }
 

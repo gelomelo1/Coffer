@@ -1,8 +1,9 @@
-import CustomOverlay from "@/src/components/custom_ui/custom_overlay";
+import { SelectOptionRow } from "@/src/components/custom_ui/select_shared";
+import SheetModal from "@/src/components/custom_ui/sheet_modal";
 import rarityVariants from "@/src/const/rarity_variants";
-import { customTheme } from "@/src/theme/theme";
-import { View } from "react-native";
-import { CheckBox } from "react-native-elements";
+import { colors } from "@/src/theme/theme";
+import { useTranslation } from "react-i18next";
+import { ScrollView, View } from "react-native";
 
 interface FeedRaritySelectorProps {
   isFeedRaritySelectorVisible: {
@@ -13,72 +14,42 @@ interface FeedRaritySelectorProps {
   onRaritySelect: (rarity: number | null | undefined) => void;
 }
 
-function FeedRaritySelector({
-  isFeedRaritySelectorVisible,
-  selectedRarity,
-  onRaritySelect,
-}: FeedRaritySelectorProps) {
-  const handleRaritySelect = (rarity: number | null | undefined) => {
+function Swatch({ color }: { color: string }) {
+  return <View style={{ width: 20, height: 20, backgroundColor: color, borderWidth: 2, borderColor: colors.border }} />;
+}
+
+/** Pick a rarity tier for an item (or clear the rating). */
+function FeedRaritySelector({ isFeedRaritySelectorVisible, selectedRarity, onRaritySelect }: FeedRaritySelectorProps) {
+  const { t } = useTranslation();
+  const select = (rarity: number | null) => {
     onRaritySelect(rarity);
     isFeedRaritySelectorVisible.set(false);
   };
 
   return (
-    <CustomOverlay
-      isVisible={isFeedRaritySelectorVisible.value}
+    <SheetModal
+      visible={isFeedRaritySelectorVisible.value}
       onClose={() => isFeedRaritySelectorVisible.set(false)}
-      overlayTitle="Select a rairty value"
+      title={t("feed:rarity.selectTitle")}
     >
-      <View
-        style={{
-          width: "100%",
-          justifyContent: "center",
-          alignItems: "flex-start",
-          gap: 10,
-        }}
-      >
-        <CheckBox
-          title="No Rate"
-          containerStyle={{
-            backgroundColor: "transparent",
-            borderWidth: 0,
-            width: "100%",
-            alignItems: "flex-start",
-            paddingVertical: 0,
-          }}
-          size={32}
-          textStyle={{ color: customTheme.colors.primary, fontSize: 32 }}
-          checkedColor={customTheme.colors.primary}
-          uncheckedColor={customTheme.colors.primary}
-          checkedIcon="dot-circle-o"
-          uncheckedIcon="circle-o"
-          checked={selectedRarity === null || selectedRarity === undefined}
-          onPress={() => handleRaritySelect(null)}
+      <ScrollView>
+        <SelectOptionRow
+          label={t("feed:rarity.noRating")}
+          muted
+          selected={selectedRarity === null || selectedRarity === undefined}
+          onPress={() => select(null)}
         />
-
         {Object.entries(rarityVariants).map(([key, rarity]) => (
-          <CheckBox
+          <SelectOptionRow
             key={key}
-            title={rarity.title}
-            containerStyle={{
-              backgroundColor: "transparent",
-              borderWidth: 0,
-              width: "100%",
-              alignItems: "flex-start",
-              paddingVertical: 0,
-            }}
-            size={32}
-            textStyle={{ color: rarity.color, fontSize: 32 }}
-            checkedColor={rarity.color}
-            uncheckedColor={rarity.color}
-            checkedIcon="dot-circle-o"
-            uncheckedIcon="circle-o"
-            checked={selectedRarity === Number(key)}
-            onPress={() => handleRaritySelect(Number(key))}
+            label={t(rarity.titleKey)}
+            selected={selectedRarity === Number(key)}
+            additionalElement={<Swatch color={rarity.color} />}
+            onPress={() => select(Number(key))}
           />
         ))}
-      </View>
-    </CustomOverlay>
+      </ScrollView>
+    </SheetModal>
   );
 }
 

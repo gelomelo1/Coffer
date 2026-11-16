@@ -1,13 +1,12 @@
-import CustomText from "@/src/components/custom_ui/custom_text";
+import Avatar from "@/src/components/custom_ui/avatar";
+import ListRow from "@/src/components/custom_ui/list_row";
+import { countryFlag } from "@/src/utils/market_api";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
-import { customTheme } from "@/src/theme/theme";
 import User from "@/src/types/entities/user";
 import { getCountryByCode } from "@/src/utils/data_access_utils";
 import { navigate } from "expo-router/build/global-state/routing";
 import { useEffect, useState } from "react";
-import { TouchableOpacity, View } from "react-native";
-import { Avatar } from "react-native-elements";
 
 interface FeedSearchUserCardProps {
   user: User;
@@ -36,37 +35,12 @@ function FeedSearchUserCard({ user }: FeedSearchUserCardProps) {
   };
 
   return (
-    <TouchableOpacity
-      style={{
-        justifyContent: "flex-start",
-        alignItems: "center",
-        flexDirection: "row",
-        gap: 10,
-      }}
+    <ListRow
+      title={user.name}
+      subtitle={[countryFlag(user.country), country].filter(Boolean).join(" ") /* i18n-ignore */}
+      leading={<Avatar uri={user.avatar} size={48} />}
       onPress={handleNavigation}
-    >
-      <Avatar
-        size={48}
-        rounded
-        source={user?.avatar ? { uri: user.avatar } : undefined}
-        icon={
-          !user?.avatar
-            ? {
-                name: "user",
-                type: "feather",
-                color: customTheme.colors.secondary,
-              }
-            : undefined
-        }
-        containerStyle={{ backgroundColor: customTheme.colors.primary }}
-      />
-      <View>
-        <CustomText style={{ fontFamily: "VendSansBold" }}>
-          {user.name}
-        </CustomText>
-        <CustomText style={{ fontSize: 14 }}>{country ?? ""}</CustomText>
-      </View>
-    </TouchableOpacity>
+    />
   );
 }
 

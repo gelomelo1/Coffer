@@ -1,4 +1,5 @@
-import CustomText from "@/src/components/custom_ui/custom_text";
+import ListRow from "@/src/components/custom_ui/list_row";
+import { ResultThumb } from "./result_thumb";
 import { endpoints } from "@/src/const/endpoints";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useCollectionStore } from "@/src/hooks/collection_store";
@@ -8,7 +9,7 @@ import { useUserStore } from "@/src/hooks/user_store";
 import CollectionSearch from "@/src/types/entities/collection_search";
 import User from "@/src/types/entities/user";
 import { navigate } from "expo-router/build/global-state/routing";
-import { Image, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 interface FeedSearchCollectionCardProps {
   currentUser: User;
@@ -21,6 +22,7 @@ function FeedSearchCollectionCard({
   collectionSearch,
   closeOverlay,
 }: FeedSearchCollectionCardProps) {
+  const { t } = useTranslation();
   const { collectionTypes } = useCollectionTypeStore();
   const { token } = useUserStore();
   const { setUser, setCollection } = useOtherUserStore();
@@ -53,41 +55,24 @@ function FeedSearchCollectionCard({
     closeOverlay();
   };
 
+  const collectionType = collectionTypes.find((ct) => ct.id === collectionSearch.collection.collectionTypeId);
   return (
-    <TouchableOpacity
-      style={{
-        height: 48,
-        justifyContent: "flex-start",
-        alignItems: "center",
-        flexDirection: "row",
-        gap: 10,
-      }}
+    <ListRow
+      title={collectionSearch.collection.name}
+      subtitle={[collectionSearch.user.name, t("feed:search.followers", { count: collectionSearch.collection.follows.length })].join(" · ") /* i18n-ignore */}
+      leading={
+        <ResultThumb
+          uri={
+            collectionSearch.collection.image
+              ? `${endpoints.collectionsCoverImage}/${collectionSearch.collection.image}`
+              : `${endpoints.icons}/${collectionType?.icon}`
+          }
+          token={token}
+          background={collectionType?.color}
+        />
+      }
       onPress={handleNavigation}
-    >
-      <Image
-        source={{
-          uri: collectionSearch.collection.image
-            ? `${endpoints.collectionsCoverImage}/${collectionSearch.collection.image}`
-            : `${endpoints.icons}/${collectionSearch.collection.collectionTypeId}`,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          cache: "reload",
-        }}
-        style={{
-          height: "100%",
-          aspectRatio: "1/1",
-        }}
-      />
-      <View>
-        <CustomText style={{ fontFamily: "VendSansBold" }}>
-          {collectionSearch.collection.name}
-        </CustomText>
-        <CustomText style={{ fontSize: 14 }}>
-          {collectionSearch.collection.follows.length} followers
-        </CustomText>
-      </View>
-    </TouchableOpacity>
+    />
   );
 }
 

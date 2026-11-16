@@ -1,5 +1,6 @@
 interface RarityValue {
-  title: string;
+  /** i18n key of the tier name. */
+  titleKey: string;
   color: string;
 }
 

@@ -1,11 +1,11 @@
 import FeedList from "@/src/components/collections/tabs/home/feed_list";
-import rootViewStyle from "@/src/components/custom_ui/root_view";
+import { colors } from "@/src/theme/theme";
 import React from "react";
 import { View } from "react-native";
 
 function Home() {
   return (
-    <View style={[rootViewStyle(), { flex: 1, padding: 0 }]}>
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <FeedList />
     </View>
   );
