@@ -1,42 +1,37 @@
 import { endpoints } from "@/src/const/endpoints";
 import { languageFilter } from "@/src/const/filter";
 import { stringResource } from "@/src/const/resource";
-import User from "@/src/types/entities/user";
 import { getData } from "@/src/utils/backend_access";
-import buildQuery from "@/src/utils/query_builder";
 import { useRef, useState } from "react";
-import { ActivityIndicator, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from "react-native";
 import { Country } from "react-native-country-picker-modal";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { colors, spacing, typography } from "../../theme/theme";
 import CountryField from "../custom_ui/country_field";
-import { Icon } from "react-native-elements";
-import * as RNLocalize from "react-native-localize";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { customTheme } from "../../theme/theme";
 import CustomButton from "../custom_ui/custom_button";
-import CustomText from "../custom_ui/custom_text";
 import CustomTextInput from "../custom_ui/custom_text_input";
+import NameCheckIcon from "../custom_ui/name_check_icon";
 
 interface RegisterFormProps {
   submitRegistration: (username: string, country: string) => void;
+  onCancel?: () => void;
 }
 
-function RegisterForm({ submitRegistration }: RegisterFormProps) {
+function RegisterForm({ submitRegistration, onCancel }: RegisterFormProps) {
+  const { t } = useTranslation();
   const [userName, setUsername] = useState("");
   const [country, setCountry] = useState<Country | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
   const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const locales = RNLocalize.getLocales();
-  const [isCountryPickerVisible, setIsCountryPickerVisible] = useState(false);
 
   const handleChangeUsername = (newValue: string) => {
     setUsername(newValue);
     setIsSubmitDisabled(true);
 
-    if (debounceTimeout.current) {
-      clearTimeout(debounceTimeout.current);
-    }
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
 
     if (newValue === "") {
       setErrorMessage(stringResource.requiredError);
@@ -59,9 +54,7 @@ function RegisterForm({ submitRegistration }: RegisterFormProps) {
         return;
       }
 
-      const url = `${endpoints.userExists}/${newValue}`;
-
-      const userWithCurrentUsername = await getData<boolean>(url);
+      const userWithCurrentUsername = await getData<boolean>(`${endpoints.userExists}/${newValue}`);
 
       if (userWithCurrentUsername) {
         setErrorMessage(stringResource.alreadyExistsError);
@@ -76,56 +69,51 @@ function RegisterForm({ submitRegistration }: RegisterFormProps) {
   };
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: customTheme.colors.background }}
-    >
-      <View
-        style={{
-          flex: 1,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: 10,
-          backgroundColor: customTheme.colors.background,
-        }}
-      >
-        <CustomText>You have not have a registered account yet.</CustomText>
-        <CustomText style={{ textAlign: "center" }}>
-          Please enter a username and choose your country to finish registration
-        </CustomText>
-        <CustomTextInput
-          placeholder="Enter Username"
-          label="Username"
-          value={userName}
-          onChangeText={(newValue) => handleChangeUsername(newValue)}
-          errorMessage={errorMessage}
-          rightIcon={
-            isLoading ? (
-              <ActivityIndicator
-                size="small"
-                color={customTheme.colors.accent}
+    // Rendered inside a Modal (outside the app's providers on Android), so it provides its own insets.
+    <SafeAreaProvider>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1, justifyContent: "center", padding: spacing.lg, gap: spacing.lg }}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={{ gap: spacing.xs }}>
+              <Text accessibilityRole="header" style={[typography.headline, { color: colors.text }]}>
+                {t("auth:register.title")}
+              </Text>
+              <Text style={[typography.body, { color: colors.text }]}>{t("auth:register.intro")}</Text>
+            </View>
+            <CustomTextInput
+              label={t("auth:register.username")}
+              placeholder={t("auth:register.usernamePlaceholder")}
+              helperText={t("auth:register.usernameHelper")}
+              value={userName}
+              onChangeText={handleChangeUsername}
+              errorMessage={errorMessage}
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="username"
+              textContentType="username"
+              maxLength={40}
+              required
+              rightIcon={<NameCheckIcon checking={isLoading} error={!!errorMessage} ok={!isSubmitDisabled} />}
+            />
+            <CountryField label={t("auth:register.country")} value={country} onSelect={setCountry} />
+            <View style={{ gap: spacing.sm, marginTop: spacing.sm }}>
+              <CustomButton
+                title={t("auth:register.submit")}
+                disabled={isSubmitDisabled || country === null}
+                onPress={() => {
+                  // Optional chaining: the React Compiler reads closure dependencies during render.
+                  if (country?.cca2) submitRegistration(userName, String(country?.cca2));
+                }}
               />
-            ) : !!errorMessage ? (
-              <Icon name="close" size={20} color="red" />
-            ) : !isSubmitDisabled ? (
-              <Icon name="check" size={20} color="green" />
-            ) : undefined
-          }
-          containerStyle={{ width: "80%", marginBottom: 20 }}
-        />
-        <View style={{ width: "80%", marginBottom: 50 }}>
-          <CountryField label="Country" value={country} onSelect={(c) => setCountry(c)} />
-        </View>
-        <CustomButton
-          title="Submit"
-          disabled={isSubmitDisabled || country === null}
-          onPress={() =>
-            submitRegistration(userName, country?.cca2.toString()!)
-          }
-          containerStyle={{ width: "80%", alignSelf: "center" }}
-        />
-      </View>
-    </SafeAreaView>
+              {onCancel ? <CustomButton title={t("auth:register.cancel")} variant="ghost" onPress={onCancel} /> : null}
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 

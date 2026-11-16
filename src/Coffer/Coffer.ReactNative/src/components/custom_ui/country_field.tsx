@@ -3,7 +3,8 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { FlatListProps, Platform, Pressable, Text, View } from "react-native";
-import CountryPicker, { Country, CountryCode, Flag } from "react-native-country-picker-modal";
+import CountryPicker, { Country, CountryCode } from "react-native-country-picker-modal";
+import { countryFlag } from "@/src/utils/market_api";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomTextInput from "./custom_text_input";
 import { SelectError, SelectLabel, selectFieldStyle, selectTextStyle } from "./select_shared";
@@ -138,7 +139,13 @@ export function CountryField({ label, value, onSelect, placeholder, errorMessage
           pressed && { backgroundColor: colors.surfaceAlt },
         ]}
       >
-        {value ? <Flag countryCode={value.cca2} withEmoji flagSize={24} /> : <MaterialIcons name="public" size={sizes.iconMd} color={colors.textMuted} />}
+        {value ? (
+          <Text style={{ fontSize: 22 }} accessibilityElementsHidden importantForAccessibility="no">
+            {countryFlag(value.cca2)}
+          </Text>
+        ) : (
+          <MaterialIcons name="public" size={sizes.iconMd} color={colors.textMuted} />
+        )}
         <Text numberOfLines={2} style={[selectTextStyle, { flex: 1 }, !name && { color: colors.textMuted }]}>
           {name ?? placeholder ?? t("common:country.placeholder")}
         </Text>
