@@ -1,4 +1,5 @@
 import i18n from "../i18n";
+import { formatNumberShort as formatNumberShortFor } from "./format";
 import * as ImagePicker from "expo-image-picker";
 import { FlagType, getAllCountries } from "react-native-country-picker-modal";
 import {
@@ -40,7 +41,7 @@ export function getItemAttributeValue(
       break;
     case AttributeDataTypes.Number:
       value = itemAttribute.valueNumber ?? null;
-      valueString = itemAttribute.valueNumber.toLocaleString();
+      valueString = itemAttribute.valueNumber.toLocaleString(i18n.language);
       valueKey = "valueNumber";
       break;
     case AttributeDataTypes.Boolean:
@@ -52,7 +53,7 @@ export function getItemAttributeValue(
       value = itemAttribute.valueDate
         ? new Date(itemAttribute.valueDate)
         : null;
-      valueString = new Date(itemAttribute.valueDate).toLocaleDateString();
+      valueString = new Date(itemAttribute.valueDate).toLocaleDateString(i18n.language);
       valueKey = "valueDate";
       break;
     default:
@@ -313,27 +314,5 @@ export function stringHasValue(text: string | null | undefined) {
   return stripped.length > 0;
 }
 
-export const formatNumberShort = (num: number): string => {
-  const format = (value: number, suffix: string) => {
-    const truncated = Math.floor(value * 100) / 100; // round DOWN to 2 decimals
-    const hasDecimals = truncated % 1 !== 0;
-
-    return hasDecimals
-      ? `${truncated.toFixed(2).replace(/\.?0+$/, "")}${suffix}`
-      : `${truncated}${suffix}`;
-  };
-
-  if (num >= 1_000_000_000) {
-    return format(num / 1_000_000_000, "B");
-  }
-
-  if (num >= 1_000_000) {
-    return format(num / 1_000_000, "M");
-  }
-
-  if (num >= 1_000) {
-    return format(num / 1_000, "k");
-  }
-
-  return num.toString();
-};
+/** Big counts shortened in the app language: 1530 → "1.53k" (en), "1,53 E" (hu). */
+export const formatNumberShort = (num: number): string => formatNumberShortFor(num, i18n.language);

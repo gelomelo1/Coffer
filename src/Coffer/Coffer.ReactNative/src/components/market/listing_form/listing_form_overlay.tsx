@@ -1,3 +1,4 @@
+import i18n from "@/src/i18n";
 import { SectionHeader } from "@/src/components/custom_ui/card";
 import { Checkbox } from "@/src/components/custom_ui/checkbox";
 import CustomButton from "@/src/components/custom_ui/custom_button";
@@ -9,6 +10,7 @@ import { useMarketMutation } from "@/src/hooks/market_api";
 import { borders, colors, hitSlopFor, sizes, spacing, typography } from "@/src/theme/theme";
 import { City, ListingCondition, ListingDetail, ListingImage, ListingInput, ListingKind } from "@/src/types/entities/market";
 import { pickImage } from "@/src/utils/data_access_utils";
+import { formatAmountInput } from "@/src/utils/format";
 import { LocalImage, marketApi, parsePriceToCents } from "@/src/utils/market_api";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useEffect, useState } from "react";
@@ -72,7 +74,7 @@ function ListingFormOverlay({
       setTypeId(editing.collectionTypeId);
       setTitle(editing.title);
       setCity(editing.city);
-      setPriceText(editing.priceCents ? String(editing.priceCents / 100) : "");
+      setPriceText(editing.priceCents ? formatAmountInput(editing.priceCents, i18n.language) : "");
       setExchangeFor(editing.exchangeFor ?? "");
       setCondition(editing.condition ?? null);
       setPickup(editing.allowsLocalPickup);

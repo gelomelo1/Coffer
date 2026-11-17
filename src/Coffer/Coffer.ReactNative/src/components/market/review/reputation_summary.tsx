@@ -2,6 +2,7 @@ import CustomOverlay from "@/src/components/custom_ui/custom_overlay";
 import { Loading } from "@/src/components/custom_ui/loading";
 import { useReputation, useUserReviews } from "@/src/hooks/market_api";
 import { colors, sizes, spacing, typography } from "@/src/theme/theme";
+import { formatDecimal } from "@/src/utils/format";
 import { formatResponseTime } from "@/src/utils/market_api";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useState } from "react";
@@ -12,7 +13,7 @@ import ReviewCard from "./review_card";
 
 /** "★ 4.5 (12) · 8 deals · replies within 2 hours" — tap to open the reviews. */
 function ReputationSummary({ userId, userName, isMe = false }: { userId: string; userName?: string; isMe?: boolean }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const { data: reputation } = useReputation(userId);
   const { data: reviews = [], isFetching } = useUserReviews(userId, open);
@@ -21,8 +22,8 @@ function ReputationSummary({ userId, userName, isMe = false }: { userId: string;
   const rating =
     reputation?.average != null
       ? reputation.count
-        ? t("market:reputation.ratingWithCount", { rating: reputation.average.toFixed(1), count: reputation.count })
-        : reputation.average.toFixed(1)
+        ? t("market:reputation.ratingWithCount", { rating: formatDecimal(reputation.average, i18n.language, 1), count: reputation.count })
+        : formatDecimal(reputation.average, i18n.language, 1)
       : t("market:reputation.noRatings");
   const stats = [
     t("market:reputation.deals", { count: reputation?.completedDeals ?? 0 }),

@@ -2,6 +2,7 @@ import { isAxiosError } from "axios";
 import { backendAxios } from "../const/backendAccessConfiguration";
 import { endpoints } from "../const/endpoints";
 import i18n from "../i18n";
+import { formatMoney } from "./format";
 import { apiErrorText } from "./api_error_text";
 import {
   Carrier,
@@ -174,9 +175,10 @@ export function countryFlag(code?: string | null) {
   return String.fromCodePoint(...code.toUpperCase().split("").map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65));
 }
 
+/** Euro cents in the app language's format: "€1.50" (en), "1,50 €" (hu). */
 export function formatPrice(cents?: number | null) {
   if (cents == null) return "";
-  return `€${(cents / 100).toFixed(cents % 100 === 0 ? 0 : 2)}`;
+  return formatMoney(cents, i18n.language);
 }
 
 /** "12.5" / "12,50" / "12" → cents; null when not a positive amount. */

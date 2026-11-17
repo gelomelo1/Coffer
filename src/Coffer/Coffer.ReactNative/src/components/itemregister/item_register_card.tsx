@@ -1,3 +1,4 @@
+import i18n from "@/src/i18n";
 import { emptyItem, tempItemId } from "@/src/const/emptyItem";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
@@ -187,7 +188,7 @@ function ItemRegisterCard({
     handleAddItemsCreateChange(updateNewItem);
   };
 
-  const similarName = selectedSimilar ? (getItemPrimaryAttributeValue(selectedSimilar.itemAttributes)?.value?.toLocaleString() ?? "") : "";
+  const similarName = selectedSimilar ? (getItemPrimaryAttributeValue(selectedSimilar.itemAttributes)?.value?.toLocaleString(i18n.language) ?? "") : "";
 
   const choiceTile = (key: string, selected: boolean, onPress: () => void, label: string, content: React.ReactNode, disabled = false) => (
     <Pressable
