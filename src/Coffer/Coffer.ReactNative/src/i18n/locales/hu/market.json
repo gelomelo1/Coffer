@@ -42,6 +42,15 @@
     "disputed": "Vitatott — a Coffer nem dönt benne",
     "cancelled": "Lemondva"
   },
+  "dealState": {
+    "proposed": "ajánlat",
+    "awaiting_handoff": "átadásra vár",
+    "awaiting_shipment": "feladásra vár",
+    "shipped": "feladva",
+    "completed": "teljesült",
+    "disputed": "vitatott",
+    "cancelled": "lemondva"
+  },
   "reasonTag": {
     "item_not_as_described": "Nem a leírt tárgy",
     "late_to_meetup": "Késett a találkozóról",
@@ -350,7 +359,8 @@
     "emptyText": "Nyiss meg egy hirdetést, és írj az eladónak.",
     "selling": "Eladás",
     "buying": "Vásárlás",
-    "preview": "{{name}}: {{text}}"
+    "preview": "{{name}}: {{text}}",
+    "previewMine": "Te: {{text}}"
   },
   "deals": {
     "needsAction": "Teendőd van",
@@ -402,7 +412,35 @@
     },
     "withdraw": "Visszavonás",
     "accept": "Elfogadás",
-    "decline": "Elutasítás"
+    "decline": "Elutasítás",
+    "removed": "Ezt az üzenetet egy moderátor eltávolította.",
+    "previewMeetup": "📅 Találkozó-javaslat"
+  },
+  "system": {
+    "dealProposed": "🤝 Üzletajánlat: {{method}}. A vevő elfogadására vár.",
+    "dealProposedPrice": "🤝 Üzletajánlat: {{method}}, {{price}} áron. A vevő elfogadására vár.",
+    "dealAcceptedPickup": "✅ Az üzlet elfogadva. A találkozón a vevő csak a tárgy átnézése után mutatja meg a PIN-kódját/QR-kódját; az eladó ezt beírva zárja le az üzletet.",
+    "dealAcceptedShipping": "✅ Az üzlet elfogadva. Eladó: add fel a tárgyat, és itt add meg a szállítót és a nyomkövetési számot.",
+    "listingReserved": "ℹ️ Ez a hirdetés most egy másik vevőnek van lefoglalva.",
+    "listingSold": "ℹ️ Ez a hirdetés elkelt.",
+    "shipped": "📦 Feladva: {{carrier}}, nyomkövetési szám: {{tracking}}. Vevő: erősítsd meg az átvételt, amikor megérkezik (vagy jelezz problémát). Ha egyik sem történik meg, az üzlet 14 nap után automatikusan lezárul.",
+    "disputed": "⚠️ A vevő problémát jelzett: „{{reason}}”. Az üzlet vitatottként lezárult — a Coffer nem dönti el, kinek van igaza. 14 napon belül mindketten értékelhetitek egymást.",
+    "completedHandoff": "🎉 Az üzlet teljesült. Az átadást a vevő PIN-kódja igazolta. 14 napig értékelhetitek egymást — az értékelések rejtve maradnak, amíg mindketten be nem küldtétek.",
+    "completedReceipt": "🎉 Az üzlet teljesült. A vevő megerősítette az átvételt. 14 napig értékelhetitek egymást — az értékelések rejtve maradnak, amíg mindketten be nem küldtétek.",
+    "completedAuto": "🎉 Az üzlet teljesült. A feladás utáni 14 napban senki sem jelzett problémát. 14 napig értékelhetitek egymást — az értékelések rejtve maradnak, amíg mindketten be nem küldtétek.",
+    "completedModerator": "🎉 Az üzletet egy moderátor lezárta. 14 napig értékelhetitek egymást — az értékelések rejtve maradnak, amíg mindketten be nem küldtétek.",
+    "dealCancelled": "✖️ Az üzlet lemondva.",
+    "dealCancelledReason": "✖️ Az üzlet lemondva: {{reason}}",
+    "listingRemovedDealCancelled": "🛡️ Ezt a hirdetést eltávolítottuk, mert megszegte a piactér szabályait. Az üzlet lemondva.",
+    "method": {
+      "local_pickup": "személyes átvétel",
+      "shipping": "szállítás"
+    },
+    "otherCarrier": "egyéb szállító",
+    "cancelReason": {
+      "declined": "A vevő elutasította.",
+      "listingRemoved": "A hirdetést eltávolítottuk, mert megszegte a piactér szabályait."
+    }
   },
   "deal": {
     "toast": {

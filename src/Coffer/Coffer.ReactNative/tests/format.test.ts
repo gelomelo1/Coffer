@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { formatAmountInput, formatDecimal, formatMoney, formatNumberShort } from "../src/utils/format.ts";
+import { formatAmountInput, formatDecimal, formatMoney, formatNumberShort, withCurrencySymbol } from "../src/utils/format.ts";
 
 /** Intl uses no-break spaces (U+00A0 / U+202F) between groups and before the currency sign. */
 const plain = (s: string) => s.replace(/[  ]/g, " ");
@@ -37,4 +37,10 @@ test("short numbers use the language's separator and suffixes", () => {
   assert.equal(formatNumberShort(1530, "hu"), "1,53 E");
   assert.equal(formatNumberShort(2_000_000, "hu"), "2 M");
   assert.equal(formatNumberShort(3_100_000_000, "hu"), "3,1 Mrd");
+});
+
+test("a currency code printed by an engine without narrow-symbol data (Hermes) becomes the symbol", () => {
+  assert.equal(plain(withCurrencySymbol("1\u00a0234,50\u00a0EUR", "EUR")), "1 234,50 €");
+  assert.equal(plain(withCurrencySymbol("EUR\u00a01.50", "EUR")), "€1.50");
+  assert.equal(withCurrencySymbol("€1.50", "EUR"), "€1.50");
 });

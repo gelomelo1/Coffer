@@ -48,5 +48,20 @@ namespace Coffer.BusinessLogic.Marketplace.Common
             for (var i = 0; i < values.Length; i++) args[$"p{i}"] = values[i];
             return args;
         }
+
+        /// <summary>A param the app shows as the translation of <paramref name="key"/> ("namespace:path").</summary>
+        public static string Key(string key) => "@t:" + key;
+
+        /// <summary>A param the app shows as a euro amount in the user's number format.</summary>
+        public static string Money(int cents) => "@eur:" + cents;
+
+        /// <summary>"Tracking number" → "trackingNumber": the errors:fields key of an English field name.</summary>
+        public static string FieldKey(string field)
+        {
+            var words = field.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            return string.Concat(words.Select((w, i) => i == 0 ? w.ToLowerInvariant() : char.ToUpperInvariant(w[0]) + w[1..].ToLowerInvariant()));
+        }
+
+        public static string Field(string field) => Key("errors:fields." + FieldKey(field));
     }
 }

@@ -6,7 +6,7 @@
 /** Euro cents as money: "€1.50" (en), "1,50 €" (hu); whole amounts without decimals. */
 export function formatMoney(cents: number, locale: string, currency = "EUR"): string {
   const whole = cents % 100 === 0;
-  return new Intl.NumberFormat(locale, {
+  const text = new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
     // "€" in every language (Hungarian ICU data would otherwise print "EUR").
@@ -14,6 +14,19 @@ export function formatMoney(cents: number, locale: string, currency = "EUR"): st
     minimumFractionDigits: whole ? 0 : 2,
     maximumFractionDigits: whole ? 0 : 2,
   }).format(cents / 100);
+  return withCurrencySymbol(text, currency);
+}
+
+const SYMBOLS: Record<string, string> = { EUR: "€" };
+
+/**
+ * Hermes (the app's JS engine) ignores currencyDisplay "narrowSymbol" for some locales and prints the code
+ * ("1 234,50 EUR"); swap the code for the symbol, without a gap when it comes before the number ("€1.50").
+ */
+export function withCurrencySymbol(text: string, currency: string): string {
+  const symbol = SYMBOLS[currency];
+  if (!symbol || !text.includes(currency)) return text;
+  return text.replace(new RegExp(`${currency}[\\s\\u00a0\\u202f]*(?=[-\\d])`), symbol).replace(currency, symbol);
 }
 
 /** A number with a fixed count of decimals: 4.5 → "4.5" (en), "4,5" (hu). */

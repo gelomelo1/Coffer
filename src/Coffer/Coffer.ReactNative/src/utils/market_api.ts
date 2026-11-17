@@ -3,6 +3,8 @@ import { backendAxios } from "../const/backendAccessConfiguration";
 import { endpoints } from "../const/endpoints";
 import i18n from "../i18n";
 import { formatMoney } from "./format";
+import { messagePreview, messageText, type MessageLike, type Texts } from "./message_text";
+import { resolveText } from "./text_params";
 import { apiErrorText } from "./api_error_text";
 import {
   Carrier,
@@ -180,6 +182,21 @@ export function formatPrice(cents?: number | null) {
   if (cents == null) return "";
   return formatMoney(cents, i18n.language);
 }
+
+const marketTexts: Texts = {
+  t: (key, params) => i18n.t(key, params ?? {}),
+  exists: (key) => i18n.exists(key),
+  money: (cents) => formatPrice(cents),
+};
+
+/** A chat message's text in the app language (system messages arrive as a code + params). */
+export const chatMessageText = (message: MessageLike) => messageText(message, marketTexts);
+
+/** One-line inbox preview of a conversation's last message, in the app language. */
+export const chatPreview = (message: MessageLike) => messagePreview(message, marketTexts);
+
+/** A stored backend text that may be a "@t:" translation key (e.g. a generated cancel reason). */
+export const backendText = (value: string | null | undefined) => resolveText(value, (key) => i18n.t(key), formatPrice);
 
 /** "12.5" / "12,50" / "12" → cents; null when not a positive amount. */
 export function parsePriceToCents(text: string): number | null {

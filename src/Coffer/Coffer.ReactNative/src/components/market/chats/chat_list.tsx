@@ -4,7 +4,7 @@ import { useInbox } from "@/src/hooks/market_api";
 import { pressableShadowStyle } from "@/src/theme/pressable";
 import { borders, colors, spacing, typography } from "@/src/theme/theme";
 import { apiErrorText } from "@/src/utils/api_error_text";
-import { formatTimeAgo } from "@/src/utils/market_api";
+import { chatPreview, formatTimeAgo } from "@/src/utils/market_api";
 import { useTranslation } from "react-i18next";
 import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { EmptyState, ListingImageView, Tag } from "../ui/retro";
@@ -34,7 +34,16 @@ function ChatList() {
         const selling = (item.subject.kind === "wanted") === (item.myRole === "inquirer");
         const unread = item.unreadCount > 0;
         const role = selling ? t("market:chats.selling") : t("market:chats.buying");
-        const preview = item.lastMessagePreview ?? t("market:details.noPreview");
+        const preview = item.lastMessage ? chatPreview(item.lastMessage) : (item.lastMessagePreview ?? t("market:details.noPreview"));
+        // System messages are nobody's words: no name in front of them.
+        const sender = item.lastMessage?.senderId;
+        const previewLine = !item.lastMessage
+          ? t("market:chats.preview", { name: item.other.name, text: preview })
+          : sender == null
+            ? preview
+            : sender === item.other.id
+              ? t("market:chats.preview", { name: item.other.name, text: preview })
+              : t("market:chats.previewMine", { text: preview });
         return (
           <Pressable
             onPress={() => openChat(item.id, item.other.name, item.subject.title)}
@@ -69,7 +78,7 @@ function ChatList() {
                 {item.subject.title}
               </Text>
               <Text style={[unread ? typography.label : typography.meta, { color: colors.text }]} numberOfLines={1}>
-                {t("market:chats.preview", { name: item.other.name, text: preview })}
+                {previewLine}
               </Text>
             </View>
             {unread ? <Tag label={String(item.unreadCount)} color={colors.danger} /> : null}

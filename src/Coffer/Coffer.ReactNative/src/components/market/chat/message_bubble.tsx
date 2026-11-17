@@ -1,7 +1,7 @@
 import { useMarketMutation } from "@/src/hooks/market_api";
 import { borders, colors, sizes, spacing, typography } from "@/src/theme/theme";
 import { Message } from "@/src/types/entities/market";
-import { formatDateTime, formatPrice, marketApi } from "@/src/utils/market_api";
+import { chatMessageText, formatDateTime, formatPrice, marketApi } from "@/src/utils/market_api";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -17,7 +17,7 @@ const statusColor = {
 } as const;
 
 /**
- * One chat message. System and moderation texts are generated and stored by the backend, so they render as sent.
+ * One chat message. System messages arrive as a code + params and are shown in the app language.
  * Someone else's message can be reported with a long press or the screen reader's action menu.
  */
 function MessageBubble({ message, conversationId, myId }: { message: Message; conversationId: string; myId: string }) {
@@ -41,7 +41,7 @@ function MessageBubble({ message, conversationId, myId }: { message: Message; co
           gap: 2,
         }}
       >
-        <Text style={[typography.meta, { color: colors.text, textAlign: "center", fontStyle: "italic" }]}>{message.body}</Text>
+        <Text style={[typography.meta, { color: colors.text, textAlign: "center", fontStyle: "italic" }]}>{chatMessageText(message)}</Text>
         <Text style={[typography.caption, { color: colors.textMuted, textAlign: "center" }]}>{formatDateTime(message.createdAt)}</Text>
       </View>
     );
@@ -63,7 +63,7 @@ function MessageBubble({ message, conversationId, myId }: { message: Message; co
           borderColor: colors.accent,
         }}
       >
-        <Text style={[typography.meta, { color: colors.textMuted, fontStyle: "italic" }]}>{message.body}</Text>
+        <Text style={[typography.meta, { color: colors.textMuted, fontStyle: "italic" }]}>{chatMessageText(message)}</Text>
       </View>
     );
   }

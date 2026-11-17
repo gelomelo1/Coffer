@@ -108,8 +108,10 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
             _db.Deals.Add(deal);
             await SaveOrConflictAsync("dealAlreadyInProgress", "There is already a deal in progress for this listing.");
 
-            await _conversations.PostSystemAsync(conversation.Id,
-                $"🤝 Deal proposed: {MethodText(method)}{PriceText(deal.AgreedPriceCents)}. Waiting for the buyer to accept.");
+            var proposedArgs = new Dictionary<string, string> { ["method"] = ErrorArgs.Key($"market:system.method.{EnumText.ToSnake(method)}") };
+            if (deal.AgreedPriceCents.HasValue) proposedArgs["price"] = ErrorArgs.Money(deal.AgreedPriceCents.Value);
+            await _conversations.PostSystemAsync(conversation.Id, deal.AgreedPriceCents.HasValue ? "dealProposedPrice" : "dealProposed",
+                $"🤝 Deal proposed: {MethodText(method)}{PriceText(deal.AgreedPriceCents)}. Waiting for the buyer to accept.", proposedArgs);
             return await GetAsync(userId, deal.Id);
         }
 
@@ -135,10 +137,13 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
             Touch(deal);
             await _db.SaveChangesAsync();
 
-            await _conversations.PostSystemAsync(deal.ConversationId, deal.Method == DeliveryMethod.LocalPickup
-                ? "✅ Deal accepted. At the meetup the buyer shows their PIN/QR only after checking the item; the seller enters it to finish."
-                : "✅ Deal accepted. Seller: ship the item and register the carrier + tracking number here.");
-            await NotifyOtherConversationsAsync(deal, "ℹ️ This listing is now reserved for another buyer.");
+            if (deal.Method == DeliveryMethod.LocalPickup)
+                await _conversations.PostSystemAsync(deal.ConversationId, "dealAcceptedPickup",
+                    "✅ Deal accepted. At the meetup the buyer shows their PIN/QR only after checking the item; the seller enters it to finish.");
+            else
+                await _conversations.PostSystemAsync(deal.ConversationId, "dealAcceptedShipping",
+                    "✅ Deal accepted. Seller: ship the item and register the carrier + tracking number here.");
+            await NotifyOtherConversationsAsync(deal, "listingReserved", "ℹ️ This listing is now reserved for another buyer.");
             return await GetAsync(userId, dealId);
         }
 
@@ -147,7 +152,7 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
             var deal = await LoadAsync(userId, dealId);
             RequireBuyer(deal, userId);
             RequireStatus(deal, DealStatus.Proposed);
-            await CancelInternalAsync(deal, userId, "Declined by the buyer.");
+            await CancelInternalAsync(deal, userId, DeclinedReason);
             return await GetAsync(userId, dealId);
         }
 
@@ -217,9 +222,11 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
             Touch(deal);
             await _db.SaveChangesAsync();
 
-            await _conversations.PostSystemAsync(deal.ConversationId,
+            var carrierParam = code == "other" ? ErrorArgs.Key("market:system.otherCarrier") : Carriers.Label(code)!;
+            await _conversations.PostSystemAsync(deal.ConversationId, "shipped",
                 $"📦 Shipped with {Carriers.Label(code)}, tracking number {tracking}. Buyer: confirm receipt when it arrives " +
-                "(or report a problem). Without either, the deal completes automatically after 14 days.");
+                "(or report a problem). Without either, the deal completes automatically after 14 days.",
+                new Dictionary<string, string> { ["carrier"] = carrierParam, ["tracking"] = tracking });
             return await GetAsync(userId, dealId);
         }
 
@@ -256,9 +263,10 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
             Touch(deal);
             await _db.SaveChangesAsync();
 
-            await _conversations.PostSystemAsync(deal.ConversationId,
+            await _conversations.PostSystemAsync(deal.ConversationId, "disputed",
                 $"⚠️ The buyer reported a problem: \"{text}\". The deal is closed as disputed — Coffer does not decide " +
-                "who is right. You can both leave a review within 14 days.");
+                "who is right. You can both leave a review within 14 days.",
+                new Dictionary<string, string> { ["reason"] = text });
             return await GetAsync(userId, dealId);
         }
 
@@ -322,16 +330,16 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
             Touch(deal);
             await _db.SaveChangesAsync();
 
-            var why = reason switch
+            var (code, why) = reason switch
             {
-                CompletionReason.HandoffVerified => "Handoff verified with the buyer's PIN.",
-                CompletionReason.ReceiptConfirmed => "The buyer confirmed receipt.",
-                CompletionReason.AutoCompleted => "No problem was reported within 14 days of shipping.",
-                _ => "Completed by a moderator.",
+                CompletionReason.HandoffVerified => ("completedHandoff", "Handoff verified with the buyer's PIN."),
+                CompletionReason.ReceiptConfirmed => ("completedReceipt", "The buyer confirmed receipt."),
+                CompletionReason.AutoCompleted => ("completedAuto", "No problem was reported within 14 days of shipping."),
+                _ => ("completedModerator", "Completed by a moderator."),
             };
-            await _conversations.PostSystemAsync(deal.ConversationId,
+            await _conversations.PostSystemAsync(deal.ConversationId, code,
                 $"🎉 Deal completed. {why} You can now review each other for 14 days — reviews stay hidden until both of you submit.");
-            await NotifyOtherConversationsAsync(deal, "ℹ️ This listing has been sold.");
+            await NotifyOtherConversationsAsync(deal, "listingSold", "ℹ️ This listing has been sold.");
         }
 
         private async Task CancelInternalAsync(Deal deal, Guid userId, string? reason)
@@ -347,7 +355,11 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
             }
             Touch(deal);
             await _db.SaveChangesAsync();
-            await _conversations.PostSystemAsync(deal.ConversationId, $"✖️ Deal cancelled{(reason == null ? "." : $": {reason}")}");
+            if (reason == null)
+                await _conversations.PostSystemAsync(deal.ConversationId, "dealCancelled", "✖️ Deal cancelled.");
+            else
+                await _conversations.PostSystemAsync(deal.ConversationId, "dealCancelledReason", $"✖️ Deal cancelled: {EnglishReason(reason)}",
+                    new Dictionary<string, string> { ["reason"] = reason });
         }
 
         // ------------------------------------------------------------------ helpers
@@ -374,7 +386,7 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
         private static void RequireStatus(Deal deal, params DealStatus[] allowed)
         {
             if (!allowed.Contains(deal.Status))
-                throw MarketplaceException.Conflict("notPossibleWhileTheDealIs", $"Not possible while the deal is {EnumText.ToSnake(deal.Status).Replace('_', ' ')}.", ErrorArgs.Of($"{EnumText.ToSnake(deal.Status).Replace('_', ' ')}"));
+                throw MarketplaceException.Conflict("notPossibleWhileTheDealIs", $"Not possible while the deal is {EnumText.ToSnake(deal.Status).Replace('_', ' ')}.", ErrorArgs.Of(ErrorArgs.Key($"market:dealState.{EnumText.ToSnake(deal.Status)}")));
         }
 
         private void Touch(Deal deal) => deal.UpdatedAt = _clock.UtcNow;
@@ -412,15 +424,24 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
             return await _images.SaveImageAsync(photo, Guid.NewGuid(), _storage.DealImages);
         }
 
-        private async Task NotifyOtherConversationsAsync(Deal deal, string text)
+        private async Task NotifyOtherConversationsAsync(Deal deal, string code, string text)
         {
             var others = await _db.Conversations
                 .Where(c => c.SubjectType == ListingConversationPolicy.Type && c.SubjectId == deal.ListingId && c.Id != deal.ConversationId)
                 .Select(c => c.Id).ToListAsync();
-            foreach (var id in others) await _conversations.PostSystemAsync(id, text);
+            foreach (var id in others) await _conversations.PostSystemAsync(id, code, text);
         }
 
         private static string MethodText(DeliveryMethod m) => m == DeliveryMethod.LocalPickup ? "personal pickup" : "shipping";
+
+        /// <summary>Generated cancel reasons are stored as translation keys (the app shows them in the user's language).</summary>
+        public static readonly string DeclinedReason = ErrorArgs.Key("market:system.cancelReason.declined");
+        public static readonly string RuleBreakReason = ErrorArgs.Key("market:system.cancelReason.listingRemoved");
+
+        private static string EnglishReason(string reason) =>
+            reason == DeclinedReason ? "Declined by the buyer."
+            : reason == RuleBreakReason ? "The listing was removed for breaking the marketplace rules."
+            : reason;
 
         private static string PriceText(int? cents) => cents.HasValue ? $" for €{cents.Value / 100m:0.00}" : "";
 

@@ -15,7 +15,8 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
         Task<MessageDto> PostAsync(Guid userId, Guid conversationId, PostMessageInput input);
         Task<MessageDto> RespondAsync(Guid userId, Guid conversationId, Guid messageId, string action);
         Task MarkReadAsync(Guid userId, Guid conversationId);
-        Task PostSystemAsync(Guid conversationId, string body);
+        /// <param name="code">market:system.&lt;code&gt; in the app; <paramref name="body"/> is the English text.</param>
+        Task PostSystemAsync(Guid conversationId, string code, string body, IReadOnlyDictionary<string, string>? args = null);
         /// <summary>Full transcript. raw = true keeps removed content (admin evidence only).</summary>
         Task<List<MessageDto>> GetTranscriptAsync(Guid conversationId, bool raw = false);
     }
@@ -109,7 +110,7 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
                 try { subject = await PolicyFor(c.SubjectType).DescribeAsync(c.SubjectId); }
                 catch (MarketplaceException) { continue; } // subject deleted
                 result.Add(new ConversationSummaryDto(c.Id, subject, me.Role, UserSummaryDto.From(other.User),
-                    last == null ? null : Preview(last), c.LastMessageAt, unread));
+                    last == null ? null : Preview(last), c.LastMessageAt, unread, last == null ? null : ToDto(last)));
             }
             return result;
         }
@@ -243,10 +244,11 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
             return ToDto(message);
         }
 
-        public async Task PostSystemAsync(Guid conversationId, string body)
+        public async Task PostSystemAsync(Guid conversationId, string code, string body, IReadOnlyDictionary<string, string>? args = null)
         {
             var now = _clock.UtcNow;
-            _db.Messages.Add(new Message { ConversationId = conversationId, Kind = MessageKind.System, Body = body, CreatedAt = now });
+            var payload = Serialize(new ProposalPayload { Code = code, Params = args == null ? null : new Dictionary<string, string>(args) });
+            _db.Messages.Add(new Message { ConversationId = conversationId, Kind = MessageKind.System, Body = body, Payload = payload, CreatedAt = now });
             var c = await _db.Conversations.FirstOrDefaultAsync(x => x.Id == conversationId);
             if (c != null) c.LastMessageAt = now;
             await _db.SaveChangesAsync();
@@ -290,6 +292,8 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
         public static MessageDto ToRawDto(Message m)
         {
             var p = m.Payload == null ? null : Deserialize(m.Payload);
+            if (m.Kind == MessageKind.System)
+                return new MessageDto(m.Id, m.SenderId, m.Kind, m.Body, null, null, null, null, m.IsRemoved, m.CreatedAt, p?.Code, p?.Params);
             return new MessageDto(m.Id, m.SenderId, m.Kind, m.Body, p?.AmountCents, p?.At, p?.Place, p?.Status, m.IsRemoved, m.CreatedAt);
         }
 

@@ -42,6 +42,15 @@
     "disputed": "Disputed — not resolved by Coffer",
     "cancelled": "Cancelled"
   },
+  "dealState": {
+    "proposed": "proposed",
+    "awaiting_handoff": "waiting for the handoff",
+    "awaiting_shipment": "waiting for shipment",
+    "shipped": "shipped",
+    "completed": "completed",
+    "disputed": "disputed",
+    "cancelled": "cancelled"
+  },
   "reasonTag": {
     "item_not_as_described": "Item not as described",
     "late_to_meetup": "Late to meetup",
@@ -350,7 +359,8 @@
     "emptyText": "Open a listing and message the seller.",
     "selling": "Selling",
     "buying": "Buying",
-    "preview": "{{name}}: {{text}}"
+    "preview": "{{name}}: {{text}}",
+    "previewMine": "You: {{text}}"
   },
   "deals": {
     "needsAction": "Needs your action",
@@ -402,7 +412,35 @@
     },
     "withdraw": "Withdraw",
     "accept": "Accept",
-    "decline": "Decline"
+    "decline": "Decline",
+    "removed": "This message was removed by a moderator.",
+    "previewMeetup": "📅 Meetup proposal"
+  },
+  "system": {
+    "dealProposed": "🤝 Deal proposed: {{method}}. Waiting for the buyer to accept.",
+    "dealProposedPrice": "🤝 Deal proposed: {{method}} for {{price}}. Waiting for the buyer to accept.",
+    "dealAcceptedPickup": "✅ Deal accepted. At the meetup the buyer shows their PIN/QR only after checking the item; the seller enters it to finish.",
+    "dealAcceptedShipping": "✅ Deal accepted. Seller: ship the item and register the carrier + tracking number here.",
+    "listingReserved": "ℹ️ This listing is now reserved for another buyer.",
+    "listingSold": "ℹ️ This listing has been sold.",
+    "shipped": "📦 Shipped with {{carrier}}, tracking number {{tracking}}. Buyer: confirm receipt when it arrives (or report a problem). Without either, the deal completes automatically after 14 days.",
+    "disputed": "⚠️ The buyer reported a problem: \"{{reason}}\". The deal is closed as disputed — Coffer does not decide who is right. You can both leave a review within 14 days.",
+    "completedHandoff": "🎉 Deal completed. Handoff verified with the buyer's PIN. You can now review each other for 14 days — reviews stay hidden until both of you submit.",
+    "completedReceipt": "🎉 Deal completed. The buyer confirmed receipt. You can now review each other for 14 days — reviews stay hidden until both of you submit.",
+    "completedAuto": "🎉 Deal completed. No problem was reported within 14 days of shipping. You can now review each other for 14 days — reviews stay hidden until both of you submit.",
+    "completedModerator": "🎉 Deal completed by a moderator. You can now review each other for 14 days — reviews stay hidden until both of you submit.",
+    "dealCancelled": "✖️ Deal cancelled.",
+    "dealCancelledReason": "✖️ Deal cancelled: {{reason}}",
+    "listingRemovedDealCancelled": "🛡️ This listing was removed for breaking the marketplace rules. The deal is cancelled.",
+    "method": {
+      "local_pickup": "personal pickup",
+      "shipping": "shipping"
+    },
+    "otherCarrier": "another carrier",
+    "cancelReason": {
+      "declined": "Declined by the buyer.",
+      "listingRemoved": "The listing was removed for breaking the marketplace rules."
+    }
   },
   "deal": {
     "toast": {

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Coffer.BusinessLogic.Community;
 using Coffer.BusinessLogic.Marketplace.Common;
+using Coffer.BusinessLogic.Marketplace.Deals;
 using Coffer.BusinessLogic.Marketplace.Messaging;
 using Coffer.BusinessLogic.Moderation;
 using Coffer.DataAccess;
@@ -288,9 +289,9 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
                     {
                         deal.Status = DealStatus.Cancelled;
                         deal.HandoffPin = null;
-                        deal.CancelReason = "The listing was removed for breaking the marketplace rules.";
+                        deal.CancelReason = DealService.RuleBreakReason;
                         deal.UpdatedAt = _clock.UtcNow;
-                        await _conversations.PostSystemAsync(deal.ConversationId, "🛡️ This listing was removed for breaking the marketplace rules. The deal is cancelled.");
+                        await _conversations.PostSystemAsync(deal.ConversationId, "listingRemovedDealCancelled", "🛡️ This listing was removed for breaking the marketplace rules. The deal is cancelled.");
                     }
                     return new Removal(listing.Title);
                 }

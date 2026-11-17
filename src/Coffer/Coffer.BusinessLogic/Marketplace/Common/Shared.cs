@@ -48,7 +48,7 @@ namespace Coffer.BusinessLogic.Marketplace.Common
         {
             var t = value?.Trim();
             if (string.IsNullOrEmpty(t)) return null;
-            if (t.Length > max) throw MarketplaceException.Validation("mustBeAtMostCharacters", $"{field} must be at most {max} characters.", ErrorArgs.Of($"{field}", $"{max}"));
+            if (t.Length > max) throw MarketplaceException.Validation("mustBeAtMostCharacters", $"{field} must be at most {max} characters.", ErrorArgs.Of(ErrorArgs.Field(field), $"{max}"));
             return t;
         }
 
@@ -57,8 +57,8 @@ namespace Coffer.BusinessLogic.Marketplace.Common
             var t = value?.Trim() ?? "";
             if (t.Length < min || t.Length > max)
                 throw min <= 1
-                    ? MarketplaceException.Validation("fieldRequiredMaxCharacters", $"{field} is required (max {max} characters).", ErrorArgs.Of(field, $"{max}"))
-                    : MarketplaceException.Validation("fieldLengthBetween", $"{field} must be {min} to {max} characters.", ErrorArgs.Of(field, $"{min}", $"{max}"));
+                    ? MarketplaceException.Validation("fieldRequiredMaxCharacters", $"{field} is required (max {max} characters).", ErrorArgs.Of(ErrorArgs.Field(field), $"{max}"))
+                    : MarketplaceException.Validation("fieldLengthBetween", $"{field} must be {min} to {max} characters.", ErrorArgs.Of(ErrorArgs.Field(field), $"{min}", $"{max}"));
             return t;
         }
     }

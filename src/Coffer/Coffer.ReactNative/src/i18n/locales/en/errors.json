@@ -180,5 +180,21 @@
     "youCanTReportYourOwnItem": "You can't report your own item.",
     "youCanTReportYourOwnListing": "You can't report your own listing.",
     "youCanTReportYourOwnMessage": "You can't report your own message."
+  },
+  "fields": {
+    "comment": "Comment",
+    "description": "Description",
+    "explanation": "Explanation",
+    "itemName": "Item name",
+    "meetupPlace": "Meetup place",
+    "message": "Message",
+    "note": "Note",
+    "problemDescription": "Problem description",
+    "reason": "Reason",
+    "reply": "Reply",
+    "revokeReason": "Revoke reason",
+    "title": "Title",
+    "trackingNumber": "Tracking number",
+    "whatYouWantInExchange": "What you want in exchange"
   }
 }

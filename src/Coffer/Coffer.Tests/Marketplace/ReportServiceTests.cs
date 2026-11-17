@@ -81,7 +81,7 @@ namespace Coffer.Tests.Marketplace
         public async Task ReportMessage_OnlyParticipant_NotOwnOrSystem()
         {
             var (conversationId, message) = await BuyerMessage();
-            await Conversations().PostSystemAsync(conversationId, "system line");
+            await Conversations().PostSystemAsync(conversationId, "listingSold", "system line");
             var system = (await Conversations().GetTranscriptAsync(conversationId)).Single(m => m.Kind == MessageKind.System);
 
             Assert.Equal(MarketplaceError.NotFound, await ErrorOf(() => Reports().CreateAsync(Db.AddUser("stranger").Id, ReportOf(ReportTargetType.Message, message.Id))));

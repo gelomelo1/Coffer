@@ -3,7 +3,7 @@ import { dealStatusColors, dealStatusLabels, deliveryLabels } from "@/src/const/
 import { useMarketMutation } from "@/src/hooks/market_api";
 import { borders, colors, sizes, spacing, typography } from "@/src/theme/theme";
 import { Deal, DealStatus, DeliveryMethod, ListingDetail } from "@/src/types/entities/market";
-import { daysLeft, formatDate, formatDateTime, formatPrice, LocalImage, marketApi } from "@/src/utils/market_api";
+import { backendText, daysLeft, formatDate, formatDateTime, formatPrice, LocalImage, marketApi } from "@/src/utils/market_api";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -120,7 +120,7 @@ function DealPanel({
               {t("market:deal.meetup", { time: formatDateTime(d.meetupAt), place: d.meetupPlace })}
             </Text>
           ) : null}
-          {d.status === "cancelled" && d.cancelReason ? <Text style={[typography.meta, { color: colors.text }]}>{d.cancelReason}</Text> : null}
+          {d.status === "cancelled" && d.cancelReason ? <Text style={[typography.meta, { color: colors.text }]}>{backendText(d.cancelReason)}</Text> : null}
 
           {has("accept") ? (
             <>

@@ -21,7 +21,10 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
         ProposalStatus? Status,
         /// <summary>Removed by moderation: body is replaced, proposal details are hidden.</summary>
         bool IsRemoved,
-        DateTime CreatedAt);
+        DateTime CreatedAt,
+        /// <summary>System messages: what happened (market:system.&lt;code&gt; in the app) and its values; Body is the English text.</summary>
+        string? SystemCode = null,
+        IReadOnlyDictionary<string, string>? SystemParams = null);
 
     public record ConversationDto(
         Guid Id,
@@ -39,7 +42,9 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
         UserSummaryDto Other,
         string? LastMessagePreview,
         DateTime LastMessageAt,
-        int UnreadCount);
+        int UnreadCount,
+        /// <summary>The last message itself, so the app can show the preview in the user's language.</summary>
+        MessageDto? LastMessage = null);
 
     /// <summary>JSON stored in messages.payload for proposals.</summary>
     internal sealed class ProposalPayload
@@ -48,5 +53,8 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
         public DateTime? At { get; set; }
         public string? Place { get; set; }
         public ProposalStatus Status { get; set; }
+        /// <summary>System messages: a language-neutral code + params next to the English body.</summary>
+        public string? Code { get; set; }
+        public Dictionary<string, string>? Params { get; set; }
     }
 }

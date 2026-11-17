@@ -183,6 +183,9 @@ export interface Message {
   status?: ProposalStatus | null;
   isRemoved: boolean;
   createdAt: string;
+  /** System messages: market:system.<systemCode> with these params; body is the English fallback. */
+  systemCode?: string | null;
+  systemParams?: Record<string, string> | null;
 }
 
 export interface Conversation {
@@ -200,9 +203,11 @@ export interface ConversationSummary {
   subject: SubjectSummary;
   myRole: ParticipantRole;
   other: UserSummary;
+  /** English preview; the app builds its own from lastMessage. */
   lastMessagePreview?: string | null;
   lastMessageAt: string;
   unreadCount: number;
+  lastMessage?: Message | null;
 }
 
 export interface PostMessageInput {

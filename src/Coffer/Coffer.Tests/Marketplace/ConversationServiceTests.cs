@@ -275,7 +275,7 @@ namespace Coffer.Tests.Marketplace
         public async Task SystemMessage_AppearsInTranscript()
         {
             var id = await OpenAsBuyer();
-            await Sut().PostSystemAsync(id, "Deal proposed.");
+            await Sut().PostSystemAsync(id, "dealProposed", "Deal proposed.");
 
             var transcript = await Sut().GetTranscriptAsync(id);
             var message = Assert.Single(transcript);

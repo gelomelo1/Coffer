@@ -15,7 +15,7 @@ import { useInbox, useListing, useMarketMutation } from "@/src/hooks/market_api"
 import { useMarketStore } from "@/src/hooks/market_store";
 import { borders, colors, sizes, spacing, typography } from "@/src/theme/theme";
 import { apiErrorText } from "@/src/utils/api_error_text";
-import { formatTimeAgo, marketApi } from "@/src/utils/market_api";
+import { chatPreview, formatTimeAgo, marketApi } from "@/src/utils/market_api";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { isAxiosError } from "axios";
@@ -235,25 +235,28 @@ function ListingDetails() {
                 {myChats.length === 0 ? (
                   <Text style={[typography.meta, { color: colors.textMuted, padding: spacing.md, paddingTop: 0 }]}>{t("market:details.noMessages")}</Text>
                 ) : null}
-                {myChats.map((chat) => (
-                  <ListRow
-                    key={chat.id}
-                    title={chat.other.name}
-                    subtitle={chat.lastMessagePreview ?? t("market:details.noPreview")}
-                    titleLines={1}
-                    leading={<MaterialIcons name="chat" size={sizes.iconMd} color={colors.text} />}
-                    trailing={chat.unreadCount > 0 ? <Tag label={String(chat.unreadCount)} color={colors.danger} /> : undefined}
-                    accessibilityLabel={[
-                      chat.other.name,
-                      chat.lastMessagePreview,
-                      chat.unreadCount > 0 ? t("market:tabs.badge", { count: chat.unreadCount }) : null,
-                    ]
-                      .filter(Boolean)
-                      .join(", ")}
-                    onPress={() => openChat(chat.id, chat.other.name, listing.title)}
-                    style={{ borderTopWidth: borders.hairline, borderColor: colors.borderMuted }}
-                  />
-                ))}
+                {myChats.map((chat) => {
+                  const preview = chat.lastMessage ? chatPreview(chat.lastMessage) : chat.lastMessagePreview;
+                  return (
+                    <ListRow
+                      key={chat.id}
+                      title={chat.other.name}
+                      subtitle={preview ?? t("market:details.noPreview")}
+                      titleLines={1}
+                      leading={<MaterialIcons name="chat" size={sizes.iconMd} color={colors.text} />}
+                      trailing={chat.unreadCount > 0 ? <Tag label={String(chat.unreadCount)} color={colors.danger} /> : undefined}
+                      accessibilityLabel={[
+                        chat.other.name,
+                        preview,
+                        chat.unreadCount > 0 ? t("market:tabs.badge", { count: chat.unreadCount }) : null,
+                      ]
+                        .filter(Boolean)
+                        .join(", ")}
+                      onPress={() => openChat(chat.id, chat.other.name, listing.title)}
+                      style={{ borderTopWidth: borders.hairline, borderColor: colors.borderMuted }}
+                    />
+                  );
+                })}
               </SectionCard>
             </View>
           )}

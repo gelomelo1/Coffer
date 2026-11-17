@@ -180,5 +180,21 @@
     "youCanTReportYourOwnItem": "A saját tárgyadat nem jelentheted.",
     "youCanTReportYourOwnListing": "A saját hirdetésedet nem jelentheted.",
     "youCanTReportYourOwnMessage": "A saját üzenetedet nem jelentheted."
+  },
+  "fields": {
+    "comment": "Megjegyzés",
+    "description": "Leírás",
+    "explanation": "Indoklás",
+    "itemName": "Tárgy neve",
+    "meetupPlace": "Találkozó helye",
+    "message": "Üzenet",
+    "note": "Megjegyzés",
+    "problemDescription": "A probléma leírása",
+    "reason": "Indok",
+    "reply": "Válasz",
+    "revokeReason": "A visszavonás oka",
+    "title": "Cím",
+    "trackingNumber": "Nyomkövetési szám",
+    "whatYouWantInExchange": "Amit cserébe szeretnél"
   }
 }
