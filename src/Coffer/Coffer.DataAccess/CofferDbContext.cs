@@ -118,11 +118,33 @@ namespace Coffer.DataAccess
                   .HasForeignKey(f => f.CollectionId)
                   .OnDelete(DeleteBehavior.Cascade);
 
+            // Translations of reference names: language code → text, stored as JSON (jsonb on PostgreSQL).
+            Translations<CollectionTypeProvided>(modelBuilder, t => t.NameTranslations);
+            Translations<Coffer.Domain.Entities.Attribute>(modelBuilder, a => a.NameTranslations);
+            Translations<ItemOptions>(modelBuilder, o => o.OptionLabelsTranslations);
+
             //Collection
             modelBuilder.Entity<CollectionProvided>()
                    .HasOne(c => c.User)
                    .WithMany()
                    .HasForeignKey(c => c.UserId);
+        }
+
+        private static readonly System.Text.Json.JsonSerializerOptions TranslationJson = new();
+
+        private static readonly Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<Dictionary<string, string>, string> TranslationConverter =
+            new(v => System.Text.Json.JsonSerializer.Serialize(v, TranslationJson),
+                v => System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(v, TranslationJson) ?? new Dictionary<string, string>());
+
+        private static readonly Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<Dictionary<string, string>> TranslationComparer =
+            new((a, b) => System.Text.Json.JsonSerializer.Serialize(a, TranslationJson) == System.Text.Json.JsonSerializer.Serialize(b, TranslationJson),
+                v => System.Text.Json.JsonSerializer.Serialize(v, TranslationJson).GetHashCode(),
+                v => new Dictionary<string, string>(v));
+
+        private void Translations<T>(ModelBuilder modelBuilder, System.Linq.Expressions.Expression<Func<T, Dictionary<string, string>>> property) where T : class
+        {
+            var p = modelBuilder.Entity<T>().Property(property).HasConversion(TranslationConverter, TranslationComparer).IsRequired();
+            if (Database.IsNpgsql()) p.HasColumnType("jsonb");
         }
     }
 

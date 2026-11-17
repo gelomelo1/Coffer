@@ -12,7 +12,7 @@ namespace Coffer.ASPNET.Extensions
             {
                 options.Filters.Add<SensitiveDataRedactionFilter>();
                 options.Filters.Add<MarketplaceExceptionFilter>();
-            });
+            }).AddJsonOptions(options => LocalizedJson.Configure(options.JsonSerializerOptions));
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -88,6 +88,16 @@ namespace Coffer.ASPNET.Extensions
             app.UseHttpsRedirection();
 
             app.UseCors("AllowFrontend");
+
+            // Accept-Language picks the UI language for translated reference names (any language; English
+            // default). Number/date formatting stays English so error messages and payloads don't change.
+            app.UseRequestLocalization(new RequestLocalizationOptions
+            {
+                DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture("en"),
+                SupportedCultures = new[] { new System.Globalization.CultureInfo("en") },
+                SupportedUICultures = System.Globalization.CultureInfo.GetCultures(System.Globalization.CultureTypes.NeutralCultures)
+                    .Where(c => !string.IsNullOrEmpty(c.Name)).ToList(),
+            });
 
             app.UseAuthentication();
             // Suspended users are blocked server-side right after their token is read.

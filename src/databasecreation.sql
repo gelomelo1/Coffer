@@ -17,6 +17,7 @@ CREATE TABLE users (
 CREATE TABLE collection_types (
     id SERIAL PRIMARY KEY,
     name VARCHAR NOT NULL,
+    name_translations JSONB NOT NULL DEFAULT '{}'::jsonb, -- other languages, e.g. {"hu": "Kupak"}
     description TEXT,
     color VARCHAR(20),
     icon VARCHAR(100),
@@ -38,6 +39,7 @@ CREATE TABLE attributes (
     collection_type_id INT NOT NULL REFERENCES collection_types(id) ON DELETE CASCADE,
     item_options_id INT REFERENCES item_options(id) ON DELETE SET NULL,
     name VARCHAR(20) NOT NULL,   -- pl. "Gyártó"
+    name_translations JSONB NOT NULL DEFAULT '{}'::jsonb,
     data_type INT,
 );
 
@@ -71,7 +73,8 @@ CREATE INDEX idx_item_tags_tag ON item_tags(tag); -- gyors keresés
 CREATE TABLE item_options (
     id SERIAL PRIMARY KEY,                 -- unique id for this set of options
     option_ids TEXT NOT NULL,              -- e.g. "1;2;3"
-    option_labels TEXT NOT NULL            -- e.g. "Red;Green;Blue"
+    option_labels TEXT NOT NULL,           -- e.g. "Red;Green;Blue"
+    option_labels_translations JSONB NOT NULL DEFAULT '{}'::jsonb -- e.g. {"hu": "Piros;Zöld;Kék"}
 );
 
 CREATE TABLE reactions (

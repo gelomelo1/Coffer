@@ -2,6 +2,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { SplashScreen } from "expo-router";
 import { useEffect } from "react";
+import i18n from "../i18n";
 import { useNavigationMode } from "react-native-navigation-mode";
 import { initNavigationModeStore } from "./navigation_mode_store";
 import useTokenStorage from "./token_storage";
@@ -28,6 +29,13 @@ function useStartup() {
     loading,
     error: navigationModeError,
   } = useNavigationMode();
+
+  // Cached API data holds reference names in the previous language: refetch everything after a language switch.
+  useEffect(() => {
+    const refetch = () => queryClient.invalidateQueries();
+    i18n.on("languageChanged", refetch);
+    return () => i18n.off("languageChanged", refetch);
+  }, [queryClient]);
 
   const allLoaded = loaded && !loading && isTokenLoaded;
   const allError = error || navigationModeError || isTokenError;

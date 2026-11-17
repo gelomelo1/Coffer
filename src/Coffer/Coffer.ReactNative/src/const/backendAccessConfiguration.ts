@@ -1,4 +1,5 @@
 import axios from "axios";
+import i18n from "../i18n";
 import { useSuspensionStore } from "../hooks/suspension_store";
 import { getToken } from "../utils/token_store";
 
@@ -17,6 +18,9 @@ backendAxios.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // The API answers reference names (collection types, attributes, option labels) in this language when it
+    // has a translation, otherwise in English.
+    config.headers["Accept-Language"] = i18n.language || "en";
 
     return config;
   },
