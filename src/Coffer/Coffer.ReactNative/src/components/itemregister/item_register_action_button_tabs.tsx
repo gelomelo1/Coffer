@@ -8,7 +8,8 @@ import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Portal } from "react-native-paper";
-import { RetroFab } from "../custom_ui/fab";
+import { fabHideDistance, RetroFab } from "../custom_ui/fab";
+import { homeChromeProgress, useHomeChromeHidden } from "@/src/hooks/home_chrome";
 import { TAB_BAR_CONTENT_HEIGHT } from "../collections/tabs/layout/collection_tabs_custom_layout";
 import CustomImageResize from "../custom_ui/custom_image_resize";
 import CustomOverlayMessage from "../custom_ui/custom_overlay_message";
@@ -20,6 +21,8 @@ function ItemRegisterActionButtonTabs() {
   const { collectionTypes } = useCollectionTypeStore();
   const { navigationMode } = useNavigationModeStore();
   const { t } = useTranslation();
+  const chromeHidden = useHomeChromeHidden();
+  const fabBottom = navigationMode.navigationBarHeight + TAB_BAR_CONTENT_HEIGHT + spacing.md;
 
   const [isImagePickerLoading, setIsImagePickerLoading] = useState<
     "Gallery" | "Camera" | null
@@ -117,7 +120,10 @@ function ItemRegisterActionButtonTabs() {
           icon="plus"
           label={t("navigation:fab.addItem")}
           onPress={handlePress}
-          bottom={navigationMode.navigationBarHeight + TAB_BAR_CONTENT_HEIGHT + spacing.md}
+          bottom={fabBottom}
+          // Slides out with the Home tab's hide-on-scroll chrome (progress stays 0 on the other tabs).
+          translateY={homeChromeProgress.interpolate({ inputRange: [0, 1], outputRange: [0, fabHideDistance(fabBottom)] })}
+          hidden={chromeHidden}
         />
       </Portal>
       {selectedCollection ? (

@@ -12,14 +12,20 @@ import Feed from "@/src/types/entities/feed";
 import { apiErrorText } from "@/src/utils/api_error_text";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { FlatList, Image, ImageBackground, Pressable, RefreshControl, Text, View } from "react-native";
+import { homeChromeProgress, setHomeChromeProgress, settleHomeChrome, showHomeChrome, useHomeChromeLocked } from "@/src/hooks/home_chrome";
+import { useNavigationModeStore } from "@/src/hooks/navigation_mode_store";
+import { snapOffset, trackOffset } from "@/src/utils/hide_on_scroll";
+import { parseParams } from "@/src/utils/navigation_utils";
+import { useRoute } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
+import { Animated, FlatList, Image, ImageBackground, NativeScrollEvent, NativeSyntheticEvent, Pressable, RefreshControl, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { TAB_BAR_CONTENT_HEIGHT, TabsHeader } from "../layout/collection_tabs_custom_layout";
 import FeedCard from "./feed_card";
 import FeedSearchOverlay from "./feed_search_overlay";
 
-/** List rows: the sticky toolbar is the first data row so FlatList can pin it while the hero scrolls away. */
-type FeedRow = { kind: "toolbar" } | { kind: "post"; feed: Feed };
 
 function FeedHero({ count, loading }: { count?: number; loading: boolean }) {
   const { t } = useTranslation();
@@ -53,6 +59,71 @@ function FeedList() {
   const [isFeedSearchOverlayVisible, setIsFeedSearchOverlayVisible] = useState(false);
   const [initialSearchText, setInitialSearchText] = useState<string | undefined>();
   const [refreshing, setRefreshing] = useState(false);
+
+  // Facebook-style chrome: header + toolbar float over the list and slide up with the finger; the tab bar and the
+  // "+" slide down in step (they read the same homeChromeProgress). Offsets are px of the top layer hidden.
+  const insets = useSafeAreaInsets();
+  const route = useRoute();
+  const { navigationMode } = useNavigationModeStore();
+  const tabBarHeight = navigationMode.navigationBarHeight + TAB_BAR_CONTENT_HEIGHT;
+  const locked = useHomeChromeLocked();
+  const [layerHeight, setLayerHeight] = useState(0);
+  const hideDistance = Math.max(1, layerHeight - insets.top);
+  const offset = useRef(0);
+  const lastY = useRef(0);
+  const direction = useRef<-1 | 0 | 1>(0);
+  const momentum = useRef(false);
+  const snapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const revealChrome = useCallback(() => {
+    offset.current = 0;
+    showHomeChrome();
+  }, []);
+
+  // Leaving Home (tab switch, pushed screen) always restores the bars; so does turning a screen reader on.
+  useFocusEffect(useCallback(() => revealChrome, [revealChrome]));
+  useEffect(() => {
+    if (locked) revealChrome();
+  }, [locked, revealChrome]);
+  useEffect(
+    () => () => {
+      if (snapTimer.current) clearTimeout(snapTimer.current);
+    },
+    [],
+  );
+
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const y = e.nativeEvent.contentOffset.y;
+    const dy = y - lastY.current;
+    if (Math.abs(dy) >= 1) direction.current = dy > 0 ? 1 : -1;
+    if (!locked && layerHeight > 0) {
+      offset.current = trackOffset(offset.current, lastY.current, y, hideDistance);
+      setHomeChromeProgress(offset.current / hideDistance);
+    }
+    lastY.current = y;
+  };
+
+  const snap = () => {
+    if (locked || layerHeight === 0) return;
+    offset.current = snapOffset(offset.current, lastY.current, hideDistance, direction.current);
+    settleHomeChrome(offset.current === 0 ? 0 : 1);
+  };
+
+  // A drag without a fling settles right away; a fling settles when its momentum ends.
+  const onScrollEndDrag = () => {
+    momentum.current = false;
+    if (snapTimer.current) clearTimeout(snapTimer.current);
+    snapTimer.current = setTimeout(() => {
+      if (!momentum.current) snap();
+    }, 60);
+  };
+  const onMomentumScrollBegin = () => {
+    momentum.current = true;
+  };
+  const onMomentumScrollEnd = () => {
+    momentum.current = false;
+    snap();
+  };
 
   const dropdownItems = collectionTypes.map((type) => ({
     label: type.name,
@@ -116,9 +187,10 @@ function FeedList() {
   }, [selectedCollectionTypeIds, pendingRefetch, refetch]);
 
   const handleOpenSearchOverlay = useCallback((initialText?: string) => {
+    revealChrome();
     setInitialSearchText(initialText);
     setIsFeedSearchOverlayVisible(true);
-  }, []);
+  }, [revealChrome]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -126,7 +198,7 @@ function FeedList() {
     setRefreshing(false);
   };
 
-  const rows: FeedRow[] = [{ kind: "toolbar" }, ...(feedListData ?? []).map((feed) => ({ kind: "post" as const, feed }))];
+  const rows: Feed[] = feedListData ?? [];
   const selectedCount = selectedCollectionTypeIds?.length ?? 0;
 
   const renderToolbar = () => (
@@ -163,7 +235,10 @@ function FeedList() {
       <CustomDropdownMultiple
         value={selectedCollectionTypeIds}
         open={open}
-        setOpen={setOpen}
+        setOpen={(value) => {
+          if (value === true) revealChrome();
+          setOpen(value);
+        }}
         setValue={setSelectedCollectionTypeIds}
         items={dropdownItems}
         placeholder={t("feed:filter.placeholder")}
@@ -178,26 +253,28 @@ function FeedList() {
     <>
       <FlatList
         data={rows}
-        keyExtractor={(row) => (row.kind === "toolbar" ? "toolbar" : row.feed.item.id)}
-        stickyHeaderIndices={[1]}
+        keyExtractor={(feed) => feed.item.id}
         ListHeaderComponent={<FeedHero count={feedListData?.length} loading={isFetching} />}
-        renderItem={({ item: row }) =>
-          row.kind === "toolbar" ? (
-            renderToolbar()
-          ) : (
-            <View style={{ paddingHorizontal: spacing.md, paddingTop: spacing.lg }}>
-              <FeedCard
-                user={user!}
-                collectionType={collectionTypes.find((ct) => ct.id === row.feed.collection.collectionTypeId)!}
-                feed={row.feed}
-                onTagPress={handleOpenSearchOverlay}
-              />
-            </View>
-          )
+        renderItem={({ item: feed }) => (
+          <View style={{ paddingHorizontal: spacing.md, paddingTop: spacing.lg }}>
+            <FeedCard
+              user={user!}
+              collectionType={collectionTypes.find((ct) => ct.id === feed.collection.collectionTypeId)!}
+              feed={feed}
+              onTagPress={handleOpenSearchOverlay}
+            />
+          </View>
+        )}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        onScrollEndDrag={onScrollEndDrag}
+        onMomentumScrollBegin={onMomentumScrollBegin}
+        onMomentumScrollEnd={onMomentumScrollEnd}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} progressViewOffset={layerHeight} />
         }
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />}
         ListFooterComponent={
-          rows.length > 1 ? (
+          rows.length > 0 ? (
             <Text style={[typography.meta, { color: colors.textMuted, textAlign: "center", paddingVertical: spacing.xl }]}>{t("feed:caughtUp")}</Text>
           ) : isFetching ? (
             <Loading />
@@ -207,13 +284,32 @@ function FeedList() {
             <EmptyState icon="inbox" title={t("feed:empty.title")} text={t("feed:empty.text")} />
           )
         }
-        contentContainerStyle={{ backgroundColor: colors.bg, paddingBottom: spacing.xxl * 2 }}
+        contentContainerStyle={{ backgroundColor: colors.bg, paddingTop: layerHeight, paddingBottom: tabBarHeight + spacing.xxl }}
+        scrollIndicatorInsets={{ top: layerHeight, bottom: tabBarHeight }}
         style={{ backgroundColor: colors.bg }}
         showsVerticalScrollIndicator={false}
         initialNumToRender={4}
         windowSize={7}
         removeClippedSubviews
       />
+
+      {/* Floating top chrome: header + search/filter toolbar slide up together; the status-bar band stays. */}
+      <Animated.View
+        onLayout={(e) => setLayerHeight(Math.round(e.nativeEvent.layout.height))}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1,
+          transform: [{ translateY: homeChromeProgress.interpolate({ inputRange: [0, 1], outputRange: [0, -hideDistance] }) }],
+        }}
+      >
+        <TabsHeader params={parseParams(route)} />
+        {renderToolbar()}
+      </Animated.View>
+      <View pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, height: insets.top, backgroundColor: colors.bg, zIndex: 2 }} />
+
       <FeedSearchOverlay
         isFeedSearchOverlayVisible={{ value: isFeedSearchOverlayVisible, set: setIsFeedSearchOverlayVisible }}
         selectedCollectionTypeIds={selectedCollectionTypeIds}

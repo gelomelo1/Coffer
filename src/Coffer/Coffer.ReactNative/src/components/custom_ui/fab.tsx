@@ -1,39 +1,66 @@
 import { pressableShadowStyle } from "@/src/theme/pressable";
 import { borders, colors, spacing, typography } from "@/src/theme/theme";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { Pressable, Text, View } from "react-native";
+import { Animated, Pressable, Text, View } from "react-native";
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
 
 const FAB_SIZE = 56;
 
-/** Square floating action button: navy tile, gold icon, hard shadow that sinks on press. */
-export function RetroFab({ icon, onPress, label, bottom, right = spacing.md }: { icon: IconName; onPress: () => void; label: string; bottom: number; right?: number }) {
+/**
+ * Square floating action button: navy tile, gold icon, hard shadow that sinks on press.
+ * `translateY` slides it (e.g. off-screen with hide-on-scroll chrome); `hidden` also removes it from touch and
+ * screen readers while it is out of view.
+ */
+export function RetroFab({
+  icon,
+  onPress,
+  label,
+  bottom,
+  right = spacing.md,
+  translateY,
+  hidden = false,
+}: {
+  icon: IconName;
+  onPress: () => void;
+  label: string;
+  bottom: number;
+  right?: number;
+  translateY?: Animated.AnimatedInterpolation<number> | Animated.Value;
+  hidden?: boolean;
+}) {
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      style={({ pressed }) => [
-        {
-          position: "absolute",
-          right,
-          bottom,
-          width: FAB_SIZE,
-          height: FAB_SIZE,
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: colors.primary,
-          borderWidth: borders.width,
-          borderColor: colors.secondary,
-        },
-        pressableShadowStyle(pressed),
-      ]}
+    <Animated.View
+      pointerEvents={hidden ? "none" : "box-none"}
+      accessibilityElementsHidden={hidden}
+      importantForAccessibility={hidden ? "no-hide-descendants" : "auto"}
+      style={{ position: "absolute", right, bottom, transform: translateY ? [{ translateY }] : undefined }}
     >
-      <MaterialCommunityIcons name={icon} size={28} color={colors.secondary} />
-    </Pressable>
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        style={({ pressed }) => [
+          {
+            width: FAB_SIZE,
+            height: FAB_SIZE,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: colors.primary,
+            borderWidth: borders.width,
+            borderColor: colors.secondary,
+          },
+          pressableShadowStyle(pressed),
+        ]}
+      >
+        <MaterialCommunityIcons name={icon} size={28} color={colors.secondary} />
+      </Pressable>
+    </Animated.View>
   );
 }
+
+/** Distance that moves a FAB placed at `bottom` fully below the screen edge (size + hard shadow + margin). */
+export const fabHideDistance = (bottom: number) => bottom + FAB_SIZE + spacing.md;
 
 export interface FabAction {
   icon: IconName;
