@@ -1,0 +1,20 @@
+{
+  "tabs": {
+    "home": "Kezdőlap",
+    "collections": "Gyűjtemények",
+    "myFollows": "Követéseim",
+    "market": "Piactér"
+  },
+  "screens": {
+    "myCollection": "Gyűjteményem",
+    "itemDetails": "Tárgy részletei"
+  },
+  "header": {
+    "hello": "Szia, {{name}}!",
+    "help": "Súgó",
+    "settings": "Beállítások"
+  },
+  "fab": {
+    "addItem": "Tárgy hozzáadása"
+  }
+}

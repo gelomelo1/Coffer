@@ -14,6 +14,7 @@ export const ROUTES = {
     DEVELOPER: "settings/developer" as any,
     USER: "settings/user" as any,
     REPORTS: "settings/reports" as any,
+    LANGUAGE: "settings/language" as any,
   },
   MYCOLLECTION: "mycollection" as any,
   ITEMDETAILS: "itemdetails" as any,
@@ -75,6 +76,10 @@ export const pageParams = {
       title: otherUserName,
       screenTitle: listingTitle,
     }),
+  language: buildNavigationData({
+    titleKey: "settings:language.title",
+    isSettingsShown: false,
+  }),
   reports: buildNavigationData({
     titleKey: "settings:reports.title",
     isSettingsShown: false,

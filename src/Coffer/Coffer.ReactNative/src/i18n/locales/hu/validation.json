@@ -1,0 +1,15 @@
+{
+  "profane": "Kérjük, ne használj nem helyénvaló kifejezéseket",
+  "allowedCharacters": "Engedélyezett karakterek: betűk, számok, szóköz, ., -",
+  "required": "Kötelező mező",
+  "allowedUsernameCharacters": "Engedélyezett karakterek: betűk, számok, ., _, -",
+  "alreadyExists": "Már létezik",
+  "invalidPhone": "Érvénytelen telefonszám",
+  "invalidFacebook": "Érvénytelen Facebook-felhasználónév",
+  "invalidEmail": "Érvénytelen e-mail-cím",
+  "minCharacters_one": "Legalább {{count}} karakter szükséges",
+  "minCharacters_other": "Legalább {{count}} karakter szükséges",
+  "checking": "Elérhetőség ellenőrzése",
+  "invalid": "Érvénytelen",
+  "available": "Elérhető"
+}

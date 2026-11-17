@@ -1,0 +1,70 @@
+{
+  "hero": {
+    "title": "Fedezd fel a <1>közösség</1> kincseit!",
+    "recentPosts_one": "{{count}} friss bejegyzés",
+    "recentPosts_other": "{{count}} friss bejegyzés"
+  },
+  "searchPlaceholder": "Gyűjtők, tárgyak, #címkék keresése",
+  "filter": {
+    "placeholder": "Minden gyűjteménytípus",
+    "label": "Gyűjteménytípusok",
+    "modalTitle": "Szűrés gyűjteménytípus szerint",
+    "selected_one": "{{count}} gyűjteménytípus",
+    "selected_other": "{{count}} gyűjteménytípus"
+  },
+  "empty": {
+    "title": "Nincs friss tevékenység",
+    "text": "Nézz vissza később az újdonságokért."
+  },
+  "caughtUp": "Mindent láttál! Nézz vissza később az újdonságokért.",
+  "card": {
+    "followed": "Követed",
+    "rarity": "Ritkaság",
+    "openUser": "{{name}} profiljának megnyitása",
+    "openCollection": "A(z) {{name}} gyűjtemény megnyitása",
+    "openItem": "{{name}} megnyitása",
+    "searchTag": "Keresés erre: #{{tag}}",
+    "like": "Tetszik",
+    "unlike": "Mégsem tetszik",
+    "likes_one": "{{count}} kedvelés",
+    "likes_other": "{{count}} kedvelés",
+    "rate": "Ritkaság értékelése",
+    "comments": "Hozzászólások"
+  },
+  "rarity": {
+    "common": "Gyakori",
+    "uncommon": "Ritkább",
+    "rare": "Ritka",
+    "relic": "Ereklye",
+    "none": "Nincs értékelve",
+    "selectTitle": "Ritkaság értékelése",
+    "noRating": "Nincs értékelés"
+  },
+  "search": {
+    "minChars": "A kereséshez írj be legalább 3 karaktert (címkénél # jelet és 3 karaktert).",
+    "scopes": {
+      "all": "Mind",
+      "users": "Felhasználók",
+      "collections": "Gyűjtemények",
+      "items": "Tárgyak"
+    },
+    "found_one": "{{count}} találat",
+    "found_other": "{{count}} találat",
+    "sectionCount": "{{title}} · {{count}}",
+    "endOfResults": "Nincs több találat",
+    "noResults": "Nincs találat",
+    "noResultsHint": "Próbálj más írásmódot vagy kevesebb szót.",
+    "itemSubtitle": "{{user}} {{collection}} gyűjteménye",
+    "followers_one": "{{count}} követő",
+    "followers_other": "{{count}} követő",
+    "tagResultsTitle": "#{{tag}}"
+  },
+  "follows": {
+    "title_one": "{{count}} gyűjteményt követsz",
+    "title_other": "{{count}} gyűjteményt követsz",
+    "empty": "Még nem követsz egy gyűjteményt sem.",
+    "emptyHint": "Nyiss meg egy gyűjteményt a hírfolyamból vagy a keresésből, és kövesd, hogy itt lásd.",
+    "expand": "{{name}} kibontása",
+    "collapse": "{{name}} becsukása"
+  }
+}

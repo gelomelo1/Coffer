@@ -1,0 +1,88 @@
+{
+  "title": "Beállítások",
+  "developer": {
+    "title": "Fejlesztői beállítások",
+    "clear": "Helyi tárhely törlése",
+    "clearTitle": "Törlöd a helyi tárhelyet?",
+    "clearExplanation": "Mindent töröl, amit az app az eszközön tárolt, a bejelentkezést is. Utána újra be kell jelentkezned.",
+    "cleared": "Helyi tárhely törölve"
+  },
+  "user": {
+    "title": "Profil",
+    "summaryEditorTitle": "Mutatkozz be",
+    "summaryPlaceholder": "Írj egy kicsit magadról – ki vagy, mik a hobbijaid, mit szeretsz gyűjteni, vagy bármit, ami megmutatja a személyiségedet. Írj egy vicces mondatot, használj emojikat, díszítsd ahogy csak szeretnéd, és ha vannak gyűjtéssel kapcsolatos közösségimédia-fiókjaid, nyugodtan linkeld be őket"
+  },
+  "reports": {
+    "title": "Jelentések",
+    "chat": "Beszélgetés",
+    "tabMine": "Jelentéseim",
+    "tabAboutMe": "A tartalmaimról",
+    "introMine": "A jelentéseket csak a piactér szabályai alapján vizsgáljuk. A Coffer nem dönti el, kinek volt igaza egy üzletben.",
+    "introAboutMe": "Ha egy általad közzétett tartalmat szabálysértés miatt eltávolítunk, itt látod, mit és miért. Azt, hogy ki jelentette, soha nem mutatjuk meg.",
+    "emptyMine": "Még nem jelentettél semmit",
+    "emptyAboutMe": "Egyetlen tartalmadat sem távolítottuk el",
+    "target": {
+      "listing": "Hirdetés",
+      "message": "Üzenet",
+      "review": "Értékelés",
+      "item": "Gyűjteményi tárgy",
+      "comment": "Hozzászólás"
+    },
+    "outcome": {
+      "waiting": "Vizsgálatra vár",
+      "removed": "Tartalom eltávolítva",
+      "suspended": "Szerző felfüggesztve",
+      "noViolation": "Nem történt szabálysértés"
+    },
+    "rule": "Szabály",
+    "yourReason": "Az indoklásod",
+    "decision": "Döntés",
+    "why": "Indok",
+    "reported": "Jelentve: {{reported}}",
+    "reportedDecided": "Jelentve: {{reported}} · döntés: {{decided}}",
+    "openReported": "A jelentett tartalom megnyitása",
+    "open": "Megnyitás",
+    "moderated": "{{target}} · moderálva",
+    "new": "Új",
+    "excerpt": "„{{text}}”"
+  },
+  "index": {
+    "profileSubtitle": "Profilod megtekintése és szerkesztése",
+    "account": "Fiók",
+    "reports": "Jelentések",
+    "reportsSubtitle": "Jelentéseid és a tartalmaid moderálása",
+    "newCount_one": "{{count}} új",
+    "newCount_other": "{{count}} új",
+    "app": "Alkalmazás",
+    "logout": "Kijelentkezés",
+    "logoutTitle": "Kijelentkezel?",
+    "logoutText": "Bármikor visszajelentkezhetsz ugyanazzal a fiókkal.",
+    "language": "Nyelv"
+  },
+  "profile": {
+    "edit": "Profil szerkesztése",
+    "country": "Ország",
+    "memberSince": "Tag ekkortól:",
+    "loggedInWith": "Bejelentkezve ezzel:",
+    "provider": {
+      "google": "Google",
+      "github": "GitHub"
+    },
+    "summary": "Bemutatkozás",
+    "noSummaryOwn": "Még nincs bemutatkozás a profilodon — írj egy rövidet, hogy mások jobban megismerhessenek!",
+    "noSummaryOther": "Ennek a felhasználónak még nincs bemutatkozása.",
+    "reputation": "Megítélés"
+  },
+  "otherUser": {
+    "collections": "{{name}} gyűjteményei",
+    "noCollections": "Még nincs gyűjteménye",
+    "allCollections": "{{name}} összes gyűjteménye"
+  },
+  "language": {
+    "title": "Nyelv",
+    "intro": "Válaszd ki az alkalmazás nyelvét. Amit a gyűjtők maguk írnak — neveket, leírásokat, hozzászólásokat —, az úgy marad, ahogy írták.",
+    "device": "Az eszköz nyelve",
+    "deviceHint": "A telefonodat követi: {{language}}",
+    "changed": "Nyelv módosítva"
+  }
+}

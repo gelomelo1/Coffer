@@ -15,6 +15,8 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { navigate } from "expo-router/build/global-state/routing";
 import { useState } from "react";
+import { LANGUAGE_NAMES } from "@/src/i18n/language";
+import { AppLanguage } from "@/src/i18n/resources";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 
@@ -24,7 +26,7 @@ function Group({ children }: { children: React.ReactNode }) {
 
 /** Settings hub: profile shortcut, account rows, developer tools and a separated logout (confirmed first). */
 function Settings() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   GoogleSignin.configure({
     webClientId: webGoogleClientId,
     offlineAccess: true,
@@ -96,6 +98,13 @@ function Settings() {
         <SectionHeader title={t("settings:index.app")} />
         <Group>
           <ListRow
+            title={t("settings:index.language")}
+            subtitle={LANGUAGE_NAMES[(i18n.language as AppLanguage) in LANGUAGE_NAMES ? (i18n.language as AppLanguage) : "en"]}
+            leading={icon("language")}
+            onPress={() => navigate({ pathname: ROUTES.SETTINGS.LANGUAGE, params: pageParams.language })}
+          />
+          <ListRow
+            style={{ borderTopWidth: borders.hairline, borderColor: colors.borderMuted }}
             title={t("settings:developer.title")}
             leading={icon("developer-mode")}
             onPress={() => navigate({ pathname: ROUTES.SETTINGS.DEVELOPER, params: pageParams.developer })}

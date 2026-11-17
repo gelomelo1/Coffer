@@ -1,0 +1,8 @@
+{
+  "stars_one": "{{count}} csillag",
+  "stars_other": "{{count}} csillag",
+  "close": "Bezárás",
+  "back": "Vissza",
+  "clearText": "Szöveg törlése",
+  "openMenu": "Menü megnyitása"
+}

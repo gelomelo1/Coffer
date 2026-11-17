@@ -1,0 +1,33 @@
+{
+  "title": "Hozzászólások",
+  "titleCount_one": "Hozzászólások ({{count}})",
+  "titleCount_other": "Hozzászólások ({{count}})",
+  "empty": "Még nincs hozzászólás. Kezdd te a beszélgetést!",
+  "loadFailed": "Nem sikerült betölteni a hozzászólásokat.",
+  "older": "Régebbi hozzászólások",
+  "deleted": "Hozzászólás törölve",
+  "deleteTitle": "Törlöd a hozzászólást?",
+  "deleteText": "A rá adott válaszok láthatók maradnak.",
+  "itemGone": "Ez a tárgy már nem létezik.",
+  "composer": {
+    "placeholder": "Írj hozzászólást… a @ jellel megemlíthetsz valakit",
+    "label": "Hozzászólás",
+    "post": "Küldés",
+    "count": "{{length}}/{{max}}",
+    "replyingTo": "Válasz neki: {{name}}",
+    "editing": "Hozzászólásod szerkesztése",
+    "cancelContext": "Válasz vagy szerkesztés megszakítása",
+    "mentionHint": "Koppints egy névre az említéshez",
+    "mention": "{{name}} megemlítése"
+  },
+  "row": {
+    "answering": "↪ {{name}}",
+    "edited": "szerkesztve",
+    "removed": "[a hozzászólást egy moderátor eltávolította]",
+    "deleted": "[törölt hozzászólás]",
+    "deletedUser": "Törölt felhasználó",
+    "owner": "Tulajdonos",
+    "reply": "Válasz",
+    "report": "Jelentés"
+  }
+}

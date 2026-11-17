@@ -1,0 +1,74 @@
+{
+  "appName": "Coffer",
+  "actions": {
+    "save": "Mentés",
+    "cancel": "Mégse",
+    "close": "Bezárás",
+    "delete": "Törlés",
+    "edit": "Szerkesztés",
+    "retry": "Újra",
+    "apply": "Alkalmaz",
+    "reset": "Visszaállítás",
+    "done": "Kész",
+    "back": "Vissza",
+    "next": "Tovább",
+    "confirm": "Megerősítés",
+    "search": "Keresés",
+    "readMore": "Tovább olvasom",
+    "select": "Válassz egy lehetőséget",
+    "none": "Nincs",
+    "ok": "OK",
+    "clear": "Törlés"
+  },
+  "states": {
+    "loading": "Betöltés",
+    "empty": "Itt még nincs semmi",
+    "error": "Hiba történt"
+  },
+  "select": {
+    "multipleTitle": "Lehetőségek kiválasztása",
+    "selectedCount_one": "{{count}} kiválasztva",
+    "selectedCount_other": "{{count}} kiválasztva"
+  },
+  "autocomplete": {
+    "customValueHint": "Nincs egyező javaslat. A beírt szöveget is használhatod."
+  },
+  "richText": {
+    "placeholder": "Kezdj el írni…",
+    "tapToEdit": "Megnyitja a szerkesztőt",
+    "bold": "Félkövér",
+    "italic": "Dőlt",
+    "underline": "Aláhúzott",
+    "strike": "Áthúzott",
+    "heading": "Címsorok",
+    "headingLevel": "{{level}}. címsor",
+    "closeHeadings": "Vissza a formázáshoz",
+    "link": "Hivatkozás",
+    "linkPlaceholder": "https://…",
+    "removeLink": "Hivatkozás eltávolítása",
+    "bulletList": "Felsorolás",
+    "orderedList": "Számozott lista",
+    "taskList": "Ellenőrzőlista",
+    "quote": "Idézet",
+    "code": "Kód",
+    "indent": "Behúzás",
+    "outdent": "Behúzás csökkentése",
+    "undo": "Visszavonás",
+    "redo": "Újra"
+  },
+  "country": {
+    "label": "Ország",
+    "placeholder": "Válaszd ki az országodat",
+    "searchPlaceholder": "Ország keresése"
+  },
+  "yes": "Igen",
+  "no": "Nem",
+  "pagination": {
+    "previous": "Előző",
+    "next": "Következő",
+    "page": "{{page}}. oldal"
+  },
+  "image": {
+    "openFullScreen": "Kép megnyitása teljes képernyőn"
+  }
+}

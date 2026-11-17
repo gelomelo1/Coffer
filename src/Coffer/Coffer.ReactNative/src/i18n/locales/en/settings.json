@@ -56,7 +56,8 @@
     "app": "App",
     "logout": "Log out",
     "logoutTitle": "Log out?",
-    "logoutText": "You can sign in again any time with the same account."
+    "logoutText": "You can sign in again any time with the same account.",
+    "language": "Language"
   },
   "profile": {
     "edit": "Edit profile",
@@ -76,5 +77,12 @@
     "collections": "{{name}}'s collections",
     "noCollections": "No collections yet",
     "allCollections": "All of {{name}}'s collections"
+  },
+  "language": {
+    "title": "Language",
+    "intro": "Choose the language of the app. What collectors write themselves — names, descriptions, comments — stays as they wrote it.",
+    "device": "Device language",
+    "deviceHint": "Follows your phone: {{language}}",
+    "changed": "Language changed"
   }
 }

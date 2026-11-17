@@ -1,20 +1,21 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import { getLocales } from "react-native-localize";
+import { resolveLanguage } from "./language_preference";
 import { AppLanguage, namespaces, resources } from "./resources";
+
+export const SUPPORTED_LANGUAGES = Object.keys(resources) as AppLanguage[];
 
 export const FALLBACK_LANGUAGE: AppLanguage = "en";
 
 /** First device language Coffer has translations for, otherwise English. */
 export function detectLanguage(): AppLanguage {
   try {
-    for (const locale of getLocales()) {
-      if (locale.languageCode in resources) return locale.languageCode as AppLanguage;
-    }
+    return resolveLanguage("system", getLocales().map((l) => l.languageTag), SUPPORTED_LANGUAGES);
   } catch {
     // Native module unavailable (e.g. tests) — use the fallback.
+    return FALLBACK_LANGUAGE;
   }
-  return FALLBACK_LANGUAGE;
 }
 
 if (!i18n.isInitialized) {

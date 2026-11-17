@@ -1,0 +1,548 @@
+{
+  "warning": {
+    "title": "Kereskedj biztonságosan",
+    "text": "A Coffer nem kezel fizetéseket. Az előre utalás és a szállítás a saját felelősségedre történik — csak megbízható embereknek fizess előre vagy postázz. Inkább a személyes átvételt és a helyszíni fizetést válaszd."
+  },
+  "kind": {
+    "sell": "Eladó",
+    "exchange": "Csere",
+    "wanted": "Keresem"
+  },
+  "condition": {
+    "new": "Új",
+    "like_new": "Újszerű",
+    "good": "Jó",
+    "fair": "Elfogadható",
+    "poor": "Rossz"
+  },
+  "listingStatus": {
+    "active": "Aktív",
+    "pending_pickup": "Lefoglalva · átvétel",
+    "pending_shipment": "Lefoglalva · szállítás",
+    "sold": "Eladva",
+    "archived": "Archivált",
+    "removed": "Moderáció eltávolította"
+  },
+  "delivery": {
+    "local_pickup": "Személyes átvétel",
+    "shipping": "Szállítás"
+  },
+  "sort": {
+    "nearest": "Legközelebbi",
+    "price_asc": "Ár ↑",
+    "price_desc": "Ár ↓",
+    "newest": "Legújabb"
+  },
+  "dealStatus": {
+    "proposed": "A vevő elfogadására vár",
+    "awaiting_handoff": "Találkozó és PIN-ellenőrzés",
+    "awaiting_shipment": "Feladásra vár",
+    "shipped": "Úton van",
+    "completed": "Teljesült",
+    "disputed": "Vitatott — a Coffer nem dönt benne",
+    "cancelled": "Lemondva"
+  },
+  "reasonTag": {
+    "item_not_as_described": "Nem a leírt tárgy",
+    "late_to_meetup": "Késett a találkozóról",
+    "no_show": "Nem jelent meg",
+    "poor_communication": "Rossz kommunikáció",
+    "damaged_in_shipping": "Szállítás közben megsérült",
+    "slow_shipping": "Lassú szállítás",
+    "payment_problem": "Fizetési probléma",
+    "rude_behavior": "Udvariatlan viselkedés",
+    "other": "Egyéb"
+  },
+  "stars": {
+    "1": "Szörnyű",
+    "2": "Rossz",
+    "3": "Rendben",
+    "4": "Jó",
+    "5": "Kiváló"
+  },
+  "privateSellerNote": "Magánszemély eladó — a boltokra és vállalkozásokra vonatkozó fogyasztói jogok (pl. 14 napos elállás) nem érvényesek.",
+  "terms": {
+    "sections": {
+      "venue": {
+        "title": "A Coffer csak a helyszín",
+        "text": "A Coffer segít egymásra találni, beszélgetni és visszaigazolni az átadást. A Coffer egyik üzletben sem fél, nem kezel fizetéseket, és nem vállal garanciát a tárgyakra, a fizetésekre vagy a szállításra."
+      },
+      "responsibility": {
+        "title": "Az üzletekért ti feleltek",
+        "text": "Az árban, a fizetésben és a szállításban a vevő és az eladó állapodik meg. Az előre utalás és a szállítás a saját felelősségedre történik — csak megbízható emberekkel tedd. Inkább a személyes átvételt és a helyszíni fizetést válaszd."
+      },
+      "disputes": {
+        "title": "A Coffer nem dönt vitás ügyekben",
+        "text": "Ha valami félremegy, rendezd a másik féllel. A vevő egy feladott üzletet vitatottnak jelölhet; ekkor az üzlet lezárul, és mindketten őszinte értékelést írhattok. A Coffer soha nem dönti el, kinek van igaza."
+      },
+      "adults": {
+        "title": "Magánszemélyek, 18+",
+        "text": "A piactér 18 év feletti magánszemélyeknek szól, akik a saját gyűjteményi darabjaikat árulják. Vállalkozások itt nem árulhatnak."
+      },
+      "contentRules": {
+        "title": "Tartalmi szabályok",
+        "text": "Tilos az illegális vagy tiltott tárgy, az eredetiként árult hamisítvány, a csalás, a zaklatás, mások személyes adatainak közzététele, a spam és a hamis értékelés. Bárki jelenthet tartalmat; a Coffer eltávolítja, ami sérti ezeket a szabályokat, és közli a szerzővel az okát."
+      },
+      "reviews": {
+        "title": "Ellenőrzött értékelések",
+        "text": "Csak egy PIN-kódos átadással vagy követett szállítással teljesült (vagy vitatottként lezárt) üzlet vevője és eladója értékelheti egymást. Az értékelések rejtve maradnak, amíg mindketten értékeltek, vagy el nem telik 14 nap."
+      }
+    },
+    "title": "Mielőtt kereskedni kezdesz",
+    "welcome": "Üdv a piactéren!",
+    "adult": "Elmúltam 18 éves.",
+    "privatePerson": "Magánszemélyként kereskedem, nem vállalkozásként.",
+    "accept": "Elfogadom a piactér feltételeit",
+    "version": "Feltételek verziója: {{version}}"
+  },
+  "format": {
+    "underOneKm": "< 1 km",
+    "km": "{{km}} km",
+    "justNow": "épp most",
+    "minutesAgo_one": "{{count}} perce",
+    "minutesAgo_other": "{{count}} perce",
+    "hoursAgo_one": "{{count}} órája",
+    "hoursAgo_other": "{{count}} órája",
+    "daysAgo_one": "{{count}} napja",
+    "daysAgo_other": "{{count}} napja",
+    "withinHour": "egy órán belül",
+    "withinHours_one": "{{count}} órán belül",
+    "withinHours_other": "{{count}} órán belül",
+    "withinDays_one": "{{count}} napon belül",
+    "withinDays_other": "{{count}} napon belül"
+  },
+  "price": {
+    "swapFor": "Csere erre: {{what}}",
+    "budget": "Keret: {{price}}",
+    "searching": "Keresem"
+  },
+  "tabs": {
+    "browse": "Böngészés",
+    "mine": "Hirdetéseim",
+    "chats": "Beszélgetések",
+    "deals": "Üzletek",
+    "badge_one": "{{count}} új",
+    "badge_other": "{{count}} új"
+  },
+  "feed": {
+    "sell": "Eladás / Csere",
+    "searching": "Keresek valamit",
+    "filters": "Szűrők",
+    "filtersCount_one": "Szűrők ({{count}})",
+    "filtersCount_other": "Szűrők ({{count}})",
+    "around": "{{city}} környékén",
+    "aroundWithin": "{{city}} környékén · {{km}} km-en belül",
+    "cityTip": "Tipp: válassz várost a Szűrőkben a távolság szerinti rendezéshez.",
+    "emptyTitle": "Itt még nincs semmi",
+    "emptyText": "Próbálj más szűrőket, vagy add fel az első hirdetést!"
+  },
+  "filter": {
+    "title": "Hirdetések szűrése",
+    "showResults": "Találatok mutatása",
+    "listingType": "Hirdetés típusa",
+    "itemType": "Tárgy típusa",
+    "anyItemType": "Bármilyen tárgytípus",
+    "location": "Helyszín",
+    "anyDistance": "Bármilyen távolság",
+    "price": "Ár (€)",
+    "min": "Min.",
+    "max": "Max.",
+    "minA11y": "Minimális ár euróban",
+    "maxA11y": "Maximális ár euróban",
+    "condition": "Állapot",
+    "delivery": "Átadás",
+    "nationality": "Eladó nemzetisége",
+    "otherCountry": "+ Más ország",
+    "removeCountry": "{{code}} eltávolítása"
+  },
+  "nationality": {
+    "HU": "Magyar",
+    "GB": "Brit",
+    "US": "Amerikai",
+    "DE": "Német",
+    "AT": "Osztrák",
+    "FR": "Francia",
+    "IT": "Olasz",
+    "ES": "Spanyol",
+    "PL": "Lengyel",
+    "CZ": "Cseh",
+    "SK": "Szlovák",
+    "RO": "Román",
+    "HR": "Horvát",
+    "NL": "Holland",
+    "BE": "Belga",
+    "CH": "Svájci"
+  },
+  "details": {
+    "archived": "Hirdetés archiválva",
+    "reactivated": "A hirdetés újra aktív",
+    "unavailableTitle": "A hirdetés nem érhető el",
+    "unavailableText": "Lehet, hogy archiválták vagy eltávolították.",
+    "haveThis": "Nekem van ilyen — üzenet",
+    "messageSeller": "Üzenet az eladónak",
+    "photoOf": "{{current}}. fotó / {{total}}",
+    "privateSeller": "Magánszemély",
+    "removedTitle": "Moderáció eltávolította",
+    "removedText": "Ez a hirdetés megsértette a piactér szabályait, ezért mások már nem látják. Az okot itt találod: Beállítások › Jelentések › A tartalmaimról.",
+    "lookingFor": "Ezt keresi",
+    "included": "Mit tartalmaz",
+    "quantity_one": "×{{count}}",
+    "quantity_other": "×{{count}}",
+    "wantsInExchange": "Ezt kéri cserébe",
+    "description": "Leírás",
+    "postedBy": "Feladta",
+    "seller": "Eladó",
+    "openChat": "Beszélgetés megnyitása",
+    "report": "Hirdetés jelentése",
+    "archive": "Archiválás",
+    "reactivate": "Újraaktiválás",
+    "chatsAbout_one": "Beszélgetések erről a hirdetésről ({{count}})",
+    "chatsAbout_other": "Beszélgetések erről a hirdetésről ({{count}})",
+    "noMessages": "Még nincs üzenet.",
+    "noPreview": "Még nincs üzenet"
+  },
+  "prompt": {
+    "count": "{{length}}/{{max}}",
+    "countWithMin": "Legalább {{min}} karakter · {{length}}/{{max}}"
+  },
+  "report": {
+    "sent": "Jelentés elküldve — az eredményt a Beállítások › Jelentések alatt látod",
+    "title": {
+      "listing": "Hirdetés jelentése",
+      "message": "Üzenet jelentése",
+      "review": "Értékelés jelentése",
+      "item": "Tárgy jelentése",
+      "comment": "Hozzászólás jelentése"
+    },
+    "explanation": {
+      "listing": "Egy adminisztrátor a piactér szabályai alapján ellenőrzi. A szerző megtudja, mit és miért távolítottunk el, de azt soha, hogy ki jelentette.",
+      "message": "Egy adminisztrátor a piactér szabályai alapján ellenőrzi. A szerző megtudja, mit és miért távolítottunk el, de azt soha, hogy ki jelentette.",
+      "review": "Amíg egy adminisztrátor ellenőrzi a szabályok alapján, az értékelés nem számít bele a megítélésedbe. A Coffer nem dönti el, kinek volt igaza az üzletben.",
+      "item": "Egy adminisztrátor a Coffer szabályai alapján ellenőrzi ezt a gyűjteményi tárgyat. A tulajdonos megtudja, mi történt és miért, de azt soha, hogy ki jelentette.",
+      "comment": "Egy adminisztrátor a Coffer szabályai alapján ellenőrzi ezt a hozzászólást. A szerző megtudja, mi történt és miért, de azt soha, hogy ki jelentette."
+    },
+    "whichRule": "Melyik szabályt sérti?",
+    "chooseRule": "Válassz szabályt.",
+    "reasonLabel": "Pontosan mi sérti a szabályt?",
+    "reasonPlaceholder": "Írd le néhány szóban…",
+    "submit": "Jelentés küldése"
+  },
+  "reportRule": {
+    "illegal_item": {
+      "label": "Illegális vagy tiltott tárgy",
+      "description": "Fegyver, kábítószer, lopott holmi, élő állat vagy bármi, amit tilos árulni vagy mutogatni."
+    },
+    "counterfeit": {
+      "label": "Hamisítvány vagy másolat",
+      "description": "Eredetiként kínált vagy bemutatott másolat vagy utánzat."
+    },
+    "scam_or_fraud": {
+      "label": "Csalás vagy csalási kísérlet",
+      "description": "Adathalászat, hamis fizetési kérések, jelszavak vagy banki adatok elkérése."
+    },
+    "harassment": {
+      "label": "Zaklatás, fenyegetés vagy gyűlöletkeltés",
+      "description": "Sértegetés, fenyegetés, gyűlöletbeszéd vagy szexuális tartalom."
+    },
+    "personal_data": {
+      "label": "Valaki személyes adatai",
+      "description": "Más ember címének, telefonszámának vagy iratainak közzététele."
+    },
+    "spam": {
+      "label": "Spam vagy reklám",
+      "description": "Ismételt bejegyzések, más szolgáltatások hirdetése vagy a tárgyhoz nem kapcsolódó linkek."
+    },
+    "fake_review": {
+      "label": "Hamis vagy nem odaillő értékelés",
+      "description": "Olyan értékelés, amely nem erről az üzletről szól, vagy nyilvánvalóan kitalált."
+    },
+    "off_topic": {
+      "label": "Nem a témához tartozik",
+      "description": "Olyan tartalom, amely nem gyűjteményi tárgyról vagy az üzletről szól."
+    },
+    "other": {
+      "label": "Egyéb szabálysértés",
+      "description": "Más módon sérti a Coffer szabályait — fejtsd ki az indoklásban."
+    }
+  },
+  "review": {
+    "replyPosted": "Válasz közzétéve",
+    "byline": "{{name}} · {{role}}ként · {{listing}}",
+    "deletedUser": "Törölt felhasználó",
+    "role": {
+      "buyer": "vevő",
+      "seller": "eladó"
+    },
+    "frozen": "Vizsgálat alatt — nem számít bele",
+    "replyFrom": "{{name}} válasza",
+    "reply": "Válasz",
+    "report": "Jelentés",
+    "replyTitle": "Válasz az értékelésre",
+    "replyExplanation": "Egyszer válaszolhatsz. A válaszod nyilvános, és nem szerkeszthető.",
+    "replyLabel": "A válaszod",
+    "replySubmit": "Válasz közzététele",
+    "submitted": "Értékelés elküldve",
+    "title": "{{name}} értékelése",
+    "submit": "Értékelés küldése",
+    "errorStars": "Koppints a csillagokra az értékeléshez.",
+    "errorReason": "Válaszd ki, mi ment félre.",
+    "errorLength": "Fejtsd ki legalább {{min}} karakterben ({{length}}/{{min}}).",
+    "blindNote": "Kettős vak: az értékelésed rejtve marad, amíg {{name}} is nem értékel téged, vagy le nem zárul az értékelési időszak. Az értékelés később nem szerkeszthető.",
+    "blindNoteDays_one": "Kettős vak: az értékelésed rejtve marad, amíg {{name}} is nem értékel téged, vagy {{count}} nap múlva le nem zárul az értékelési időszak. Az értékelés később nem szerkeszthető.",
+    "blindNoteDays_other": "Kettős vak: az értékelésed rejtve marad, amíg {{name}} is nem értékel téged, vagy {{count}} nap múlva le nem zárul az értékelési időszak. Az értékelés később nem szerkeszthető.",
+    "yours": "Az értékelésed",
+    "hiddenUntil": "Rejtve, amíg {{name}} nem értékel téged, vagy {{date}}-ig.",
+    "theirs": "{{name}} értékelése rólad",
+    "theySubmitted": "{{name}} már értékelt téged — küldd el a tiédet, hogy lásd.",
+    "howWasIt": "Milyen volt az üzlet?",
+    "whatWentWrong": "Mi ment félre?",
+    "explainRequired": "Írd le, mi történt",
+    "commentOptional": "Megjegyzés (nem kötelező)",
+    "closed": "Ennek az üzletnek az értékelési időszaka lezárult."
+  },
+  "reputation": {
+    "ratingWithCount": "{{rating}} ({{count}})",
+    "noRatings": "Nincs értékelés",
+    "deals_one": "{{count}} teljesült üzlet",
+    "deals_other": "{{count}} teljesült üzlet",
+    "answers": "a beszélgetések {{percent}}%-ára válaszol",
+    "usually": "általában {{time}}",
+    "showReviews": "Megmutatja az értékeléseket",
+    "title": "Értékelések",
+    "titleOf": "{{name}} értékelései",
+    "verifiedNote": "Csak ellenőrzött értékelések: kizárólag egy PIN-kódos átadással vagy követett szállítással teljesült (vagy vitatottként lezárt) üzlet vevője és eladója értékelheti egymást. Az értékelések akkor jelennek meg, amikor mindkét fél értékelt, vagy 14 nap után.",
+    "empty": "Még nincs értékelés"
+  },
+  "city": {
+    "label": "Város",
+    "placeholder": "Kezdd el beírni a várost…",
+    "clear": "Város törlése",
+    "unavailable": "A városkeresés most nem érhető el.",
+    "noResults": "Nincs ilyen város."
+  },
+  "mine": {
+    "filter": {
+      "active": "Aktív",
+      "sold": "Eladva",
+      "archived": "Archivált"
+    },
+    "filterCount": {
+      "active_one": "Aktív ({{count}})",
+      "active_other": "Aktív ({{count}})",
+      "sold_one": "Eladva ({{count}})",
+      "sold_other": "Eladva ({{count}})",
+      "archived_one": "Archivált ({{count}})",
+      "archived_other": "Archivált ({{count}})"
+    },
+    "emptyTitle": {
+      "active": "Nincs aktív hirdetésed",
+      "sold": "Nincs eladott hirdetésed",
+      "archived": "Nincs archivált hirdetésed"
+    },
+    "emptyText": {
+      "active": "Most nem árulsz semmit. Hirdetést a Böngészés fülön az „Eladás / Csere” gombbal adhatsz fel.",
+      "sold": "Még nincs eladott hirdetésed. A teljesült üzletek itt jelennek meg.",
+      "archived": "Nincs semmi archiválva. Az archivált és a moderáció által eltávolított hirdetések itt jelennek meg."
+    }
+  },
+  "chats": {
+    "emptyTitle": "Még nincs beszélgetésed",
+    "emptyText": "Nyiss meg egy hirdetést, és írj az eladónak.",
+    "selling": "Eladás",
+    "buying": "Vásárlás",
+    "preview": "{{name}}: {{text}}"
+  },
+  "deals": {
+    "needsAction": "Teendőd van",
+    "inProgress": "Folyamatban",
+    "finished": "Lezárult",
+    "emptyTitle": "Még nincs üzleted",
+    "emptyText": "Az üzlet egy beszélgetésből indul, amikor az eladó javasolja.",
+    "buyingFrom": "Vásárlás tőle: {{name}}",
+    "sellingTo": "Eladás neki: {{name}}",
+    "review": "Értékelés esedékes"
+  },
+  "chat": {
+    "unavailable": "A beszélgetés nem érhető el",
+    "sayHi": "Köszönj neki: {{name}}",
+    "emptyText": "Kérdezz a tárgyról, tegyél árajánlatot, vagy javasolj találkozót.",
+    "priceOffer": "Árajánlat",
+    "proposeMeetup": "Találkozó javaslata",
+    "placeholder": "Írj üzenetet…",
+    "messageLabel": "Üzenet",
+    "send": "Küldés",
+    "offerTitle": "Árajánlat tétele",
+    "offerSubmit": "Ajánlat",
+    "offerSubmitAmount": "Ajánlat: {{price}}",
+    "offerExplanation": "A másik fél elfogadhatja vagy elutasíthatja. Az elfogadott ajánlat lesz az üzlet ára.",
+    "amount": "Összeg (€)",
+    "noteOptional": "Megjegyzés (nem kötelező)",
+    "today": "Ma",
+    "tomorrow": "Holnap",
+    "errorTime": "ÓÓ:PP formátumot használj, pl. 17:30.",
+    "errorPast": "Jövőbeli időpontot válassz.",
+    "errorPlace": "Hol találkoztok?",
+    "meetupTitle": "Találkozó javaslata",
+    "meetupSubmit": "Javaslat küldése",
+    "meetupExplanation": "Forgalmas, nyilvános helyen találkozzatok. Ellenőrizd a tárgyat, mielőtt megmutatod a PIN-kódodat.",
+    "day": "Nap",
+    "time": "Időpont",
+    "timeHelp": "24 órás formátum, pl. 17:30",
+    "place": "Helyszín",
+    "placePlaceholder": "pl. Deák tér, metrókijárat",
+    "reportHint": "Hosszan nyomd meg az üzenet jelentéséhez",
+    "reportMessage": "Üzenet jelentése",
+    "offer": "Ajánlat: {{price}}",
+    "meetup": "Találkozó: {{time}}",
+    "status": {
+      "pending": "Válaszra vár",
+      "accepted": "Elfogadva",
+      "declined": "Elutasítva",
+      "withdrawn": "Visszavonva"
+    },
+    "withdraw": "Visszavonás",
+    "accept": "Elfogadás",
+    "decline": "Elutasítás"
+  },
+  "deal": {
+    "toast": {
+      "proposed": "Üzlet javasolva",
+      "accepted": "Üzlet elfogadva",
+      "declined": "Üzlet elutasítva",
+      "cancelled": "Üzlet lemondva",
+      "handoff": "Átadás ellenőrizve — az üzlet teljesült!",
+      "shipped": "Feladás rögzítve",
+      "completed": "Az üzlet teljesült",
+      "disputed": "Az üzlet vitatottként lezárult"
+    },
+    "listing": "Hirdetés",
+    "noDeal": "Még nincs üzlet",
+    "expandHint": "Megmutatja az üzlet lépéseit",
+    "collapseHint": "Elrejti az üzlet lépéseit",
+    "meetup": "Találkozó: {{time}} · {{place}}",
+    "proposes": "{{name}} üzletet javasol, átadás: {{method}}.",
+    "proposesFor": "{{name}} üzletet javasol {{price}} áron, átadás: {{method}}.",
+    "decline": "Elutasítás",
+    "accept": "Üzlet elfogadása",
+    "registerShipment": "Feladás rögzítése",
+    "waitingShipment": "Várakozás, hogy {{name}} feladja a csomagot és megadja a követési számot.",
+    "tracking": "{{carrier}}:",
+    "checkCarrier": "Megnézem a futárszolgálat oldalán",
+    "autoComplete": "{{date}}-án/én automatikusan teljesül, ha addig nem jeleznek problémát.",
+    "reportProblem": "Probléma jelzése",
+    "received": "Megkaptam",
+    "disputed": "A vevő problémát jelzett.",
+    "disputedWithReason": "A vevő problémát jelzett: „{{reason}}”",
+    "disputedNote": "A Coffer nem dönti el, kinek van igaza — rendezzétek egymás között. Mindketten írhattok őszinte értékelést.",
+    "reviewPrompt_one": "Kész az üzlet! {{count}} napon belül értékelhetitek egymást. Az értékelések rejtve maradnak, amíg mindketten el nem küldtétek.",
+    "reviewPrompt_other": "Kész az üzlet! {{count}} napon belül értékelhetitek egymást. Az értékelések rejtve maradnak, amíg mindketten el nem küldtétek.",
+    "leaveReview": "Értékelés írása",
+    "seeReviews": "Értékelések megtekintése",
+    "cancel": "Üzlet lemondása",
+    "proposeTitle": "Megegyeztetek? Javasold az üzletet",
+    "propose": "Üzlet javaslata",
+    "buyerHint": "Ha megegyeztetek, az eladó itt javasolja az üzletet, te pedig elfogadod.",
+    "cancelTitle": "Üzlet lemondása",
+    "cancelExplanation": "A hirdetés újra elérhető lesz. Lemondott üzletet nem lehet értékelni.",
+    "cancelReason": "Indok (nem kötelező)",
+    "disputeExplanation": "Ezzel az üzlet vitatottként lezárul, és a leírásod megjelenik az eladónak ebben a beszélgetésben. A Coffer nem dönti el, kinek van igaza, és nem intéz visszatérítést — rendezd az eladóval. Utána mindketten írhattok őszinte értékelést.",
+    "disputeLabel": "Mi ment félre?",
+    "disputePlaceholder": "pl. nem érkezett meg, sérült, más tárgy jött",
+    "disputeSubmit": "Lezárás vitatottként",
+    "trackingNoCarrier": "Követési szám:"
+  },
+  "pin": {
+    "checkFirst": "Előbb ellenőrizd a tárgyat. Csak utána mutasd meg ezt a kódot az eladónak — ezzel teljesül az üzlet, és megnyílik az értékelés.",
+    "yourPin": "A PIN-kódod: {{pin}}",
+    "qrLabel": "A PIN-kódod QR-kódja",
+    "hide": "Kód elrejtése",
+    "show": "Ellenőriztem a tárgyat — mutasd a PIN-kódom",
+    "askBuyer": "Amikor a vevő ellenőrizte a tárgyat, kérd el a 4 jegyű PIN-kódját, és írd be ide.",
+    "locked": "Túl sok hibás próbálkozás. Próbáld újra ekkor: {{time}}.",
+    "inputLabel": "A vevő PIN-kódja",
+    "scan": "QR-kód beolvasása",
+    "confirm": "Átadás megerősítése",
+    "scanTitle": "Olvasd be a vevő QR-kódját",
+    "cameraNeeded": "A kód beolvasásához kamera-hozzáférés kell. A 4 jegyű PIN-kódot be is írhatod helyette.",
+    "allowCamera": "Kamera engedélyezése"
+  },
+  "photo": {
+    "permissionTitle": "Engedély szükséges",
+    "permissionText": "Engedélyezd a kamera- és fotóhozzáférést a rendszerbeállításokban.",
+    "selected": "Kiválasztott fotó",
+    "remove": "Eltávolítás",
+    "camera": "Kamera",
+    "gallery": "Galéria"
+  },
+  "ship": {
+    "title": "Feladás rögzítése",
+    "submit": "Megjelölés feladottként",
+    "errorCarrier": "Válassz futárszolgálatot.",
+    "errorLength": "Követési szám: 4–40 karakter.",
+    "errorChars": "Csak betűk, számok, szóközök és kötőjelek.",
+    "explanation": "A vevő látja a futárszolgálatot és a követési számot, és ellenőrizheti a futárszolgálat oldalán. Ha a vevő 14 napon belül nem erősíti meg és nem jelez problémát, az üzlet automatikusan teljesül.",
+    "carrier": "Futárszolgálat",
+    "chooseCarrier": "Válassz futárszolgálatot",
+    "tracking": "Követési szám",
+    "photo": "Fotó a becsomagolt tárgyról (nem kötelező)"
+  },
+  "receipt": {
+    "title": "Átvétel megerősítése",
+    "submit": "Megkaptam a tárgyat",
+    "explanation": "Csak akkor erősítsd meg, ha a csomag már nálad van. Ezzel teljesül az üzlet; ha valami nem stimmel, inkább a „Probléma jelzése” lehetőséget válaszd.",
+    "photo": "Fotó a tárgy állapotáról (nem kötelező)"
+  },
+  "form": {
+    "updated": "Hirdetés frissítve",
+    "published": "Hirdetés közzétéve",
+    "checkFields": "Ellenőrizd a kiemelt mezőket",
+    "editTitle": "Hirdetés szerkesztése",
+    "wantedTitle": "Ezt keresem…",
+    "newTitle": "Új hirdetés",
+    "save": "Módosítások mentése",
+    "publish": "Közzététel",
+    "whatToDo": "Mit szeretnél?",
+    "itemType": "Tárgy típusa",
+    "chooseItemType": "Válassz tárgytípust",
+    "fixedAfterCreate": "A hirdetés és a tárgy típusa közzététel után nem módosítható.",
+    "title": "Cím",
+    "titlePlaceholder": "pl. Magyar forint érmekészlet",
+    "titlePlaceholderWanted": "pl. 1990-es évekbeli forintérméket keresek",
+    "exchangeFor": "Mit szeretnél cserébe?",
+    "exchangePlaceholder": "pl. osztrák schilling, 60-as évekbeli bélyegek",
+    "price": "Ár (€)",
+    "budget": "Keret (€, nem kötelező)",
+    "condition": "Állapot",
+    "conditionOptional": "Állapot (nem kötelező)",
+    "handover": "Átadás",
+    "lookingFor": "Mit keresel?",
+    "included": "Mit tartalmaz?",
+    "itemPlaceholder": "Tétel",
+    "itemA11y": "{{number}}. tétel neve",
+    "qty": "Db",
+    "qtyA11y": "{{number}}. tétel mennyisége",
+    "removeLine": "{{number}}. tétel eltávolítása",
+    "addLine": "Tétel hozzáadása",
+    "photos": "Fotók ({{count}}/{{max}})",
+    "photosOptional": "Fotók ({{count}}/{{max}}) — nem kötelező",
+    "removePhoto": "{{number}}. fotó eltávolítása",
+    "privateSeller": "Magánszemélyként adok el, nem vállalkozásként.",
+    "description": "Leírás (nem kötelező)",
+    "descriptionPlaceholder": "Bármi más, amit a vevőnek tudnia kell",
+    "error": {
+      "title": "Adj címet (legfeljebb 80 karakter).",
+      "type": "Válaszd ki a tárgy típusát.",
+      "city": "Válaszd ki a várost, ahol árulsz.",
+      "price": "Add meg az árat euróban.",
+      "budget": "A keretnek pozitív összegnek kell lennie.",
+      "exchange": "Írd le, mit szeretnél cserébe.",
+      "condition": "Válaszd ki az állapotot.",
+      "delivery": "Válassz személyes átvételt, szállítást vagy mindkettőt.",
+      "linesEmpty": "Sorolj fel legalább egy tételt, ami benne van.",
+      "linesQty": "A mennyiség 1 és 9999 közötti egész szám lehet.",
+      "linesName": "A tételnevek legfeljebb 80 karakteresek lehetnek.",
+      "images": "Adj hozzá legalább egy fotót.",
+      "private": "Erősítsd meg, hogy magánszemélyként adsz el."
+    }
+  }
+}

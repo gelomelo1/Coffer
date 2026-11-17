@@ -1,0 +1,101 @@
+{
+  "edit": {
+    "title": "Gyűjtemény szerkesztése",
+    "save": "Módosítások mentése",
+    "updated": "Gyűjtemény frissítve",
+    "coverImage": "Borítókép",
+    "noCoverImage": "Még nincs borítókép",
+    "changeCover": "Kép kiválasztása",
+    "removeCover": "Kép eltávolítása",
+    "name": "Gyűjtemény neve",
+    "namePlaceholder": "Adj nevet a gyűjteményednek",
+    "description": "Leírás",
+    "descriptionPlaceholder": "Mi van a gyűjteményedben, és hogyan találod meg a darabjaidat? Ritka klasszikusok, hétköznapi leletek vagy egy kicsit mindenből — meséld el a történeted."
+  },
+  "list": {
+    "create": "Új gyűjtemény létrehozása",
+    "sortName": "A–Z",
+    "sortNewest": "Legújabb",
+    "sortToggle": "Rendezés: {{order}}. Koppints a módosításhoz.",
+    "emptyTitle": "Még nincs gyűjteményed",
+    "emptyText": "Hozd létre az első gyűjteményedet, majd add hozzá a tárgyakat a + gombbal."
+  },
+  "create": {
+    "title": "Új gyűjtemény",
+    "submit": "Létrehozás",
+    "type": "Gyűjteménytípus",
+    "typePlaceholder": "Válassz gyűjteménytípust",
+    "nameHelper": "Csak betűk, számok, ., _ és -.",
+    "nameTaken": "Már van ilyen nevű gyűjteményed",
+    "created": "Gyűjtemény létrehozva"
+  },
+  "delete": {
+    "title": "Törlöd a gyűjteményt?",
+    "message": "A(z) „{{name}}” gyűjtemény és minden benne lévő tárgy törlődik. Ez nem vonható vissza.",
+    "confirm": "Gyűjtemény törlése",
+    "done": "Gyűjtemény törölve"
+  },
+  "info": {
+    "created": "Létrehozva: {{date}}",
+    "followers_one": "{{count}} követő",
+    "followers_other": "{{count}} követő",
+    "noDescription": "Még nincs leírás. Írj egyet a Szerkesztéssel, hogy mások is megtudják, mitől különleges a gyűjteményed.",
+    "noDescriptionOther": "A tulajdonos még nem adott leírást ehhez a gyűjteményhez."
+  },
+  "items": {
+    "cardA11y": "{{name}}, {{count}} darab",
+    "quantity": "×{{count}}",
+    "firstAcquired": "Először beszerezve: {{date}}",
+    "filtersOn": "Szűrve",
+    "titleOwn": "{{type}} gyűjteményed",
+    "titleOther": "{{user}} {{type}} gyűjteménye",
+    "layoutThree": "Három egy sorban",
+    "layoutTwo": "Kettő egy sorban",
+    "filter": "Szűrés",
+    "filterCount_one": "Szűrés ({{count}})",
+    "filterCount_other": "Szűrés ({{count}})",
+    "emptyTitle": "Nincs találat",
+    "emptyFiltered": "Módosíts a szűrőkön, hogy más eredményeket láss.",
+    "emptyText": "Tárgyakat a jobb alsó + gombbal adhatsz a gyűjteményedhez.",
+    "endOfList": "A lista vége",
+    "kinds_one": "{{count}} féle tárgy",
+    "kinds_other": "{{count}} féle tárgy",
+    "pieces_one": "{{count}} darab",
+    "pieces_other": "{{count}} darab"
+  },
+  "sort": {
+    "ascending": "{{field}} ↑",
+    "descending": "{{field}} ↓",
+    "fields": {
+      "quantity": "Mennyiség",
+      "acquiredAt": "Beszerzés dátuma"
+    }
+  },
+  "filter": {
+    "title": "Rendezés és szűrés",
+    "sortSection": "Rendezés",
+    "sortBy": "Rendezés alapja",
+    "filterSection": "Szűrés",
+    "duplicates": "Csak a duplikátumok",
+    "firstAcquired": "Első darab beszerzése",
+    "after": "Után",
+    "before": "Előtt",
+    "anyDate": "Bármikor",
+    "contains": "{{name}} tartalmazza",
+    "keywords": "Kulcsszavak",
+    "equals": "{{name}} pontosan",
+    "matchingValue": "Pontos érték",
+    "isTrue": "{{name}}: igen",
+    "dateOf": "{{name}} dátuma",
+    "tags": "Címkék",
+    "tagsPlaceholder": "#címke #másik",
+    "tagsHelper": "A címkéket szóközzel válaszd el. Válassz egy javaslatot a címke kiegészítéséhez."
+  },
+  "follow": {
+    "follow": "Követés",
+    "unfollow": "Követés leállítása",
+    "followed": "Mostantól követed ezt a gyűjteményt",
+    "unfollowed": "Már nem követed ezt a gyűjteményt",
+    "since": "{{date}} óta követed ezt a gyűjteményt"
+  }
+}
