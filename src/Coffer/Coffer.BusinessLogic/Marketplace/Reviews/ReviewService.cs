@@ -70,20 +70,20 @@ namespace Coffer.BusinessLogic.Marketplace.Reviews
             await _db.Entry(deal).ReloadAsync();
 
             if (deal.Status is not (DealStatus.Completed or DealStatus.Disputed) || deal.ReviewDeadline == null)
-                throw MarketplaceException.Conflict("Reviews unlock when the deal is completed or closed as disputed.");
+                throw MarketplaceException.Conflict("reviewsUnlockWhenTheDealIsCompleted", "Reviews unlock when the deal is completed or closed as disputed.");
             var now = _clock.UtcNow;
-            if (now >= deal.ReviewDeadline) throw MarketplaceException.Conflict("The 14-day review window has closed.");
+            if (now >= deal.ReviewDeadline) throw MarketplaceException.Conflict("the14DayReviewWindowHasClosed", "The 14-day review window has closed.");
             if (await _db.Reviews.AnyAsync(r => r.DealId == dealId && r.ReviewerId == userId))
-                throw MarketplaceException.Conflict("You already reviewed this deal.");
+                throw MarketplaceException.Conflict("youAlreadyReviewedThisDeal", "You already reviewed this deal.");
 
-            if (input.Stars is < 1 or > 5) throw MarketplaceException.Validation("Choose 1 to 5 stars.");
-            if (input.ReasonTag.HasValue && !Enum.IsDefined(input.ReasonTag.Value)) throw MarketplaceException.Validation("Unknown reason.");
+            if (input.Stars is < 1 or > 5) throw MarketplaceException.Validation("choose1To5Stars", "Choose 1 to 5 stars.");
+            if (input.ReasonTag.HasValue && !Enum.IsDefined(input.ReasonTag.Value)) throw MarketplaceException.Validation("unknownReason", "Unknown reason.");
             var comment = Text.Optional(input.Comment, MaxComment, "Comment");
             if (input.Stars <= 2)
             {
-                if (input.ReasonTag == null) throw MarketplaceException.Validation("Pick a reason for a 1–2 star rating.");
+                if (input.ReasonTag == null) throw MarketplaceException.Validation("pickAReasonForA12", "Pick a reason for a 1–2 star rating.");
                 if (comment == null || comment.Length < MinLowRatingComment)
-                    throw MarketplaceException.Validation($"Explain a 1–2 star rating in at least {MinLowRatingComment} characters.");
+                    throw MarketplaceException.Validation("explainA12StarRatingIn", $"Explain a 1–2 star rating in at least {MinLowRatingComment} characters.", ErrorArgs.Of($"{MinLowRatingComment}"));
             }
 
             var isBuyer = deal.BuyerId == userId;
@@ -108,7 +108,7 @@ namespace Coffer.BusinessLogic.Marketplace.Reviews
             }
 
             try { await _db.SaveChangesAsync(); }
-            catch (DbUpdateException) { throw MarketplaceException.Conflict("You already reviewed this deal."); }
+            catch (DbUpdateException) { throw MarketplaceException.Conflict("youAlreadyReviewedThisDeal", "You already reviewed this deal."); }
             return await ToDtoAsync(review.Id);
         }
 
@@ -132,11 +132,11 @@ namespace Coffer.BusinessLogic.Marketplace.Reviews
         public async Task<ReviewDto> ReplyAsync(Guid userId, Guid reviewId, string text)
         {
             var review = await _db.Reviews.FirstOrDefaultAsync(r => r.Id == reviewId && !r.IsRemoved)
-                ?? throw MarketplaceException.NotFound("Review not found.");
-            if (review.RevieweeId != userId) throw MarketplaceException.Forbidden("Only the reviewed person can reply.");
+                ?? throw MarketplaceException.NotFound("reviewNotFound", "Review not found.");
+            if (review.RevieweeId != userId) throw MarketplaceException.Forbidden("onlyTheReviewedPersonCanReply", "Only the reviewed person can reply.");
             await PublishDueAsync();
-            if (review.PublishedAt == null) throw MarketplaceException.Conflict("You can reply once the review is published.");
-            if (review.Reply != null) throw MarketplaceException.Conflict("You already replied to this review.");
+            if (review.PublishedAt == null) throw MarketplaceException.Conflict("youCanReplyOnceTheReviewIs", "You can reply once the review is published.");
+            if (review.Reply != null) throw MarketplaceException.Conflict("youAlreadyRepliedToThisReview", "You already replied to this review.");
 
             review.Reply = Text.Required(text, 1, MaxReply, "Reply");
             review.RepliedAt = _clock.UtcNow;
@@ -190,9 +190,9 @@ namespace Coffer.BusinessLogic.Marketplace.Reviews
 
         private async Task<Deal> PartyDealAsync(Guid userId, Guid dealId)
         {
-            var deal = await _db.Deals.FirstOrDefaultAsync(d => d.Id == dealId) ?? throw MarketplaceException.NotFound("Deal not found.");
+            var deal = await _db.Deals.FirstOrDefaultAsync(d => d.Id == dealId) ?? throw MarketplaceException.NotFound("dealNotFound", "Deal not found.");
             if (deal.SellerId != userId && deal.BuyerId != userId)
-                throw MarketplaceException.Forbidden("Only the buyer and the seller of this deal can review it.");
+                throw MarketplaceException.Forbidden("onlyTheBuyerAndTheSellerOf", "Only the buyer and the seller of this deal can review it.");
             return deal;
         }
 

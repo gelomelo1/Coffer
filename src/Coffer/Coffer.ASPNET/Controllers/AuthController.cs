@@ -58,7 +58,7 @@ namespace Coffer.ASPNET.Controllers
             }
             catch(Exception)
             {
-                return BadRequest("Invalid Google token");
+                return this.ApiError(StatusCodes.Status400BadRequest, "invalidGoogleToken", "Invalid Google token");
             }
         }
 
@@ -76,7 +76,7 @@ namespace Coffer.ASPNET.Controllers
 
                 if (!_tempTokenService.TryGetToken(req.TempId, out var accessToken))
                 {
-                    return BadRequest("Invalid registration session");
+                    return this.ApiError(StatusCodes.Status400BadRequest, "invalidRegistrationSession", "Invalid registration session");
                 }
 
                 var payload = await GoogleJsonWebSignature.ValidateAsync(accessToken, GoogleValidationSettings());
@@ -84,7 +84,7 @@ namespace Coffer.ASPNET.Controllers
                 var existingUser = await _usersRepository.GetUserByLogin("google", payload.Subject);
                 if (existingUser != null)
                 {
-                    return BadRequest("User already exists");
+                    return this.ApiError(StatusCodes.Status400BadRequest, "userAlreadyExists", "User already exists");
                 }
 
                 var user = await _usersRepository.InsertUserAsync(new UserRequired("google", payload.Subject, req.Username, payload.Email, req.Country, payload.Picture, UserRole.User));
@@ -97,7 +97,7 @@ namespace Coffer.ASPNET.Controllers
             }
             catch (Exception)
             {
-                return BadRequest("Registration failed");
+                return this.ApiError(StatusCodes.Status400BadRequest, "registrationFailed", "Registration failed");
             }
         }
 
@@ -138,13 +138,13 @@ namespace Coffer.ASPNET.Controllers
             {
                 if(!_tempTokenService.TryGetToken(req.TempId, out var accessToken))
                 {
-                    return BadRequest("Invalid registration session");
+                    return this.ApiError(StatusCodes.Status400BadRequest, "invalidRegistrationSession", "Invalid registration session");
                 }
 
                 var githubUser = await _githubService.GetGithubUser(accessToken);
 
                 var existingUser = await _usersRepository.GetUserByLogin("github", githubUser.Id);
-                if (existingUser != null) return BadRequest("User already exists");
+                if (existingUser != null) return this.ApiError(StatusCodes.Status400BadRequest, "userAlreadyExists", "User already exists");
 
                 var user = await _usersRepository.InsertUserAsync(
                     new UserRequired("github", githubUser.Id, req.Username, githubUser.Email, req.Country, githubUser.AvatarUrl, UserRole.User)
@@ -158,7 +158,7 @@ namespace Coffer.ASPNET.Controllers
             }
             catch(Exception)
             {
-                return BadRequest("Registration failed");
+                return this.ApiError(StatusCodes.Status400BadRequest, "registrationFailed", "Registration failed");
             }
         }
 

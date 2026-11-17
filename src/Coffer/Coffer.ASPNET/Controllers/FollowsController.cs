@@ -1,4 +1,5 @@
-﻿using Coffer.ASPNET.Controllers.Generic;
+﻿using Coffer.ASPNET.Extensions;
+using Coffer.ASPNET.Controllers.Generic;
 using Coffer.BusinessLogic.Services.Interfaces;
 using Coffer.DataAccess.Repositories;
 using Coffer.DataAccess.Repositories.Interfaces;
@@ -61,7 +62,7 @@ namespace Coffer.ASPNET.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"An error occurred while processing the request");
+                return this.ApiError(500, "anErrorOccurredWhileProcessingTheRequest", $"An error occurred while processing the request");
             }
         }
     }

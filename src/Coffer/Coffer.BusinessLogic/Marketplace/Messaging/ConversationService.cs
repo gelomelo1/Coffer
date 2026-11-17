@@ -44,7 +44,7 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
 
         private IConversationSubjectPolicy PolicyFor(string subjectType) =>
             _policies.TryGetValue(subjectType ?? "", out var policy) ? policy
-            : throw MarketplaceException.Validation("Unsupported conversation subject.");
+            : throw MarketplaceException.Validation("unsupportedConversationSubject", "Unsupported conversation subject.");
 
         // ------------------------------------------------------------------ conversations
 
@@ -158,23 +158,23 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
                     break;
                 case MessageKind.PriceOffer:
                     if (input.AmountCents is null or <= 0 or > 100_000_000)
-                        throw MarketplaceException.Validation("Offer amount must be a positive amount.");
+                        throw MarketplaceException.Validation("offerAmountMustBeAPositiveAmount", "Offer amount must be a positive amount.");
                     message.Body = Text.Optional(input.Body, MaxNote, "Note") ?? "";
                     message.Payload = Serialize(new ProposalPayload { AmountCents = input.AmountCents, Status = ProposalStatus.Pending });
                     await WithdrawPendingAsync(c.Id, userId, MessageKind.PriceOffer);
                     break;
                 case MessageKind.MeetupProposal:
-                    if (input.At == null) throw MarketplaceException.Validation("Pick a meetup time.");
+                    if (input.At == null) throw MarketplaceException.Validation("pickAMeetupTime", "Pick a meetup time.");
                     var at = ToUtc(input.At.Value);
                     if (at <= now || at > now.AddDays(90))
-                        throw MarketplaceException.Validation("Meetup time must be in the next 90 days.");
+                        throw MarketplaceException.Validation("meetupTimeMustBeInTheNext", "Meetup time must be in the next 90 days.");
                     var place = Text.Required(input.Place, 1, MaxPlace, "Meetup place");
                     message.Body = Text.Optional(input.Body, MaxNote, "Note") ?? "";
                     message.Payload = Serialize(new ProposalPayload { At = at, Place = place, Status = ProposalStatus.Pending });
                     await WithdrawPendingAsync(c.Id, userId, MessageKind.MeetupProposal);
                     break;
                 default:
-                    throw MarketplaceException.Validation("Unsupported message kind.");
+                    throw MarketplaceException.Validation("unsupportedMessageKind", "Unsupported message kind.");
             }
 
             _db.Messages.Add(message);
@@ -194,10 +194,10 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
         {
             var c = await LoadForParticipantAsync(userId, conversationId, tracked: true);
             var message = await _db.Messages.FirstOrDefaultAsync(m => m.Id == messageId && m.ConversationId == c.Id)
-                ?? throw MarketplaceException.NotFound("Message not found.");
-            if (message.IsRemoved) throw MarketplaceException.Conflict("This message was removed by a moderator.");
+                ?? throw MarketplaceException.NotFound("messageNotFound", "Message not found.");
+            if (message.IsRemoved) throw MarketplaceException.Conflict("thisMessageWasRemovedByAModerator", "This message was removed by a moderator.");
             if (message.Kind is not (MessageKind.PriceOffer or MessageKind.MeetupProposal))
-                throw MarketplaceException.Validation("Only offers and meetup proposals can be answered.");
+                throw MarketplaceException.Validation("onlyOffersAndMeetupProposalsCanBe", "Only offers and meetup proposals can be answered.");
 
             var payload = Deserialize(message.Payload);
             var isSender = message.SenderId == userId;
@@ -207,11 +207,11 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
                 "accept" => ProposalStatus.Accepted,
                 "decline" => ProposalStatus.Declined,
                 "withdraw" => ProposalStatus.Withdrawn,
-                _ => throw MarketplaceException.Validation("Action must be accept, decline or withdraw."),
+                _ => throw MarketplaceException.Validation("actionMustBeAcceptDeclineOrWithdraw", "Action must be accept, decline or withdraw."),
             };
-            if (newStatus == ProposalStatus.Withdrawn && !isSender) throw MarketplaceException.Forbidden("Only the sender can withdraw this.");
-            if (newStatus != ProposalStatus.Withdrawn && isSender) throw MarketplaceException.Forbidden("You can't answer your own proposal.");
-            if (payload.Status != ProposalStatus.Pending) throw MarketplaceException.Conflict("This proposal was already answered.");
+            if (newStatus == ProposalStatus.Withdrawn && !isSender) throw MarketplaceException.Forbidden("onlyTheSenderCanWithdrawThis", "Only the sender can withdraw this.");
+            if (newStatus != ProposalStatus.Withdrawn && isSender) throw MarketplaceException.Forbidden("youCanTAnswerYourOwnProposal", "You can't answer your own proposal.");
+            if (payload.Status != ProposalStatus.Pending) throw MarketplaceException.Conflict("thisProposalWasAlreadyAnswered", "This proposal was already answered.");
 
             if (newStatus == ProposalStatus.Accepted)
             {
@@ -222,7 +222,7 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
                 }
                 else
                 {
-                    if (payload.At <= _clock.UtcNow) throw MarketplaceException.Conflict("This meetup time has already passed.");
+                    if (payload.At <= _clock.UtcNow) throw MarketplaceException.Conflict("thisMeetupTimeHasAlreadyPassed", "This meetup time has already passed.");
                     var deal = await _db.Deals.FirstOrDefaultAsync(d => d.ConversationId == c.Id && d.Status != DealStatus.Completed && d.Status != DealStatus.Cancelled && d.Status != DealStatus.Disputed);
                     if (deal != null)
                     {
@@ -259,7 +259,7 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
             var q = _db.Conversations.Include(c => c.Participants).ThenInclude(p => p.User).AsQueryable();
             if (!tracked) q = q.AsNoTracking();
             return await q.FirstOrDefaultAsync(c => c.Id == conversationId && c.Participants.Any(p => p.UserId == userId))
-                ?? throw MarketplaceException.NotFound("Conversation not found.");
+                ?? throw MarketplaceException.NotFound("conversationNotFound", "Conversation not found.");
         }
 
         private async Task WithdrawPendingAsync(Guid conversationId, Guid senderId, MessageKind kind)

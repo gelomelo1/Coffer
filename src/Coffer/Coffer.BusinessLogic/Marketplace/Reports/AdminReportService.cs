@@ -60,7 +60,7 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
 
         public async Task<AdminReportDto> GetAsync(Guid reportId)
         {
-            var r = await _db.Reports.AsNoTracking().FirstOrDefaultAsync(x => x.Id == reportId) ?? throw MarketplaceException.NotFound("Report not found.");
+            var r = await _db.Reports.AsNoTracking().FirstOrDefaultAsync(x => x.Id == reportId) ?? throw MarketplaceException.NotFound("reportNotFound", "Report not found.");
             var users = await UsersAsync(new[] { r.ReporterId, r.TargetOwnerId });
             var priorRemovals = await _db.ModerationActions.CountAsync(a => a.UserId == r.TargetOwnerId);
             var openOnTarget = await _db.Reports.CountAsync(x => x.TargetType == r.TargetType && x.TargetId == r.TargetId && x.Status == ReportStatus.Open);
@@ -107,7 +107,7 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
         {
             var reports = await _db.Reports.AsNoTracking().Where(r => r.TargetType == targetType && r.TargetId == targetId)
                 .OrderByDescending(r => r.CreatedAt).ToListAsync();
-            if (reports.Count == 0) throw MarketplaceException.NotFound("No reports on this content.");
+            if (reports.Count == 0) throw MarketplaceException.NotFound("noReportsOnThisContent", "No reports on this content.");
             var users = await UsersAsync(reports.SelectMany(r => new[] { r.ReporterId, r.TargetOwnerId }));
             var thumbnails = await ThumbnailsAsync(reports);
             var ownerId = reports[0].TargetOwnerId;
@@ -134,37 +134,40 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
         {
             var open = await _db.Reports.Where(r => r.TargetType == targetType && r.TargetId == targetId && r.Status == ReportStatus.Open)
                 .Select(r => r.Id).ToListAsync();
-            if (open.Count == 0) throw MarketplaceException.Conflict("This content has no open reports.");
+            if (open.Count == 0) throw MarketplaceException.Conflict("thisContentHasNoOpenReports", "This content has no open reports.");
             return await ResolveManyAsync(adminId, new ResolveReportsInput(open, input.Decision, input.Rule, input.Statement, input.SuspensionHours));
         }
 
         public async Task<ResolveReportsResultDto> ResolveManyAsync(Guid adminId, ResolveReportsInput input)
         {
             var ids = (input.ReportIds ?? new List<Guid>()).Distinct().ToList();
-            if (ids.Count == 0) throw MarketplaceException.Validation("Select at least one report.");
-            if (ids.Count > MaxBulk) throw MarketplaceException.Validation($"At most {MaxBulk} reports can be resolved at once.");
-            if (!Enum.IsDefined(input.Decision)) throw MarketplaceException.Validation("Unknown decision.");
+            if (ids.Count == 0) throw MarketplaceException.Validation("selectAtLeastOneReport", "Select at least one report.");
+            if (ids.Count > MaxBulk) throw MarketplaceException.Validation("atMostReportsCanBeResolvedAt", $"At most {MaxBulk} reports can be resolved at once.", ErrorArgs.Of($"{MaxBulk}"));
+            if (!Enum.IsDefined(input.Decision)) throw MarketplaceException.Validation("unknownDecision", "Unknown decision.");
             // The one explanation field: statement of reasons for the author, outcome for reporters, suspension reason.
             var statement = Text.Required(input.Statement, 10, 1000, "Explanation");
 
             int? hours = input.SuspensionHours;
             if (input.Decision == ReportDecision.Suspended && hours == null)
-                throw MarketplaceException.Validation("Choose how long the suspension lasts.");
+                throw MarketplaceException.Validation("chooseHowLongTheSuspensionLasts", "Choose how long the suspension lasts.");
             if (input.Decision == ReportDecision.NoViolation && hours != null)
-                throw MarketplaceException.Validation("A user can't be suspended when the report shows no violation.");
+                throw MarketplaceException.Validation("aUserCanTBeSuspendedWhen", "A user can't be suspended when the report shows no violation.");
             if (hours != null) SuspensionService.ValidateHours(hours.Value);
 
             var reports = await _db.Reports.Where(r => ids.Contains(r.Id)).ToListAsync();
-            if (reports.Count != ids.Count) throw MarketplaceException.NotFound("Some of the selected reports don't exist.");
+            if (reports.Count != ids.Count) throw MarketplaceException.NotFound("someOfTheSelectedReportsDonT", "Some of the selected reports don't exist.");
             var closed = reports.Count(r => r.Status != ReportStatus.Open);
-            if (closed > 0) throw MarketplaceException.Conflict(closed == 1 ? "One of the selected reports is already resolved." : $"{closed} of the selected reports are already resolved.");
+            if (closed > 0)
+                throw closed == 1
+                    ? MarketplaceException.Conflict("oneSelectedReportAlreadyResolved", "One of the selected reports is already resolved.")
+                    : MarketplaceException.Conflict("selectedReportsAlreadyResolved", $"{closed} of the selected reports are already resolved.", ErrorArgs.Of($"{closed}"));
 
             var rulesByTarget = new Dictionary<(ReportTargetType, Guid), ReportRule>();
             foreach (var target in reports.GroupBy(r => (r.TargetType, r.TargetId)))
             {
                 var rule = input.Rule ?? target.OrderByDescending(r => r.CreatedAt).First().Rule;
                 if (input.Decision != ReportDecision.NoViolation && !ReportRules.Applies(rule, target.Key.TargetType))
-                    throw MarketplaceException.Validation($"The rule doesn't apply to a {EnumText.ToSnake(target.Key.TargetType)}.");
+                    throw MarketplaceException.Validation("theRuleDoesnTApplyToA", $"The rule doesn't apply to a {EnumText.ToSnake(target.Key.TargetType)}.", ErrorArgs.Of($"{EnumText.ToSnake(target.Key.TargetType)}"));
                 rulesByTarget[target.Key] = rule;
             }
 

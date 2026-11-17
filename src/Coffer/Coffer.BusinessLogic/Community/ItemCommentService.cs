@@ -106,9 +106,9 @@ namespace Coffer.BusinessLogic.Community
             if (input!.ParentId is Guid parentId)
             {
                 var parent = await _db.ItemComments.AsNoTracking().FirstOrDefaultAsync(c => c.Id == parentId)
-                    ?? throw MarketplaceException.NotFound("The comment you reply to doesn't exist.");
-                if (parent.ItemId != itemId) throw MarketplaceException.Validation("A reply must belong to the same item as its parent.");
-                if (parent.DeletedAt != null || parent.IsRemoved) throw MarketplaceException.Conflict("You can't reply to a deleted comment.");
+                    ?? throw MarketplaceException.NotFound("theCommentYouReplyToDoesnT", "The comment you reply to doesn't exist.");
+                if (parent.ItemId != itemId) throw MarketplaceException.Validation("aReplyMustBelongToTheSame", "A reply must belong to the same item as its parent.");
+                if (parent.DeletedAt != null || parent.IsRemoved) throw MarketplaceException.Conflict("youCanTReplyToADeleted", "You can't reply to a deleted comment.");
                 comment.ParentId = parent.Id;
                 comment.RootId = parent.RootId;
             }
@@ -127,7 +127,7 @@ namespace Coffer.BusinessLogic.Community
         {
             var ownerId = await OwnerOfAsync(itemId);
             var comment = await OwnCommentAsync(userId, itemId, commentId);
-            if (comment.IsRemoved) throw MarketplaceException.Conflict("A removed comment can't be edited.");
+            if (comment.IsRemoved) throw MarketplaceException.Conflict("aRemovedCommentCanTBeEdited", "A removed comment can't be edited.");
 
             var body = CleanBody(input?.Body);
             comment.Body = body;
@@ -181,13 +181,13 @@ namespace Coffer.BusinessLogic.Community
 
         private async Task<Guid> OwnerOfAsync(Guid itemId) =>
             await _db.Items.AsNoTracking().Where(i => i.Id == itemId).Select(i => (Guid?)i.Collection.UserId).FirstOrDefaultAsync()
-            ?? throw MarketplaceException.NotFound("Item not found.");
+            ?? throw MarketplaceException.NotFound("itemNotFound", "Item not found.");
 
         private async Task<ItemComment> OwnCommentAsync(Guid userId, Guid itemId, Guid commentId)
         {
             var comment = await _db.ItemComments.Include(c => c.Mentions).FirstOrDefaultAsync(c => c.Id == commentId && c.ItemId == itemId);
-            if (comment == null || comment.DeletedAt != null) throw MarketplaceException.NotFound("Comment not found.");
-            if (comment.AuthorId != userId) throw MarketplaceException.Forbidden("You can only change your own comments.");
+            if (comment == null || comment.DeletedAt != null) throw MarketplaceException.NotFound("commentNotFound", "Comment not found.");
+            if (comment.AuthorId != userId) throw MarketplaceException.Forbidden("youCanOnlyChangeYourOwnComments", "You can only change your own comments.");
             return comment;
         }
 
@@ -202,10 +202,10 @@ namespace Coffer.BusinessLogic.Community
         public static string CleanBody(string? body)
         {
             var text = (body ?? "").Replace("\r\n", "\n").Replace('\r', '\n').Trim();
-            if (text.Length == 0) throw MarketplaceException.Validation("Write something first.");
-            if (text.Length > MaxBody) throw MarketplaceException.Validation($"A comment can be at most {MaxBody} characters.");
+            if (text.Length == 0) throw MarketplaceException.Validation("writeSomethingFirst", "Write something first.");
+            if (text.Length > MaxBody) throw MarketplaceException.Validation("aCommentCanBeAtMostCharacters", $"A comment can be at most {MaxBody} characters.", ErrorArgs.Of($"{MaxBody}"));
             if (text.Any(ch => char.IsControl(ch) && ch != '\n' && ch != '\t'))
-                throw MarketplaceException.Validation("The comment contains characters that are not allowed.");
+                throw MarketplaceException.Validation("theCommentContainsCharactersThatAreNot", "The comment contains characters that are not allowed.");
             return text;
         }
 

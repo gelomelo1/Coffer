@@ -21,10 +21,7 @@ namespace Coffer.ASPNET.Extensions
                 MarketplaceError.Unauthorized => StatusCodes.Status401Unauthorized,
                 _ => StatusCodes.Status409Conflict,
             };
-            context.Result = new ObjectResult(ex.Code == null ? new { message = ex.Message } : (object)new { message = ex.Message, code = ex.Code })
-            {
-                StatusCode = status,
-            };
+            context.Result = new ObjectResult(ApiErrorExtensions.Payload(ex.Code, ex.Message, ex.Args)) { StatusCode = status };
             context.ExceptionHandled = true;
         }
     }

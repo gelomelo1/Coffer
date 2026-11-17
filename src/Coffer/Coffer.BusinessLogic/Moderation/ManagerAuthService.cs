@@ -98,33 +98,33 @@ namespace Coffer.BusinessLogic.Moderation
             catch (Exception e) when (e is GithubDeviceFlowException or HttpRequestException)
             {
                 _log.LogWarning("GitHub device flow could not start: {Error}", e.Message);
-                throw MarketplaceException.Unavailable("GitHub sign-in is not available right now. Try again later.");
+                throw MarketplaceException.Unavailable("githubSignInIsNotAvailableRight", "GitHub sign-in is not available right now. Try again later.");
             }
         }
 
         public async Task<ManagerDeviceTokenDto> CompleteAsync(ManagerDeviceTokenInput input)
         {
             RequireProvisioned();
-            if (string.IsNullOrWhiteSpace(input?.DeviceCode)) throw MarketplaceException.Validation("Missing device code.");
+            if (string.IsNullOrWhiteSpace(input?.DeviceCode)) throw MarketplaceException.Validation("missingDeviceCode", "Missing device code.");
 
             var poll = await _github.PollAsync(input.DeviceCode.Trim());
             switch (poll.Status)
             {
                 case GithubDevicePollStatus.Pending: return new ManagerDeviceTokenDto("pending");
                 case GithubDevicePollStatus.SlowDown: return new ManagerDeviceTokenDto("slow_down");
-                case GithubDevicePollStatus.Expired: throw MarketplaceException.Unauthorized("The sign-in code expired. Start again.", "expired");
-                case GithubDevicePollStatus.Denied: throw MarketplaceException.Unauthorized("Sign-in was cancelled on GitHub.", "denied");
+                case GithubDevicePollStatus.Expired: throw MarketplaceException.Unauthorized("expired", "The sign-in code expired. Start again.");
+                case GithubDevicePollStatus.Denied: throw MarketplaceException.Unauthorized("denied", "Sign-in was cancelled on GitHub.");
                 case GithubDevicePollStatus.Disabled: throw DeviceFlowDisabled();
                 case GithubDevicePollStatus.Failed:
                     _log.LogWarning("GitHub device flow failed: {Error}", poll.Error);
-                    throw MarketplaceException.Unauthorized("GitHub sign-in failed. Start again.", "failed");
+                    throw MarketplaceException.Unauthorized("failed", "GitHub sign-in failed. Start again.");
             }
 
             var identity = await _github.GetUserAsync(poll.AccessToken!);
             if (!_config.IsAdmin(identity.Id))
             {
                 _log.LogWarning("Coffer.Manager sign-in refused for GitHub account {GithubId} (not a configured administrator).", identity.Id);
-                throw new MarketplaceException(MarketplaceError.Forbidden, "This GitHub account is not a Coffer administrator.", "not_admin");
+                throw new MarketplaceException(MarketplaceError.Forbidden, "not_admin", "This GitHub account is not a Coffer administrator.");
             }
 
             var now = _clock.UtcNow;
@@ -146,18 +146,18 @@ namespace Coffer.BusinessLogic.Moderation
         public async Task<ManagerAdminDto> GetAsync(Guid adminId)
         {
             var admin = await _db.ManagerAdmins.AsNoTracking().FirstOrDefaultAsync(a => a.Id == adminId)
-                ?? throw MarketplaceException.NotFound("Administrator not found.");
+                ?? throw MarketplaceException.NotFound("administratorNotFound", "Administrator not found.");
             return ToDto(admin);
         }
 
         private void RequireProvisioned()
         {
             if (!_config.HasAdmins)
-                throw MarketplaceException.Unavailable(_config.Problem ?? "Administrator provisioning is required.", ManagerAdminConfig.ProvisioningRequiredCode);
+                throw MarketplaceException.Unavailable(ManagerAdminConfig.ProvisioningRequiredCode, _config.Problem ?? "Administrator provisioning is required.");
         }
 
         private static MarketplaceException DeviceFlowDisabled() => MarketplaceException.Unavailable(
-            "Device sign-in is disabled for the GitHub OAuth app. Enable \"Device Flow\" in the app's GitHub settings.", "device_flow_disabled");
+            "device_flow_disabled", "Device sign-in is disabled for the GitHub OAuth app. Enable \"Device Flow\" in the app's GitHub settings.");
 
         private static ManagerAdminDto ToDto(ManagerAdmin a) => new(a.Id, a.GithubId, a.Login);
     }

@@ -1,4 +1,5 @@
-﻿using Coffer.DataAccess.Repositories;
+﻿using Coffer.ASPNET.Extensions;
+using Coffer.DataAccess.Repositories;
 using Coffer.DataAccess.Extensions;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
@@ -34,7 +35,7 @@ namespace Coffer.ASPNET.Controllers
                                                                             [FromQuery] int? pageSize = null)
         {
             if (!DynamicQueryGuard.IsAllowed(filter) || !DynamicQueryGuard.IsAllowed(orderBy))
-                return BadRequest("Filtering or ordering on this field is not allowed");
+                return this.ApiError(StatusCodes.Status400BadRequest, "filteringOrOrderingOnThisFieldIs", "Filtering or ordering on this field is not allowed");
 
 
             if(!UserId.HasValue)
@@ -46,7 +47,7 @@ namespace Coffer.ASPNET.Controllers
             {
                 var user = await _usersRepository.GetUserById(UserId.Value);
                 if (user == null)
-                    return BadRequest("User not found");
+                    return this.ApiError(StatusCodes.Status400BadRequest, "userNotFound", "User not found");
                 var items = await _itemsRepository.GetFeedItemsAsync(user, filter, orderBy, page, pageSize);
                 List<Feed> feeds = new List<Feed>();
                 foreach (var item in items)
@@ -88,7 +89,7 @@ namespace Coffer.ASPNET.Controllers
             try
             {
                 if (string.IsNullOrWhiteSpace(searchText))
-                    return BadRequest("Search text cannot be empty.");
+                    return this.ApiError(StatusCodes.Status400BadRequest, "searchTextCannotBeEmpty", "Search text cannot be empty.");
 
                 var realSearchText = searchText
                     .Replace("#", string.Empty)
@@ -149,7 +150,7 @@ namespace Coffer.ASPNET.Controllers
             try
             {
                 if (string.IsNullOrWhiteSpace(searchText))
-                    return BadRequest("Search text cannot be empty.");
+                    return this.ApiError(StatusCodes.Status400BadRequest, "searchTextCannotBeEmpty", "Search text cannot be empty.");
 
                 var foundUsers = (await _usersRepository.SearchUsersSmartAsync(searchText))
                             .Select(u => (UserProvided)u)

@@ -40,10 +40,10 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
 
         public async Task<MyReportDto> CreateAsync(Guid userId, CreateReportInput input)
         {
-            if (!Enum.IsDefined(input.TargetType)) throw MarketplaceException.Validation("Unknown report target.");
+            if (!Enum.IsDefined(input.TargetType)) throw MarketplaceException.Validation("unknownReportTarget", "Unknown report target.");
             var reason = Text.Required(input.Reason, MinReason, MaxReason, "Reason");
             if (!ReportRules.Applies(input.Rule, input.TargetType))
-                throw MarketplaceException.Validation("This rule doesn't apply to this kind of content.");
+                throw MarketplaceException.Validation("thisRuleDoesnTApplyToThis", "This rule doesn't apply to this kind of content.");
 
             var report = new Report
             {
@@ -77,7 +77,7 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
 
             if (await _db.Reports.AnyAsync(r => r.ReporterId == userId && r.TargetType == report.TargetType
                     && r.TargetId == report.TargetId && r.Status == ReportStatus.Open))
-                throw MarketplaceException.Conflict("You already reported this. It is waiting for review.");
+                throw MarketplaceException.Conflict("youAlreadyReportedThisItIsWaiting", "You already reported this. It is waiting for review.");
 
             _db.Reports.Add(report);
             await _db.SaveChangesAsync();
@@ -114,9 +114,9 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
         private async Task FillListingAsync(Report report, Guid userId)
         {
             var listing = await _db.Listings.AsNoTracking().FirstOrDefaultAsync(l => l.Id == report.TargetId)
-                ?? throw MarketplaceException.NotFound("Listing not found.");
-            if (listing.OwnerId == userId) throw MarketplaceException.Forbidden("You can't report your own listing.");
-            if (listing.Status == ListingStatus.Removed) throw MarketplaceException.Conflict("This listing was already removed.");
+                ?? throw MarketplaceException.NotFound("listingNotFound", "Listing not found.");
+            if (listing.OwnerId == userId) throw MarketplaceException.Forbidden("youCanTReportYourOwnListing", "You can't report your own listing.");
+            if (listing.Status == ListingStatus.Removed) throw MarketplaceException.Conflict("thisListingWasAlreadyRemoved", "This listing was already removed.");
 
             report.TargetOwnerId = listing.OwnerId;
             report.ListingId = listing.Id;
@@ -131,10 +131,10 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
                 .FirstOrDefaultAsync(c => c.Id == message.ConversationId);
             // Non-participants can't see the message, so for them it doesn't exist.
             if (message == null || conversation == null || conversation.Participants.All(p => p.UserId != userId))
-                throw MarketplaceException.NotFound("Message not found.");
-            if (message.SenderId == null) throw MarketplaceException.Validation("System messages can't be reported.");
-            if (message.SenderId == userId) throw MarketplaceException.Forbidden("You can't report your own message.");
-            if (message.IsRemoved) throw MarketplaceException.Conflict("This message was already removed.");
+                throw MarketplaceException.NotFound("messageNotFound", "Message not found.");
+            if (message.SenderId == null) throw MarketplaceException.Validation("systemMessagesCanTBeReported", "System messages can't be reported.");
+            if (message.SenderId == userId) throw MarketplaceException.Forbidden("youCanTReportYourOwnMessage", "You can't report your own message.");
+            if (message.IsRemoved) throw MarketplaceException.Conflict("thisMessageWasAlreadyRemoved", "This message was already removed.");
 
             report.TargetOwnerId = message.SenderId.Value;
             report.ConversationId = conversation.Id;
@@ -146,10 +146,10 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
         private async Task FillReviewAsync(Report report, Guid userId)
         {
             var review = await _db.Reviews.FirstOrDefaultAsync(r => r.Id == report.TargetId && !r.IsRemoved)
-                ?? throw MarketplaceException.NotFound("Review not found.");
-            if (review.RevieweeId != userId) throw MarketplaceException.Forbidden("Only the reviewed person can report a review.");
-            if (review.PublishedAt == null) throw MarketplaceException.Conflict("This review is not published yet.");
-            if (review.ReviewerId == null) throw MarketplaceException.Conflict("The author of this review no longer exists.");
+                ?? throw MarketplaceException.NotFound("reviewNotFound", "Review not found.");
+            if (review.RevieweeId != userId) throw MarketplaceException.Forbidden("onlyTheReviewedPersonCanReportA", "Only the reviewed person can report a review.");
+            if (review.PublishedAt == null) throw MarketplaceException.Conflict("thisReviewIsNotPublishedYet", "This review is not published yet.");
+            if (review.ReviewerId == null) throw MarketplaceException.Conflict("theAuthorOfThisReviewNoLonger", "The author of this review no longer exists.");
             var deal = await _db.Deals.AsNoTracking().FirstAsync(d => d.Id == review.DealId);
 
             // While a report is open the review stops counting toward the average.
@@ -165,8 +165,8 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
         {
             var item = await _db.Items.AsNoTracking().Where(i => i.Id == report.TargetId)
                 .Select(i => new { i.Id, i.Description, OwnerId = i.Collection.UserId, CollectionName = i.Collection.Name })
-                .FirstOrDefaultAsync() ?? throw MarketplaceException.NotFound("Item not found.");
-            if (item.OwnerId == userId) throw MarketplaceException.Forbidden("You can't report your own item.");
+                .FirstOrDefaultAsync() ?? throw MarketplaceException.NotFound("itemNotFound", "Item not found.");
+            if (item.OwnerId == userId) throw MarketplaceException.Forbidden("youCanTReportYourOwnItem", "You can't report your own item.");
 
             report.TargetOwnerId = item.OwnerId;
             report.ItemId = item.Id;
@@ -177,10 +177,10 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
         private async Task FillCommentAsync(Report report, Guid userId)
         {
             var comment = await _db.ItemComments.AsNoTracking().FirstOrDefaultAsync(c => c.Id == report.TargetId)
-                ?? throw MarketplaceException.NotFound("Comment not found.");
-            if (comment.DeletedAt != null) throw MarketplaceException.NotFound("Comment not found.");
-            if (comment.AuthorId == userId) throw MarketplaceException.Forbidden("You can't report your own comment.");
-            if (comment.IsRemoved) throw MarketplaceException.Conflict("This comment was already removed.");
+                ?? throw MarketplaceException.NotFound("commentNotFound", "Comment not found.");
+            if (comment.DeletedAt != null) throw MarketplaceException.NotFound("commentNotFound", "Comment not found.");
+            if (comment.AuthorId == userId) throw MarketplaceException.Forbidden("youCanTReportYourOwnComment", "You can't report your own comment.");
+            if (comment.IsRemoved) throw MarketplaceException.Conflict("thisCommentWasAlreadyRemoved", "This comment was already removed.");
 
             report.TargetOwnerId = comment.AuthorId;
             report.ItemId = comment.ItemId;

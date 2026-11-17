@@ -90,10 +90,10 @@ namespace Coffer.BusinessLogic.Moderation
         {
             var reason = Text.Required(input.Reason, 10, 1000, "Reason");
             var hours = ValidateHours(input.DurationHours);
-            if (!await _db.Users.AnyAsync(u => u.Id == input.UserId)) throw MarketplaceException.NotFound("User not found.");
+            if (!await _db.Users.AnyAsync(u => u.Id == input.UserId)) throw MarketplaceException.NotFound("userNotFound2", "User not found.");
 
             var suspension = await AddAsync(adminId, input.UserId, TimeSpan.FromHours(hours), reason, null)
-                ?? throw MarketplaceException.Conflict("This user already has an active suspension that lasts at least as long.");
+                ?? throw MarketplaceException.Conflict("thisUserAlreadyHasAnActiveSuspension", "This user already has an active suspension that lasts at least as long.");
             await _db.SaveChangesAsync();
             Forget(input.UserId);
             return await GetDtoAsync(suspension.Id);
@@ -129,9 +129,9 @@ namespace Coffer.BusinessLogic.Moderation
         {
             var reason = Text.Required(input?.Reason, 3, 1000, "Revoke reason");
             var suspension = await _db.UserSuspensions.FirstOrDefaultAsync(s => s.Id == suspensionId)
-                ?? throw MarketplaceException.NotFound("Suspension not found.");
+                ?? throw MarketplaceException.NotFound("suspensionNotFound", "Suspension not found.");
             var now = _clock.UtcNow;
-            if (!suspension.IsActiveAt(now)) throw MarketplaceException.Conflict("Only an active suspension can be revoked.");
+            if (!suspension.IsActiveAt(now)) throw MarketplaceException.Conflict("onlyAnActiveSuspensionCanBeRevoked", "Only an active suspension can be revoked.");
 
             suspension.RevokedAt = now;
             suspension.RevokedByAdminId = adminId;
@@ -154,7 +154,7 @@ namespace Coffer.BusinessLogic.Moderation
                 "expired" => q.Where(s => s.RevokedAt == null && s.EndsAt <= now),
                 "revoked" => q.Where(s => s.RevokedAt != null),
                 "all" or "" => q,
-                _ => throw MarketplaceException.Validation("Unknown status (use active, expired, revoked or all)."),
+                _ => throw MarketplaceException.Validation("unknownStatusUseActiveExpiredRevokedOr", "Unknown status (use active, expired, revoked or all)."),
             };
             var total = await q.CountAsync();
             var rows = await q.OrderByDescending(s => s.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
@@ -192,7 +192,7 @@ namespace Coffer.BusinessLogic.Moderation
         public static int ValidateHours(int hours)
         {
             if (hours < MinHours || hours > MaxHours)
-                throw MarketplaceException.Validation($"Suspension length must be between {MinHours} hour and {MaxHours / 24} days.");
+                throw MarketplaceException.Validation("suspensionLengthMustBeBetweenHourAnd", $"Suspension length must be between {MinHours} hour and {MaxHours / 24} days.", ErrorArgs.Of($"{MinHours}", $"{MaxHours / 24}"));
             return hours;
         }
 

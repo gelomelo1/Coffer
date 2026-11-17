@@ -79,7 +79,7 @@ namespace Coffer.BusinessLogic.Marketplace.Cities
         {
             var q = (query ?? "").Trim();
             if (q.Length < 2 || q.Length > 60)
-                throw MarketplaceException.Validation("City search needs 2 to 60 characters.");
+                throw MarketplaceException.Validation("citySearchNeeds2To60Characters", "City search needs 2 to 60 characters.");
 
             var key = "city-search:" + q.ToLowerInvariant();
             if (_cache.TryGetValue(key, out IReadOnlyList<CityDto>? cached) && cached != null)

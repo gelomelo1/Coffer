@@ -9,6 +9,8 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "check:i18n": "node scripts/check-i18n.mjs src",
+    "gen:errors": "node scripts/gen-backend-messages.mjs",
+    "check:errors": "node scripts/gen-backend-messages.mjs --check",
     "test:unit": "node --test \"tests/**/*.test.*\""
   },
   "dependencies": {

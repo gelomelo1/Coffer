@@ -33,18 +33,18 @@ namespace Coffer.ASPNET.Controllers.Marketplace
         private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
         /// <summary>Caller id from the JWT; [Authorize] guarantees it exists for real tokens.</summary>
-        protected Guid Me => UserId ?? throw MarketplaceException.Forbidden("Not signed in.");
+        protected Guid Me => UserId ?? throw MarketplaceException.Forbidden("notSignedIn", "Not signed in.");
 
         protected static T ParsePayload<T>(string? payload)
         {
-            if (string.IsNullOrWhiteSpace(payload)) throw MarketplaceException.Validation("Missing payload.");
+            if (string.IsNullOrWhiteSpace(payload)) throw MarketplaceException.Validation("missingPayload", "Missing payload.");
             try
             {
-                return JsonSerializer.Deserialize<T>(payload, Json) ?? throw MarketplaceException.Validation("Missing payload.");
+                return JsonSerializer.Deserialize<T>(payload, Json) ?? throw MarketplaceException.Validation("missingPayload", "Missing payload.");
             }
             catch (JsonException)
             {
-                throw MarketplaceException.Validation("Malformed payload.");
+                throw MarketplaceException.Validation("malformedPayload", "Malformed payload.");
             }
         }
 
@@ -69,7 +69,7 @@ namespace Coffer.ASPNET.Controllers.Marketplace
         {
             if (string.IsNullOrWhiteSpace(text)) return null;
             try { return EnumText.FromSnake<TEnum>(text.Trim().ToLowerInvariant()); }
-            catch (ArgumentException) { throw MarketplaceException.Validation($"Unknown {field}."); }
+            catch (ArgumentException) { throw MarketplaceException.Validation("unknown", $"Unknown {field}.", ErrorArgs.Of($"{field}")); }
         }
     }
 }

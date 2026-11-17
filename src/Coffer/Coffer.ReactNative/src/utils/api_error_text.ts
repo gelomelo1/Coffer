@@ -1,14 +1,17 @@
 import i18n from "../i18n";
-import { BACKEND_MESSAGES } from "../i18n/backend_messages";
+import errorsEn from "../i18n/locales/en/errors.json";
 import { mapApiError } from "./api_error";
+
+/** Backend error codes the app has a text for (English is the reference locale). */
+const KNOWN_CODES: ReadonlySet<string> = new Set(Object.keys(errorsEn.backend ?? {}));
 
 /** Translated, user-facing text for a failed API call (see mapApiError). */
 export function apiErrorText(error: unknown, fallbackKey = "errors:unknown"): string {
-  const { key, params } = mapApiError(error, BACKEND_MESSAGES);
+  const { key, params } = mapApiError(error, KNOWN_CODES);
   return i18n.t(key === "errors:unknown" ? fallbackKey : key, params ?? {});
 }
 
 /** The i18n key + params for a failed API call, for callers that render it themselves. */
 export function apiErrorKey(error: unknown) {
-  return mapApiError(error, BACKEND_MESSAGES);
+  return mapApiError(error, KNOWN_CODES);
 }

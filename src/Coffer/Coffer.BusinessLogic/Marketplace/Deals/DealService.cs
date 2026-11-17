@@ -71,26 +71,26 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
         {
             var conversation = await _db.Conversations.Include(c => c.Participants)
                 .FirstOrDefaultAsync(c => c.Id == conversationId && c.Participants.Any(p => p.UserId == userId))
-                ?? throw MarketplaceException.NotFound("Conversation not found.");
+                ?? throw MarketplaceException.NotFound("conversationNotFound", "Conversation not found.");
             if (conversation.SubjectType != ListingConversationPolicy.Type)
-                throw MarketplaceException.Validation("Deals can only be made about listings.");
+                throw MarketplaceException.Validation("dealsCanOnlyBeMadeAboutListings", "Deals can only be made about listings.");
             var listing = await _db.Listings.FirstOrDefaultAsync(l => l.Id == conversation.SubjectId)
-                ?? throw MarketplaceException.NotFound("Listing not found.");
+                ?? throw MarketplaceException.NotFound("listingNotFound", "Listing not found.");
 
             var owner = conversation.Participants.Single(p => p.Role == ParticipantRole.Owner).UserId;
             var inquirer = conversation.Participants.Single(p => p.Role == ParticipantRole.Inquirer).UserId;
             var (sellerId, buyerId) = listing.Kind == ListingKind.Wanted ? (inquirer, owner) : (owner, inquirer);
 
-            if (userId != sellerId) throw MarketplaceException.Forbidden("Only the seller can propose the deal.");
+            if (userId != sellerId) throw MarketplaceException.Forbidden("onlyTheSellerCanProposeTheDeal", "Only the seller can propose the deal.");
             await MarketTerms.EnsureAcceptedAsync(_db, userId);
-            if (listing.Status != ListingStatus.Active) throw MarketplaceException.Conflict("This listing is not available for a new deal.");
-            if (!Enum.IsDefined(method)) throw MarketplaceException.Validation("Unknown delivery method.");
+            if (listing.Status != ListingStatus.Active) throw MarketplaceException.Conflict("thisListingIsNotAvailableForA", "This listing is not available for a new deal.");
+            if (!Enum.IsDefined(method)) throw MarketplaceException.Validation("unknownDeliveryMethod", "Unknown delivery method.");
             if (method == DeliveryMethod.LocalPickup && !listing.AllowsLocalPickup)
-                throw MarketplaceException.Validation("This listing does not offer personal pickup.");
+                throw MarketplaceException.Validation("thisListingDoesNotOfferPersonalPickup", "This listing does not offer personal pickup.");
             if (method == DeliveryMethod.Shipping && !listing.AllowsShipping)
-                throw MarketplaceException.Validation("This listing does not offer shipping.");
+                throw MarketplaceException.Validation("thisListingDoesNotOfferShipping", "This listing does not offer shipping.");
             if (await _db.Deals.AnyAsync(d => d.ListingId == listing.Id && d.Status != DealStatus.Completed && d.Status != DealStatus.Cancelled && d.Status != DealStatus.Disputed))
-                throw MarketplaceException.Conflict("There is already a deal in progress for this listing.");
+                throw MarketplaceException.Conflict("thereIsAlreadyADealInProgress", "There is already a deal in progress for this listing.");
 
             var now = _clock.UtcNow;
             var deal = new Deal
@@ -106,7 +106,7 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
                 UpdatedAt = now,
             };
             _db.Deals.Add(deal);
-            await SaveOrConflictAsync("There is already a deal in progress for this listing.");
+            await SaveOrConflictAsync("dealAlreadyInProgress", "There is already a deal in progress for this listing.");
 
             await _conversations.PostSystemAsync(conversation.Id,
                 $"🤝 Deal proposed: {MethodText(method)}{PriceText(deal.AgreedPriceCents)}. Waiting for the buyer to accept.");
@@ -119,7 +119,7 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
             RequireBuyer(deal, userId);
             RequireStatus(deal, DealStatus.Proposed);
             await MarketTerms.EnsureAcceptedAsync(_db, userId);
-            if (deal.Listing.Status != ListingStatus.Active) throw MarketplaceException.Conflict("This listing is no longer available.");
+            if (deal.Listing.Status != ListingStatus.Active) throw MarketplaceException.Conflict("thisListingIsNoLongerAvailable", "This listing is no longer available.");
 
             if (deal.Method == DeliveryMethod.LocalPickup)
             {
@@ -168,27 +168,28 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
             RequireStatus(deal, DealStatus.AwaitingHandoff);
             var now = _clock.UtcNow;
             if (deal.PinLockedUntil > now)
-                throw MarketplaceException.Conflict("Too many wrong PINs. Try again in a few minutes.");
+                throw MarketplaceException.Conflict("tooManyWrongPinsTryAgainIn", "Too many wrong PINs. Try again in a few minutes.");
 
             var entered = NormalizePin(pin, deal.Id);
             if (!PinEquals(entered, deal.HandoffPin))
             {
                 deal.PinFailedAttempts++;
-                string message;
+                MarketplaceException error;
                 if (deal.PinFailedAttempts >= MaxPinAttempts)
                 {
                     deal.HandoffPin = NewPin();
                     deal.PinFailedAttempts = 0;
                     deal.PinLockedUntil = now.Add(PinLock);
-                    message = "Wrong PIN. Too many attempts: the buyer got a new PIN, try again in 15 minutes.";
+                    error = MarketplaceException.Validation("wrongPinLocked", "Wrong PIN. Too many attempts: the buyer got a new PIN, try again in 15 minutes.");
                 }
                 else
                 {
-                    message = $"Wrong PIN. {MaxPinAttempts - deal.PinFailedAttempts} attempt(s) left.";
+                    var left = MaxPinAttempts - deal.PinFailedAttempts;
+                    error = MarketplaceException.Validation("wrongPinAttemptsLeft", $"Wrong PIN. {left} attempt(s) left.", ErrorArgs.Of($"{left}"));
                 }
                 Touch(deal);
                 await _db.SaveChangesAsync();
-                throw MarketplaceException.Validation(message);
+                throw error;
             }
 
             await CompleteAsync(deal, CompletionReason.HandoffVerified);
@@ -203,10 +204,10 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
             RequireSeller(deal, userId);
             RequireStatus(deal, DealStatus.AwaitingShipment);
             var code = (carrier ?? "").Trim().ToLowerInvariant();
-            if (!Carriers.IsKnown(code)) throw MarketplaceException.Validation("Choose a carrier from the list.");
+            if (!Carriers.IsKnown(code)) throw MarketplaceException.Validation("chooseACarrierFromTheList", "Choose a carrier from the list.");
             var tracking = Text.Required(trackingNumber, 4, 40, "Tracking number");
             if (!tracking.All(ch => char.IsLetterOrDigit(ch) || ch == '-' || ch == ' '))
-                throw MarketplaceException.Validation("Tracking number may only contain letters, digits, spaces and dashes.");
+                throw MarketplaceException.Validation("trackingNumberMayOnlyContainLettersDigits", "Tracking number may only contain letters, digits, spaces and dashes.");
 
             if (photo != null) deal.ShipmentPhoto = await SavePhotoAsync(photo);
             deal.Carrier = code;
@@ -358,30 +359,30 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
         /// <summary>Loads a deal the user is a party of; anyone else gets NotFound (no existence leak).</summary>
         private async Task<Deal> LoadAsync(Guid userId, Guid dealId) =>
             await Query().FirstOrDefaultAsync(d => d.Id == dealId && (d.SellerId == userId || d.BuyerId == userId))
-            ?? throw MarketplaceException.NotFound("Deal not found.");
+            ?? throw MarketplaceException.NotFound("dealNotFound", "Deal not found.");
 
         private static void RequireBuyer(Deal deal, Guid userId)
         {
-            if (deal.BuyerId != userId) throw MarketplaceException.Forbidden("Only the buyer can do this.");
+            if (deal.BuyerId != userId) throw MarketplaceException.Forbidden("onlyTheBuyerCanDoThis", "Only the buyer can do this.");
         }
 
         private static void RequireSeller(Deal deal, Guid userId)
         {
-            if (deal.SellerId != userId) throw MarketplaceException.Forbidden("Only the seller can do this.");
+            if (deal.SellerId != userId) throw MarketplaceException.Forbidden("onlyTheSellerCanDoThis", "Only the seller can do this.");
         }
 
         private static void RequireStatus(Deal deal, params DealStatus[] allowed)
         {
             if (!allowed.Contains(deal.Status))
-                throw MarketplaceException.Conflict($"Not possible while the deal is {EnumText.ToSnake(deal.Status).Replace('_', ' ')}.");
+                throw MarketplaceException.Conflict("notPossibleWhileTheDealIs", $"Not possible while the deal is {EnumText.ToSnake(deal.Status).Replace('_', ' ')}.", ErrorArgs.Of($"{EnumText.ToSnake(deal.Status).Replace('_', ' ')}"));
         }
 
         private void Touch(Deal deal) => deal.UpdatedAt = _clock.UtcNow;
 
-        private async Task SaveOrConflictAsync(string message)
+        private async Task SaveOrConflictAsync(string code, string message)
         {
             try { await _db.SaveChangesAsync(); }
-            catch (DbUpdateException) { throw MarketplaceException.Conflict(message); }
+            catch (DbUpdateException) { throw MarketplaceException.Conflict(code, message); }
         }
 
         private static string NewPin() => RandomNumberGenerator.GetInt32(0, 10000).ToString("D4");
@@ -394,11 +395,11 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
             {
                 var parts = value.Substring(QrPrefix.Length).Split(':');
                 if (parts.Length != 2 || !Guid.TryParse(parts[0], out var qrDeal) || qrDeal != dealId)
-                    throw MarketplaceException.Validation("This QR code belongs to a different deal.");
+                    throw MarketplaceException.Validation("thisQrCodeBelongsToADifferent", "This QR code belongs to a different deal.");
                 value = parts[1];
             }
             if (value.Length != 4 || !value.All(char.IsAsciiDigit))
-                throw MarketplaceException.Validation("The PIN has 4 digits.");
+                throw MarketplaceException.Validation("thePinHas4Digits", "The PIN has 4 digits.");
             return value;
         }
 

@@ -1,4 +1,6 @@
-﻿using Coffer.ASPNET.Controllers.Generic;
+﻿using Coffer.BusinessLogic.Marketplace.Common;
+using Coffer.ASPNET.Extensions;
+using Coffer.ASPNET.Controllers.Generic;
 using Coffer.BusinessLogic.Services.Interfaces;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
@@ -36,11 +38,11 @@ namespace Coffer.ASPNET.Controllers
             {
                 var user = await _usersRepository.GetUserById(reactionRequired.UserId);
                 if (user == null)
-                    return BadRequest("User does not exist.");
+                    return this.ApiError(StatusCodes.Status400BadRequest, "userDoesNotExist", "User does not exist.");
 
                 var item = await _itemsRepository.GetItemByIdAsync(reactionRequired.ItemId);
                 if (item == null)
-                    return BadRequest("Item does not exist.");
+                    return this.ApiError(StatusCodes.Status400BadRequest, "itemDoesNotExist", "Item does not exist.");
 
                 var existingReaction = await _reactionsRepository.FindReactionByUserItemIdAsync(
                     reactionRequired.UserId,
@@ -83,7 +85,7 @@ namespace Coffer.ASPNET.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"An error occurred while processing the request: {ex.Message}");
+                return this.ApiError(500, "anErrorOccurredWhileProcessingTheRequest2", $"An error occurred while processing the request: {ex.Message}", ErrorArgs.Of($"{ex.Message}"));
             }
         }
     }

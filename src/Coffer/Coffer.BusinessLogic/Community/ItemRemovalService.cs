@@ -54,12 +54,12 @@ namespace Coffer.BusinessLogic.Community
             catch (HttpRequestException e)
             {
                 _log.LogWarning("Could not reach the AI service to delete the embedding of item {ItemId}: {Error}", itemId, e.Message);
-                throw MarketplaceException.Unavailable("The AI service is not reachable, so the item could not be removed. Try again later.");
+                throw MarketplaceException.Unavailable("theAiServiceIsNotReachableSo", "The AI service is not reachable, so the item could not be removed. Try again later.");
             }
             // The Python service answers 200 with {"status":"error"} on failure.
             var body = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode || body.Contains("\"error\"", StringComparison.Ordinal))
-                throw MarketplaceException.Unavailable("The AI service refused to delete the item's embedding. Try again later.");
+                throw MarketplaceException.Unavailable("theAiServiceRefusedToDeleteThe", "The AI service refused to delete the item's embedding. Try again later.");
 
             return item.Image;
         }

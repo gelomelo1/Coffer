@@ -62,12 +62,12 @@ namespace Coffer.BusinessLogic.DevSeed
         public async Task<DevLoginResultDto> LoginAsync(DevLoginInput input)
         {
             if (input == null || !SeedUserIds().Contains(input.UserId))
-                throw MarketplaceException.Forbidden("Only seeded development users can use the dev login.");
+                throw MarketplaceException.Forbidden("onlySeededDevelopmentUsersCanUseThe", "Only seeded development users can use the dev login.");
             var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == input.UserId)
-                ?? throw MarketplaceException.NotFound("This seed user isn't in the database — run the dev seed first.");
+                ?? throw MarketplaceException.NotFound("thisSeedUserIsnTInThe", "This seed user isn't in the database — run the dev seed first.");
             // Same rule as the real sign-in: a suspended account gets no token.
             if (await _suspensions.GetActiveAsync(user.Id) is { } active)
-                throw new MarketplaceException(MarketplaceError.Forbidden, $"Your account is suspended until {active.EndsAt:yyyy-MM-dd HH:mm} UTC.", SuspensionService.SuspendedCode);
+                throw new MarketplaceException(MarketplaceError.Forbidden, SuspensionService.SuspendedCode, $"Your account is suspended until {active.EndsAt:yyyy-MM-dd HH:mm} UTC.", ErrorArgs.Of($"{active.EndsAt:yyyy-MM-dd HH:mm}"));
             return new DevLoginResultDto(_jwt.GenerateToken(user));
         }
     }

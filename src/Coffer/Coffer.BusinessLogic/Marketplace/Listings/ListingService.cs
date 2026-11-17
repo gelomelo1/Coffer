@@ -96,12 +96,12 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
         {
             newImages ??= Array.Empty<IFormFile>();
             var listing = await LoadAsync(id);
-            if (listing.OwnerId != userId) throw MarketplaceException.Forbidden("Only the owner can edit this listing.");
-            if (listing.Status == ListingStatus.Removed) throw MarketplaceException.Conflict("This listing was removed by moderation.");
-            if (listing.Status != ListingStatus.Active) throw MarketplaceException.Conflict("Only active listings can be edited.");
-            if (await HasOpenDealAsync(id)) throw MarketplaceException.Conflict("This listing has a deal in progress and can't be edited.");
+            if (listing.OwnerId != userId) throw MarketplaceException.Forbidden("onlyTheOwnerCanEditThisListing", "Only the owner can edit this listing.");
+            if (listing.Status == ListingStatus.Removed) throw MarketplaceException.Conflict("thisListingWasRemovedByModeration", "This listing was removed by moderation.");
+            if (listing.Status != ListingStatus.Active) throw MarketplaceException.Conflict("onlyActiveListingsCanBeEdited", "Only active listings can be edited.");
+            if (await HasOpenDealAsync(id)) throw MarketplaceException.Conflict("thisListingHasADealInProgress", "This listing has a deal in progress and can't be edited.");
             if (input.Kind != listing.Kind || input.CollectionTypeId != listing.CollectionTypeId)
-                throw MarketplaceException.Validation("Listing kind and item type can't be changed after creation.");
+                throw MarketplaceException.Validation("listingKindAndItemTypeCanT", "Listing kind and item type can't be changed after creation.");
 
             var keepIds = (input.KeepImageIds ?? new List<Guid>()).ToHashSet();
             var removed = listing.Images.Where(i => !keepIds.Contains(i.Id)).ToList();
@@ -136,11 +136,11 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
         {
             var listing = await LoadAsync(id);
             if (listing.OwnerId != userId && !await IsModeratorAsync(userId))
-                throw MarketplaceException.Forbidden("Only the owner can archive this listing.");
+                throw MarketplaceException.Forbidden("onlyTheOwnerCanArchiveThisListing", "Only the owner can archive this listing.");
             if (listing.Status != ListingStatus.Active)
-                throw MarketplaceException.Conflict("Only active listings can be archived.");
+                throw MarketplaceException.Conflict("onlyActiveListingsCanBeArchived", "Only active listings can be archived.");
             if (await HasOpenDealAsync(id))
-                throw MarketplaceException.Conflict("Cancel the deal in progress before archiving.");
+                throw MarketplaceException.Conflict("cancelTheDealInProgressBeforeArchiving", "Cancel the deal in progress before archiving.");
 
             listing.Status = ListingStatus.Archived;
             listing.UpdatedAt = _clock.UtcNow;
@@ -151,8 +151,8 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
         public async Task<ListingDetailDto> ReactivateAsync(Guid userId, Guid id)
         {
             var listing = await LoadAsync(id);
-            if (listing.OwnerId != userId) throw MarketplaceException.Forbidden("Only the owner can reactivate this listing.");
-            if (listing.Status != ListingStatus.Archived) throw MarketplaceException.Conflict("Only archived listings can be reactivated.");
+            if (listing.OwnerId != userId) throw MarketplaceException.Forbidden("onlyTheOwnerCanReactivateThisListing", "Only the owner can reactivate this listing.");
+            if (listing.Status != ListingStatus.Archived) throw MarketplaceException.Conflict("onlyArchivedListingsCanBeReactivated", "Only archived listings can be reactivated.");
 
             listing.Status = ListingStatus.Active;
             listing.UpdatedAt = _clock.UtcNow;
@@ -167,11 +167,11 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
             var l = await _db.Listings.AsNoTracking()
                 .Include(x => x.Owner).Include(x => x.City).Include(x => x.CollectionType)
                 .Include(x => x.Lines).Include(x => x.Images)
-                .FirstOrDefaultAsync(x => x.Id == id) ?? throw MarketplaceException.NotFound("Listing not found.");
+                .FirstOrDefaultAsync(x => x.Id == id) ?? throw MarketplaceException.NotFound("listingNotFound", "Listing not found.");
 
             var isMine = l.OwnerId == viewerId;
             if (l.Status is ListingStatus.Archived or ListingStatus.Removed && !isMine && !await IsModeratorAsync(viewerId))
-                throw MarketplaceException.NotFound("Listing not found.");
+                throw MarketplaceException.NotFound("listingNotFound", "Listing not found.");
 
             Guid? myConversation = isMine ? null : await _db.Conversations
                 .Where(c => c.SubjectType == "listing" && c.SubjectId == id && c.Participants.Any(p => p.UserId == viewerId))
@@ -194,16 +194,16 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
         {
             var sort = (query.Sort ?? "newest").ToLowerInvariant();
             if (sort is not ("nearest" or "price_asc" or "price_desc" or "newest"))
-                throw MarketplaceException.Validation("Unknown sort order.");
-            if (query.RadiusKm is <= 0 or > 20000) throw MarketplaceException.Validation("Radius must be between 1 and 20000 km.");
+                throw MarketplaceException.Validation("unknownSortOrder", "Unknown sort order.");
+            if (query.RadiusKm is <= 0 or > 20000) throw MarketplaceException.Validation("radiusMustBeBetween1And20000", "Radius must be between 1 and 20000 km.");
             var page = Math.Max(1, query.Page);
             var pageSize = Math.Clamp(query.PageSize, 1, 50);
 
             City? origin = null;
             if (query.CityId.HasValue)
-                origin = await _db.Cities.FindAsync(query.CityId.Value) ?? throw MarketplaceException.Validation("Unknown city.");
+                origin = await _db.Cities.FindAsync(query.CityId.Value) ?? throw MarketplaceException.Validation("unknownCity", "Unknown city.");
             if (origin == null && (sort == "nearest" || query.RadiusKm.HasValue))
-                throw MarketplaceException.Validation("Choose a city to sort or filter by distance.");
+                throw MarketplaceException.Validation("chooseACityToSortOrFilter", "Choose a city to sort or filter by distance.");
 
             var q = BaseSummaryQuery().Where(l => l.Status == ListingStatus.Active && l.OwnerId != viewerId);
             if (query.Kind.HasValue) q = q.Where(l => l.Kind == query.Kind.Value);
@@ -248,7 +248,7 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
             if (key.Length > 0 && key != "all")
             {
                 if (!MyListingFilters.Statuses.TryGetValue(key, out var statuses))
-                    throw MarketplaceException.Validation("Unknown filter (use active, sold, archived or all).");
+                    throw MarketplaceException.Validation("unknownFilterUseActiveSoldArchivedOr", "Unknown filter (use active, sold, archived or all).");
                 q = q.Where(l => statuses.Contains(l.Status));
             }
             var mine = await q.OrderByDescending(l => l.UpdatedAt).ToListAsync();
@@ -283,14 +283,14 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
                 .Distinct()
                 .ToList();
             if (list.Any(c => c.Length != 2 || !c.All(char.IsAsciiLetterUpper)))
-                throw MarketplaceException.Validation("Seller country must be a two-letter country code, e.g. HU or GB.");
-            if (list.Count > 30) throw MarketplaceException.Validation("Choose at most 30 countries.");
+                throw MarketplaceException.Validation("sellerCountryMustBeATwoLetter", "Seller country must be a two-letter country code, e.g. HU or GB.");
+            if (list.Count > 30) throw MarketplaceException.Validation("chooseAtMost30Countries", "Choose at most 30 countries.");
             return list;
         }
 
         private async Task<Listing> LoadAsync(Guid id) =>
             await _db.Listings.Include(l => l.Lines).Include(l => l.Images).FirstOrDefaultAsync(l => l.Id == id)
-            ?? throw MarketplaceException.NotFound("Listing not found.");
+            ?? throw MarketplaceException.NotFound("listingNotFound", "Listing not found.");
 
         private Task<bool> HasOpenDealAsync(Guid listingId) =>
             _db.Deals.AnyAsync(d => d.ListingId == listingId && d.Status != DealStatus.Completed && d.Status != DealStatus.Cancelled && d.Status != DealStatus.Disputed);
@@ -304,14 +304,14 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
         /// <summary>Validates the input against the kind's rules and copies it onto the listing.</summary>
         private async Task ApplyInputAsync(Listing listing, ListingInput input, int imageCount)
         {
-            if (!Enum.IsDefined(input.Kind)) throw MarketplaceException.Validation("Unknown listing kind.");
+            if (!Enum.IsDefined(input.Kind)) throw MarketplaceException.Validation("unknownListingKind", "Unknown listing kind.");
             listing.Title = Text.Required(input.Title, 1, 80, "Title");
             listing.Description = Text.Optional(input.Description, 2000, "Description");
 
             switch (input.Kind)
             {
                 case ListingKind.Sell:
-                    if (input.PriceCents is null or <= 0 or > 100_000_000) throw MarketplaceException.Validation("A selling price (in EUR) is required.");
+                    if (input.PriceCents is null or <= 0 or > 100_000_000) throw MarketplaceException.Validation("aSellingPriceInEurIsRequired", "A selling price (in EUR) is required.");
                     listing.PriceCents = input.PriceCents;
                     listing.ExchangeFor = null;
                     break;
@@ -320,46 +320,46 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
                     listing.PriceCents = null;
                     break;
                 case ListingKind.Wanted:
-                    if (input.PriceCents is <= 0 or > 100_000_000) throw MarketplaceException.Validation("Budget must be a positive amount.");
+                    if (input.PriceCents is <= 0 or > 100_000_000) throw MarketplaceException.Validation("budgetMustBeAPositiveAmount", "Budget must be a positive amount.");
                     listing.PriceCents = input.PriceCents;
                     listing.ExchangeFor = null;
                     break;
             }
 
             if (input.Kind != ListingKind.Wanted && input.Condition == null)
-                throw MarketplaceException.Validation("Condition is required.");
+                throw MarketplaceException.Validation("conditionIsRequired", "Condition is required.");
             if (input.Condition.HasValue && !Enum.IsDefined(input.Condition.Value))
-                throw MarketplaceException.Validation("Unknown condition.");
+                throw MarketplaceException.Validation("unknownCondition", "Unknown condition.");
             listing.Condition = input.Condition;
 
             if (!input.AllowsLocalPickup && !input.AllowsShipping)
-                throw MarketplaceException.Validation("Choose personal pickup, shipping, or both.");
+                throw MarketplaceException.Validation("choosePersonalPickupShippingOrBoth", "Choose personal pickup, shipping, or both.");
             listing.AllowsLocalPickup = input.AllowsLocalPickup;
             listing.AllowsShipping = input.AllowsShipping;
 
             if (input.Kind != ListingKind.Wanted && !input.PrivateSellerDeclared)
-                throw MarketplaceException.Validation("Confirm that you sell as a private person. Businesses can't sell on Coffer.");
+                throw MarketplaceException.Validation("confirmThatYouSellAsAPrivate", "Confirm that you sell as a private person. Businesses can't sell on Coffer.");
             listing.PrivateSellerDeclared = input.PrivateSellerDeclared;
 
             var lines = input.Lines ?? new List<ListingLineInput>();
             if (lines.Count is < 1 or > MaxLines)
-                throw MarketplaceException.Validation($"List 1 to {MaxLines} items that are included.");
+                throw MarketplaceException.Validation("list1ToItemsThatAreIncluded", $"List 1 to {MaxLines} items that are included.", ErrorArgs.Of($"{MaxLines}"));
             var newLines = lines.Select((line, i) =>
             {
-                if (line.Quantity is < 1 or > 9999) throw MarketplaceException.Validation("Quantity must be between 1 and 9999.");
+                if (line.Quantity is < 1 or > 9999) throw MarketplaceException.Validation("quantityMustBeBetween1And9999", "Quantity must be between 1 and 9999.");
                 return new ListingLine { Name = Text.Required(line.Name, 1, 80, "Item name"), Quantity = line.Quantity, Position = i };
             }).ToList();
 
             var minImages = input.Kind == ListingKind.Wanted ? 0 : 1;
             if (imageCount < minImages || imageCount > MaxImages)
-                throw MarketplaceException.Validation(minImages == 1
-                    ? $"Add 1 to {MaxImages} images."
-                    : $"Add at most {MaxImages} images.");
+                throw minImages == 1
+                    ? MarketplaceException.Validation("addImagesBetween", $"Add 1 to {MaxImages} images.", ErrorArgs.Of($"{MaxImages}"))
+                    : MarketplaceException.Validation("addImagesAtMost", $"Add at most {MaxImages} images.", ErrorArgs.Of($"{MaxImages}"));
 
             if (!await _db.CollectionTypes.AnyAsync(t => t.Id == input.CollectionTypeId))
-                throw MarketplaceException.Validation("Unknown item type.");
+                throw MarketplaceException.Validation("unknownItemType", "Unknown item type.");
             if (!await _db.Cities.AnyAsync(c => c.Id == input.CityId))
-                throw MarketplaceException.Validation("Unknown city.");
+                throw MarketplaceException.Validation("unknownCity", "Unknown city.");
             listing.CityId = input.CityId;
 
             _db.ListingLines.RemoveRange(listing.Lines);

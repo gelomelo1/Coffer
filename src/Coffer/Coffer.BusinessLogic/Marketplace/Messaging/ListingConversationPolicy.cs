@@ -34,7 +34,7 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
 
         private async Task<Listing> LoadAsync(Guid id) =>
             await _db.Listings.AsNoTracking().Include(l => l.Images).FirstOrDefaultAsync(l => l.Id == id)
-            ?? throw MarketplaceException.NotFound("Listing not found.");
+            ?? throw MarketplaceException.NotFound("listingNotFound", "Listing not found.");
 
         public async Task<Guid> ResolveOwnerAsync(Guid subjectId) => (await LoadAsync(subjectId)).OwnerId;
 
@@ -42,9 +42,9 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
         {
             await MarketTerms.EnsureAcceptedAsync(_db, userId);
             var listing = await LoadAsync(subjectId);
-            if (listing.OwnerId == userId) throw MarketplaceException.Forbidden("You can't message yourself about your own listing.");
+            if (listing.OwnerId == userId) throw MarketplaceException.Forbidden("youCanTMessageYourselfAboutYour", "You can't message yourself about your own listing.");
             if (listing.Status is ListingStatus.Archived or ListingStatus.Sold or ListingStatus.Removed)
-                throw MarketplaceException.Conflict("This listing is no longer available.");
+                throw MarketplaceException.Conflict("thisListingIsNoLongerAvailable", "This listing is no longer available.");
         }
 
         public async Task EnsureKindAllowedAsync(Guid subjectId, MessageKind kind)
@@ -55,16 +55,16 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
             {
                 case MessageKind.PriceOffer:
                     if (listing.Kind == ListingKind.Exchange)
-                        throw MarketplaceException.Validation("Exchange listings don't take price offers — describe your offer in a message.");
+                        throw MarketplaceException.Validation("exchangeListingsDonTTakePriceOffers", "Exchange listings don't take price offers — describe your offer in a message.");
                     if (listing.Status != ListingStatus.Active)
-                        throw MarketplaceException.Conflict("Price offers are only possible while the listing is active.");
+                        throw MarketplaceException.Conflict("priceOffersAreOnlyPossibleWhileThe", "Price offers are only possible while the listing is active.");
                     break;
                 case MessageKind.MeetupProposal:
                     if (listing.Status is ListingStatus.Archived or ListingStatus.Sold or ListingStatus.Removed)
-                        throw MarketplaceException.Conflict("This listing is no longer available.");
+                        throw MarketplaceException.Conflict("thisListingIsNoLongerAvailable", "This listing is no longer available.");
                     break;
                 default:
-                    throw MarketplaceException.Validation("Unsupported message kind.");
+                    throw MarketplaceException.Validation("unsupportedMessageKind", "Unsupported message kind.");
             }
         }
 

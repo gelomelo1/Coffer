@@ -1,19 +1,30 @@
 #!/usr/bin/env node
 /**
- * Collects the user-facing error messages the ASP.NET backend sends (business-rule exceptions and BadRequest /
- * Conflict / NotFound / … results) and generates:
- *   - src/i18n/backend_messages.ts — message (or pattern) → errors:backend.<key>
- *   - the "backend" section of src/i18n/locales/en/errors.json — the English texts (other keys are kept)
- * Interpolated C# strings ($"…{expr}…") become patterns with {{p0}}, {{p1}}… placeholders.
- * Idempotent: re-running without backend changes produces no diff.
+ * Collects the error codes the ASP.NET backend sends with their English messages and writes them to the "backend"
+ * section of src/i18n/locales/en/errors.json (other sections are kept). The app translates errors by code
+ * (errors:backend.<code>), so these English texts are the reference other locales translate.
+ *
+ * Call sites it reads:   MarketplaceException.<Kind>("code", "Message …")
+ *                        this.ApiError(<status>, "code", $"Message {x} …", ErrorArgs.Of(...))
+ * Interpolated holes become {{p0}}, {{p1}}… (the order of ErrorArgs.Of). Machine codes in snake_case
+ * (terms_required, expired, …) are special codes with their own keys and are skipped.
+ *
+ *   node scripts/gen-backend-messages.mjs           regenerate
+ *   node scripts/gen-backend-messages.mjs --check   fail if errors.json is out of date or a call site has no code
  */
 import { readFileSync, writeFileSync, readdirSync, statSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { join, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const backendRoots = ["Coffer.BusinessLogic", "Coffer.ASPNET"].map((d) => join(root, "..", d));
-const CALL = /\b(?:Validation|Forbidden|NotFound|Conflict|Unavailable|Unauthorized|BadRequest|UnprocessableEntity|StatusCode\(\s*\d+\s*,|MarketplaceError\.\w+\s*,)\s*\(?\s*(\$?)"((?:[^"\\]|\\.)*)"/g;
+const check = process.argv.includes("--check");
+
+// code literal, then the message literal
+const SITE = /(?:MarketplaceException\.\w+\(|this\.ApiError\([^,]+,)\s*"([^"]+)"\s*,\s*(\$?)"((?:[^"\\]|\\.)*)"/g;
+// a MarketplaceException factory whose first argument is not a code (prose) — would be an untranslatable error
+const NO_CODE = /MarketplaceException\.\w+\(\s*\$?"((?:[^"\\]|\\.)*)"\s*\)/g;
+const CODE = /^[a-z][A-Za-z0-9]*$/;
 
 function walk(dir, out = []) {
   for (const f of readdirSync(dir)) {
@@ -25,60 +36,52 @@ function walk(dir, out = []) {
   return out;
 }
 
-function toPattern(raw, interpolated) {
+function toMessage(raw, interpolated) {
   let text = raw.replace(/\\"/g, '"').replace(/\\n/g, " ");
-  if (!interpolated) return { text };
+  if (!interpolated) return text;
   let i = 0;
   text = text.replace(/\{\{/g, "\u0001").replace(/\}\}/g, "\u0002");
   text = text.replace(/\{[^}]*\}/g, () => `{{p${i++}}}`);
-  text = text.replace(/\u0001/g, "{").replace(/\u0002/g, "}");
-  return i === 0 ? { text } : { pattern: text };
+  return text.replace(/\u0001/g, "{").replace(/\u0002/g, "}");
 }
 
-function slug(message) {
-  const words = message
-    .replace(/\{\{p\d+\}\}/g, " ")
-    .replace(/[^A-Za-z0-9 ]+/g, " ")
-    .trim()
-    .split(/\s+/)
-    .slice(0, 7);
-  return words.map((w, i) => (i === 0 ? w.toLowerCase() : w[0].toUpperCase() + w.slice(1).toLowerCase())).join("") || "message";
-}
-
-const seen = new Map();
+const messages = new Map();
+const problems = [];
 for (const dir of backendRoots) {
   for (const file of walk(dir)) {
     const src = readFileSync(file, "utf8");
-    for (const m of src.matchAll(CALL)) {
-      const entry = toPattern(m[2], m[1] === "$");
-      const message = entry.text ?? entry.pattern;
-      if (!message || !/[A-Za-z]/.test(message) || message.length < 4) continue;
-      if (!seen.has(message)) seen.set(message, entry);
+    const where = (index) => `${relative(join(root, ".."), file)}:${src.slice(0, index).split("\n").length}`;
+    for (const m of src.matchAll(SITE)) {
+      const [, code, dollar, raw] = m;
+      if (!CODE.test(code)) continue; // special machine code (snake_case)
+      const message = toMessage(raw, dollar === "$");
+      const prev = messages.get(code);
+      if (prev !== undefined && prev !== message) problems.push(`${where(m.index)}: code "${code}" already used for "${prev}"`);
+      messages.set(code, message);
     }
+    for (const m of src.matchAll(NO_CODE)) problems.push(`${where(m.index)}: error without a code: "${m[1]}"`);
   }
 }
 
-const sorted = [...seen.entries()].sort(([a], [b]) => a.localeCompare(b));
-const used = new Set();
-const backendJson = {};
-const table = [];
-for (const [message, entry] of sorted) {
-  let key = slug(message);
-  for (let n = 2; used.has(key); n++) key = `${slug(message)}${n}`;
-  used.add(key);
-  backendJson[key] = message;
-  table.push({ ...entry, key: `errors:backend.${key}` });
+if (problems.length) {
+  console.error(problems.join("\n"));
+  process.exit(1);
 }
 
-const ts = `// GENERATED by scripts/gen-backend-messages.mjs from the backend sources — do not edit by hand.
-import { BackendMessage } from "../utils/api_error";
-
-export const BACKEND_MESSAGES: BackendMessage[] = ${JSON.stringify(table, null, 2)};
-`;
-writeFileSync(join(root, "src/i18n/backend_messages.ts"), ts);
-
+const backend = Object.fromEntries([...messages.entries()].sort(([a], [b]) => a.localeCompare(b)));
 const errorsPath = join(root, "src/i18n/locales/en/errors.json");
-const errors = JSON.parse(readFileSync(errorsPath, "utf8"));
-errors.backend = backendJson;
-writeFileSync(errorsPath, JSON.stringify(errors, null, 2) + "\n");
-console.log(`${table.length} backend messages (${table.filter((t) => t.pattern).length} patterns)`);
+const current = readFileSync(errorsPath, "utf8");
+const errors = JSON.parse(current);
+errors.backend = backend;
+const next = JSON.stringify(errors, null, 2) + "\n";
+
+if (check) {
+  if (current.replace(/\r\n/g, "\n") !== next) {
+    console.error("errors.json backend section is out of date: run node scripts/gen-backend-messages.mjs");
+    process.exit(1);
+  }
+  console.log(`${messages.size} backend error codes, up to date`);
+} else {
+  writeFileSync(errorsPath, next);
+  console.log(`${messages.size} backend error codes`);
+}

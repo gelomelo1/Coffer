@@ -24,12 +24,12 @@ namespace Coffer.BusinessLogic.Marketplace.Common
         public static void Validate(IFormFile? file)
         {
             if (file == null || file.Length == 0)
-                throw MarketplaceException.Validation("An image file is empty.");
+                throw MarketplaceException.Validation("anImageFileIsEmpty", "An image file is empty.");
             if (file.Length > MaxBytes)
-                throw MarketplaceException.Validation("Images must be at most 8 MB.");
+                throw MarketplaceException.Validation("imagesMustBeAtMost8Mb", "Images must be at most 8 MB.");
             if (!Extensions.Contains(Path.GetExtension(file.FileName).ToLowerInvariant())
                 || !ContentTypes.Contains((file.ContentType ?? "").ToLowerInvariant()))
-                throw MarketplaceException.Validation("Only JPG and PNG images are allowed.");
+                throw MarketplaceException.Validation("onlyJpgAndPngImagesAreAllowed", "Only JPG and PNG images are allowed.");
 
             var header = new byte[8];
             using var stream = file.OpenReadStream();
@@ -37,7 +37,7 @@ namespace Coffer.BusinessLogic.Marketplace.Common
             var isJpeg = read >= 3 && header[0] == 0xFF && header[1] == 0xD8 && header[2] == 0xFF;
             var isPng = read >= 8 && header[0] == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47;
             if (!isJpeg && !isPng)
-                throw MarketplaceException.Validation("The uploaded file is not a valid image.");
+                throw MarketplaceException.Validation("theUploadedFileIsNotAValid", "The uploaded file is not a valid image.");
         }
     }
 
@@ -48,7 +48,7 @@ namespace Coffer.BusinessLogic.Marketplace.Common
         {
             var t = value?.Trim();
             if (string.IsNullOrEmpty(t)) return null;
-            if (t.Length > max) throw MarketplaceException.Validation($"{field} must be at most {max} characters.");
+            if (t.Length > max) throw MarketplaceException.Validation("mustBeAtMostCharacters", $"{field} must be at most {max} characters.", ErrorArgs.Of($"{field}", $"{max}"));
             return t;
         }
 
@@ -56,9 +56,9 @@ namespace Coffer.BusinessLogic.Marketplace.Common
         {
             var t = value?.Trim() ?? "";
             if (t.Length < min || t.Length > max)
-                throw MarketplaceException.Validation(min <= 1
-                    ? $"{field} is required (max {max} characters)."
-                    : $"{field} must be {min} to {max} characters.");
+                throw min <= 1
+                    ? MarketplaceException.Validation("fieldRequiredMaxCharacters", $"{field} is required (max {max} characters).", ErrorArgs.Of(field, $"{max}"))
+                    : MarketplaceException.Validation("fieldLengthBetween", $"{field} must be {min} to {max} characters.", ErrorArgs.Of(field, $"{min}", $"{max}"));
             return t;
         }
     }

@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using Coffer.BusinessLogic.Marketplace.Common;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Coffer.ASPNET.Controllers.Generic;
@@ -52,7 +53,7 @@ namespace Coffer.ASPNET.Controllers
             {
                 var collection = await _repository.GetItemByIdAsync(id);
                 if (collection == null)
-                    return BadRequest("No collection with given id");
+                    return this.ApiError(StatusCodes.Status400BadRequest, "noCollectionWithGivenId", "No collection with given id");
 
                 if(file == null)
                 {
@@ -113,7 +114,7 @@ namespace Coffer.ASPNET.Controllers
                 return NotFound();
 
             if (file == null || file.Length == 0)
-                return BadRequest("No file uploaded.");
+                return this.ApiError(StatusCodes.Status400BadRequest, "noFileUploaded", "No file uploaded.");
 
             using var formData = new MultipartFormDataContent();
             using var stream = file.OpenReadStream();
@@ -131,11 +132,11 @@ namespace Coffer.ASPNET.Controllers
                     return Ok(await response.Content.ReadAsStringAsync());
 
                 var error = await response.Content.ReadAsStringAsync();
-                return BadRequest($"Python API error: {error}");
+                return this.ApiError(StatusCodes.Status400BadRequest, "pythonApiError", $"Python API error: {error}", ErrorArgs.Of($"{error}"));
             }
             catch (HttpRequestException ex)
             {
-                return BadRequest($"Error contacting Python API: {ex.Message}");
+                return this.ApiError(StatusCodes.Status400BadRequest, "errorContactingPythonApi", $"Error contacting Python API: {ex.Message}", ErrorArgs.Of($"{ex.Message}"));
             }
         }
 
@@ -161,12 +162,12 @@ namespace Coffer.ASPNET.Controllers
             }
 
             if (file == null || file.Length == 0)
-                return BadRequest("No file uploaded.");
+                return this.ApiError(StatusCodes.Status400BadRequest, "noFileUploaded", "No file uploaded.");
 
             var collection = await _repository.GetItemByIdAsync(id);
 
             if (collection == null)
-                return BadRequest("No collection with given id");
+                return this.ApiError(StatusCodes.Status400BadRequest, "noCollectionWithGivenId", "No collection with given id");
 
             var collectionId = collection.Id;
             var collectionTypeId = collection.CollectionTypeId;
@@ -215,7 +216,7 @@ namespace Coffer.ASPNET.Controllers
             }
             catch (HttpRequestException ex)
             {
-                return BadRequest($"Error contacting Python API: {ex.Message}");
+                return this.ApiError(StatusCodes.Status400BadRequest, "errorContactingPythonApi", $"Error contacting Python API: {ex.Message}", ErrorArgs.Of($"{ex.Message}"));
             }
         }
 
@@ -258,7 +259,7 @@ namespace Coffer.ASPNET.Controllers
                 {
                     await transaction.RollbackAsync();
                     Console.WriteLine($"Failed to delete collection {id}: {ex.Message}");
-                    return StatusCode(500, "Failed to delete item");
+                    return this.ApiError(500, "failedToDeleteItem", "Failed to delete item");
                 }
             }
 

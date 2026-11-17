@@ -18,17 +18,17 @@ namespace Coffer.ASPNET.Controllers.Manager
     public abstract class ManagerControllerBase : ControllerBase
     {
         protected Guid AdminId =>
-            Guid.TryParse(User.FindFirst("sub")?.Value, out var id) ? id : throw MarketplaceException.Forbidden("Not signed in to Coffer.Manager.");
+            Guid.TryParse(User.FindFirst("sub")?.Value, out var id) ? id : throw MarketplaceException.Forbidden("notSignedInToCofferManager", "Not signed in to Coffer.Manager.");
 
         protected static TEnum? ParseEnum<TEnum>(string? text, string field) where TEnum : struct, Enum
         {
             if (string.IsNullOrWhiteSpace(text) || text.Trim().Equals("all", StringComparison.OrdinalIgnoreCase)) return null;
             try { return EnumText.FromSnake<TEnum>(text.Trim().ToLowerInvariant()); }
-            catch (ArgumentException) { throw MarketplaceException.Validation($"Unknown {field}."); }
+            catch (ArgumentException) { throw MarketplaceException.Validation("unknown", $"Unknown {field}.", ErrorArgs.Of($"{field}")); }
         }
 
         protected static TEnum RequireEnum<TEnum>(string text, string field) where TEnum : struct, Enum =>
-            ParseEnum<TEnum>(text, field) ?? throw MarketplaceException.Validation($"Unknown {field}.");
+            ParseEnum<TEnum>(text, field) ?? throw MarketplaceException.Validation("unknown", $"Unknown {field}.", ErrorArgs.Of($"{field}"));
     }
 
     /// <summary>GitHub device-flow sign-in for Coffer.Manager (the only anonymous Manager endpoints).</summary>
@@ -55,7 +55,7 @@ namespace Coffer.ASPNET.Controllers.Manager
         [HttpGet("Me")]
         public async Task<ActionResult<ManagerAdminDto>> Me()
         {
-            var id = Guid.TryParse(User.FindFirst("sub")?.Value, out var g) ? g : throw MarketplaceException.Forbidden("Not signed in.");
+            var id = Guid.TryParse(User.FindFirst("sub")?.Value, out var g) ? g : throw MarketplaceException.Forbidden("notSignedIn", "Not signed in.");
             return Ok(await _auth.GetAsync(id));
         }
     }
@@ -183,7 +183,7 @@ namespace Coffer.ASPNET.Controllers.Manager
             {
                 "listing" => _storage.ListingImages,
                 "item" => ItemRemovalService.ItemFolder,
-                _ => throw MarketplaceException.Validation("Unknown image kind."),
+                _ => throw MarketplaceException.Validation("unknownImageKind", "Unknown image kind."),
             };
             try
             {

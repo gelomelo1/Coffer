@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using Coffer.BusinessLogic.Marketplace.Common;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using Coffer.ASPNET.Controllers.Generic;
 using Coffer.ASPNET.Extensions;
@@ -88,7 +89,7 @@ namespace Coffer.ASPNET.Controllers
             }
 
             if (request == null || request.Length == 0)
-                return BadRequest("No items provided.");
+                return this.ApiError(StatusCodes.Status400BadRequest, "noItemsProvided", "No items provided.");
 
             List<string> savedImages = new();
             var collectionId = request[0].Item.CollectionId;
@@ -169,7 +170,7 @@ namespace Coffer.ASPNET.Controllers
                 {
                     await _imageService.DeleteImageAsync(image, imageFolder);
                 }
-                return StatusCode(500, $"Internal server error\n{e.Message}");
+                return this.ApiError(500, "internalServerError", $"Internal server error\n{e.Message}", ErrorArgs.Of($"{e.Message}"));
             }
         }
 
@@ -226,7 +227,7 @@ namespace Coffer.ASPNET.Controllers
                 {
                     await transaction.RollbackAsync();
                     Console.WriteLine($"Failed to delete item {id}: {ex.Message}");
-                    return StatusCode(500, "Failed to delete item");
+                    return this.ApiError(500, "failedToDeleteItem", "Failed to delete item");
                 }
             }
 

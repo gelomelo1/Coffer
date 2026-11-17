@@ -23,7 +23,7 @@ namespace Coffer.BusinessLogic.Marketplace.Terms
             var version = await db.Users.Where(u => u.Id == userId).Select(u => u.MarketTermsVersion).FirstOrDefaultAsync();
             if (version != CurrentVersion)
                 throw new MarketplaceException(MarketplaceError.Conflict,
-                    "Please accept the marketplace terms first.", TermsRequiredCode);
+                    TermsRequiredCode, "Please accept the marketplace terms first.");
         }
     }
 
@@ -41,7 +41,7 @@ namespace Coffer.BusinessLogic.Marketplace.Terms
         public async Task<TermsStatusDto> GetAsync(Guid userId)
         {
             var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId)
-                ?? throw MarketplaceException.NotFound("User not found.");
+                ?? throw MarketplaceException.NotFound("userNotFound2", "User not found.");
             return new TermsStatusDto(MarketTerms.CurrentVersion, user.MarketTermsVersion,
                 user.MarketTermsVersion == MarketTerms.CurrentVersion, user.MarketTermsAcceptedAt);
         }
@@ -49,11 +49,11 @@ namespace Coffer.BusinessLogic.Marketplace.Terms
         public async Task<TermsStatusDto> AcceptAsync(Guid userId, AcceptTermsInput input)
         {
             if (input.Version != MarketTerms.CurrentVersion)
-                throw MarketplaceException.Validation("These terms are outdated. Reload and read the current version.");
-            if (!input.IsAdult) throw MarketplaceException.Validation("The marketplace is for people aged 18 or over.");
-            if (!input.IsPrivatePerson) throw MarketplaceException.Validation("The marketplace is for private persons only, not businesses.");
+                throw MarketplaceException.Validation("theseTermsAreOutdatedReloadAndRead", "These terms are outdated. Reload and read the current version.");
+            if (!input.IsAdult) throw MarketplaceException.Validation("theMarketplaceIsForPeopleAged18", "The marketplace is for people aged 18 or over.");
+            if (!input.IsPrivatePerson) throw MarketplaceException.Validation("theMarketplaceIsForPrivatePersonsOnly", "The marketplace is for private persons only, not businesses.");
 
-            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId) ?? throw MarketplaceException.NotFound("User not found.");
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId) ?? throw MarketplaceException.NotFound("userNotFound2", "User not found.");
             user.MarketTermsVersion = MarketTerms.CurrentVersion;
             user.MarketTermsAcceptedAt = _clock.UtcNow;
             await _db.SaveChangesAsync();
