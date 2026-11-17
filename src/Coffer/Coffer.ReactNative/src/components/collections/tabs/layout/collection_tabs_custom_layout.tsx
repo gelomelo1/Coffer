@@ -62,6 +62,7 @@ function CollectionTabsCustomLayout(route: RouteProp<ParamListBase, string>): Bo
             left: 0,
             right: 0,
             bottom: 0,
+            opacity: homeChromeProgress.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }),
             transform: [{ translateY: homeChromeProgress.interpolate({ inputRange: [0, 1], outputRange: [0, barHeight] }) }],
           }
         : null),

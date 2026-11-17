@@ -3,10 +3,40 @@
  * are hidden (0 = fully shown, max = fully hidden); y is the list's scroll offset.
  */
 
-/** New hidden offset after the list moved from prevY to y. Never hides more than has been scrolled from the top. */
-export function trackOffset(prevOffset: number, prevY: number, y: number, max: number): number {
+/** Tracking state: hidden px, plus the upward travel collected against the backlash while fully hidden. */
+export interface ChromeTrack {
+  offset: number;
+  slack: number;
+}
+
+/**
+ * New tracking state after the list moved from prevY to y. Scrolling down hides 1:1. Once fully hidden, the
+ * chrome ignores the first `backlash` px of upward travel (so reading back a little doesn't pop it in), then
+ * reveals 1:1; a partly shown chrome reveals immediately. Near the top it never hides more than was scrolled.
+ */
+export function trackChrome(state: ChromeTrack, prevY: number, y: number, max: number, backlash: number): ChromeTrack {
+  const dy = y - prevY;
+  let { offset, slack } = state;
+
+  if (dy > 0) {
+    slack = 0;
+    offset += dy;
+  } else if (dy < 0) {
+    let up = -dy;
+    if (offset >= max && slack < backlash) {
+      const absorbed = Math.min(up, backlash - slack);
+      slack += absorbed;
+      up -= absorbed;
+    }
+    offset -= up;
+  }
+
   const limit = Math.min(max, Math.max(y, 0));
-  return Math.min(limit, Math.max(0, prevOffset + (y - prevY)));
+  if (offset > limit) {
+    offset = limit;
+    if (y < max) slack = 0;
+  }
+  return { offset: Math.max(0, offset), slack };
 }
 
 /**

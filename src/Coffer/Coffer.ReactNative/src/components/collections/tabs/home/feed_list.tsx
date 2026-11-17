@@ -16,35 +16,49 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { homeChromeProgress, setHomeChromeProgress, settleHomeChrome, showHomeChrome, useHomeChromeLocked } from "@/src/hooks/home_chrome";
 import { useNavigationModeStore } from "@/src/hooks/navigation_mode_store";
-import { snapOffset, trackOffset } from "@/src/utils/hide_on_scroll";
+import { ChromeTrack, snapOffset, trackChrome } from "@/src/utils/hide_on_scroll";
 import { parseParams } from "@/src/utils/navigation_utils";
 import { useRoute } from "@react-navigation/native";
 import { useFocusEffect } from "expo-router";
-import { Animated, FlatList, Image, ImageBackground, NativeScrollEvent, NativeSyntheticEvent, Pressable, RefreshControl, Text, View } from "react-native";
+import { Animated, FlatList, Image, NativeScrollEvent, NativeSyntheticEvent, Pressable, RefreshControl, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TAB_BAR_CONTENT_HEIGHT, TabsHeader } from "../layout/collection_tabs_custom_layout";
 import FeedCard from "./feed_card";
 import FeedSearchOverlay from "./feed_search_overlay";
 
 
-function FeedHero({ count, loading }: { count?: number; loading: boolean }) {
+/** Visible height of the hero below the floating chrome; the list starts below it and scrolls up over it. */
+const HERO_HEIGHT = 150;
+/** Upward travel (~ one thumb scroll) a fully hidden chrome ignores before it starts to come back. */
+const REVEAL_BACKLASH = 200;
+
+/**
+ * Fixed hero behind the feed (as before the redesign): it also reaches up behind the chrome so the image, not a
+ * blank band, shows while the chrome slides away. Its text fades and the image dims as the cards cover it.
+ */
+function FeedHero({ count, loading, top, scrollY }: { count?: number; loading: boolean; top: number; scrollY: Animated.Value }) {
   const { t } = useTranslation();
+  const textOpacity = scrollY.interpolate({ inputRange: [0, HERO_HEIGHT * 0.7], outputRange: [1, 0], extrapolate: "clamp" });
+  const imageOpacity = scrollY.interpolate({ inputRange: [0, HERO_HEIGHT], outputRange: [0.35, 0.15], extrapolate: "clamp" });
   return (
-    <ImageBackground
-      source={require("../../../../../assets/images/home_background.jpg")}
-      resizeMode="cover"
-      style={{ minHeight: 150, justifyContent: "flex-end", backgroundColor: colors.primary }}
-      imageStyle={{ opacity: 0.35 }}
+    <View
+      pointerEvents="none"
+      style={{ position: "absolute", top: 0, left: 0, right: 0, height: top + HERO_HEIGHT, justifyContent: "flex-end", backgroundColor: colors.primary }}
     >
-      <View style={{ padding: spacing.md, gap: spacing.xs }}>
+      <Animated.Image
+        source={require("../../../../../assets/images/home_background.jpg")}
+        resizeMode="cover"
+        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", opacity: imageOpacity }}
+      />
+      <Animated.View style={{ padding: spacing.md, gap: spacing.xs, opacity: textOpacity }}>
         <Text accessibilityRole="header" style={[typography.display, { color: colors.onPrimary }]}>
           <Trans i18nKey="feed:hero.title" components={{ 1: <Text style={{ color: colors.secondary }} /> }} />
         </Text>
         <Text style={[typography.label, { color: colors.onPrimary }]}>
           {loading || count === undefined ? " " : t("feed:hero.recentPosts", { count })}
         </Text>
-      </View>
-    </ImageBackground>
+      </Animated.View>
+    </View>
   );
 }
 
@@ -69,14 +83,15 @@ function FeedList() {
   const locked = useHomeChromeLocked();
   const [layerHeight, setLayerHeight] = useState(0);
   const hideDistance = Math.max(1, layerHeight - insets.top);
-  const offset = useRef(0);
+  const track = useRef<ChromeTrack>({ offset: 0, slack: 0 });
+  const heroScroll = useRef(new Animated.Value(0)).current;
   const lastY = useRef(0);
   const direction = useRef<-1 | 0 | 1>(0);
   const momentum = useRef(false);
   const snapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const revealChrome = useCallback(() => {
-    offset.current = 0;
+    track.current = { offset: 0, slack: 0 };
     showHomeChrome();
   }, []);
 
@@ -96,17 +111,20 @@ function FeedList() {
     const y = e.nativeEvent.contentOffset.y;
     const dy = y - lastY.current;
     if (Math.abs(dy) >= 1) direction.current = dy > 0 ? 1 : -1;
+    heroScroll.setValue(Math.max(0, y));
     if (!locked && layerHeight > 0) {
-      offset.current = trackOffset(offset.current, lastY.current, y, hideDistance);
-      setHomeChromeProgress(offset.current / hideDistance);
+      track.current = trackChrome(track.current, lastY.current, y, hideDistance, REVEAL_BACKLASH);
+      setHomeChromeProgress(track.current.offset / hideDistance);
     }
     lastY.current = y;
   };
 
   const snap = () => {
     if (locked || layerHeight === 0) return;
-    offset.current = snapOffset(offset.current, lastY.current, hideDistance, direction.current);
-    settleHomeChrome(offset.current === 0 ? 0 : 1);
+    const offset = snapOffset(track.current.offset, lastY.current, hideDistance, direction.current);
+    // A chrome that just settled hidden needs the full backlash again; a shown one needs none.
+    track.current = { offset, slack: offset === 0 ? 0 : track.current.offset >= hideDistance ? track.current.slack : 0 };
+    settleHomeChrome(offset === 0 ? 0 : 1);
   };
 
   // A drag without a fling settles right away; a fling settles when its momentum ends.
@@ -251,12 +269,13 @@ function FeedList() {
 
   return (
     <>
+      <FeedHero count={feedListData?.length} loading={isFetching} top={layerHeight} scrollY={heroScroll} />
       <FlatList
         data={rows}
         keyExtractor={(feed) => feed.item.id}
-        ListHeaderComponent={<FeedHero count={feedListData?.length} loading={isFetching} />}
-        renderItem={({ item: feed }) => (
-          <View style={{ paddingHorizontal: spacing.md, paddingTop: spacing.lg }}>
+        ListHeaderComponent={<View style={{ height: HERO_HEIGHT }} />}
+        renderItem={({ item: feed, index }) => (
+          <View style={[sheetStyle, { paddingHorizontal: spacing.md, paddingTop: spacing.lg }, index === 0 && sheetTopStyle]}>
             <FeedCard
               user={user!}
               collectionType={collectionTypes.find((ct) => ct.id === feed.collection.collectionTypeId)!}
@@ -274,19 +293,22 @@ function FeedList() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} progressViewOffset={layerHeight} />
         }
         ListFooterComponent={
-          rows.length > 0 ? (
-            <Text style={[typography.meta, { color: colors.textMuted, textAlign: "center", paddingVertical: spacing.xl }]}>{t("feed:caughtUp")}</Text>
-          ) : isFetching ? (
-            <Loading />
-          ) : isError ? (
-            <ErrorState message={apiErrorText(error)} onRetry={() => refetch()} />
-          ) : (
-            <EmptyState icon="inbox" title={t("feed:empty.title")} text={t("feed:empty.text")} />
-          )
+          <View style={[sheetStyle, { paddingBottom: tabBarHeight + spacing.xxl }, rows.length === 0 && sheetTopStyle]}>
+            {rows.length > 0 ? (
+              <Text style={[typography.meta, { color: colors.textMuted, textAlign: "center", paddingVertical: spacing.xl }]}>{t("feed:caughtUp")}</Text>
+            ) : isFetching ? (
+              <Loading />
+            ) : isError ? (
+              <ErrorState message={apiErrorText(error)} onRetry={() => refetch()} />
+            ) : (
+              <EmptyState icon="inbox" title={t("feed:empty.title")} text={t("feed:empty.text")} />
+            )}
+          </View>
         }
-        contentContainerStyle={{ backgroundColor: colors.bg, paddingTop: layerHeight, paddingBottom: tabBarHeight + spacing.xxl }}
+        ListFooterComponentStyle={{ flexGrow: 1 }}
+        contentContainerStyle={{ flexGrow: 1, paddingTop: layerHeight }}
         scrollIndicatorInsets={{ top: layerHeight, bottom: tabBarHeight }}
-        style={{ backgroundColor: colors.bg }}
+        style={{ backgroundColor: "transparent" }}
         showsVerticalScrollIndicator={false}
         initialNumToRender={4}
         windowSize={7}
@@ -302,6 +324,7 @@ function FeedList() {
           left: 0,
           right: 0,
           zIndex: 1,
+          opacity: homeChromeProgress.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }),
           transform: [{ translateY: homeChromeProgress.interpolate({ inputRange: [0, 1], outputRange: [0, -hideDistance] }) }],
         }}
       >
@@ -319,5 +342,9 @@ function FeedList() {
     </>
   );
 }
+
+/** The cards sit on a cream "sheet" that slides up over the fixed hero; its first edge carries the retro border. */
+const sheetStyle = { backgroundColor: colors.bg } as const;
+const sheetTopStyle = { borderTopWidth: borders.width, borderTopColor: colors.border } as const;
 
 export default FeedList;

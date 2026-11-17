@@ -39,6 +39,16 @@ screen. Any scroll up brings them back. Same feel as the Facebook app.
   and touch while progress > 0.5.
 - No new dependency (RN `Animated`; reanimated is not installed).
 
+## Revision (2026-11-17, user feedback)
+- Hiding also fades: the top chrome and the tab bar go from opacity 1 to 0 as they slide; the "+" no longer leaves
+  the screen — it floats down only 24 dp while fading out (gone by 80 % progress).
+- Backlash: a fully hidden chrome ignores the first 200 dp (≈ one thumb scroll) of upward travel, then reveals 1:1;
+  a partly shown chrome still reveals at once. `trackChrome(state, prevY, y, max, backlash)` replaces `trackOffset`.
+- Release snaps follow the last scroll direction (any scroll up reveals a partly hidden chrome), nearest otherwise.
+- Hero restored to its pre-redesign role: fixed behind the feed (reaching up behind the chrome), text fades and the
+  image dims as the cards' cream sheet scrolls up over it.
+- Snaps run on the JS driver: a native-owned value stopped updating the tab bar after a tab switch.
+
 ## Left to the builder
 Exact snap duration (≈200 ms, decelerate), velocity tie-breaks, StatusBar background while the header is hidden
 (cream band behind the status bar stays so status icons remain readable).

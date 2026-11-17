@@ -9,8 +9,8 @@ const FAB_SIZE = 56;
 
 /**
  * Square floating action button: navy tile, gold icon, hard shadow that sinks on press.
- * `translateY` slides it (e.g. off-screen with hide-on-scroll chrome); `hidden` also removes it from touch and
- * screen readers while it is out of view.
+ * `translateY` / `opacity` animate it (hide-on-scroll chrome); `hidden` removes it from touch and screen readers
+ * while it is faded out.
  */
 export function RetroFab({
   icon,
@@ -19,6 +19,7 @@ export function RetroFab({
   bottom,
   right = spacing.md,
   translateY,
+  opacity,
   hidden = false,
 }: {
   icon: IconName;
@@ -27,6 +28,7 @@ export function RetroFab({
   bottom: number;
   right?: number;
   translateY?: Animated.AnimatedInterpolation<number> | Animated.Value;
+  opacity?: Animated.AnimatedInterpolation<number> | Animated.Value;
   hidden?: boolean;
 }) {
   return (
@@ -34,7 +36,7 @@ export function RetroFab({
       pointerEvents={hidden ? "none" : "box-none"}
       accessibilityElementsHidden={hidden}
       importantForAccessibility={hidden ? "no-hide-descendants" : "auto"}
-      style={{ position: "absolute", right, bottom, transform: translateY ? [{ translateY }] : undefined }}
+      style={{ position: "absolute", right, bottom, opacity: opacity ?? 1, transform: translateY ? [{ translateY }] : undefined }}
     >
       <Pressable
         onPress={onPress}
@@ -58,9 +60,6 @@ export function RetroFab({
     </Animated.View>
   );
 }
-
-/** Distance that moves a FAB placed at `bottom` fully below the screen edge (size + hard shadow + margin). */
-export const fabHideDistance = (bottom: number) => bottom + FAB_SIZE + spacing.md;
 
 export interface FabAction {
   icon: IconName;
