@@ -19,7 +19,7 @@ interface OtherUserCollectionSectionListProps {
   onRefresh?: () => void;
 }
 
-/** Another user's profile (general info, as before the redesign — contacts stay private to the settings) followed by their collections as a tile grid. */
+/** Another user's profile (general info + reputation) followed by their collections as a tile grid. */
 function OtherUserCollectionSectionList({ currentUser, user, collections, allLoading, onRefresh }: OtherUserCollectionSectionListProps) {
   const { t } = useTranslation();
   const { collectionTypes } = useCollectionTypeStore();

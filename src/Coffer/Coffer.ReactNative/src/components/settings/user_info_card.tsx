@@ -16,6 +16,7 @@ import { CountryField } from "../custom_ui/country_field";
 import CustomButton from "../custom_ui/custom_button";
 import CustomHTMLView from "../custom_ui/custom_html_view";
 import { RichTextField } from "../custom_ui/rich_text_field";
+import ReputationSummary from "../market/review/reputation_summary";
 
 export interface UserInfoCardProps {
   user: User | null;
@@ -170,6 +171,13 @@ function UserInfoCard({ user, setUser, otherUser = false }: UserInfoCardProps) {
           )}
         </View>
       )}
+
+      {!editing ? (
+        <View>
+          <SectionHeader title={t("settings:profile.reputation")} />
+          <ReputationSummary userId={user.id} userName={user.name} isMe={!otherUser} />
+        </View>
+      ) : null}
     </View>
   );
 }

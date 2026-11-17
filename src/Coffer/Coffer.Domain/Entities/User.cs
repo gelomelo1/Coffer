@@ -59,8 +59,6 @@ namespace Coffer.Domain.Entities
         public string? MarketTermsVersion { get; set; }
         public DateTime? MarketTermsAcceptedAt { get; set; }
 
-        public ICollection<UserContactProvided> Contacts { get; set; } = new List<UserContactProvided>();
-
         protected UserProvided() { }
 
         public UserProvided(string name, string email, string provider, string country, UserRole role, string? avatar, string? summary)

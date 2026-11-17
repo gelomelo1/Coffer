@@ -86,7 +86,6 @@ namespace Coffer.Infrastructure
             services.AddScoped<IPermissionService<Guid, FollowRequired>, FollowPermissionService>();
             services.AddScoped<IPermissionService<Guid, ItemRequired>, ItemPermissionService>();
             services.AddScoped<IPermissionService<Guid, ReactionRequired>, ReactionPermissionService>();
-            services.AddScoped<IPermissionService<Guid, UserContactRequired>, UserContactPermissionService>();
             services.AddScoped<IPermissionService<Guid, UserRequired>, UserPermissionService>();
 
 
@@ -109,7 +108,6 @@ namespace Coffer.Infrastructure
             services.AddScoped<IReactionsRepository, ReactionsRepository>();
             services.AddScoped<IFollowsRepository, FollowsRepository>();
             services.AddScoped<IItemTagsRepository, ItemTagsRepository>();
-            services.AddScoped<IUserContactsRepository, UserContactsRepository>();
             #endregion
 
             return services;

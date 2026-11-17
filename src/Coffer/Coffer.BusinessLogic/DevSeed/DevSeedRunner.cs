@@ -93,7 +93,6 @@ namespace Coffer.BusinessLogic.DevSeed
             await _db.ItemAttributes.ExecuteDeleteAsync();
             await _db.Items.ExecuteDeleteAsync();
             await _db.Collections.ExecuteDeleteAsync();
-            await _db.UserContacts.ExecuteDeleteAsync();
             await _db.UserSuspensions.ExecuteDeleteAsync();
             await _db.AdminAuditLog.ExecuteDeleteAsync();
             await _db.Users.ExecuteDeleteAsync();

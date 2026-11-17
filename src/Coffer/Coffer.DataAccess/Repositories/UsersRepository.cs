@@ -21,21 +21,18 @@ namespace Coffer.DataAccess.Repositories
         public async Task<User?> GetUserById(Guid userId)
         {
             return await _dbSet
-                .Include(u => u.Contacts)
                 .FirstOrDefaultAsync(user => user.Id == userId);
         }
 
         public async Task<User?> GetUserByLogin(string provider, string providerUserId)
         {
             return await _dbSet
-                .Include(u => u.Contacts)
                 .FirstOrDefaultAsync(u => u.Provider == provider && u.ProviderUserId == providerUserId);
         }
 
         public async Task<User?> GetUserByName(string username)
         {
             return await _dbSet
-                .Include(u => u.Contacts)
                 .FirstOrDefaultAsync(user => user.Name == username);
         }
 
@@ -55,7 +52,6 @@ namespace Coffer.DataAccess.Repositories
             searchText = searchText.Trim().ToLower();
 
             var users = await _dbSet
-                .Include(u => u.Contacts)
                 .Where(u => u.Name.ToLower().Contains(searchText))
                 .OrderBy(u => u.Name)
                 .Take(10)
@@ -72,7 +68,6 @@ namespace Coffer.DataAccess.Repositories
             searchText = searchText.Trim();
 
             var users = await _dbSet
-                .Include(u => u.Contacts)
                 .Select(u => new
                 {
                     User = u,

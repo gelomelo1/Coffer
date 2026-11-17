@@ -12,10 +12,7 @@ namespace Coffer.DataAccess.Extensions.IncludeProviders
     {
         public string[]? GetDefaultIncludes()
         {
-            return new[]
-            {
-                "Contacts"
-            };
+            return null;
         }
     }
 }

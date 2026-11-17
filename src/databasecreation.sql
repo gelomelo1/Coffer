@@ -91,16 +91,6 @@ CREATE TABLE follows (
     UNIQUE (user_id, collection_id) -- prevent duplicate follows
 );
 
-CREATE TABLE user_contacts (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    platform INT NOT NULL,
-    value TEXT NOT NULL,
-    link TEXT,
-    created_at TIMESTAMP DEFAULT now(),
-    UNIQUE (user_id, platform)
-);
-
 CREATE TABLE trades (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 

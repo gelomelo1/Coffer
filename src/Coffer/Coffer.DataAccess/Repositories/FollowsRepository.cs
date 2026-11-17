@@ -31,7 +31,6 @@ namespace Coffer.DataAccess.Repositories
                 .ThenInclude(c => c.Follows)
                 .Include(f => f.Collection)
                 .ThenInclude(c => c.User)
-                .ThenInclude(u => u.Contacts)
                 .ToListAsync();
         }
 

@@ -1,4 +1,3 @@
-import { UserContact } from "./user_contact";
 
 export interface UserFrontend {
   country: string;
@@ -14,7 +13,6 @@ interface User {
   avatar: string;
   provider: string;
   summary?: string;
-  contacts: UserContact[];
   /** 0 = user, 1 = moderator, 2 = admin */
   role?: number;
 }

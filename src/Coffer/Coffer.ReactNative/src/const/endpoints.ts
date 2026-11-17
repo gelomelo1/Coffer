@@ -23,11 +23,9 @@ export const endpoints = {
   feedSearchTag: "api/Feed/SearchTag",
   reactions: "api/Reactions",
   follows: "api/Follows",
-  userContact: "api/UserContact",
   feedUserFollows: "api/Feed/UserFollows",
   collectionItemTags: "api/Collections/ItemTags",
   userFrontend: "api/Users/UserFrontend",
-  userContactBulk: "api/UserContact/Bulk",
   userExists: "api/Users/UserExists",
   // Marketplace
   cities: "api/Cities/Search",

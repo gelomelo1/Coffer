@@ -21,7 +21,6 @@ namespace Coffer.DataAccess
         public DbSet<ItemOptions> ItemOptions { get; set; }
         public DbSet<ReactionProvided> Reactions { get; set; }
         public DbSet<FollowProvided> Follows { get; set; }
-        public DbSet<UserContactProvided> UserContacts { get; set; }
         // Community
         public DbSet<ItemComment> ItemComments { get; set; }
         public DbSet<ItemCommentMention> ItemCommentMentions { get; set; }
@@ -124,12 +123,6 @@ namespace Coffer.DataAccess
                    .HasOne(c => c.User)
                    .WithMany()
                    .HasForeignKey(c => c.UserId);
-
-            //UserContact
-            modelBuilder.Entity<UserContactProvided>()
-                .HasOne(u => u.User)
-                .WithMany(u => u.Contacts)
-                .HasForeignKey(u => u.UserId);
         }
     }
 
