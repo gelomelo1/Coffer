@@ -120,14 +120,9 @@ namespace Coffer.BusinessLogic.Services
                 {
                     if(data != null)
                     {
-                        ReactionProvided? dataReaction = await _reactionsRepository.GetItemByIdAsync(data.ItemId);
-
-                        if(dataReaction == null)
-                        {
-                            return false;
-                        }
-
-                        ItemProvided? dataItem = await _itemsRepository.GetItemByIdAsync(dataReaction.ItemId);
+                        // data.ItemId is an item id: look the item up directly (it used to be looked up as a
+                        // reaction id, which never matched, so every update of an own reaction was denied).
+                        ItemProvided? dataItem = await _itemsRepository.GetItemByIdAsync(data.ItemId);
 
                         if(dataItem == null)
                         {
