@@ -63,6 +63,20 @@ namespace Coffer.ASPNET.Controllers
             }
         }
 
+        /// <summary>
+        /// Tag popularity while tagging an item: `?tags=a,b` gives the counts of exactly those tags; `?search=aus` the
+        /// most used tags containing the text. Counts are distinct items across the whole app.
+        /// </summary>
+        [Authorize]
+        [HttpGet("TagStats")]
+        public async Task<ActionResult<IEnumerable<TagStat>>> TagStats(string? search, string? tags)
+        {
+            var list = string.IsNullOrWhiteSpace(tags)
+                ? null
+                : tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Take(30).ToList();
+            return Ok(await _itemTagsRepository.GetTagStatsAsync(search, list));
+        }
+
         public record ItemTagGroup(string Value, List<FoundItem> FoundItems);
 
         public record FoundItem(UserProvided User, CollectionProvided Collection, ItemProvided Item);

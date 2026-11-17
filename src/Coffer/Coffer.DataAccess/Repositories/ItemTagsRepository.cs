@@ -88,6 +88,36 @@ namespace Coffer.DataAccess.Repositories
             return result;
         }
 
+        public static string NormalizeTag(string tag) => tag.Trim().TrimStart('#').Trim().ToLowerInvariant();
+
+        public async Task<List<TagStat>> GetTagStatsAsync(string? search, IReadOnlyCollection<string>? tags)
+        {
+            if (tags != null && tags.Count > 0)
+            {
+                var wanted = tags.Select(NormalizeTag).Where(t => t.Length > 0).Distinct().ToList();
+                var counts = await _dbSet
+                    .Where(t => wanted.Contains(t.Tag.ToLower()))
+                    .GroupBy(t => t.Tag.ToLower())
+                    .Select(g => new { Tag = g.Key, Count = g.Select(t => t.ItemId).Distinct().Count() })
+                    .ToDictionaryAsync(x => x.Tag, x => x.Count);
+                return wanted.Select(t => new TagStat(t, counts.GetValueOrDefault(t))).ToList();
+            }
+
+            var text = NormalizeTag(search ?? "");
+            if (text.Length == 0)
+                return new List<TagStat>();
+
+            var rows = await _dbSet
+                .Where(t => t.Tag.ToLower().Contains(text))
+                .GroupBy(t => t.Tag.ToLower())
+                .Select(g => new { Tag = g.Key, Count = g.Select(t => t.ItemId).Distinct().Count() })
+                .OrderByDescending(x => x.Count)
+                .ThenBy(x => x.Tag)
+                .Take(8)
+                .ToListAsync();
+            return rows.Select(x => new TagStat(x.Tag, x.Count)).ToList();
+        }
+
         private IQueryable<ItemTags> BuildTagBaseQuery(string? collectionTypeIds)
         {
             IQueryable<ItemTags> query = _dbSet;

@@ -87,5 +87,14 @@
     "message": "This {{type}} will be removed from your collection. This can’t be undone.",
     "confirm": "Delete item",
     "done": "Item deleted"
+  },
+  "tags": {
+    "suggestions": "Existing tags",
+    "usage": "How popular your tags are",
+    "chip_one": "#{{tag}} · {{count}} item",
+    "chip_other": "#{{tag}} · {{count}} items",
+    "chipA11y_one": "#{{tag}}, used by {{count}} item",
+    "chipA11y_other": "#{{tag}}, used by {{count}} items",
+    "new": "#{{tag}} · new"
   }
 }
