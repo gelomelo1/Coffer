@@ -1,3 +1,4 @@
+import { QueryOptions } from "@/src/types/helpers/query_data";
 import CustomDropdownMultiple from "@/src/components/custom_ui/custom_dropdown_multiple";
 import { Loading } from "@/src/components/custom_ui/loading";
 import { EmptyState, ErrorState } from "@/src/components/custom_ui/states";
@@ -5,7 +6,8 @@ import { asyncstoragekeys } from "@/src/const/async_storage_keys";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
 import { useCollectionTypeStore } from "@/src/hooks/collection_type_store";
-import { useGetData } from "@/src/hooks/data_hooks";
+import { fetchPage, usePagedQuery } from "@/src/hooks/paged_query";
+import ListFooterLoading from "@/src/components/custom_ui/list_footer";
 import { useUserStore } from "@/src/hooks/user_store";
 import { borders, colors, sizes, spacing, typography } from "@/src/theme/theme";
 import Feed from "@/src/types/entities/feed";
@@ -29,6 +31,7 @@ import FeedSearchOverlay from "./feed_search_overlay";
 
 /** Visible height of the hero below the floating chrome; the list starts below it and scrolls up over it. */
 const HERO_HEIGHT = 150;
+const feedId = (feed: Feed) => feed.item.id;
 /** Upward travel (~ one thumb scroll) a fully hidden chrome ignores before it starts to come back. */
 const REVEAL_BACKLASH = 200;
 
@@ -154,16 +157,27 @@ function FeedList() {
     ),
   }));
 
-  const { data: feedListData, isFetching, isError, error, refetch } = useGetData<Feed>(
-    `${endpoints.feed}`,
-    querykeys.feedListData,
+  const feedOptions: QueryOptions | undefined =
     selectedCollectionTypeIds && selectedCollectionTypeIds.length > 0
       ? {
           filters: selectedCollectionTypeIds.map((id) => ({ filter: "==", field: "Collection.CollectionTypeId", value: id })),
           filterConjunction: "OR",
         }
-      : undefined,
-  );
+      : undefined;
+  // 20 posts at a time; the next 20 load when the list's end comes into view.
+  const {
+    items: rows,
+    total,
+    isLoading,
+    isError,
+    error,
+    refresh: refetch,
+    loadMore,
+    hasNextPage,
+    isFetchingNextPage,
+  } = usePagedQuery<Feed>([querykeys.feedListData, selectedCollectionTypeIds ?? []], (page) => fetchPage<Feed>(endpoints.feed, feedOptions, page), feedId, {
+    enabled: selectedCollectionTypeIds !== null,
+  });
 
   useEffect(() => {
     const loadFilters = async () => {
@@ -216,7 +230,6 @@ function FeedList() {
     setRefreshing(false);
   };
 
-  const rows: Feed[] = feedListData ?? [];
   const selectedCount = selectedCollectionTypeIds?.length ?? 0;
 
   const renderToolbar = () => (
@@ -269,7 +282,7 @@ function FeedList() {
 
   return (
     <>
-      <FeedHero count={feedListData?.length} loading={isFetching} top={layerHeight} scrollY={heroScroll} />
+      <FeedHero count={total} loading={isLoading} top={layerHeight} scrollY={heroScroll} />
       <FlatList
         data={rows}
         keyExtractor={(feed) => feed.item.id}
@@ -285,6 +298,8 @@ function FeedList() {
           </View>
         )}
         onScroll={onScroll}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
         scrollEventThrottle={16}
         onScrollEndDrag={onScrollEndDrag}
         onMomentumScrollBegin={onMomentumScrollBegin}
@@ -295,8 +310,12 @@ function FeedList() {
         ListFooterComponent={
           <View style={[sheetStyle, { paddingBottom: tabBarHeight + spacing.xxl }, rows.length === 0 && sheetTopStyle]}>
             {rows.length > 0 ? (
-              <Text style={[typography.meta, { color: colors.textMuted, textAlign: "center", paddingVertical: spacing.xl }]}>{t("feed:caughtUp")}</Text>
-            ) : isFetching ? (
+              hasNextPage ? (
+                <ListFooterLoading loading />
+              ) : (
+                <Text style={[typography.meta, { color: colors.textMuted, textAlign: "center", paddingVertical: spacing.xl }]}>{t("feed:caughtUp")}</Text>
+              )
+            ) : isLoading ? (
               <Loading />
             ) : isError ? (
               <ErrorState message={apiErrorText(error)} onRetry={() => refetch()} />

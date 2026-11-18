@@ -43,7 +43,7 @@ namespace Coffer.ASPNET.Controllers.Marketplace
                 Page = page,
                 PageSize = pageSize,
             };
-            return Ok(await _listings.SearchAsync(Me, query));
+            return Ok(await _listings.SearchPageAsync(Me, query));
         }
 
         [HttpGet("Mine")]

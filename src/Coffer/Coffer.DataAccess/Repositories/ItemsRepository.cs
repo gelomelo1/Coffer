@@ -27,6 +27,14 @@ namespace Coffer.DataAccess.Repositories
             return await _dbContext.Database.BeginTransactionAsync();
         }
 
+        public async Task<int> SumQuantityAsync(string? filter)
+        {
+            IQueryable<ItemProvided> query = _dbSet;
+            if (!string.IsNullOrWhiteSpace(filter))
+                query = query.Where(filter);
+            return await query.SumAsync(i => i.Quantity);
+        }
+
         public async Task<Coffer.Domain.Paging.PagedList<ItemProvided>> GetFeedPageAsync(User user, string? filter, int? page, int? pageSize)
         {
             var oneWeekAgo = DateTime.UtcNow.AddDays(-7);

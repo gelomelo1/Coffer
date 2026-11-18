@@ -57,7 +57,8 @@
     "itemSubtitle": "{{user}} {{collection}} gyűjteménye",
     "followers_one": "{{count}} követő",
     "followers_other": "{{count}} követő",
-    "tagResultsTitle": "#{{tag}}"
+    "tagResultsTitle": "#{{tag}}",
+    "showAll": "Mind a(z) {{count}} megjelenítése"
   },
   "follows": {
     "title_one": "{{count}} gyűjteményt követsz",

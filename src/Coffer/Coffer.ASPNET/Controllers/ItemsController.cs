@@ -24,6 +24,22 @@ namespace Coffer.ASPNET.Controllers
         private readonly string tempFolder = Env.GetString("IMAGECHECK_TEMP_PATH") ?? throw new InvalidOperationException("IMAGECHECK_TEMP_PATH envionmental variable is not set");
         private readonly string pythonServiceUrl = Env.GetString("FASTAPI_URL") ?? throw new InvalidOperationException("FASTAPI_URL envionmental variable is not set");
         private readonly HttpClient _httpClient;
+        /// <summary>A page of items plus TotalQuantity: the pieces across every item matching the filter.</summary>
+        public record ItemPage(List<ItemProvided> Items, int Page, int PageSize, int Total, int TotalQuantity);
+
+        public override async Task<ActionResult<Coffer.Domain.Paging.PagedList<ItemProvided>>> GetPage([FromQuery] string? filter = null,
+                                                                                                        [FromQuery] string? orderBy = null,
+                                                                                                        [FromQuery] int? page = null,
+                                                                                                        [FromQuery] int? pageSize = null)
+        {
+            if (!Coffer.DataAccess.Extensions.DynamicQueryGuard.IsAllowed(filter) || !Coffer.DataAccess.Extensions.DynamicQueryGuard.IsAllowed(orderBy))
+                return this.ApiError(StatusCodes.Status400BadRequest, "filteringOrOrderingOnThisFieldIs", "Filtering or ordering on this field is not allowed");
+
+            var result = await _itemsRepository.GetPageAsync(filter, orderBy, page, pageSize);
+            var quantity = await _itemsRepository.SumQuantityAsync(filter);
+            return Ok(new ItemPage(result.Items, result.Page, result.PageSize, result.Total, quantity));
+        }
+
         public ItemsController(IItemsRepository repository, IUsersRepository usersRepository, IImageService imageService, IPermissionService<Guid, ItemRequired> permissionService, HttpClient httpClient) : base(repository, permissionService)
         {
             _itemsRepository = repository;

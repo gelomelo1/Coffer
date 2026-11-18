@@ -6,6 +6,7 @@ import { formatMoney } from "./format";
 import { messagePreview, messageText, type MessageLike, type Texts } from "./message_text";
 import { resolveText } from "./text_params";
 import { apiErrorText } from "./api_error_text";
+import { MessagePage, PAGE_SIZE, Paged } from "./paging";
 import {
   Carrier,
   City,
@@ -87,10 +88,10 @@ export const marketApi = {
   searchCities: (q: string) => get<City[]>(`${endpoints.cities}?q=${encodeURIComponent(q)}`),
 
   // listings
-  searchListings: (filters: ListingFilters, page: number, pageSize = 20) =>
-    get<ListingSummary[]>(`${endpoints.listings}?${listingQueryString(filters, page, pageSize)}`),
-  myListings: (filter?: MyListingsFilter) =>
-    get<ListingSummary[]>(filter ? `${endpoints.listingsMine}?filter=${filter}` : endpoints.listingsMine),
+  searchListings: (filters: ListingFilters, page: number, pageSize = PAGE_SIZE) =>
+    get<Paged<ListingSummary>>(`${endpoints.listings}?${listingQueryString(filters, page, pageSize)}`),
+  myListings: (filter: MyListingsFilter | undefined, page: number) =>
+    get<Paged<ListingSummary>>(`${endpoints.listingsMine}?${filter ? `filter=${filter}&` : ""}page=${page}&pageSize=${PAGE_SIZE}`),
   myListingCounts: () => get<Record<MyListingsFilter, number>>(`${endpoints.listingsMine}/Counts`),
   getListing: (id: string) => get<ListingDetail>(`${endpoints.listings}/${id}`),
   createListing: (input: ListingInput, images: LocalImage[]) => {
@@ -110,9 +111,14 @@ export const marketApi = {
 
   // conversations
   openConversation: (listingId: string) => post<Conversation>(`${endpoints.listings}/${listingId}/Conversations`),
-  inbox: () => get<ConversationSummary[]>(endpoints.conversations),
+  /** The inbox a page at a time; subjectId = only the chats about that listing. */
+  inbox: (page: number, subjectId?: string) =>
+    get<Paged<ConversationSummary>>(`${endpoints.conversations}?page=${page}&pageSize=${PAGE_SIZE}${subjectId ? `&subjectId=${subjectId}` : ""}`),
+  badges: () => get<{ unreadMessages: number; actionableDeals: number }>(endpoints.marketBadges),
   conversation: (id: string) => get<Conversation>(`${endpoints.conversations}/${id}`),
-  messages: (id: string) => get<Message[]>(`${endpoints.conversations}/${id}/Messages`),
+  /** The newest messages, or the ones before `before` (an ISO time) when scrolling up. */
+  messages: (id: string, before?: string | null) =>
+    get<MessagePage<Message>>(`${endpoints.conversations}/${id}/Messages?pageSize=${PAGE_SIZE}${before ? `&before=${encodeURIComponent(before)}` : ""}`),
   postMessage: (id: string, input: PostMessageInput) => post<Message>(`${endpoints.conversations}/${id}/Messages`, input),
   respond: (id: string, messageId: string, action: "accept" | "decline" | "withdraw") =>
     post<Message>(`${endpoints.conversations}/${id}/Messages/${messageId}/Respond`, { action }),
@@ -120,7 +126,7 @@ export const marketApi = {
 
   // deals
   carriers: () => get<Carrier[]>(endpoints.dealCarriers),
-  myDeals: () => get<Deal[]>(endpoints.dealsMine),
+  myDeals: (page: number) => get<Paged<Deal>>(`${endpoints.dealsMine}?page=${page}&pageSize=${PAGE_SIZE}`),
   deal: (id: string) => get<Deal>(`${endpoints.deals}/${id}`),
   proposeDeal: (conversationId: string, method: DeliveryMethod) => post<Deal>(endpoints.deals, { conversationId, method }),
   acceptDeal: (id: string) => post<Deal>(`${endpoints.deals}/${id}/Accept`),
@@ -146,14 +152,14 @@ export const marketApi = {
   dealReviews: (dealId: string) => get<DealReviews>(`${endpoints.deals}/${dealId}/Reviews`),
   submitReview: (dealId: string, input: ReviewInput) => post<Review>(`${endpoints.deals}/${dealId}/Reviews`, input),
   replyToReview: (reviewId: string, text: string) => post<Review>(`${endpoints.reviews}/${reviewId}/Reply`, { text }),
-  userReviews: (userId: string) => get<Review[]>(`${endpoints.users}/${userId}/MarketReviews`),
+  userReviews: (userId: string, page: number) => get<Paged<Review>>(`${endpoints.users}/${userId}/MarketReviews?page=${page}&pageSize=${PAGE_SIZE}`),
   reputation: (userId: string) => get<Reputation>(`${endpoints.users}/${userId}/Reputation`),
 
   // reports (notice & action) and moderation of my own content
   reportRules: () => get<ReportRuleInfo[]>(`${endpoints.reports}/Rules`),
   createReport: (input: CreateReportInput) => post<MyReport>(endpoints.reports, input),
-  myReports: () => get<MyReport[]>(`${endpoints.reports}/Mine`),
-  againstMe: () => get<ModerationActionItem[]>(endpoints.againstMe),
+  myReports: (page: number) => get<Paged<MyReport>>(`${endpoints.reports}/Mine?page=${page}&pageSize=${PAGE_SIZE}`),
+  againstMe: (page: number) => get<Paged<ModerationActionItem>>(`${endpoints.againstMe}?page=${page}&pageSize=${PAGE_SIZE}`),
   againstMeUnseen: async () => (await get<{ count: number }>(`${endpoints.againstMe}/UnseenCount`)).count,
   markAgainstMeSeen: () => post<void>(`${endpoints.againstMe}/Seen`),
 

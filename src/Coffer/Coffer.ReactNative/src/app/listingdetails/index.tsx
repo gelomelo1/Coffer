@@ -31,7 +31,8 @@ function ListingDetails() {
   const { listingId } = useMarketStore();
   const { width } = useWindowDimensions();
   const { data: listing, isFetching, isError, error, refetch } = useListing(listingId);
-  const { data: inbox = [] } = useInbox();
+  // Only my chats about this listing (the first 20 are plenty for this section).
+  const { items: myChats } = useInbox(listingId, !!listingId);
   const [editOpen, setEditOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [photo, setPhoto] = useState(0);
@@ -51,7 +52,6 @@ function ListingDetails() {
   if (!listing) return isFetching ? <Loading /> : null;
 
   const imageWidth = Math.min(width, MAX_CONTENT);
-  const myChats = inbox.filter((ci) => ci.subject.id === listing.id);
   const contactLabel = listing.kind === "wanted" ? t("market:details.haveThis") : t("market:details.messageSeller");
   const startChat = () => open.mutate(listing.id, { onSuccess: (conv) => openChat(conv.id, conv.other.name, listing.title) });
 

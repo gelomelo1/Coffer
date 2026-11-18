@@ -1,3 +1,4 @@
+import ListFooterLoading from "@/src/components/custom_ui/list_footer";
 import { Loading } from "@/src/components/custom_ui/loading";
 import { ErrorState } from "@/src/components/custom_ui/states";
 import { useInbox } from "@/src/hooks/market_api";
@@ -13,16 +14,19 @@ import { openChat } from "./open_chat";
 /** CHATS tab: all my listing conversations, newest first, with unread counters. */
 function ChatList() {
   const { t } = useTranslation();
-  const { data = [], isFetching, isError, error, refetch } = useInbox();
+  const { items: data, isLoading, isError, error, refetch, refreshing, onRefresh, loadMore, isFetchingNextPage } = useInbox();
 
   return (
     <FlatList
       data={data}
       keyExtractor={(x) => x.id}
       contentContainerStyle={{ padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl * 2 }}
-      refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} colors={[colors.primary]} tintColor={colors.primary} />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />}
+      onEndReached={loadMore}
+      onEndReachedThreshold={0.4}
+      ListFooterComponent={<ListFooterLoading loading={isFetchingNextPage} />}
       ListEmptyComponent={
-        isFetching ? (
+        isLoading ? (
           <Loading />
         ) : isError ? (
           <ErrorState message={apiErrorText(error)} onRetry={() => refetch()} />

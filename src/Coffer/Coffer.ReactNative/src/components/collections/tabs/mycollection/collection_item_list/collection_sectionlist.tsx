@@ -1,3 +1,5 @@
+import ListFooterLoading from "@/src/components/custom_ui/list_footer";
+import { ItemPaging } from "@/src/hooks/collection_items";
 import { EmptyState } from "@/src/components/custom_ui/states";
 import { colors, spacing, typography } from "@/src/theme/theme";
 import { useTranslation } from "react-i18next";
@@ -21,6 +23,8 @@ interface CollectionSectionListProps {
   collectionType: CollectionType;
   collection: Collection;
   items: ItemProvided[];
+  /** Totals + load more (20 items per page). */
+  paging: ItemPaging;
   attributes: Attribute[];
   allLoading: boolean;
   queryOptions: {
@@ -33,6 +37,7 @@ function CollectionSectionList({
   collectionType,
   collection,
   items,
+  paging,
   attributes,
   allLoading,
   queryOptions,
@@ -95,6 +100,7 @@ function CollectionSectionList({
         <>
           <CollectionItemHeader
             items={items}
+            paging={paging}
             collection={collection}
             attributes={attributes}
             queryOptions={queryOptions}
@@ -128,8 +134,12 @@ function CollectionSectionList({
         </View>
       )}
       stickySectionHeadersEnabled
+      onEndReached={paging.loadMore}
+      onEndReachedThreshold={0.5}
       ListFooterComponent={
-        items.length > 0 ? (
+        paging.hasMore ? (
+          <ListFooterLoading loading />
+        ) : items.length > 0 ? (
           <Text style={[typography.meta, { color: colors.textMuted, textAlign: "center", paddingVertical: spacing.xl }]}>{t("collections:items.endOfList")}</Text>
         ) : null
       }

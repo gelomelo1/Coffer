@@ -57,7 +57,8 @@
     "itemSubtitle": "{{user}}'s {{collection}} collection",
     "followers_one": "{{count}} follower",
     "followers_other": "{{count}} followers",
-    "tagResultsTitle": "#{{tag}}"
+    "tagResultsTitle": "#{{tag}}",
+    "showAll": "Show all {{count}}"
   },
   "follows": {
     "title_one": "You follow {{count}} collection",

@@ -143,7 +143,9 @@
     "aroundWithin": "{{city}} környékén · {{km}} km-en belül",
     "cityTip": "Tipp: válassz várost a Szűrőkben a távolság szerinti rendezéshez.",
     "emptyTitle": "Itt még nincs semmi",
-    "emptyText": "Próbálj más szűrőket, vagy add fel az első hirdetést!"
+    "emptyText": "Próbálj más szűrőket, vagy add fel az első hirdetést!",
+    "resultCount_one": "{{count}} hirdetés",
+    "resultCount_other": "{{count}} hirdetés"
   },
   "filter": {
     "title": "Hirdetések szűrése",

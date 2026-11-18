@@ -3,6 +3,7 @@ import rootViewStyle from "@/src/components/custom_ui/root_view";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
 import { useCollectionStore } from "@/src/hooks/collection_store";
+import { useCollectionItems } from "@/src/hooks/collection_items";
 import { useGetData } from "@/src/hooks/data_hooks";
 import Attribute from "@/src/types/entities/attribute";
 import { ItemProvided } from "@/src/types/entities/item";
@@ -15,29 +16,8 @@ function MyCollection() {
 
   const [queryOptions, setQueryOptions] = useState<QueryOptions>({});
 
-  const {
-    data: items = [],
-    isFetching: isItemsFetching,
-    refetch,
-  } = useGetData<ItemProvided>(
-    endpoints.items,
-    `${querykeys.itemsData}${collection!.id}`,
-    {
-      filters: [
-        {
-          filter: "Match",
-          field: "collectionId",
-          value: collection!.id,
-        },
-        ...(queryOptions.filters ?? []),
-      ],
-      sort: queryOptions.sort,
-      page: queryOptions.page,
-      pageSize: queryOptions.pageSize,
-      filterConjunction: queryOptions.filterConjunction,
-      filterTree: queryOptions.filterTree,
-    },
-  );
+  // 20 items at a time with the chosen filters and sort; the key changes with them, so no manual refetch.
+  const { items, isLoading: isItemsLoading, paging } = useCollectionItems(`${querykeys.itemsData}${collection!.id}`, collection!.id, queryOptions);
 
   const { data: attributes = [], isFetching: isAttributesFetching } =
     useGetData<Attribute>(
@@ -54,11 +34,7 @@ function MyCollection() {
       },
     );
 
-  const allLoading = isItemsFetching || isAttributesFetching;
-
-  useEffect(() => {
-    refetch();
-  }, [queryOptions, refetch]);
+  const allLoading = isItemsLoading || isAttributesFetching;
 
   return (
     <View
@@ -71,6 +47,7 @@ function MyCollection() {
         collectionType={collectionType!}
         collection={collection!}
         items={items}
+        paging={paging}
         attributes={attributes}
         allLoading={allLoading}
         queryOptions={{ value: queryOptions, set: setQueryOptions }}

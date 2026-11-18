@@ -1,24 +1,20 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
 import showToast from "../components/custom_ui/toast";
 import { querykeys } from "../const/querykeys";
 import { ListingFilters, MyListingsFilter } from "../types/entities/market";
 import { apiErrorCode, apiErrorMessage, marketApi } from "../utils/market_api";
+import { mergeMessagePages } from "../utils/paging";
 import { useMarketStore } from "./market_store";
+import { usePagedQuery } from "./paged_query";
 
-const PAGE_SIZE = 20;
+const byId = (x: { id: string }) => x.id;
 
-export function useListings(filters: ListingFilters) {
-  return useInfiniteQuery({
-    queryKey: [querykeys.marketListings, filters],
-    queryFn: ({ pageParam }) => marketApi.searchListings(filters, pageParam, PAGE_SIZE),
-    initialPageParam: 1,
-    getNextPageParam: (last, all) => (last.length === PAGE_SIZE ? all.length + 1 : undefined),
-    refetchOnWindowFocus: false,
-  });
-}
+export const useListings = (filters: ListingFilters) =>
+  usePagedQuery([querykeys.marketListings, filters], (page) => marketApi.searchListings(filters, page), byId);
 
 export const useMyListings = (filter?: MyListingsFilter) =>
-  useQuery({ queryKey: [querykeys.marketMyListings, filter ?? "all"], queryFn: () => marketApi.myListings(filter) });
+  usePagedQuery([querykeys.marketMyListings, filter ?? "all"], (page) => marketApi.myListings(filter, page), byId);
 
 /** { active, sold, archived } counts for the My Listings chips. */
 export const useMyListingCounts = () =>
@@ -39,9 +35,16 @@ export const useCitySearch = (q: string) =>
     staleTime: 60 * 60 * 1000,
   });
 
-/** Inbox refreshes every 20 s while mounted. */
-export const useInbox = () =>
-  useQuery({ queryKey: [querykeys.marketInbox], queryFn: marketApi.inbox, refetchInterval: 20000 });
+/** Inbox a page at a time, refreshed every 20 s while mounted; subjectId = only the chats about one listing. */
+export const useInbox = (subjectId?: string | null, enabled = true) =>
+  usePagedQuery([querykeys.marketInbox, subjectId ?? "all"], (page) => marketApi.inbox(page, subjectId ?? undefined), byId, {
+    refetchInterval: 20000,
+    enabled,
+  });
+
+/** Unread messages and deals waiting for me (marketplace tab badges). */
+export const useMarketBadges = () =>
+  useQuery({ queryKey: [querykeys.marketInbox, "badges"], queryFn: marketApi.badges, refetchInterval: 20000 });
 
 export const useConversation = (id?: string | null) =>
   useQuery({
@@ -51,17 +54,29 @@ export const useConversation = (id?: string | null) =>
     refetchInterval: 8000,
   });
 
-/** Open chat polls every 4 s. */
-export const useMessages = (id?: string | null) =>
-  useQuery({
+/**
+ * Open chat: the newest 20 messages, polled every 4 s; loadOlder fetches the 20 before the oldest loaded one (when
+ * the user scrolls up). messages are oldest first.
+ */
+export function useMessages(id?: string | null) {
+  const query = useInfiniteQuery({
     queryKey: [querykeys.marketMessages, id],
-    queryFn: () => marketApi.messages(id!),
+    queryFn: ({ pageParam }) => marketApi.messages(id!, pageParam),
+    initialPageParam: null as string | null,
+    getNextPageParam: (last) => (last.hasMore && last.items.length > 0 ? last.items[0].createdAt : undefined),
     enabled: !!id,
     refetchInterval: 4000,
   });
+  const pages = query.data?.pages;
+  const messages = useMemo(() => mergeMessagePages(pages ?? []), [pages]);
+  const loadOlder = () => {
+    if (query.hasNextPage && !query.isFetchingNextPage) query.fetchNextPage();
+  };
+  return { ...query, messages, loadOlder };
+}
 
 export const useMyDeals = () =>
-  useQuery({ queryKey: [querykeys.marketDeals], queryFn: marketApi.myDeals, refetchInterval: 20000 });
+  usePagedQuery([querykeys.marketDeals], (page) => marketApi.myDeals(page), byId, { refetchInterval: 20000 });
 
 export const useDeal = (id?: string | null) =>
   useQuery({
@@ -89,18 +104,14 @@ export const useReputation = (userId?: string | null) =>
   });
 
 export const useUserReviews = (userId?: string | null, enabled = true) =>
-  useQuery({
-    queryKey: [querykeys.marketUserReviews, userId],
-    queryFn: () => marketApi.userReviews(userId!),
-    enabled: !!userId && enabled,
-  });
+  usePagedQuery([querykeys.marketUserReviews, userId], (page) => marketApi.userReviews(userId!, page), byId, { enabled: !!userId && enabled });
 
 export const useReportRules = () =>
   useQuery({ queryKey: [querykeys.reportRules], queryFn: marketApi.reportRules, staleTime: Infinity });
 
-export const useMyReports = () => useQuery({ queryKey: [querykeys.myReports], queryFn: marketApi.myReports });
+export const useMyReports = () => usePagedQuery([querykeys.myReports], (page) => marketApi.myReports(page), byId);
 
-export const useAgainstMe = () => useQuery({ queryKey: [querykeys.againstMe], queryFn: marketApi.againstMe });
+export const useAgainstMe = () => usePagedQuery([querykeys.againstMe], (page) => marketApi.againstMe(page), byId);
 
 /** Unseen moderation notices about my content (badge in Settings). */
 export const useAgainstMeUnseen = () =>

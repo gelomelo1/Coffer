@@ -7,6 +7,7 @@ export const endpoints = {
   githubRegister: "api/auth/github/register",
   currentUser: "api/auth/currentUser",
   health: "api/Health",
+  marketBadges: "api/Market/Badges",
   collectionTypes: "api/CollectionTypes",
   collections: "api/Collections",
   collectionsCoverImage: `${backendAxios.defaults.baseURL}/api/Collections/CoverImage`,

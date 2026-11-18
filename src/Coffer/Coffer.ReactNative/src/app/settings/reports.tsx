@@ -1,3 +1,4 @@
+import ListFooterLoading from "@/src/components/custom_ui/list_footer";
 import { openItem } from "@/src/components/comments/open_item";
 import { Loading } from "@/src/components/custom_ui/loading";
 import { ErrorState } from "@/src/components/custom_ui/states";
@@ -170,13 +171,16 @@ function Reports() {
 
       {tab === 0 ? (
         <FlatList
-          data={mine.data ?? []}
+          data={mine.items}
           keyExtractor={(r) => r.id}
           contentContainerStyle={listStyle}
-          refreshControl={<RefreshControl refreshing={mine.isFetching} onRefresh={mine.refetch} colors={[colors.primary]} tintColor={colors.primary} />}
+          refreshControl={<RefreshControl refreshing={mine.refreshing} onRefresh={mine.onRefresh} colors={[colors.primary]} tintColor={colors.primary} />}
+          onEndReached={mine.loadMore}
+          onEndReachedThreshold={0.4}
+          ListFooterComponent={<ListFooterLoading loading={mine.isFetchingNextPage} />}
           ListHeaderComponent={intro(t("settings:reports.introMine"))}
           ListEmptyComponent={
-            mine.isFetching ? (
+            mine.isLoading ? (
               <Loading />
             ) : mine.isError ? (
               <ErrorState message={apiErrorText(mine.error)} onRetry={() => mine.refetch()} />
@@ -188,13 +192,16 @@ function Reports() {
         />
       ) : (
         <FlatList
-          data={against.data ?? []}
+          data={against.items}
           keyExtractor={(a) => a.id}
           contentContainerStyle={listStyle}
-          refreshControl={<RefreshControl refreshing={against.isFetching} onRefresh={against.refetch} colors={[colors.primary]} tintColor={colors.primary} />}
+          refreshControl={<RefreshControl refreshing={against.refreshing} onRefresh={against.onRefresh} colors={[colors.primary]} tintColor={colors.primary} />}
+          onEndReached={against.loadMore}
+          onEndReachedThreshold={0.4}
+          ListFooterComponent={<ListFooterLoading loading={against.isFetchingNextPage} />}
           ListHeaderComponent={intro(t("settings:reports.introAboutMe"))}
           ListEmptyComponent={
-            against.isFetching ? (
+            against.isLoading ? (
               <Loading />
             ) : against.isError ? (
               <ErrorState message={apiErrorText(against.error)} onRetry={() => against.refetch()} />

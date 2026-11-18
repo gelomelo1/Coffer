@@ -1,3 +1,4 @@
+import ListFooterLoading from "@/src/components/custom_ui/list_footer";
 import CustomOverlay from "@/src/components/custom_ui/custom_overlay";
 import { Loading } from "@/src/components/custom_ui/loading";
 import { useReputation, useUserReviews } from "@/src/hooks/market_api";
@@ -16,7 +17,7 @@ function ReputationSummary({ userId, userName, isMe = false }: { userId: string;
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const { data: reputation } = useReputation(userId);
-  const { data: reviews = [], isFetching } = useUserReviews(userId, open);
+  const { items: reviews, isLoading, loadMore, isFetchingNextPage } = useUserReviews(userId, open);
 
   const response = formatResponseTime(reputation?.typicalResponseMinutes);
   const rating =
@@ -63,13 +64,16 @@ function ReputationSummary({ userId, userName, isMe = false }: { userId: string;
         onClose={() => setOpen(false)}
         overlayTitle={userName ? t("market:reputation.titleOf", { name: userName }) : t("market:reputation.title")}
       >
-        {isFetching && reviews.length === 0 ? (
+        {isLoading ? (
           <Loading />
         ) : (
           <FlatList
             data={reviews}
             keyExtractor={(r) => r.id}
             contentContainerStyle={{ padding: spacing.md }}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.4}
+            ListFooterComponent={<ListFooterLoading loading={isFetchingNextPage} />}
             ListHeaderComponent={
               <Text style={[typography.meta, { color: colors.text, marginBottom: spacing.md }]}>{t("market:reputation.verifiedNote")}</Text>
             }

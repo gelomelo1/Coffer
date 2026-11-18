@@ -1,5 +1,7 @@
 import { SectionHeader } from "@/src/components/custom_ui/card";
+import ListFooterLoading from "@/src/components/custom_ui/list_footer";
 import { Loading } from "@/src/components/custom_ui/loading";
+import { isNearEnd } from "@/src/utils/paging";
 import { EmptyState } from "@/src/components/custom_ui/states";
 import { useCollectionTypeStore } from "@/src/hooks/collection_type_store";
 import { borders, colors, spacing } from "@/src/theme/theme";
@@ -16,11 +18,16 @@ interface OtherUserCollectionSectionListProps {
   user: User;
   collections: Collection[];
   allLoading: boolean;
+  /** How many collections they have in total (more load as the user scrolls). */
+  total?: number;
   onRefresh?: () => void;
+  refreshing?: boolean;
+  onEndReached?: () => void;
+  loadingMore?: boolean;
 }
 
 /** Another user's profile (general info + reputation) followed by their collections as a tile grid. */
-function OtherUserCollectionSectionList({ currentUser, user, collections, allLoading, onRefresh }: OtherUserCollectionSectionListProps) {
+function OtherUserCollectionSectionList({ currentUser, user, collections, allLoading, total, onRefresh, refreshing = false, onEndReached, loadingMore = false }: OtherUserCollectionSectionListProps) {
   const { t } = useTranslation();
   const { collectionTypes } = useCollectionTypeStore();
   const columns = useTileColumns();
@@ -29,14 +36,18 @@ function OtherUserCollectionSectionList({ currentUser, user, collections, allLoa
     <ScrollView
       style={{ backgroundColor: colors.bg }}
       contentContainerStyle={{ padding: spacing.md, gap: spacing.lg, paddingBottom: spacing.xxl * 2 }}
-      refreshControl={onRefresh ? <RefreshControl refreshing={false} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} /> : undefined}
+      refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} /> : undefined}
+      onScroll={onEndReached ? (e) => isNearEnd(e.nativeEvent, 600) && onEndReached() : undefined}
+      scrollEventThrottle={200}
     >
       <View style={{ borderWidth: borders.width, borderColor: colors.border, backgroundColor: colors.surface, padding: spacing.md }}>
         <UserInfoCard user={user} otherUser />
       </View>
 
       <View style={{ gap: spacing.sm }}>
-        <SectionHeader title={t("settings:otherUser.collections", { name: user.name })} />
+        <SectionHeader
+          title={total ? t("settings:otherUser.collectionsCount", { name: user.name, count: total }) : t("settings:otherUser.collections", { name: user.name })}
+        />
         {allLoading ? (
           <Loading />
         ) : collections.length === 0 ? (
@@ -58,6 +69,7 @@ function OtherUserCollectionSectionList({ currentUser, user, collections, allLoa
             })}
           </View>
         )}
+        <ListFooterLoading loading={loadingMore} />
       </View>
     </ScrollView>
   );

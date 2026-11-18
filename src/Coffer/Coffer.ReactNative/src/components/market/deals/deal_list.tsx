@@ -1,3 +1,4 @@
+import ListFooterLoading from "@/src/components/custom_ui/list_footer";
 import { SectionHeader } from "@/src/components/custom_ui/card";
 import { Loading } from "@/src/components/custom_ui/loading";
 import { ErrorState } from "@/src/components/custom_ui/states";
@@ -21,7 +22,7 @@ const statusTextColor = (status: DealStatus) => (dealStatusColors[status] === co
 /** DEALS tab: grouped by what needs my attention. Tapping opens the chat with the deal panel. */
 function DealList() {
   const { t } = useTranslation();
-  const { data = [], isFetching, isError, error, refetch } = useMyDeals();
+  const { items: data, isLoading, isError, error, refetch, refreshing, onRefresh, loadMore, isFetchingNextPage } = useMyDeals();
 
   const sections = [
     { title: t("market:deals.needsAction"), data: data.filter(needsMe) },
@@ -35,9 +36,12 @@ function DealList() {
       keyExtractor={(d) => d.id}
       stickySectionHeadersEnabled={false}
       contentContainerStyle={{ padding: spacing.md, paddingBottom: spacing.xxl * 2 }}
-      refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} colors={[colors.primary]} tintColor={colors.primary} />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />}
+      onEndReached={loadMore}
+      onEndReachedThreshold={0.4}
+      ListFooterComponent={<ListFooterLoading loading={isFetchingNextPage} />}
       ListEmptyComponent={
-        isFetching ? (
+        isLoading ? (
           <Loading />
         ) : isError ? (
           <ErrorState message={apiErrorText(error)} onRetry={() => refetch()} />

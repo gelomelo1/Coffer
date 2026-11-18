@@ -3,6 +3,7 @@ import OtherUserItemSectionList from "@/src/components/otherusercollection/other
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
 import { useCollectionStore } from "@/src/hooks/collection_store";
+import { useCollectionItems } from "@/src/hooks/collection_items";
 import { useGetData } from "@/src/hooks/data_hooks";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
 import { useUserStore } from "@/src/hooks/user_store";
@@ -19,29 +20,12 @@ function OtherUserCollection() {
 
   const [queryOptions, setQueryOptions] = useState<QueryOptions>({});
 
+  // 20 items at a time with the chosen filters and sort; the key changes with them, so no manual refetch.
   const {
-    data: otherUserItemsData = [],
-    isFetching: isItemsFetching,
-    refetch,
-  } = useGetData<ItemProvided>(
-    endpoints.items,
-    `${querykeys.otherUserItemsData}${collection!.id}`,
-    {
-      filters: [
-        {
-          filter: "Match",
-          field: "collectionId",
-          value: collection!.id,
-        },
-        ...(queryOptions.filters ?? []),
-      ],
-      sort: queryOptions.sort,
-      page: queryOptions.page,
-      pageSize: queryOptions.pageSize,
-      filterConjunction: queryOptions.filterConjunction,
-      filterTree: queryOptions.filterTree,
-    },
-  );
+    items: otherUserItemsData,
+    isLoading: isItemsLoading,
+    paging,
+  } = useCollectionItems(`${querykeys.otherUserItemsData}${collection!.id}`, collection!.id, queryOptions);
 
   const { data: attributes = [], isFetching: isAttributesFetching } =
     useGetData<Attribute>(
@@ -58,11 +42,7 @@ function OtherUserCollection() {
       },
     );
 
-  const allLoading = isItemsFetching || isAttributesFetching;
-
-  useEffect(() => {
-    refetch();
-  }, [queryOptions, refetch]);
+  const allLoading = isItemsLoading || isAttributesFetching;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -72,6 +52,7 @@ function OtherUserCollection() {
         collectionType={collectionType!}
         collection={collection!}
         items={otherUserItemsData}
+        paging={paging}
         attributes={attributes}
         allLoading={allLoading}
         queryOptions={{

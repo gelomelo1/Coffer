@@ -196,6 +196,8 @@ export interface Conversation {
   agreedPriceCents?: number | null;
   openDealId?: string | null;
   lastMessageAt: string;
+  /** The chat's newest deal in any state. */
+  latestDealId?: string | null;
 }
 
 export interface ConversationSummary {

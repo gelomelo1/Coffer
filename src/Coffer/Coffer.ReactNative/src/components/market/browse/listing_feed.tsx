@@ -1,3 +1,4 @@
+import ListFooterLoading from "@/src/components/custom_ui/list_footer";
 import CustomButton from "@/src/components/custom_ui/custom_button";
 import { Loading } from "@/src/components/custom_ui/loading";
 import { ErrorState } from "@/src/components/custom_ui/states";
@@ -24,9 +25,7 @@ function ListingFeed() {
   const { filters, setFilters } = useMarketStore();
   const [filterOpen, setFilterOpen] = useState(false);
   const [formKind, setFormKind] = useState<ListingKind | null>(null);
-  const { data, isFetching, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } = useListings(filters);
-
-  const listings = data?.pages.flat() ?? [];
+  const { items: listings, total, isLoading, isError, error, loadMore, isFetchingNextPage, refetch, refreshing, onRefresh } = useListings(filters);
   const filterCount = activeFilterCount(filters);
 
   const setSort = (sort: ListingSort) => {
@@ -46,8 +45,8 @@ function ListingFeed() {
         keyExtractor={(l) => l.id}
         columnWrapperStyle={columns > 1 ? { gap: spacing.md } : undefined}
         contentContainerStyle={{ padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl * 2 }}
-        refreshControl={<RefreshControl refreshing={isFetching && !isFetchingNextPage} onRefresh={refetch} colors={[colors.primary]} tintColor={colors.primary} />}
-        onEndReached={() => hasNextPage && !isFetchingNextPage && fetchNextPage()}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />}
+        onEndReached={loadMore}
         onEndReachedThreshold={0.4}
         ListHeaderComponent={
           <View style={{ gap: spacing.sm }}>
@@ -85,10 +84,13 @@ function ListingFeed() {
                   : t("market:feed.around", { city: filters.city.name })
                 : t("market:feed.cityTip")}
             </Text>
+            {!isLoading && total > 0 ? (
+              <Text style={[typography.label, { color: colors.text }]}>{t("market:feed.resultCount", { count: total })}</Text>
+            ) : null}
           </View>
         }
         ListEmptyComponent={
-          isFetching ? (
+          isLoading ? (
             <Loading />
           ) : isError ? (
             <ErrorState message={apiErrorText(error)} onRetry={() => refetch()} />
@@ -96,7 +98,7 @@ function ListingFeed() {
             <EmptyState icon="storefront" title={t("market:feed.emptyTitle")} text={t("market:feed.emptyText")} />
           )
         }
-        ListFooterComponent={isFetchingNextPage ? <Loading /> : null}
+        ListFooterComponent={<ListFooterLoading loading={isFetchingNextPage} />}
         renderItem={({ item }) => (
           <View style={{ flex: 1, maxWidth: columns > 1 ? "50%" : "100%" }}>
             <ListingCard listing={item} layout={columns > 1 ? "grid" : "row"} />

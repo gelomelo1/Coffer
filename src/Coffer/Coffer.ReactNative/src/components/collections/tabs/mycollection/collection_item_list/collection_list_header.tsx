@@ -1,3 +1,4 @@
+import { ItemPaging } from "@/src/hooks/collection_items";
 import { Chip } from "@/src/components/custom_ui/chip";
 import CustomIconButton from "@/src/components/custom_ui/custom_icon_button";
 import { asyncstoragekeys } from "@/src/const/async_storage_keys";
@@ -23,6 +24,7 @@ import CollectionListFilterBottomSheet from "./collection_list_filter_bottomshee
 
 interface CollectionItemHeaderProps {
   items: ItemProvided[];
+  paging: ItemPaging;
   collection: Collection;
   attributes: Attribute[];
   queryOptions: {
@@ -39,6 +41,7 @@ interface CollectionItemHeaderProps {
 
 function CollectionItemHeader({
   items,
+  paging,
   collection,
   attributes,
   queryOptions,
@@ -82,7 +85,7 @@ function CollectionItemHeader({
         borderBottomColor: colors.border,
       }}
     >
-      <CollectionItemListNumbers items={items} queryOptions={queryOptions.value} />
+      <CollectionItemListNumbers total={paging.total} totalQuantity={paging.totalQuantity} queryOptions={queryOptions.value} />
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
         <Text accessibilityRole="header" style={[typography.title, { color: colors.text, flex: 1 }]} numberOfLines={2}>
           {user ? t("collections:items.titleOther", { user: user.name, type: collectionType?.name ?? "" }) : t("collections:items.titleOwn", { type: collectionType?.name ?? "" })}

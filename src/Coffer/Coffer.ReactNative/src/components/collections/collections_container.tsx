@@ -7,14 +7,23 @@ import { borders, colors, spacing, typography } from "@/src/theme/theme";
 import { Collection } from "@/src/types/entities/collection";
 import CollectionType from "@/src/types/entities/collectiontype";
 import { navigate } from "expo-router/build/global-state/routing";
-import React, { useState } from "react";
+import React from "react";
+import { groupInOrder } from "@/src/utils/paging";
 import { useTranslation } from "react-i18next";
 import { Image, Pressable, Text, useWindowDimensions, View } from "react-native";
 import { Chip } from "../custom_ui/chip";
 
+/** Per collection type: "name" (A–Z) or "createdAt" (newest first). The backend sorts, the app only toggles. */
+export type CollectionSorts = Record<number, "name" | "createdAt">;
+
 interface CollectionsContainerProps {
   collectionTypes: CollectionType[];
+  /** Loaded so far, ordered by collection type (more pages load as the user scrolls). */
   collections: Collection[];
+  /** Total per collection type id, for the group headers. */
+  groupCounts: Record<string, number>;
+  sorts: CollectionSorts;
+  onToggleSort: (typeId: number) => void;
 }
 
 /** Columns for collection tiles: 2 on phones, 3 on wide screens. */
@@ -24,18 +33,12 @@ export function useTileColumns() {
 }
 
 /** The user's collections grouped by collection type, each group a grid of cover tiles. */
-export default function CollectionsContainer({ collectionTypes, collections }: CollectionsContainerProps) {
+export default function CollectionsContainer({ collectionTypes, collections, groupCounts, sorts, onToggleSort }: CollectionsContainerProps) {
   const { t } = useTranslation();
   const { setCollectionType, setCollection } = useCollectionStore();
   const { token } = useUserStore();
   const columns = useTileColumns();
 
-  const [sorts, setSorts] = useState<Record<string, keyof Collection>>(
-    Object.fromEntries(collectionTypes.map((collectionType) => [collectionType.id, "createdAt"])),
-  );
-
-  const toggleSort = (typeId: number) =>
-    setSorts((prev) => ({ ...prev, [typeId]: prev[typeId] === "name" ? "createdAt" : "name" }));
 
   const open = (type: CollectionType, item: Collection) => {
     setCollectionType(type);
@@ -45,11 +48,10 @@ export default function CollectionsContainer({ collectionTypes, collections }: C
 
   return (
     <View style={{ gap: spacing.xl }}>
-      {collectionTypes.map((type) => {
-        const matching = collections.filter((collection) => collection.collectionTypeId === type.id);
-        if (matching.length === 0) return null;
+      {groupInOrder(collections, (collection) => collection.collectionTypeId).map(({ id, items: matching }) => {
+        const type = collectionTypes.find((ct) => ct.id === id);
+        if (!type) return null;
         const byName = sorts[type.id] === "name";
-        matching.sort(byName ? (a, b) => a.name.localeCompare(b.name) : (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
 
         return (
           <View key={type.id} style={{ gap: spacing.sm }}>
@@ -61,13 +63,13 @@ export default function CollectionsContainer({ collectionTypes, collections }: C
                 {type.name}
               </Text>
               <View style={{ paddingHorizontal: spacing.xs, paddingVertical: 2, backgroundColor: colors.primary }}>
-                <Text style={[typography.label, { color: colors.onPrimary }]}>{matching.length}</Text>
+                <Text style={[typography.label, { color: colors.onPrimary }]}>{groupCounts[String(type.id)] ?? matching.length}</Text>
               </View>
               <View style={{ flex: 1 }} />
               <Chip
                 label={byName ? t("collections:list.sortName") : t("collections:list.sortNewest")}
                 accessibilityLabel={t("collections:list.sortToggle", { order: byName ? t("collections:list.sortName") : t("collections:list.sortNewest") })}
-                onPress={() => toggleSort(type.id)}
+                onPress={() => onToggleSort(type.id)}
               />
             </View>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>

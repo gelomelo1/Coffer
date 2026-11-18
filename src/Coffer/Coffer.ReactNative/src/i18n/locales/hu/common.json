@@ -23,7 +23,8 @@
   "states": {
     "loading": "Betöltés",
     "empty": "Itt még nincs semmi",
-    "error": "Hiba történt"
+    "error": "Hiba történt",
+    "loadingMore": "Továbbiak betöltése"
   },
   "select": {
     "multipleTitle": "Lehetőségek kiválasztása",

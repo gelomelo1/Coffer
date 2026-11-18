@@ -23,7 +23,8 @@
   "states": {
     "loading": "Loading",
     "empty": "Nothing here yet",
-    "error": "Something went wrong"
+    "error": "Something went wrong",
+    "loadingMore": "Loading more"
   },
   "select": {
     "multipleTitle": "Select options",

@@ -143,7 +143,9 @@
     "aroundWithin": "Around {{city}} · within {{km}} km",
     "cityTip": "Tip: pick a city in Filters to sort by closeness.",
     "emptyTitle": "Nothing here yet",
-    "emptyText": "Try other filters, or post the first listing!"
+    "emptyText": "Try other filters, or post the first listing!",
+    "resultCount_one": "{{count}} listing",
+    "resultCount_other": "{{count}} listings"
   },
   "filter": {
     "title": "Filter listings",

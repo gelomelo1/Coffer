@@ -76,7 +76,8 @@
   "otherUser": {
     "collections": "{{name}}'s collections",
     "noCollections": "No collections yet",
-    "allCollections": "All of {{name}}'s collections"
+    "allCollections": "All of {{name}}'s collections",
+    "collectionsCount": "{{name}}'s collections ({{count}})"
   },
   "language": {
     "title": "Language",

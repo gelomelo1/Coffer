@@ -76,7 +76,8 @@
   "otherUser": {
     "collections": "{{name}} gyűjteményei",
     "noCollections": "Még nincs gyűjteménye",
-    "allCollections": "{{name}} összes gyűjteménye"
+    "allCollections": "{{name}} összes gyűjteménye",
+    "collectionsCount": "{{name}} gyűjteményei ({{count}})"
   },
   "language": {
     "title": "Nyelv",

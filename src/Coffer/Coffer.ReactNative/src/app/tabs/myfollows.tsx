@@ -5,28 +5,40 @@ import { EmptyState, ErrorState } from "@/src/components/custom_ui/states";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
 import { useCollectionTypeStore } from "@/src/hooks/collection_type_store";
-import { useGetData } from "@/src/hooks/data_hooks";
+import { fetchPage, usePagedQuery } from "@/src/hooks/paged_query";
+import ListFooterLoading from "@/src/components/custom_ui/list_footer";
+import { prefetchForExpandedGroup } from "@/src/utils/paging";
 import { useUserStore } from "@/src/hooks/user_store";
 import { borders, colors, sizes, spacing, typography } from "@/src/theme/theme";
 import CollectionSearch from "@/src/types/entities/collection_search";
 import { apiErrorText } from "@/src/utils/api_error_text";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Image, Pressable, RefreshControl, SectionList, Text, View } from "react-native";
 
 /** Followed collections grouped by collection type; each group expands to its collection rows. */
+const followId = (follow: CollectionSearch) => follow.collection.id;
+
 function MyFollows() {
   const { t } = useTranslation();
   const { collectionTypes } = useCollectionTypeStore();
   const { token, user } = useUserStore();
 
-  const { data: followsData = [], isFetching, isError, error, refetch } = useGetData<CollectionSearch>(
-    `${endpoints.feedUserFollows}`,
-    querykeys.followsData,
-  );
-
-  const existingCollectionTypeIds = Array.from(new Set(followsData.map((follow) => follow.collection.collectionTypeId)));
+  // Follows come 20 at a time, ordered by collection type, with the count per type for the section headers.
+  const {
+    items: followsData,
+    total,
+    groupCounts,
+    isLoading,
+    isError,
+    error,
+    refresh: refetch,
+    loadMore,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = usePagedQuery<CollectionSearch>([querykeys.followsData], (page) => fetchPage<CollectionSearch>(endpoints.feedUserFollows, undefined, page), followId);
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
 
   const toggleSection = (sectionId: number) => {
@@ -38,12 +50,28 @@ function MyFollows() {
     });
   };
 
+  const loaded: Record<number, CollectionSearch[]> = {};
+  for (const follow of followsData) (loaded[follow.collection.collectionTypeId] ??= []).push(follow);
+
+  // Pages fill the groups in type order, so the sections follow that order too.
   const sections = collectionTypes
-    .filter((ct) => existingCollectionTypeIds.includes(ct.id))
-    .map((ct) => {
-      const items = followsData.filter((follow) => follow.collection.collectionTypeId === ct.id);
-      return { id: ct.id, title: ct.name, icon: ct.icon, color: ct.color, totalCount: items.length, data: expandedSections.has(ct.id) ? items : [] };
-    });
+    .filter((ct) => (groupCounts[String(ct.id)] ?? 0) > 0)
+    .sort((a, b) => a.id - b.id)
+    .map((ct) => ({
+      id: ct.id,
+      title: ct.name,
+      icon: ct.icon,
+      color: ct.color,
+      totalCount: groupCounts[String(ct.id)] ?? 0,
+      data: expandedSections.has(ct.id) ? (loaded[ct.id] ?? []) : [],
+    }));
+
+  // An opened section whose entries are further down the list keeps loading pages until it has something to show.
+  const loadedCounts = Object.fromEntries(Object.entries(loaded).map(([id, list]) => [Number(id), list.length]));
+  const needsMore = prefetchForExpandedGroup([...expandedSections], loadedCounts, groupCounts);
+  useEffect(() => {
+    if (needsMore && hasNextPage && !isFetchingNextPage) fetchNextPage();
+  }, [needsMore, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -87,21 +115,25 @@ function MyFollows() {
           );
         }}
         ListHeaderComponent={
-          followsData.length > 0 ? (
+          total > 0 ? (
             <Text accessibilityRole="header" style={[typography.title, { color: colors.text, padding: spacing.md }]}>
-              {t("feed:follows.title", { count: followsData.length })}
+              {t("feed:follows.title", { count: total })}
             </Text>
           ) : null
         }
         stickySectionHeadersEnabled
         refreshControl={<RefreshControl refreshing={false} onRefresh={() => refetch()} colors={[colors.primary]} tintColor={colors.primary} />}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.4}
         ListFooterComponent={
-          followsData.length > 0 ? (
+          isFetchingNextPage || (hasNextPage && needsMore) ? (
+            <ListFooterLoading loading />
+          ) : followsData.length > 0 && !hasNextPage ? (
             <Text style={[typography.meta, { color: colors.textMuted, textAlign: "center", padding: spacing.xl }]}>{t("feed:search.endOfResults")}</Text>
           ) : null
         }
         ListEmptyComponent={
-          isFetching ? (
+          isLoading ? (
             <Loading />
           ) : isError ? (
             <ErrorState message={apiErrorText(error)} onRetry={() => refetch()} />

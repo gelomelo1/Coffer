@@ -8,7 +8,11 @@ import { Loading } from "@/src/components/custom_ui/loading";
 import { endpoints } from "@/src/const/endpoints";
 import { querykeys } from "@/src/const/querykeys";
 import { useCollectionTypeStore } from "@/src/hooks/collection_type_store";
-import { useGetData, useGetSingleData } from "@/src/hooks/data_hooks";
+import { usePagedQuery } from "@/src/hooks/paged_query";
+import ListFooterLoading from "@/src/components/custom_ui/list_footer";
+import { backendAxios } from "@/src/const/backendAccessConfiguration";
+import { PAGE_SIZE, Paged } from "@/src/utils/paging";
+import { useQuery } from "@tanstack/react-query";
 import { useUserStore } from "@/src/hooks/user_store";
 import { borders, colors, spacing, typography } from "@/src/theme/theme";
 import CollectionSearch from "@/src/types/entities/collection_search";
@@ -44,9 +48,24 @@ type FeedSectionItem =
   | { type: "item"; data: ItemSearch };
 
 interface FeedSection {
+  /** Index of the tab that lists only this kind. */
+  tab: number;
+  /** All matches of this kind (the section shows the first page). */
+  total: number;
   title: string;
   data: FeedSectionItem[];
 }
+
+/** The users / collections / items tabs and their backend routes (api/Feed/Search/<route>). */
+const SCOPED = [
+  { type: "user", route: "Users" },
+  { type: "collection", route: "Collections" },
+  { type: "item", route: "Items" },
+] as const;
+
+const tagGroupId = (group: ItemTagSearch) => group.value;
+const sectionItemId = (entry: FeedSectionItem) =>
+  entry.type === "user" ? entry.data.id : entry.type === "collection" ? entry.data.collection.id : entry.data.item.id;
 
 function FeedSearchOverlay({
   isFeedSearchOverlayVisible,
@@ -63,43 +82,48 @@ function FeedSearchOverlay({
   const [searchSelectedCollectionTypeIds, setSearchSelectedCollectionTypeIds] =
     useState<number[] | null>(selectedCollectionTypeIds);
 
-  const { data: itemTagsSearchData = [], refetch: itemTagsSearchRefetch } =
-    useGetData<ItemTagSearch>(
-      searchSelectedCollectionTypeIds!.length > 0
-        ? `${endpoints.feedSearchTag}?searchText=${encodeURIComponent(
-            searchText,
-          )}&collectionTypeIds=${searchSelectedCollectionTypeIds!.join(";")}`
-        : `${endpoints.feedSearchTag}?searchText=${encodeURIComponent(
-            searchText,
-          )}`,
-      querykeys.itemTagsSearchData,
-      undefined,
-      undefined,
-      { enabled: false, queryKey: [querykeys.itemTagsSearchData] },
-    );
+  // The search text, committed after a short typing pause; it is part of every search's query key.
+  const [committed, setCommitted] = useState("");
+  const isTagSearch = committed.length > 1 && committed[0] === "#";
+  const typeIds = searchSelectedCollectionTypeIds ?? [];
+  const searchParams = `searchText=${encodeURIComponent(committed)}${typeIds.length > 0 ? `&collectionTypeIds=${typeIds.join(";")}` : ""}`;
 
-  const { data: mixedSearchData, refetch: mixedSearchRefetch } =
-    useGetSingleData<MixedSearch>(
-      searchSelectedCollectionTypeIds!.length > 0
-        ? `${endpoints.feedSearch}?searchText=${encodeURIComponent(
-            searchText,
-          )}&collectionTypeIds=${searchSelectedCollectionTypeIds!.join(";")}`
-        : `${endpoints.feedSearch}?searchText=${encodeURIComponent(
-            searchText,
-          )}`,
-      querykeys.mixedSearchData,
-      undefined,
-      undefined,
-      undefined,
-      { enabled: false, queryKey: [querykeys.mixedSearchData] },
-      true,
-    );
+  // "#tag" search: tag groups, 20 at a time.
+  const tagSearch = usePagedQuery<ItemTagSearch>(
+    [querykeys.itemTagsSearchData, committed, typeIds],
+    async (page) => (await backendAxios.get<Paged<ItemTagSearch>>(`${endpoints.feedSearchTag}?${searchParams}&page=${page}&pageSize=${PAGE_SIZE}`)).data,
+    tagGroupId,
+    { enabled: committed.length > 0 && isTagSearch },
+  );
+
+  // "All" tab: the first page of users, collections and items, with each kind's total.
+  const mixed = useQuery({
+    queryKey: [querykeys.mixedSearchData, committed, typeIds],
+    queryFn: async () => (await backendAxios.get<MixedSearch>(`${endpoints.feedSearch}?${searchParams}`)).data,
+    enabled: committed.length > 0 && !isTagSearch,
+    refetchOnWindowFocus: false,
+  });
+  const mixedSearchData = mixed.data;
 
   const [open, setOpen] = useState(false);
   const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+  const scope = SCOPED[selectedTabIndex - 1];
+  // Plain values: the compiler reads a closure's property accesses during render, and scope is undefined on "All".
+  const scopeRoute = scope?.route;
+  const scopeType = scope?.type;
+
+  // A single kind (users / collections / items): 20 at a time as the user scrolls.
+  const scoped = usePagedQuery<FeedSectionItem>(
+    ["feedSearchScoped", scopeType ?? "", committed, typeIds],
+    async (page) => {
+      const res = (await backendAxios.get<Paged<FeedSectionItem["data"]>>(`${endpoints.feedSearch}/${scopeRoute}?${searchParams}&page=${page}&pageSize=${PAGE_SIZE}`)).data;
+      return { ...res, items: res.items.map((data) => ({ type: scopeType!, data }) as FeedSectionItem) };
+    },
+    sectionItemId,
+    { enabled: committed.length > 0 && !isTagSearch && !!scopeRoute },
+  );
   const inputRef = useRef<any>(null);
   const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
 
   const dropdownItems = collectionTypes.map((type) => ({
@@ -124,8 +148,8 @@ function FeedSearchOverlay({
 
   useEffect(() => {
     setSearchText("");
-    setIsLoading(false);
     setIsTyping(true);
+    setCommitted("");
     if (isFeedSearchOverlayVisible.value) {
       setSearchSelectedCollectionTypeIds(selectedCollectionTypeIds);
       setSearchText(initialSearchText ?? "");
@@ -145,14 +169,7 @@ function FeedSearchOverlay({
       asyncstoragekeys.feedCollectionTypeFilters,
       JSON.stringify(searchSelectedCollectionTypeIds),
     );
-
-    if (hasValue) {
-      if (hasTagValue) {
-        await itemTagsSearchRefetch();
-      } else {
-        await mixedSearchRefetch();
-      }
-    }
+    // The collection types are part of the search queries' keys, so the results reload by themselves.
   };
 
   const hasValue = searchText.length > 0;
@@ -164,7 +181,6 @@ function FeedSearchOverlay({
     (hasSimpleValue && searchText.length >= 3);
 
   useEffect(() => {
-    setIsLoading(false);
     setIsTyping(true);
 
     if (debounceTimeout.current) {
@@ -176,17 +192,9 @@ function FeedSearchOverlay({
       return;
     }
 
-    debounceTimeout.current = setTimeout(async () => {
+    debounceTimeout.current = setTimeout(() => {
       setIsTyping(false);
-      setIsLoading(true);
-
-      if (hasTagValue) {
-        await itemTagsSearchRefetch();
-      } else if (hasSimpleValue) {
-        await mixedSearchRefetch();
-      }
-
-      setIsLoading(false);
+      setCommitted(searchText);
     }, 1000);
 
     return () => {
@@ -218,12 +226,20 @@ function FeedSearchOverlay({
 
   const mixedSections: FeedSection[] = mixedSearchData
     ? [
-        { title: t("feed:search.scopes.users"), data: mixedSearchData.foundUsers.map((u) => ({ type: "user" as const, data: u })) },
-        { title: t("feed:search.scopes.collections"), data: mixedSearchData.foundCollections.map((c) => ({ type: "collection" as const, data: c })) },
-        { title: t("feed:search.scopes.items"), data: mixedSearchData.foundItems.map((i) => ({ type: "item" as const, data: i })) },
+        { tab: 1, total: mixedSearchData.foundUsersTotal, title: t("feed:search.scopes.users"), data: mixedSearchData.foundUsers.map((u) => ({ type: "user" as const, data: u })) },
+        {
+          tab: 2,
+          total: mixedSearchData.foundCollectionsTotal,
+          title: t("feed:search.scopes.collections"),
+          data: mixedSearchData.foundCollections.map((c) => ({ type: "collection" as const, data: c })),
+        },
+        { tab: 3, total: mixedSearchData.foundItemsTotal, title: t("feed:search.scopes.items"), data: mixedSearchData.foundItems.map((i) => ({ type: "item" as const, data: i })) },
       ]
     : [];
-  const scopedData: FeedSectionItem[] = selectedTabIndex === 0 ? [] : (mixedSections[selectedTabIndex - 1]?.data ?? []);
+  const scopedData = scoped.items;
+  const searching = isTagSearch ? tagSearch.isLoading : selectedTabIndex === 0 ? mixed.isLoading : scoped.isLoading;
+  const pageFooter = (query: { hasNextPage: boolean; isFetchingNextPage: boolean }) =>
+    query.hasNextPage || query.isFetchingNextPage ? <ListFooterLoading loading /> : endOfResults;
 
   const listProps = { keyboardShouldPersistTaps: "handled" as const, keyboardDismissMode: "on-drag" as const };
 
@@ -231,22 +247,24 @@ function FeedSearchOverlay({
     if (!shouldSearch) {
       return <Text style={[typography.meta, { color: colors.textMuted, padding: spacing.md }]}>{t("feed:search.minChars")}</Text>;
     }
-    if (isLoading) return <Loading />;
+    if (searching) return <Loading />;
     if (isTyping) return null;
 
     if (hasTagValue) {
-      if (itemTagsSearchData.length === 0) return noResults;
+      if (tagSearch.items.length === 0) return noResults;
       return (
         <FlatList
           {...listProps}
-          data={itemTagsSearchData}
+          data={tagSearch.items}
+          onEndReached={tagSearch.loadMore}
+          onEndReachedThreshold={0.4}
           keyExtractor={(item, index) => `${item.value}-${index}`}
           renderItem={({ item }) => <FeedSearchItemTagCard currentUser={user!} itemTagsSearch={item} closeOverlay={closeOnly} />}
           ItemSeparatorComponent={Divider}
           ListHeaderComponent={
-            <SectionHeader title={t("feed:search.found", { count: itemTagsSearchData.length })} style={{ marginTop: spacing.sm, paddingHorizontal: spacing.md }} />
+            <SectionHeader title={t("feed:search.found", { count: tagSearch.total })} style={{ marginTop: spacing.sm, paddingHorizontal: spacing.md }} />
           }
-          ListFooterComponent={endOfResults}
+          ListFooterComponent={pageFooter(tagSearch)}
         />
       );
     }
@@ -263,9 +281,16 @@ function FeedSearchOverlay({
           renderItem={({ item }) => renderMixedItem(item)}
           renderSectionHeader={({ section }) => (
             <View style={{ backgroundColor: colors.bg, paddingHorizontal: spacing.md }}>
-              <SectionHeader title={t("feed:search.sectionCount", { title: section.title, count: section.data.length })} style={{ marginTop: spacing.md }} />
+              <SectionHeader title={t("feed:search.sectionCount", { title: section.title, count: section.total })} style={{ marginTop: spacing.md }} />
             </View>
           )}
+          renderSectionFooter={({ section }) =>
+            section.total > section.data.length ? (
+              <View style={{ paddingHorizontal: spacing.md, paddingTop: spacing.sm }}>
+                <Chip label={t("feed:search.showAll", { count: section.total })} onPress={() => setSelectedTabIndex(section.tab)} />
+              </View>
+            ) : null
+          }
           ItemSeparatorComponent={Divider}
           stickySectionHeadersEnabled
           ListFooterComponent={endOfResults}
@@ -278,13 +303,15 @@ function FeedSearchOverlay({
       <FlatList
         {...listProps}
         data={scopedData}
+        onEndReached={scoped.loadMore}
+        onEndReachedThreshold={0.4}
         keyExtractor={(item, index) => `${item.type}-${index}`}
         renderItem={({ item }) => renderMixedItem(item)}
         ItemSeparatorComponent={Divider}
         ListHeaderComponent={
-          <SectionHeader title={t("feed:search.found", { count: scopedData.length })} style={{ marginTop: spacing.sm, paddingHorizontal: spacing.md }} />
+          <SectionHeader title={t("feed:search.found", { count: scoped.total })} style={{ marginTop: spacing.sm, paddingHorizontal: spacing.md }} />
         }
-        ListFooterComponent={endOfResults}
+        ListFooterComponent={pageFooter(scoped)}
       />
     );
   };

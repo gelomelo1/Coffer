@@ -4,7 +4,7 @@ import ChatList from "@/src/components/market/chats/chat_list";
 import DealList from "@/src/components/market/deals/deal_list";
 import MyListings from "@/src/components/market/mine/my_listings";
 import TermsGate from "@/src/components/market/terms/terms_gate";
-import { useInbox, useMyDeals, useTerms } from "@/src/hooks/market_api";
+import { useMarketBadges, useTerms } from "@/src/hooks/market_api";
 import { borders, colors, fonts, spacing } from "@/src/theme/theme";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -15,11 +15,10 @@ function Market() {
   const { t } = useTranslation();
   const [tab, setTab] = useState(0);
   const { data: terms, isLoading: termsLoading } = useTerms();
-  const { data: inbox = [] } = useInbox();
-  const { data: deals = [] } = useMyDeals();
+  const { data: badges } = useMarketBadges();
 
-  const unread = inbox.reduce((sum, x) => sum + x.unreadCount, 0);
-  const actionable = deals.filter((d) => d.nextActions.some((a) => a !== "cancel")).length;
+  const unread = badges?.unreadMessages ?? 0;
+  const actionable = badges?.actionableDeals ?? 0;
   const tabs = [
     { title: t("market:tabs.browse"), badge: 0 },
     { title: t("market:tabs.mine"), badge: 0 },

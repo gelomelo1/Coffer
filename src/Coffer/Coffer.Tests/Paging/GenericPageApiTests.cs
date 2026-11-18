@@ -41,6 +41,7 @@ namespace Coffer.Tests.Paging
             var ids = first.GetProperty("items").EnumerateArray().Concat(second.GetProperty("items").EnumerateArray())
                 .Select(i => i.GetProperty("id").GetString()).ToHashSet();
             Assert.Equal(25, ids.Count); // stable order: no item on two pages
+            Assert.Equal(25, first.GetProperty("totalQuantity").GetInt32()); // pieces across all pages (1 each)
         }
 
         [Fact]

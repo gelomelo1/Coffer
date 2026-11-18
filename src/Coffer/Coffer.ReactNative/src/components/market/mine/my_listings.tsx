@@ -1,3 +1,4 @@
+import ListFooterLoading from "@/src/components/custom_ui/list_footer";
 import { Loading } from "@/src/components/custom_ui/loading";
 import { ErrorState } from "@/src/components/custom_ui/states";
 import { useMyListingCounts, useMyListings } from "@/src/hooks/market_api";
@@ -19,7 +20,7 @@ const FILTERS: MyListingsFilter[] = ["active", "sold", "archived"];
 function MyListings() {
   const { t } = useTranslation();
   const [filter, setFilter] = useState<MyListingsFilter>("active");
-  const { data = [], isFetching, isError, error, refetch } = useMyListings(filter);
+  const { items: data, isLoading, isError, error, refetch, refreshing, onRefresh, loadMore, isFetchingNextPage } = useMyListings(filter);
   const { data: counts, refetch: refetchCounts } = useMyListingCounts();
 
   return (
@@ -29,15 +30,18 @@ function MyListings() {
       contentContainerStyle={{ padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl * 2 }}
       refreshControl={
         <RefreshControl
-          refreshing={isFetching}
+          refreshing={refreshing}
           colors={[colors.primary]}
           tintColor={colors.primary}
           onRefresh={() => {
-            refetch();
+            onRefresh();
             refetchCounts();
           }}
         />
       }
+      onEndReached={loadMore}
+      onEndReachedThreshold={0.4}
+      ListFooterComponent={<ListFooterLoading loading={isFetchingNextPage} />}
       ListHeaderComponent={
         <ChipRow>
           {FILTERS.map((f) => (
@@ -51,7 +55,7 @@ function MyListings() {
         </ChipRow>
       }
       ListEmptyComponent={
-        isFetching ? (
+        isLoading ? (
           <Loading />
         ) : isError ? (
           <ErrorState message={apiErrorText(error)} onRetry={() => refetch()} />
