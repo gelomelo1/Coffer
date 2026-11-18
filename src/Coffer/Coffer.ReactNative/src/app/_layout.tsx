@@ -5,6 +5,7 @@ import React from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import SuspendedScreen from "../components/account/suspended_screen";
+import ConnectionScreen from "../components/custom_ui/connection_screen";
 import { toastConfig } from "../components/custom_ui/toast_config";
 import useStartup from "../hooks/startup";
 import { useUserStore } from "../hooks/user_store";
@@ -20,6 +21,7 @@ export default function Layout() {
       <QueryClientProvider client={queryClient}>
         <Stack screenOptions={{ headerShown: false }} />
         <SuspendedScreen />
+        <ConnectionScreen />
         <Toast config={toastConfig} />
       </QueryClientProvider>
     </SafeAreaProvider>

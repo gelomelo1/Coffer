@@ -10,6 +10,7 @@ import { LoadingScreen } from "../components/custom_ui/loading";
 import { endpoints } from "../const/endpoints";
 import { pageParams, ROUTES } from "../const/navigation_params";
 import { useCollectionTypeStore } from "../hooks/collection_type_store";
+import { useConnectionStore } from "../hooks/connection_store";
 import { useResetNavigation } from "../hooks/navigation";
 import { useSuspensionStore } from "../hooks/suspension_store";
 import { useUserStore } from "../hooks/user_store";
@@ -24,12 +25,15 @@ export default function Index() {
   const { setCollectionTypes } = useCollectionTypeStore();
   // While suspended the SuspendedScreen covers the app; once "Check again" clears it, sign-in is retried.
   const suspension = useSuspensionStore((s) => s.suspension);
+  // Same while a connection page (no internet / Coffer unavailable) is open: it closes once the connection works, and
+  // sign-in is retried then (this check is a plain request, so the query refetch after reconnecting doesn't reach it).
+  const connectionProblem = useConnectionStore((s) => s.problem);
   const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    if (suspension) return;
+    if (suspension || connectionProblem) return;
     const checkAuth = async () => {
       const token = await getToken();
       if (!token) {
@@ -69,7 +73,7 @@ export default function Index() {
     setError(null);
     checkAuth();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [suspension, attempt]);
+  }, [suspension, connectionProblem, attempt]);
 
   if (error) {
     return (

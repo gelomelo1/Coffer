@@ -70,5 +70,18 @@
   },
   "image": {
     "openFullScreen": "Open the image full screen"
+  },
+  "connection": {
+    "offline": {
+      "title": "No internet connection",
+      "text": "Check your Wi-Fi or mobile data. As soon as you're back online, you'll continue where you left off.",
+      "still": "Still no connection."
+    },
+    "server": {
+      "title": "Coffer is unavailable right now",
+      "text": "Your internet works, but our server isn't answering. We'll keep trying automatically.",
+      "still": "The server still isn't answering."
+    },
+    "tryAgain": "Try again"
   }
 }

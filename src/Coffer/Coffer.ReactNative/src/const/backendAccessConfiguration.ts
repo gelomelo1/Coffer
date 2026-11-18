@@ -1,6 +1,9 @@
+import NetInfo from "@react-native-community/netinfo";
 import axios from "axios";
+import { useConnectionStore } from "../hooks/connection_store";
 import i18n from "../i18n";
 import { useSuspensionStore } from "../hooks/suspension_store";
+import { classifyFailure, isDeviceOffline } from "../utils/connectivity";
 import { getToken } from "../utils/token_store";
 
 // EXPO_PUBLIC_BACKEND_URL overrides the default at bundle time, e.g. http://10.0.2.2:5141 for the Android emulator.
@@ -32,7 +35,19 @@ backendAxios.interceptors.request.use(
 // backend); the SuspendedScreen explains it and clears it via "Check again" (GET api/Account/Suspension).
 backendAxios.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    // No answer at all: open the "no internet" or "Coffer unavailable" page (see utils/connectivity).
+    if (axios.isAxiosError(error)) {
+      let offline = false;
+      if (!error.response) {
+        try {
+          offline = isDeviceOffline(await NetInfo.fetch());
+        } catch {}
+      }
+      const problem = classifyFailure(error, offline);
+      if (problem) useConnectionStore.getState().setProblem(problem);
+    }
+
     const data = error?.response?.data;
     if (error?.response?.status === 403 && data?.code === "account_suspended") {
       useSuspensionStore.getState().setSuspension({ message: data.message, reason: data.reason, startsAt: data.startsAt, endsAt: data.endsAt });

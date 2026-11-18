@@ -70,5 +70,18 @@
   },
   "image": {
     "openFullScreen": "Kép megnyitása teljes képernyőn"
+  },
+  "connection": {
+    "offline": {
+      "title": "Nincs internetkapcsolat",
+      "text": "Ellenőrizd a Wi-Fi-t vagy a mobilnetet. Amint újra van kapcsolat, ott folytathatod, ahol abbahagytad.",
+      "still": "Még mindig nincs kapcsolat."
+    },
+    "server": {
+      "title": "A Coffer most nem érhető el",
+      "text": "Az internetkapcsolatod rendben van, de a szerverünk nem válaszol. Automatikusan újrapróbálkozunk.",
+      "still": "A szerver még mindig nem válaszol."
+    },
+    "tryAgain": "Újrapróbálás"
   }
 }
