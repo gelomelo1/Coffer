@@ -10,9 +10,10 @@ namespace Coffer.DataAccess.Repositories.Interfaces
 {
     public interface IItemsRepository : IGenericRepository<Guid, ItemProvided, ItemProvided, ItemRequired>
     {
-        public Task<IEnumerable<ItemProvided>> SearchItemsSmart(string? collectionTypeIds, string searchText);
+        public Task<Coffer.Domain.Paging.PagedList<ItemProvided>> SearchItemsSmart(string? collectionTypeIds, string searchText, int? page, int? pageSize);
         public Task<IDbContextTransaction> BeginTransactionAsync();
-        public Task<IEnumerable<ItemProvided>> GetFeedItemsAsync(User user, string? filter = null, string? orderBy = null, int? page = null, int? pageSize = null);
+        /// <summary>Other people's items from the last week, followed collections and the same country first, newest next.</summary>
+        public Task<Coffer.Domain.Paging.PagedList<ItemProvided>> GetFeedPageAsync(User user, string? filter, int? page, int? pageSize);
         public Task<IEnumerable<ItemProvided>> SearchItems(string? collectionTypeIds, string searchText);
         public Task<IEnumerable<ItemProvided>> GetItemsByCollectionAsync(Guid collectionId);
     }

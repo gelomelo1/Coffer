@@ -94,7 +94,7 @@ namespace Coffer.Tests.Marketplace
             var me = _api.Db.AddUser("me");
             var client = _api.ClientFor(me);
 
-            Assert.Equal("[]", await client.GetStringAsync("api/Listings/Mine?filter=sold"));
+            Assert.Equal("{\"items\":[],\"page\":1,\"pageSize\":20,\"total\":0}", await client.GetStringAsync("api/Listings/Mine?filter=sold"));
             Assert.Contains("\"active\":0", await client.GetStringAsync("api/Listings/Mine/Counts"));
             Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync("api/Listings/Mine?filter=nope")).StatusCode);
         }

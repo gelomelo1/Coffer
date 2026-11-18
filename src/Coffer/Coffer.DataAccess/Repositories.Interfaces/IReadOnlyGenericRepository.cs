@@ -15,5 +15,7 @@ namespace Coffer.DataAccess.Repositories.Interfaces
         {
             Task<IEnumerable<TProvided>> GetItemsAsync(string? filter = null, string? orderBy = null, int? page = null, int? pageSize = null);
             Task<TProvided?> GetItemByIdAsync(Tkey id);
+            /// <summary>One page of the filtered list (ordered by orderBy, then Id) with the filtered total.</summary>
+            Task<Coffer.Domain.Paging.PagedList<TProvided>> GetPageAsync(string? filter, string? orderBy, int? page, int? pageSize);
         }
 }

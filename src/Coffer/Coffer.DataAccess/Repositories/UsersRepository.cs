@@ -60,14 +60,14 @@ namespace Coffer.DataAccess.Repositories
             return users;
         }
 
-        public async Task<IEnumerable<User>> SearchUsersSmartAsync(string searchText)
+        public async Task<Coffer.Domain.Paging.PagedList<User>> SearchUsersSmartAsync(string searchText, int? page, int? pageSize)
         {
             if (string.IsNullOrWhiteSpace(searchText))
-                return Enumerable.Empty<User>();
+                return Coffer.DataAccess.Extensions.PagingExtensions.Empty<User>(page, pageSize);
 
             searchText = searchText.Trim();
 
-            var users = await _dbSet
+            var ranked = _dbSet
                 .Select(u => new
                 {
                     User = u,
@@ -79,11 +79,10 @@ namespace Coffer.DataAccess.Repositories
                 .OrderByDescending(x => x.IsExact)
                 .ThenByDescending(x => x.Similarity)
                 .ThenBy(x => x.User.Name)
-                .Take(10)
-                .Select(x => x.User)
-                .ToListAsync();
+                .ThenBy(x => x.User.Id)
+                .Select(x => x.User);
 
-            return users;
+            return await Coffer.DataAccess.Extensions.PagingExtensions.ToPagedListAsync(ranked, page, pageSize);
         }
 
         public async Task<User?> UpdateUserFrontend(Guid id, UserRequiredFrontend newUser)

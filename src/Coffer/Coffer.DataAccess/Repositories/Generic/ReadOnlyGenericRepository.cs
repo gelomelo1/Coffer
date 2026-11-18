@@ -54,6 +54,25 @@ namespace Coffer.DataAccess.Repositories.Generic
             return list.Cast<TProvided>();
         }
 
+        public virtual async Task<Coffer.Domain.Paging.PagedList<TProvided>> GetPageAsync(string? filter, string? orderBy, int? page, int? pageSize)
+        {
+            IQueryable<TEntity> query = _dbSet;
+            if (!string.IsNullOrWhiteSpace(filter))
+                query = query.Where(filter);
+            // Id last, so rows with equal sort values keep one order and no row shows up on two pages.
+            query = query.OrderBy(string.IsNullOrWhiteSpace(orderBy) ? "Id" : orderBy + ", Id");
+
+            var includes = _includeProvider?.GetDefaultIncludes();
+            if (includes != null && includes.Length > 0)
+            {
+                foreach (var include in includes)
+                    query = query.Include(include);
+            }
+
+            var result = await Coffer.DataAccess.Extensions.PagingExtensions.ToPagedListAsync(query, page, pageSize);
+            return new Coffer.Domain.Paging.PagedList<TProvided>(result.Items.Cast<TProvided>().ToList(), result.Page, result.PageSize, result.Total);
+        }
+
         public virtual async Task<TProvided?> GetItemByIdAsync(Tkey id)
         {
             IQueryable<TEntity> query = _dbSet;

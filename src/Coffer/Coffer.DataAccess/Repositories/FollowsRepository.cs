@@ -34,6 +34,20 @@ namespace Coffer.DataAccess.Repositories
                 .ToListAsync();
         }
 
+        public async Task<Coffer.Domain.Paging.GroupedPagedList<FollowProvided>> FindFollowsPageOfUser(Guid userId, int? page, int? pageSize)
+        {
+            var mine = _dbSet.Where(f => f.UserId == userId);
+            var counts = await mine.GroupBy(f => f.Collection.CollectionTypeId)
+                .Select(g => new { TypeId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.TypeId, x => x.Count);
+            var ordered = mine
+                .Include(f => f.Collection).ThenInclude(c => c.Follows)
+                .Include(f => f.Collection).ThenInclude(c => c.User)
+                .OrderBy(f => f.Collection.CollectionTypeId).ThenBy(f => f.Collection.Name).ThenBy(f => f.Id);
+            var result = await Coffer.DataAccess.Extensions.PagingExtensions.ToPagedListAsync(ordered, page, pageSize);
+            return new Coffer.Domain.Paging.GroupedPagedList<FollowProvided>(result.Items, result.Page, result.PageSize, result.Total, counts);
+        }
+
         protected override FollowProvided MapToEntity(FollowRequired required, FollowProvided? entity = null)
         {
             if(entity == null)

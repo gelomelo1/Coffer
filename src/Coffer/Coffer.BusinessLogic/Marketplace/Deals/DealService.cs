@@ -24,6 +24,7 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
         Task<DealDto> DisputeAsync(Guid userId, Guid dealId, string reason);
         Task<DealDto> GetAsync(Guid userId, Guid dealId);
         Task<List<DealDto>> GetMineAsync(Guid userId);
+        Task<Coffer.Domain.Paging.PagedList<DealDto>> GetMinePageAsync(Guid userId, int? page, int? pageSize);
         Task<bool> CanViewPhotoAsync(Guid userId, string fileName);
         /// <summary>Persists time-based transitions (shipping auto-complete). Used by the hourly sweeper.</summary>
         Task ApplyDueTimeRulesAsync();
@@ -277,6 +278,19 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
             var deal = await LoadAsync(userId, dealId);
             await ApplyTimeRulesAsync(deal);
             return await ToDtoAsync(deal, userId);
+        }
+
+        public async Task<Coffer.Domain.Paging.PagedList<DealDto>> GetMinePageAsync(Guid userId, int? page, int? pageSize)
+        {
+            var deals = await Coffer.DataAccess.Extensions.PagingExtensions.ToPagedListAsync(Query().Where(d => d.SellerId == userId || d.BuyerId == userId)
+                .OrderByDescending(d => d.UpdatedAt).ThenBy(d => d.Id), page, pageSize);
+            var result = new List<DealDto>();
+            foreach (var deal in deals.Items)
+            {
+                await ApplyTimeRulesAsync(deal);
+                result.Add(await ToDtoAsync(deal, userId));
+            }
+            return new Coffer.Domain.Paging.PagedList<DealDto>(result, deals.Page, deals.PageSize, deals.Total);
         }
 
         public async Task<List<DealDto>> GetMineAsync(Guid userId)

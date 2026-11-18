@@ -382,8 +382,8 @@ namespace Coffer.Tests.Marketplace
             var user = _api.Db.AddUser("user");
             var client = _api.ClientFor(user);
             Assert.Contains("fake_review", await client.GetStringAsync("api/Reports/Rules"));
-            Assert.Equal("[]", await client.GetStringAsync("api/Reports/Mine"));
-            Assert.Equal("[]", await client.GetStringAsync("api/Moderation/AgainstMe"));
+            Assert.Equal("{\"items\":[],\"page\":1,\"pageSize\":20,\"total\":0}", await client.GetStringAsync("api/Reports/Mine"));
+            Assert.Equal("{\"items\":[],\"page\":1,\"pageSize\":20,\"total\":0}", await client.GetStringAsync("api/Moderation/AgainstMe"));
             Assert.Contains("\"count\":0", await client.GetStringAsync("api/Moderation/AgainstMe/UnseenCount"));
             var bad = await client.PostAsJsonAsync("api/Reports", new { targetType = "listing", targetId = Guid.NewGuid(), rule = "spam", reason = "Spam listing everywhere." });
             Assert.Equal(HttpStatusCode.NotFound, bad.StatusCode);

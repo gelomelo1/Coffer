@@ -77,6 +77,30 @@ namespace Coffer.Tests
             return collection;
         }
 
+        public CollectionTypeProvided AddCollectionType(string name)
+        {
+            var type = new CollectionTypeProvided(name, "desc", "#fff", "icon");
+            Context.CollectionTypes.Add(type);
+            Context.SaveChanges();
+            return type;
+        }
+
+        public CollectionProvided AddCollection(User owner, int collectionTypeId, string name)
+        {
+            var collection = new CollectionProvided(owner.Id, collectionTypeId, name);
+            Context.Collections.Add(collection);
+            Context.SaveChanges();
+            return collection;
+        }
+
+        public FollowProvided Follow(User follower, CollectionProvided collection)
+        {
+            var follow = new FollowProvided(follower.Id, collection.Id);
+            Context.Follows.Add(follow);
+            Context.SaveChanges();
+            return follow;
+        }
+
         public ItemProvided AddItem(CollectionProvided collection, string image = "", string? privateNote = null)
         {
             var item = new ItemProvided(collection.Id, 1, image, null, privateNote);

@@ -19,7 +19,7 @@ namespace Coffer.DataAccess.Repositories.Interfaces
         /// (trimmed, lowercase, without '#').
         /// </summary>
         public Task<List<TagStat>> GetTagStatsAsync(string? search, IReadOnlyCollection<string>? tags);
-        public Task<List<(string value, List<ItemTags> tags)>> SearchTagsSmartAsync(string? collectionTypeIds, string searchText);
+        public Task<Coffer.Domain.Paging.PagedList<(string value, List<ItemTags> tags)>> SearchTagsSmartAsync(string? collectionTypeIds, string searchText, int? page, int? pageSize);
         public Task<List<(string value, List<ItemTags> tags)>> SearchTagsAsync(string? collectionTypeIds, string searchText);
     }
 }

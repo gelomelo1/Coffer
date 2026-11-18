@@ -61,7 +61,7 @@ namespace Coffer.Tests.Marketplace
             Assert.Contains("\"theyHaveSubmitted\":true", sellerView);
 
             var publicList = await _api.ClientFor(Db.AddUser("viewer")).GetStringAsync($"api/Users/{seller.Id}/MarketReviews");
-            Assert.Equal("[]", publicList);
+            Assert.Equal("{\"items\":[],\"page\":1,\"pageSize\":20,\"total\":0}", publicList);
             var reputation = await _api.ClientFor(Db.AddUser("viewer2")).GetStringAsync($"api/Users/{seller.Id}/Reputation");
             Assert.Contains("\"completedDeals\":1", reputation);
         }

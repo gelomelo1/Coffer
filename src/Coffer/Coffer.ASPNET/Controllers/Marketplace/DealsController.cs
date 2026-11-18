@@ -28,7 +28,8 @@ namespace Coffer.ASPNET.Controllers.Marketplace
             => Ok(await _deals.ProposeAsync(Me, input.ConversationId, input.Method));
 
         [HttpGet("Mine")]
-        public async Task<ActionResult<List<DealDto>>> Mine() => Ok(await _deals.GetMineAsync(Me));
+        public async Task<ActionResult<Coffer.Domain.Paging.PagedList<DealDto>>> Mine([FromQuery] int? page = null, [FromQuery] int? pageSize = null)
+            => Ok(await _deals.GetMinePageAsync(Me, page, pageSize));
 
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<DealDto>> Get(Guid id) => Ok(await _deals.GetAsync(Me, id));

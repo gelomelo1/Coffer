@@ -11,5 +11,7 @@ namespace Coffer.DataAccess.Repositories.Interfaces
     {
         public Task<FollowProvided?> FindFollowByUserCollectionIdAsync(Guid userId, Guid collectionId);
         public Task<IEnumerable<FollowProvided>> FindFollowsOfUser(Guid userId);
+        /// <summary>The user's follows ordered by collection type, then collection name, with the count per type.</summary>
+        public Task<Coffer.Domain.Paging.GroupedPagedList<FollowProvided>> FindFollowsPageOfUser(Guid userId, int? page, int? pageSize);
     }
 }

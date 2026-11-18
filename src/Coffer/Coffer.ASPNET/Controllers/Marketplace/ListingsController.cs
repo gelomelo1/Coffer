@@ -22,7 +22,7 @@ namespace Coffer.ASPNET.Controllers.Marketplace
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<ListingSummaryDto>>> Search(
+        public async Task<ActionResult<Coffer.Domain.Paging.PagedList<ListingSummaryDto>>> Search(
             [FromQuery] string? kind, [FromQuery] int? collectionTypeId, [FromQuery] int? cityId, [FromQuery] double? radiusKm,
             [FromQuery] int? minPriceCents, [FromQuery] int? maxPriceCents, [FromQuery] string? condition,
             [FromQuery] string? delivery, [FromQuery] string? sort, [FromQuery] List<string>? sellerCountry,
@@ -47,7 +47,8 @@ namespace Coffer.ASPNET.Controllers.Marketplace
         }
 
         [HttpGet("Mine")]
-        public async Task<ActionResult<List<ListingSummaryDto>>> Mine([FromQuery] string? filter) => Ok(await _listings.GetMineAsync(Me, filter));
+        public async Task<ActionResult<Coffer.Domain.Paging.PagedList<ListingSummaryDto>>> Mine([FromQuery] string? filter, [FromQuery] int? page = null, [FromQuery] int? pageSize = null)
+            => Ok(await _listings.GetMinePageAsync(Me, filter, page, pageSize));
 
         /// <summary>{ active, sold, archived } counts for the My Listings filter chips.</summary>
         [HttpGet("Mine/Counts")]

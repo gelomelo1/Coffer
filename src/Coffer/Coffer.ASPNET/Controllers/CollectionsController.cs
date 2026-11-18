@@ -40,6 +40,20 @@ namespace Coffer.ASPNET.Controllers
         }
 
         [Authorize]
+        /// <summary>
+        /// A user's collections a page at a time, ordered by collection type so the app can show them grouped;
+        /// byName lists the type ids sorted by name (e.g. "1,3"), other types are newest first.
+        /// </summary>
+        [Authorize]
+        [HttpGet("Grouped")]
+        public async Task<ActionResult<Coffer.Domain.Paging.GroupedPagedList<CollectionProvided>>> Grouped([FromQuery] Guid userId, [FromQuery] string? byName = null,
+                                                                                                      [FromQuery] int? page = null, [FromQuery] int? pageSize = null)
+        {
+            var byNameIds = (byName ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(x => int.TryParse(x, out var id) ? id : (int?)null).Where(x => x.HasValue).Select(x => x!.Value).ToList();
+            return Ok(await _collectionsRepository.GetGroupedPageAsync(userId, byNameIds, page, pageSize));
+        }
+
         [HttpPost("CoverImage/Upload/{id}")]
         public async Task<IActionResult> UploadCoverImage(Guid id, IFormFile? file)
         {

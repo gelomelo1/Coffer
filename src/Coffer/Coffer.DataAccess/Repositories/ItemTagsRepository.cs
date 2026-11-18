@@ -52,20 +52,20 @@ namespace Coffer.DataAccess.Repositories
             return result;
         }
 
-        public async Task<List<(string value, List<ItemTags> tags)>> SearchTagsSmartAsync(string? collectionTypeIds, string searchText)
+        public async Task<Coffer.Domain.Paging.PagedList<(string value, List<ItemTags> tags)>> SearchTagsSmartAsync(string? collectionTypeIds, string searchText, int? page, int? pageSize)
         {
             if (string.IsNullOrWhiteSpace(searchText))
-                return new List<(string, List<ItemTags>)>();
+                return Coffer.DataAccess.Extensions.PagingExtensions.Empty<(string, List<ItemTags>)>(page, pageSize);
 
             searchText = searchText.Trim();
 
             var query = BuildTagBaseQuery(collectionTypeIds);
 
-            var result = await query
+            // Rank the distinct tag names first (cheap), page those, then load the tag rows of just that page.
+            var ranked = query
                 .Select(t => new
                 {
-                    Tag = t.Tag,
-                    Tags = t,
+                    t.Tag,
                     IsExact = EF.Functions.ILike(t.Tag, $"%{searchText}%"),
                     Similarity = EF.Functions.TrigramsSimilarity(t.Tag, searchText)
                 })
@@ -74,18 +74,20 @@ namespace Coffer.DataAccess.Repositories
                 .Select(g => new
                 {
                     Value = g.Key,
-                    Tags = g.Select(x => x.Tags).ToList(),
                     MaxSimilarity = g.Max(x => x.Similarity),
                     HasExact = g.Any(x => x.IsExact)
                 })
                 .OrderByDescending(x => x.HasExact)
                 .ThenByDescending(x => x.MaxSimilarity)
                 .ThenBy(x => x.Value)
-                .Take(10)
-                .Select(x => new ValueTuple<string, List<ItemTags>>(x.Value, x.Tags))
-                .ToListAsync();
+                .Select(x => x.Value);
 
-            return result;
+            var values = await Coffer.DataAccess.Extensions.PagingExtensions.ToPagedListAsync(ranked, page, pageSize);
+            var rows = await query.Where(t => values.Items.Contains(t.Tag)).ToListAsync();
+            var groups = values.Items
+                .Select(v => (v, rows.Where(r => r.Tag == v).ToList()))
+                .ToList();
+            return new Coffer.Domain.Paging.PagedList<(string value, List<ItemTags> tags)>(groups, values.Page, values.PageSize, values.Total);
         }
 
         public static string NormalizeTag(string tag) => tag.Trim().TrimStart('#').Trim().ToLowerInvariant();

@@ -19,6 +19,8 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
         Task<ListingDetailDto> GetAsync(Guid viewerId, Guid id);
         Task<List<ListingSummaryDto>> SearchAsync(Guid viewerId, ListingQuery query);
         Task<List<ListingSummaryDto>> GetMineAsync(Guid userId, string? filter = null);
+        Task<Coffer.Domain.Paging.PagedList<ListingSummaryDto>> SearchPageAsync(Guid viewerId, ListingQuery query);
+        Task<Coffer.Domain.Paging.PagedList<ListingSummaryDto>> GetMinePageAsync(Guid userId, string? filter, int? page, int? pageSize);
         Task<Dictionary<string, int>> CountMineAsync(Guid userId);
     }
 
@@ -190,7 +192,10 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
                 l.CreatedAt, l.UpdatedAt, UserSummaryDto.From(l.Owner), isMine, myConversation, openDealId);
         }
 
-        public async Task<List<ListingSummaryDto>> SearchAsync(Guid viewerId, ListingQuery query)
+        public async Task<List<ListingSummaryDto>> SearchAsync(Guid viewerId, ListingQuery query) =>
+            (await SearchPageAsync(viewerId, query)).Items;
+
+        public async Task<Coffer.Domain.Paging.PagedList<ListingSummaryDto>> SearchPageAsync(Guid viewerId, ListingQuery query)
         {
             var sort = (query.Sort ?? "newest").ToLowerInvariant();
             if (sort is not ("nearest" or "price_asc" or "price_desc" or "newest"))
@@ -238,10 +243,15 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
                 _ => rows.OrderByDescending(r => r.Listing.CreatedAt),
             };
 
-            return rows.Skip((page - 1) * pageSize).Take(pageSize).Select(r => ToSummary(r.Listing, r.Distance)).ToList();
+            var ranked = ((IOrderedEnumerable<(Listing Listing, double? Distance)>)rows).ThenBy(r => r.Listing.Id).ToList();
+            var slice = ranked.Skip((page - 1) * pageSize).Take(pageSize).Select(r => ToSummary(r.Listing, r.Distance)).ToList();
+            return new Coffer.Domain.Paging.PagedList<ListingSummaryDto>(slice, page, pageSize, ranked.Count);
         }
 
-        public async Task<List<ListingSummaryDto>> GetMineAsync(Guid userId, string? filter = null)
+        public async Task<List<ListingSummaryDto>> GetMineAsync(Guid userId, string? filter = null) =>
+            (await GetMinePageAsync(userId, filter, 1, int.MaxValue)).Items;
+
+        public async Task<Coffer.Domain.Paging.PagedList<ListingSummaryDto>> GetMinePageAsync(Guid userId, string? filter, int? page, int? pageSize)
         {
             var q = BaseSummaryQuery().Where(l => l.OwnerId == userId);
             var key = (filter ?? "").Trim().ToLowerInvariant();
@@ -251,8 +261,14 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
                     throw MarketplaceException.Validation("unknownFilterUseActiveSoldArchivedOr", "Unknown filter (use active, sold, archived or all).");
                 q = q.Where(l => statuses.Contains(l.Status));
             }
-            var mine = await q.OrderByDescending(l => l.UpdatedAt).ToListAsync();
-            return mine.Select(l => ToSummary(l, null)).ToList();
+            var ordered = q.OrderByDescending(l => l.UpdatedAt).ThenBy(l => l.Id);
+            if (pageSize == int.MaxValue)
+            {
+                var all = await ordered.ToListAsync();
+                return new Coffer.Domain.Paging.PagedList<ListingSummaryDto>(all.Select(l => ToSummary(l, null)).ToList(), 1, all.Count, all.Count);
+            }
+            var mine = await Coffer.DataAccess.Extensions.PagingExtensions.ToPagedListAsync(ordered, page, pageSize);
+            return new Coffer.Domain.Paging.PagedList<ListingSummaryDto>(mine.Items.Select(l => ToSummary(l, null)).ToList(), mine.Page, mine.PageSize, mine.Total);
         }
 
         public async Task<Dictionary<string, int>> CountMineAsync(Guid userId)

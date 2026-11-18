@@ -27,6 +27,26 @@ namespace Coffer.DataAccess.Repositories
             return await _dbContext.Database.BeginTransactionAsync();
         }
 
+        public async Task<Coffer.Domain.Paging.GroupedPagedList<CollectionProvided>> GetGroupedPageAsync(Guid userId, IReadOnlyCollection<int> byNameTypeIds, int? page, int? pageSize)
+        {
+            var byName = byNameTypeIds.ToList();
+            var mine = _dbSet.Where(c => c.UserId == userId);
+            var counts = await mine.GroupBy(c => c.CollectionTypeId)
+                .Select(g => new { TypeId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.TypeId, x => x.Count);
+
+            IQueryable<CollectionProvided> query = mine;
+            foreach (var include in includeProvider.GetDefaultIncludes() ?? Array.Empty<string>())
+                query = query.Include(include);
+            var ordered = query
+                .OrderBy(c => c.CollectionTypeId)
+                .ThenBy(c => byName.Contains(c.CollectionTypeId) ? c.Name : "")
+                .ThenByDescending(c => c.CreatedAt)
+                .ThenBy(c => c.Id);
+            var result = await Coffer.DataAccess.Extensions.PagingExtensions.ToPagedListAsync(ordered, page, pageSize);
+            return new Coffer.Domain.Paging.GroupedPagedList<CollectionProvided>(result.Items, result.Page, result.PageSize, result.Total, counts);
+        }
+
         public async Task<CollectionProvided?> GetCollectionByIdForDelete(Guid id)
         {
             return await _dbSet
@@ -53,16 +73,16 @@ namespace Coffer.DataAccess.Repositories
             return collections;
         }
 
-        public async Task<IEnumerable<CollectionProvided>> SearchCollectionsSmart(string? collectionTypeIds, string searchText)
+        public async Task<Coffer.Domain.Paging.PagedList<CollectionProvided>> SearchCollectionsSmart(string? collectionTypeIds, string searchText, int? page, int? pageSize)
         {
             if (string.IsNullOrWhiteSpace(searchText))
-                return Enumerable.Empty<CollectionProvided>();
+                return Coffer.DataAccess.Extensions.PagingExtensions.Empty<CollectionProvided>(page, pageSize);
 
             searchText = searchText.Trim();
 
             var query = BuildBaseQuery(collectionTypeIds);
 
-            var results = await query
+            var ranked = query
                 .Select(c => new
                 {
                     Collection = c,
@@ -71,14 +91,13 @@ namespace Coffer.DataAccess.Repositories
                 })
                 .Where(x =>
                     x.IsExact || x.Similarity > 0.3)
-                .OrderByDescending(x => x.IsExact)     
-                .ThenByDescending(x => x.Similarity)   
-                .ThenBy(x => x.Collection.Name)          
-                .Take(10)
-                .Select(x => x.Collection)
-                .ToListAsync();
+                .OrderByDescending(x => x.IsExact)
+                .ThenByDescending(x => x.Similarity)
+                .ThenBy(x => x.Collection.Name)
+                .ThenBy(x => x.Collection.Id)
+                .Select(x => x.Collection);
 
-            return results;
+            return await Coffer.DataAccess.Extensions.PagingExtensions.ToPagedListAsync(ranked, page, pageSize);
         }
 
         protected override CollectionProvided MapToEntity(CollectionRequired required, CollectionProvided? entity = null)

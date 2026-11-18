@@ -33,7 +33,15 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
         UserSummaryDto Other,
         int? AgreedPriceCents,
         Guid? OpenDealId,
-        DateTime LastMessageAt);
+        DateTime LastMessageAt,
+        /// <summary>The newest deal of this chat in any state (the deal panel shows it, open or closed).</summary>
+        Guid? LatestDealId = null);
+
+    /// <summary>A page of a chat, oldest → newest. Older pages are asked with before = the oldest loaded message's time.</summary>
+    public record MessagePageDto(List<MessageDto> Items, bool HasMore, int Total);
+
+    /// <summary>Counts for the marketplace tab badges.</summary>
+    public record MarketBadgesDto(int UnreadMessages, int ActionableDeals);
 
     public record ConversationSummaryDto(
         Guid Id,

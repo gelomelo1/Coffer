@@ -22,10 +22,12 @@ namespace Coffer.ASPNET.Controllers.Marketplace
         public async Task<ActionResult<MyReportDto>> Create([FromBody] CreateReportInput input) => Ok(await _reports.CreateAsync(Me, input));
 
         [HttpGet("Mine")]
-        public async Task<ActionResult<List<MyReportDto>>> Mine() => Ok(await _reports.GetMineAsync(Me));
+        public async Task<ActionResult<Coffer.Domain.Paging.PagedList<MyReportDto>>> Mine([FromQuery] int? page = null, [FromQuery] int? pageSize = null)
+            => Ok(await _reports.GetMinePageAsync(Me, page, pageSize));
 
         [HttpGet("/api/Moderation/AgainstMe")]
-        public async Task<ActionResult<List<ModerationActionDto>>> AgainstMe() => Ok(await _reports.GetAgainstMeAsync(Me));
+        public async Task<ActionResult<Coffer.Domain.Paging.PagedList<ModerationActionDto>>> AgainstMe([FromQuery] int? page = null, [FromQuery] int? pageSize = null)
+            => Ok(await _reports.GetAgainstMePageAsync(Me, page, pageSize));
 
         [HttpGet("/api/Moderation/AgainstMe/UnseenCount")]
         public async Task<IActionResult> UnseenCount() => Ok(new { count = await _reports.CountUnseenAgainstMeAsync(Me) });

@@ -19,14 +19,15 @@ namespace Coffer.ASPNET.Controllers.Marketplace
             => Ok(await _conversations.OpenAsync(Me, ListingConversationPolicy.Type, listingId));
 
         [HttpGet]
-        public async Task<ActionResult<List<ConversationSummaryDto>>> Inbox() => Ok(await _conversations.ListMineAsync(Me));
+        public async Task<ActionResult<Coffer.Domain.Paging.PagedList<ConversationSummaryDto>>> Inbox([FromQuery] int? page = null, [FromQuery] int? pageSize = null, [FromQuery] Guid? subjectId = null)
+            => Ok(await _conversations.ListMinePageAsync(Me, page, pageSize, subjectId));
 
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<ConversationDto>> Get(Guid id) => Ok(await _conversations.GetAsync(Me, id));
 
         [HttpGet("{id:guid}/Messages")]
-        public async Task<ActionResult<List<MessageDto>>> Messages(Guid id, [FromQuery] DateTime? after)
-            => Ok(await _conversations.GetMessagesAsync(Me, id, after));
+        public async Task<ActionResult<MessagePageDto>> Messages(Guid id, [FromQuery] DateTime? before, [FromQuery] int? pageSize = null)
+            => Ok(await _conversations.GetMessagesPageAsync(Me, id, before, pageSize));
 
         [HttpPost("{id:guid}/Messages")]
         public async Task<ActionResult<MessageDto>> Post(Guid id, [FromBody] PostMessageInput input)

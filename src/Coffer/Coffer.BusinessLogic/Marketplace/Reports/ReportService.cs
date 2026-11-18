@@ -10,6 +10,8 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
     {
         Task<MyReportDto> CreateAsync(Guid userId, CreateReportInput input);
         Task<List<MyReportDto>> GetMineAsync(Guid userId);
+        Task<Coffer.Domain.Paging.PagedList<MyReportDto>> GetMinePageAsync(Guid userId, int? page, int? pageSize);
+        Task<Coffer.Domain.Paging.PagedList<ModerationActionDto>> GetAgainstMePageAsync(Guid userId, int? page, int? pageSize);
         IReadOnlyList<ReportRuleDto> GetRules();
         Task<List<ModerationActionDto>> GetAgainstMeAsync(Guid userId);
         Task<int> CountUnseenAgainstMeAsync(Guid userId);
@@ -95,9 +97,26 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
         {
             var actions = await _db.ModerationActions.AsNoTracking().Where(a => a.UserId == userId)
                 .OrderByDescending(a => a.CreatedAt).ToListAsync();
-            return actions.Select(a => new ModerationActionDto(a.Id, a.TargetType, a.TargetId, a.ListingId, a.ConversationId, a.ItemId, a.Rule,
-                ReportRules.Get(a.Rule).Label, a.Statement, a.ContentExcerpt, a.CreatedAt, a.SeenAt != null)).ToList();
+            return actions.Select(ToAction).ToList();
         }
+
+        public async Task<Coffer.Domain.Paging.PagedList<MyReportDto>> GetMinePageAsync(Guid userId, int? page, int? pageSize)
+        {
+            var reports = await Coffer.DataAccess.Extensions.PagingExtensions.ToPagedListAsync(_db.Reports.AsNoTracking().Where(r => r.ReporterId == userId)
+                .OrderByDescending(r => r.CreatedAt).ThenBy(r => r.Id), page, pageSize);
+            return new Coffer.Domain.Paging.PagedList<MyReportDto>(reports.Items.Select(ToMine).ToList(), reports.Page, reports.PageSize, reports.Total);
+        }
+
+        public async Task<Coffer.Domain.Paging.PagedList<ModerationActionDto>> GetAgainstMePageAsync(Guid userId, int? page, int? pageSize)
+        {
+            var actions = await Coffer.DataAccess.Extensions.PagingExtensions.ToPagedListAsync(_db.ModerationActions.AsNoTracking().Where(a => a.UserId == userId)
+                .OrderByDescending(a => a.CreatedAt).ThenBy(a => a.Id), page, pageSize);
+            return new Coffer.Domain.Paging.PagedList<ModerationActionDto>(actions.Items.Select(ToAction).ToList(), actions.Page, actions.PageSize, actions.Total);
+        }
+
+        private static ModerationActionDto ToAction(Coffer.Domain.Marketplace.ModerationAction a) =>
+            new(a.Id, a.TargetType, a.TargetId, a.ListingId, a.ConversationId, a.ItemId, a.Rule,
+                ReportRules.Get(a.Rule).Label, a.Statement, a.ContentExcerpt, a.CreatedAt, a.SeenAt != null);
 
         public Task<int> CountUnseenAgainstMeAsync(Guid userId) =>
             _db.ModerationActions.CountAsync(a => a.UserId == userId && a.SeenAt == null);

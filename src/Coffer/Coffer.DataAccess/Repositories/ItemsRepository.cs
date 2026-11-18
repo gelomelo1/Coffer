@@ -27,62 +27,37 @@ namespace Coffer.DataAccess.Repositories
             return await _dbContext.Database.BeginTransactionAsync();
         }
 
-        public async Task<IEnumerable<ItemProvided>> GetFeedItemsAsync(
-    User user,
-    string? filter = null,
-    string? orderBy = null,
-    int? page = null,
-    int? pageSize = null)
-{
-    var oneWeekAgo = DateTime.UtcNow.AddDays(-7);
-    var random = new Random();
-
-    IQueryable<ItemProvided> baseQuery = _dbSet
-        .Include(i => i.Reactions)
-        .Include(i => i.ItemAttributes)
-            .ThenInclude(ia => ia.Attribute)
-        .Include(i => i.ItemTags)
-        .Include(i => i.Collection)
-        .Include(i => i.Collection.Follows)
-        .Where(i =>
-            i.Collection.UserId != user.Id &&
-            i.AcquiredAt >= oneWeekAgo);
-
-    if (!string.IsNullOrWhiteSpace(filter))
-    {
-        baseQuery = baseQuery.Where(filter);
-    }
-
-    if (!string.IsNullOrWhiteSpace(orderBy))
-    {
-        baseQuery = baseQuery.OrderBy(orderBy);
-    }
-
-    if (page.HasValue && pageSize.HasValue)
-    {
-        baseQuery = baseQuery
-            .Skip((page.Value - 1) * pageSize.Value)
-            .Take(pageSize.Value);
-    }
-
-    var query = baseQuery
-        .Select(i => new
+        public async Task<Coffer.Domain.Paging.PagedList<ItemProvided>> GetFeedPageAsync(User user, string? filter, int? page, int? pageSize)
         {
-            Item = i,
-            Score =
-                (i.Collection.Follows.Any(f => f.UserId == user.Id) ? 100 : 0) +
-                (i.Collection.User.Country == user.Country ? 50 : 0) +
-                random.NextDouble() * 20
-        });
+            var oneWeekAgo = DateTime.UtcNow.AddDays(-7);
 
-    var items = await query
-        .OrderByDescending(x => x.Score)
-        .ThenByDescending(x => x.Item.AcquiredAt)
-        .Select(x => x.Item)
-        .ToListAsync();
+            IQueryable<ItemProvided> baseQuery = _dbSet
+                .Include(i => i.Reactions)
+                .Include(i => i.ItemAttributes)
+                    .ThenInclude(ia => ia.Attribute)
+                .Include(i => i.ItemTags)
+                .Include(i => i.Collection)
+                .Include(i => i.Collection.Follows)
+                .Where(i => i.Collection.UserId != user.Id && i.AcquiredAt >= oneWeekAgo);
 
-    return items;
-}
+            if (!string.IsNullOrWhiteSpace(filter))
+                baseQuery = baseQuery.Where(filter);
+
+            // A stable order (score, date, id) so pages never overlap or skip items.
+            var ordered = baseQuery
+                .Select(i => new
+                {
+                    Item = i,
+                    Score = (i.Collection.Follows.Any(f => f.UserId == user.Id) ? 100 : 0) +
+                            (i.Collection.User.Country == user.Country ? 50 : 0),
+                })
+                .OrderByDescending(x => x.Score)
+                .ThenByDescending(x => x.Item.AcquiredAt)
+                .ThenBy(x => x.Item.Id)
+                .Select(x => x.Item);
+
+            return await Coffer.DataAccess.Extensions.PagingExtensions.ToPagedListAsync(ordered, page, pageSize);
+        }
 
         private static string? GetPrimaryAttributeValueAsString(ItemProvided item)
         {
@@ -154,10 +129,10 @@ namespace Coffer.DataAccess.Repositories
             return filtered;
         }
 
-        public async Task<IEnumerable<ItemProvided>> SearchItemsSmart(string? collectionTypeIds, string searchText)
+        public async Task<Coffer.Domain.Paging.PagedList<ItemProvided>> SearchItemsSmart(string? collectionTypeIds, string searchText, int? page, int? pageSize)
         {
             if (string.IsNullOrWhiteSpace(searchText))
-                return Enumerable.Empty<ItemProvided>();
+                return Coffer.DataAccess.Extensions.PagingExtensions.Empty<ItemProvided>(page, pageSize);
 
             searchText = searchText.Trim();
 
@@ -207,11 +182,10 @@ namespace Coffer.DataAccess.Repositories
                 .OrderByDescending(x => x.IsExact)
                 .ThenByDescending(x => x.Similarity)
                 .ThenBy(x => x.PrimaryValue)
-                .Take(10)
-                .Select(x => x.Item)
-                .ToList();
+                .ThenBy(x => x.Item.Id)
+                .Select(x => x.Item);
 
-            return results;
+            return Coffer.DataAccess.Extensions.PagingExtensions.ToPagedList(results, page, pageSize);
         }
 
         protected override ItemProvided MapToEntity(ItemRequired required, ItemProvided? entity = null)

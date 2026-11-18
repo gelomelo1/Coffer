@@ -10,6 +10,10 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
     {
         Task<ConversationDto> OpenAsync(Guid userId, string subjectType, Guid subjectId);
         Task<List<ConversationSummaryDto>> ListMineAsync(Guid userId);
+        /// <summary>The inbox a page at a time (latest activity first); subjectId limits it to chats about one listing.</summary>
+        Task<Coffer.Domain.Paging.PagedList<ConversationSummaryDto>> ListMinePageAsync(Guid userId, int? page, int? pageSize, Guid? subjectId = null);
+        /// <summary>The newest messages older than <paramref name="before"/> (or the newest overall), oldest first.</summary>
+        Task<MessagePageDto> GetMessagesPageAsync(Guid userId, Guid conversationId, DateTime? before, int? pageSize);
         Task<ConversationDto> GetAsync(Guid userId, Guid conversationId);
         Task<List<MessageDto>> GetMessagesAsync(Guid userId, Guid conversationId, DateTime? after);
         Task<MessageDto> PostAsync(Guid userId, Guid conversationId, PostMessageInput input);
@@ -85,8 +89,10 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
             var openDealId = await _db.Deals
                 .Where(d => d.ConversationId == c.Id && d.Status != DealStatus.Completed && d.Status != DealStatus.Cancelled && d.Status != DealStatus.Disputed)
                 .Select(d => (Guid?)d.Id).FirstOrDefaultAsync();
+            var latestDealId = await _db.Deals.Where(d => d.ConversationId == c.Id)
+                .OrderByDescending(d => d.CreatedAt).Select(d => (Guid?)d.Id).FirstOrDefaultAsync();
             return new ConversationDto(c.Id, await PolicyFor(c.SubjectType).DescribeAsync(c.SubjectId), me.Role,
-                UserSummaryDto.From(other.User), c.AgreedPriceCents, openDealId, c.LastMessageAt);
+                UserSummaryDto.From(other.User), c.AgreedPriceCents, openDealId, c.LastMessageAt, latestDealId);
         }
 
         public async Task<List<ConversationSummaryDto>> ListMineAsync(Guid userId)
@@ -96,7 +102,21 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
                 .Where(c => c.Participants.Any(p => p.UserId == userId))
                 .OrderByDescending(c => c.LastMessageAt)
                 .ToListAsync();
+            return await SummariesAsync(userId, conversations);
+        }
 
+        public async Task<Coffer.Domain.Paging.PagedList<ConversationSummaryDto>> ListMinePageAsync(Guid userId, int? page, int? pageSize, Guid? subjectId = null)
+        {
+            var q = _db.Conversations.AsNoTracking()
+                .Include(c => c.Participants).ThenInclude(p => p.User)
+                .Where(c => c.Participants.Any(p => p.UserId == userId));
+            if (subjectId.HasValue) q = q.Where(c => c.SubjectId == subjectId.Value);
+            var conversations = await Coffer.DataAccess.Extensions.PagingExtensions.ToPagedListAsync(q.OrderByDescending(c => c.LastMessageAt).ThenBy(c => c.Id), page, pageSize);
+            return new Coffer.Domain.Paging.PagedList<ConversationSummaryDto>(await SummariesAsync(userId, conversations.Items), conversations.Page, conversations.PageSize, conversations.Total);
+        }
+
+        private async Task<List<ConversationSummaryDto>> SummariesAsync(Guid userId, List<Conversation> conversations)
+        {
             var result = new List<ConversationSummaryDto>();
             foreach (var c in conversations)
             {
@@ -135,6 +155,24 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
             }
             var messages = await q.OrderBy(m => m.CreatedAt).Take(500).ToListAsync();
             return messages.Select(ToDto).ToList();
+        }
+
+        public async Task<MessagePageDto> GetMessagesPageAsync(Guid userId, Guid conversationId, DateTime? before, int? pageSize)
+        {
+            await LoadForParticipantAsync(userId, conversationId);
+            var (_, size) = Coffer.Domain.Paging.Paging.Normalize(1, pageSize);
+            var all = _db.Messages.AsNoTracking().Where(m => m.ConversationId == conversationId);
+            var total = await all.CountAsync();
+            var q = all;
+            if (before.HasValue)
+            {
+                var beforeUtc = ToUtc(before.Value);
+                q = q.Where(m => m.CreatedAt < beforeUtc);
+            }
+            var newest = await q.OrderByDescending(m => m.CreatedAt).Take(size + 1).ToListAsync();
+            var hasMore = newest.Count > size;
+            var page = newest.Take(size).OrderBy(m => m.CreatedAt).Select(ToDto).ToList();
+            return new MessagePageDto(page, hasMore, total);
         }
 
         public async Task<List<MessageDto>> GetTranscriptAsync(Guid conversationId, bool raw = false)

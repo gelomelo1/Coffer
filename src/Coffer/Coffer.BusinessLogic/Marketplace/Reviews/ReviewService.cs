@@ -37,6 +37,7 @@ namespace Coffer.BusinessLogic.Marketplace.Reviews
         Task<DealReviewsDto> GetForDealAsync(Guid userId, Guid dealId);
         Task<ReviewDto> ReplyAsync(Guid userId, Guid reviewId, string text);
         Task<List<ReviewDto>> GetForUserAsync(Guid userId);
+        Task<Coffer.Domain.Paging.PagedList<ReviewDto>> GetForUserPageAsync(Guid userId, int? page, int? pageSize);
         Task<ReputationDto> GetReputationAsync(Guid userId);
     }
 
@@ -152,6 +153,15 @@ namespace Coffer.BusinessLogic.Marketplace.Reviews
                 .OrderByDescending(r => r.PublishedAt)
                 .ToListAsync();
             return reviews.Select(ToDto).ToList();
+        }
+
+        public async Task<Coffer.Domain.Paging.PagedList<ReviewDto>> GetForUserPageAsync(Guid userId, int? page, int? pageSize)
+        {
+            await PublishDueAsync();
+            var reviews = await Coffer.DataAccess.Extensions.PagingExtensions.ToPagedListAsync(Query()
+                .Where(r => r.RevieweeId == userId && r.PublishedAt != null && !r.IsRemoved)
+                .OrderByDescending(r => r.PublishedAt).ThenBy(r => r.Id), page, pageSize);
+            return new Coffer.Domain.Paging.PagedList<ReviewDto>(reviews.Items.Select(ToDto).ToList(), reviews.Page, reviews.PageSize, reviews.Total);
         }
 
         public async Task<ReputationDto> GetReputationAsync(Guid userId)

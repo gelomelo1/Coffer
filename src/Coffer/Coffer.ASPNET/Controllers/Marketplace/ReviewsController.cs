@@ -26,7 +26,8 @@ namespace Coffer.ASPNET.Controllers.Marketplace
             => Ok(await _reviews.ReplyAsync(Me, id, input.Text));
 
         [HttpGet("/api/Users/{userId:guid}/MarketReviews")]
-        public async Task<ActionResult<List<ReviewDto>>> ForUser(Guid userId) => Ok(await _reviews.GetForUserAsync(userId));
+        public async Task<ActionResult<Coffer.Domain.Paging.PagedList<ReviewDto>>> ForUser(Guid userId, [FromQuery] int? page = null, [FromQuery] int? pageSize = null)
+            => Ok(await _reviews.GetForUserPageAsync(userId, page, pageSize));
 
         [HttpGet("/api/Users/{userId:guid}/Reputation")]
         public async Task<ActionResult<ReputationDto>> Reputation(Guid userId) => Ok(await _reviews.GetReputationAsync(userId));

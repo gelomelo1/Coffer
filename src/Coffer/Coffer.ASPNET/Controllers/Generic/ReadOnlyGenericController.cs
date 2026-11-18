@@ -35,6 +35,20 @@ namespace Coffer.ASPNET.Controllers.Generic
             return Ok(items);
         }
 
+        /// <summary>One page of the filtered list plus the total for that filter (20 per page by default, at most 50).</summary>
+        [Authorize]
+        [HttpGet("Page")]
+        public virtual async Task<ActionResult<Coffer.Domain.Paging.PagedList<TProvided>>> GetPage([FromQuery] string? filter = null,
+                                                                                                    [FromQuery] string? orderBy = null,
+                                                                                                    [FromQuery] int? page = null,
+                                                                                                    [FromQuery] int? pageSize = null)
+        {
+            if (!DynamicQueryGuard.IsAllowed(filter) || !DynamicQueryGuard.IsAllowed(orderBy))
+                return this.ApiError(StatusCodes.Status400BadRequest, "filteringOrOrderingOnThisFieldIs", "Filtering or ordering on this field is not allowed");
+
+            return Ok(await _repository.GetPageAsync(filter, orderBy, page, pageSize));
+        }
+
         [Authorize]
         [HttpGet("{id}")]
         public virtual async Task<ActionResult<TProvided>> GetById(TKey id)
