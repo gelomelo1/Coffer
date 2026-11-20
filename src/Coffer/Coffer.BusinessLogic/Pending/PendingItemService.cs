@@ -238,7 +238,11 @@ namespace Coffer.BusinessLogic.Pending
 
             var response = await _http.PostAsync($"{PythonUrl}/image_check/{collection.CollectionTypeId}/{collection.Id}", form);
             response.EnsureSuccessStatusCode();
-            var detections = JsonSerializer.Deserialize<DetectionResponse>(await response.Content.ReadAsStringAsync(), Json)?.Response ?? new();
+            var parsed = JsonSerializer.Deserialize<DetectionResponse>(await response.Content.ReadAsStringAsync(), Json);
+            // FastAPI answers 200 with status "error" when the check itself failed: that is a failure, not "no caps".
+            if (parsed == null || !string.Equals(parsed.Status, "ok", StringComparison.OrdinalIgnoreCase))
+                throw new HttpRequestException("The AI service could not check the photo.");
+            var detections = parsed.Response ?? new();
 
             Directory.CreateDirectory(PendingFolder);
             var now = DateTime.UtcNow;

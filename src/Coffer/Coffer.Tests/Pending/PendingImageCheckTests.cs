@@ -95,6 +95,21 @@ namespace Coffer.Tests.Pending
         }
 
         [Fact]
+        public async Task ImageCheckAiErrorIsAFailureNotNoCaps()
+        {
+            var owner = Db.AddUser("owner");
+            var collection = Db.AddCollection(owner);
+            // FastAPI answers 200 with {"status":"error"} when the check itself crashed.
+            _api.Python.Responder = request => (HttpStatusCode.OK, "{\"status\":\"error\",\"message\":\"model missing\"}");
+
+            var response = await _api.ClientFor(owner).PostAsync($"api/Collections/ImageCheck/{collection.Id}", Photo());
+
+            Assert.False(response.IsSuccessStatusCode); // the app shows "Couldn't be checked" + Retry, not "No caps found"
+            using var fresh = Db.NewContext();
+            Assert.Empty(fresh.PendingItems);
+        }
+
+        [Fact]
         public async Task ImageCheckOnOthersCollectionIsForbidden()
         {
             var owner = Db.AddUser("owner");
