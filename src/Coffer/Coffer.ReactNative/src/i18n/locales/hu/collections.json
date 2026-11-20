@@ -97,5 +97,13 @@
     "followed": "Mostantól követed ezt a gyűjteményt",
     "unfollowed": "Már nem követed ezt a gyűjteményt",
     "since": "{{date}} óta követed ezt a gyűjteményt"
+  },
+  "waiting": {
+    "banner_one": "{{count}} kupak vár áttekintésre",
+    "banner_other": "{{count}} kupak vár áttekintésre",
+    "bannerHint": "A fotóidról. Add hozzá, hagyd ki vagy töröld őket.",
+    "review": "Áttekintés",
+    "tag_one": "{{count}} vár",
+    "tag_other": "{{count}} vár"
   }
 }

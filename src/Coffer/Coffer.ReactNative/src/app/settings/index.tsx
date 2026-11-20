@@ -7,6 +7,7 @@ import { Tag } from "@/src/components/custom_ui/tag";
 import { webGoogleClientId } from "@/src/const/authAccessConfiguration";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useAgainstMeUnseen } from "@/src/hooks/market_api";
+import { usePendingSummary } from "@/src/hooks/pending";
 import { useResetNavigation } from "@/src/hooks/navigation";
 import { useUserStore } from "@/src/hooks/user_store";
 import { borders, colors, sizes } from "@/src/theme/theme";
@@ -36,6 +37,8 @@ function Settings() {
   const resetNavigate = useResetNavigation();
   const { user } = useUserStore();
   const { data: unseenReports = 0 } = useAgainstMeUnseen();
+  const { data: pendingSummary = [] } = usePendingSummary();
+  const waiting = pendingSummary.reduce((sum, s) => sum + s.count, 0);
   const [confirmLogout, setConfirmLogout] = useState(false);
 
   const handleLogout = async () => {
@@ -75,6 +78,22 @@ function Settings() {
         <SectionHeader title={t("settings:index.account")} />
         <Group>
           <ListRow
+            title={t("settings:index.pending")}
+            subtitle={t("settings:index.pendingSubtitle")}
+            leading={icon("inbox")}
+            trailing={
+              waiting > 0 ? (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                  <Tag label={t("settings:pending.count", { count: waiting })} color={colors.secondary} />
+                  <MaterialIcons name="chevron-right" size={sizes.iconMd} color={colors.text} />
+                </View>
+              ) : undefined
+            }
+            accessibilityLabel={waiting > 0 ? `${t("settings:index.pending")}, ${t("settings:pending.count", { count: waiting })}` : undefined}
+            onPress={() => navigate({ pathname: ROUTES.SETTINGS.PENDING, params: pageParams.pending })}
+          />
+          <ListRow
+            style={{ borderTopWidth: borders.hairline, borderColor: colors.borderMuted }}
             title={t("settings:index.reports")}
             subtitle={t("settings:index.reportsSubtitle")}
             leading={icon("flag", unseenReports > 0 ? colors.danger : colors.text)}

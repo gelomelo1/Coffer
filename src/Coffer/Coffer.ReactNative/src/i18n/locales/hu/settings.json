@@ -57,7 +57,9 @@
     "logout": "Kijelentkezés",
     "logoutTitle": "Kijelentkezel?",
     "logoutText": "Bármikor visszajelentkezhetsz ugyanazzal a fiókkal.",
-    "language": "Nyelv"
+    "language": "Nyelv",
+    "pending": "Áttekintésre vár",
+    "pendingSubtitle": "A fotóid kupakjai, gyűjteményenként"
   },
   "profile": {
     "edit": "Profil szerkesztése",
@@ -108,5 +110,13 @@
     "confirmTitle": "Törlöd a fiókodat?",
     "confirmText": "A fiókod és a tartalmaid most törlődnek. Ez nem vonható vissza.",
     "done": "A fiókod törölve"
+  },
+  "pending": {
+    "title": "Áttekintésre vár",
+    "intro": "A fotóidon talált kupakok itt várnak, amíg hozzá nem adod vagy nem törlöd őket. Válassz egy gyűjteményt a folytatáshoz.",
+    "emptyTitle": "Nincs várakozó kupak",
+    "emptyText": "Az új fotók kupakjai itt jelennek meg.",
+    "count_one": "{{count}} vár",
+    "count_other": "{{count}} vár"
   }
 }

@@ -1,3 +1,5 @@
+import { usePendingSummary } from "@/src/hooks/pending";
+import { Tag } from "@/src/components/custom_ui/tag";
 import { endpoints } from "@/src/const/endpoints";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useCollectionStore } from "@/src/hooks/collection_store";
@@ -38,6 +40,9 @@ export default function CollectionsContainer({ collectionTypes, collections, gro
   const { setCollectionType, setCollection } = useCollectionStore();
   const { token } = useUserStore();
   const columns = useTileColumns();
+  // Caps waiting for review, per collection (own collections only).
+  const { data: summary = [] } = usePendingSummary();
+  const waiting = (id: string) => summary.find((s) => s.collectionId === id)?.count ?? 0;
 
 
   const open = (type: CollectionType, item: Collection) => {
@@ -74,7 +79,7 @@ export default function CollectionsContainer({ collectionTypes, collections, gro
             </View>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
               {matching.map((item) => (
-                <CollectionTile key={item.id} item={item} type={type} token={token} columns={columns} onPress={() => open(type, item)} />
+                <CollectionTile key={item.id} item={item} type={type} token={token} columns={columns} waiting={waiting(item.id)} onPress={() => open(type, item)} />
               ))}
             </View>
           </View>
@@ -91,18 +96,22 @@ export function CollectionTile({
   token,
   columns,
   onPress,
+  waiting = 0,
 }: {
   item: Collection;
   type: CollectionType;
   token?: string | null;
   columns: number;
   onPress: () => void;
+  /** Caps waiting for review in this collection (shown as a tag on the cover). */
+  waiting?: number;
 }) {
+  const { t } = useTranslation();
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={item.name}
+      accessibilityLabel={waiting > 0 ? `${item.name}, ${t("collections:waiting.tag", { count: waiting })}` : item.name}
       style={({ pressed }) => [
         {
           // (100% - gaps) / columns, expressed as a flex basis so it adapts to any width
@@ -126,6 +135,11 @@ export function CollectionTile({
           style={{ width: "100%", height: "100%" }}
           resizeMode={item.image ? "cover" : "contain"}
         />
+        {waiting > 0 ? (
+          <View style={{ position: "absolute", top: spacing.xs, left: spacing.xs }}>
+            <Tag label={t("collections:waiting.tag", { count: waiting })} color={colors.secondary} />
+          </View>
+        ) : null}
       </View>
       <Text numberOfLines={2} style={[typography.label, { color: colors.text, padding: spacing.sm, minHeight: 56 }]}>
         {item.name}

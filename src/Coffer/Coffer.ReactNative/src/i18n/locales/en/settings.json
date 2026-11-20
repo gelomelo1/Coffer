@@ -57,7 +57,9 @@
     "logout": "Log out",
     "logoutTitle": "Log out?",
     "logoutText": "You can sign in again any time with the same account.",
-    "language": "Language"
+    "language": "Language",
+    "pending": "Waiting for review",
+    "pendingSubtitle": "Caps from your photos, by collection"
   },
   "profile": {
     "edit": "Edit profile",
@@ -108,5 +110,13 @@
     "confirmTitle": "Delete your account?",
     "confirmText": "Your account and your content are deleted now. This can't be undone.",
     "done": "Your account was deleted"
+  },
+  "pending": {
+    "title": "Waiting for review",
+    "intro": "Caps found on your photos wait here until you add or delete them. Pick a collection to continue.",
+    "emptyTitle": "Nothing waiting",
+    "emptyText": "Caps from new photos show up here.",
+    "count_one": "{{count}} waiting",
+    "count_other": "{{count}} waiting"
   }
 }

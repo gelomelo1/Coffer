@@ -16,6 +16,7 @@ export const ROUTES = {
     REPORTS: "settings/reports" as any,
     LANGUAGE: "settings/language" as any,
     DELETE_ACCOUNT: "settings/delete_account" as any,
+    PENDING: "settings/pending" as any,
   },
   MYCOLLECTION: "mycollection" as any,
   ITEMDETAILS: "itemdetails" as any,
@@ -84,6 +85,10 @@ export const pageParams = {
   }),
   reports: buildNavigationData({
     titleKey: "settings:reports.title",
+    isSettingsShown: false,
+  }),
+  pending: buildNavigationData({
+    titleKey: "settings:pending.title",
     isSettingsShown: false,
   }),
   deleteAccount: buildNavigationData({

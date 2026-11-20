@@ -97,5 +97,13 @@
     "followed": "You started following this collection",
     "unfollowed": "You stopped following this collection",
     "since": "You follow this collection since {{date}}"
+  },
+  "waiting": {
+    "banner_one": "{{count}} cap waiting for review",
+    "banner_other": "{{count}} caps waiting for review",
+    "bannerHint": "From your photos. Add, skip or delete them.",
+    "review": "Review",
+    "tag_one": "{{count}} waiting",
+    "tag_other": "{{count}} waiting"
   }
 }

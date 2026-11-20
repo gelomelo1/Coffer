@@ -1,3 +1,4 @@
+import WaitingBanner from "@/src/components/review/waiting_banner";
 import CollectionSectionList from "@/src/components/collections/tabs/mycollection/collection_item_list/collection_sectionlist";
 import rootViewStyle from "@/src/components/custom_ui/root_view";
 import { endpoints } from "@/src/const/endpoints";
@@ -43,6 +44,7 @@ function MyCollection() {
         { flex: 1, padding: 0 },
       ]}
     >
+      <WaitingBanner collection={collection!} />
       <CollectionSectionList
         collectionType={collectionType!}
         collection={collection!}
