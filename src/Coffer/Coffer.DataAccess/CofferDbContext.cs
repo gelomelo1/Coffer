@@ -42,6 +42,7 @@ namespace Coffer.DataAccess
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Report> Reports { get; set; }
         public DbSet<ModerationAction> ModerationActions { get; set; }
+        public DbSet<PendingItem> PendingItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -49,6 +50,17 @@ namespace Coffer.DataAccess
 
             MarketplaceModel.Configure(modelBuilder);
             CommunityModel.Configure(modelBuilder);
+
+            // Waiting-for-review list (must match src/startup/item_review_queue_migration.sql).
+            modelBuilder.Entity<PendingItem>(e =>
+            {
+                e.ToTable("pending_items");
+                e.HasOne<User>().WithMany().HasForeignKey(p => p.UserId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne<CollectionProvided>().WithMany().HasForeignKey(p => p.CollectionId).OnDelete(DeleteBehavior.Cascade);
+                e.Property(p => p.Image).IsRequired();
+                e.HasIndex(p => new { p.CollectionId, p.CreatedAt });
+                e.HasIndex(p => p.UserId);
+            });
 
             //CollectionType
             modelBuilder.Entity<CollectionTypeProvided>()

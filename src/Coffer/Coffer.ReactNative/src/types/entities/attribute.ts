@@ -7,6 +7,8 @@ interface Attribute {
   name: string;
   dataType: AttributeDataTypes;
   primary: boolean;
+  /** Must have a value before an item is added (the primary attribute always must). */
+  required?: boolean;
 }
 
 export default Attribute;

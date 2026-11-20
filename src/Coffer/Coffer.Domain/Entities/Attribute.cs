@@ -22,6 +22,8 @@ namespace Coffer.Domain.Entities
         public Dictionary<string, string> NameTranslations { get; set; } = new();
         public AttributeType DataType { get; set; }
         public bool Primary {  get; set; }
+        /// <summary>Must have a value before an item is added (the primary attribute always must, see <see cref="AttributeRules"/>).</summary>
+        public bool Required { get; set; }
         public int? ItemOptionsId { get; set; }
 
         [JsonIgnore]
@@ -32,5 +34,11 @@ namespace Coffer.Domain.Entities
 
         [JsonIgnore]
         public ItemOptions? ItemOptions { get; set; }
+    }
+
+    public static class AttributeRules
+    {
+        /// <summary>The primary attribute names the item, so it is always required, whatever its flag says.</summary>
+        public static bool IsRequired(Attribute attribute) => attribute.Primary || attribute.Required;
     }
 }
