@@ -176,9 +176,11 @@ function CommentSection({ itemId, onFocusY }: { itemId: string; onFocusY?: (y: n
   const focusItemId = useCommentFocusStore((s) => s.itemId);
   const focusCommentId = useCommentFocusStore((s) => s.commentId);
   const [highlightId, setHighlightId] = useState<string | null>(null);
+  const [scrollThreadId, setScrollThreadId] = useState<string | null>(null);
   const threadsY = useRef(0);
   const threadY = useRef<Record<string, number>>({});
 
+  // Take the focus once (clearing the store re-runs this effect, so the delayed scroll lives in its own effect).
   useEffect(() => {
     if (focusItemId !== itemId || !focusCommentId || isLoading) return;
     useCommentFocusStore.getState().clear();
@@ -189,11 +191,20 @@ function CommentSection({ itemId, onFocusY }: { itemId: string; onFocusY?: (y: n
       return;
     }
     setHighlightId(focusCommentId);
-    // Wait for the rows to be laid out before measuring.
-    const timer = setTimeout(() => onFocusY?.(threadsY.current + (threadY.current[thread.id] ?? 0)), 300);
-    return () => clearTimeout(timer);
+    setScrollThreadId(thread.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusItemId, focusCommentId, itemId, isLoading, threads.length]);
+
+  useEffect(() => {
+    if (!scrollThreadId) return;
+    // Wait for the rows to be laid out before measuring.
+    const timer = setTimeout(() => {
+      onFocusY?.(threadsY.current + (threadY.current[scrollThreadId] ?? 0));
+      setScrollThreadId(null);
+    }, 300);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scrollThreadId]);
 
   useEffect(() => {
     if (!highlightId) return;

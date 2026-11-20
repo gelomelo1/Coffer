@@ -99,8 +99,8 @@ export const pageParams = {
   }),
   activityList: (category: string | null) =>
     buildNavigationData({
-      titleKey: "activity:title",
-      screenTitleKey: category ? `activity:categories.${category}` : "activity:all",
+      // The Settings header shows titleKey as its subtitle: name the open category there.
+      titleKey: category ? `activity:categories.${category}` : "activity:all",
       isSettingsShown: false,
     }),
   deleteAccount: buildNavigationData({
