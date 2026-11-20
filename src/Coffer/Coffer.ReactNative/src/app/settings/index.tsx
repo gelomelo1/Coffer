@@ -94,6 +94,13 @@ function Settings() {
           />
           <ListRow
             style={{ borderTopWidth: borders.hairline, borderColor: colors.borderMuted }}
+            title={t("settings:index.activity")}
+            subtitle={t("settings:index.activitySubtitle")}
+            leading={icon("history")}
+            onPress={() => navigate({ pathname: ROUTES.SETTINGS.ACTIVITY, params: pageParams.activity })}
+          />
+          <ListRow
+            style={{ borderTopWidth: borders.hairline, borderColor: colors.borderMuted }}
             title={t("settings:index.reports")}
             subtitle={t("settings:index.reportsSubtitle")}
             leading={icon("flag", unseenReports > 0 ? colors.danger : colors.text)}

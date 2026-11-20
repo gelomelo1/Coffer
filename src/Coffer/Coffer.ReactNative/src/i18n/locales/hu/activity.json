@@ -1,0 +1,148 @@
+{
+  "title": "Tevékenységeim",
+  "intro": "Minden, amit a Cofferben csináltál, a legújabbal kezdve. Koppints egy bejegyzésre, és ott nyílik meg, ahol történt.",
+  "all": "Minden tevékenység",
+  "byKind": "Fajták szerint",
+  "categories": {
+    "likes": "Kedvelések és értékelések",
+    "comments": "Hozzászólások",
+    "collection": "Gyűjtemények és tárgyak",
+    "follows": "Követések",
+    "marketplace": "Piactér",
+    "trades": "Üzletek és vélemények",
+    "reports": "Jelentések"
+  },
+  "count_one": "{{count}} bejegyzés",
+  "count_other": "{{count}} bejegyzés",
+  "last": "utoljára {{when}}",
+  "nothingYet": "Még nincs semmi",
+  "today": "Ma",
+  "yesterday": "Tegnap",
+  "unavailable": "Már nem elérhető",
+  "untitled": "névtelen tárgy",
+  "openHint": "Megnyitja ott, ahol történt",
+  "openFailed": "Nem sikerült megnyitni. Lehet, hogy törölték.",
+  "emptyTitle": "Még nincs itt semmi",
+  "empty": {
+    "all": "Itt jelenik meg, amit a Cofferben csinálsz.",
+    "likes": "Itt jelennek meg a tárgyak, amelyeket kedvelsz vagy értékelsz.",
+    "comments": "Itt jelennek meg a hozzászólásaid és válaszaid.",
+    "collection": "Itt jelennek meg a gyűjtemények és tárgyak, amelyeket felveszel, szerkesztesz vagy törölsz.",
+    "follows": "Itt jelennek meg a gyűjtemények, amelyeket követni kezdesz vagy már nem követsz.",
+    "marketplace": "Itt jelennek meg a hirdetéseid, beszélgetéseid, ajánlataid és találkozóid.",
+    "trades": "Itt jelennek meg az üzleteid és a véleményeid.",
+    "reports": "Itt jelennek meg a jelentéseid."
+  },
+  "terms": {
+    "proposal": {
+      "offer": "árajánlat",
+      "meetup": "találkozójavaslat"
+    }
+  },
+  "kinds": {
+    "reaction": {
+      "liked": "Kedvelted: {{name}}",
+      "liked_gone": "Kedveltél egy tárgyat",
+      "unliked": "Visszavontad a kedvelést: {{name}}",
+      "unliked_gone": "Visszavontad egy tárgy kedvelését",
+      "rated": "Értékelted ({{to}}): {{name}}",
+      "rated_gone": "Értékeltél egy tárgyat ({{to}})",
+      "rerated": "Módosítottad az értékelést ({{from}} → {{to}}): {{name}}",
+      "rerated_gone": "Módosítottad egy tárgy értékelését ({{from}} → {{to}})",
+      "unrated": "Törölted az értékelést ({{from}}): {{name}}",
+      "unrated_gone": "Törölted egy tárgy értékelését ({{from}})"
+    },
+    "comment": {
+      "posted": "Hozzászóltál: {{name}}",
+      "posted_gone": "Hozzászóltál egy tárgyhoz",
+      "replied": "Válaszoltál egy hozzászólásra: {{name}}",
+      "replied_gone": "Válaszoltál egy hozzászólásra",
+      "edited": "Szerkesztetted a hozzászólásodat: {{name}}",
+      "edited_gone": "Szerkesztettél egy hozzászólást",
+      "deleted": "Törölted a hozzászólásodat: {{name}}",
+      "deleted_gone": "Töröltél egy hozzászólást"
+    },
+    "collection": {
+      "created": "Gyűjteményt hoztál létre: {{name}}",
+      "created_gone": "Létrehoztál egy gyűjteményt",
+      "edited": "Szerkesztetted a gyűjteményt: {{name}}",
+      "edited_gone": "Szerkesztettél egy gyűjteményt",
+      "deleted": "Törölted a gyűjteményt: {{name}}",
+      "deleted_gone": "Töröltél egy gyűjteményt"
+    },
+    "item": {
+      "added": "Új tárgyat vettél fel: {{name}}",
+      "added_gone": "Felvettél egy tárgyat",
+      "addedToExisting": "+{{quantity}} darabot adtál hozzá: {{name}}",
+      "addedToExisting_gone": "+{{quantity}} darabot adtál hozzá egy tárgyhoz",
+      "edited": "Szerkesztetted a tárgyat: {{name}}",
+      "edited_gone": "Szerkesztettél egy tárgyat",
+      "deleted": "Törölted a tárgyat: {{name}}",
+      "deleted_gone": "Töröltél egy tárgyat"
+    },
+    "follow": {
+      "followed": "Követni kezdted: {{name}}",
+      "followed_gone": "Követni kezdtél egy gyűjteményt",
+      "unfollowed": "Már nem követed: {{name}}",
+      "unfollowed_gone": "Már nem követsz egy gyűjteményt"
+    },
+    "listing": {
+      "posted": "Hirdetést adtál fel: {{name}}",
+      "posted_gone": "Feladtál egy hirdetést",
+      "edited": "Szerkesztetted a hirdetést: {{name}}",
+      "edited_gone": "Szerkesztettél egy hirdetést",
+      "archived": "Archiváltad a hirdetést: {{name}}",
+      "archived_gone": "Archiváltál egy hirdetést",
+      "reactivated": "Újra aktiváltad a hirdetést: {{name}}",
+      "reactivated_gone": "Újra aktiváltál egy hirdetést"
+    },
+    "chat": {
+      "started": "Beszélgetést kezdtél – {{other}}, {{name}}",
+      "started_gone": "Beszélgetést kezdtél"
+    },
+    "offer": {
+      "sent": "Ajánlatot tettél ({{price}}): {{name}}",
+      "sent_gone": "Ajánlatot tettél ({{price}})"
+    },
+    "meetup": {
+      "proposed": "Találkozót javasoltál – {{other}}, {{name}}",
+      "proposed_gone": "Találkozót javasoltál"
+    },
+    "proposal": {
+      "accepted": "Elfogadtad: {{what}} ({{other}})",
+      "accepted_gone": "Elfogadtad: {{what}}",
+      "declined": "Elutasítottad: {{what}} ({{other}})",
+      "declined_gone": "Elutasítottad: {{what}}",
+      "withdrawn": "Visszavontad: {{what}} ({{other}})",
+      "withdrawn_gone": "Visszavontad: {{what}}"
+    },
+    "deal": {
+      "proposed": "Üzletet ajánlottál – {{other}}, {{name}}",
+      "proposed_gone": "Üzletet ajánlottál",
+      "accepted": "Elfogadtad az üzletet – {{other}}, {{name}}",
+      "accepted_gone": "Elfogadtál egy üzletet",
+      "declined": "Elutasítottad az üzletet – {{other}}, {{name}}",
+      "declined_gone": "Elutasítottál egy üzletet",
+      "cancelled": "Lemondtad az üzletet – {{other}}, {{name}}",
+      "cancelled_gone": "Lemondtál egy üzletet",
+      "handoffConfirmed": "Megerősítetted az átadást – {{other}}, {{name}}",
+      "handoffConfirmed_gone": "Megerősítettél egy átadást",
+      "shipped": "Feladtad a csomagot – {{other}}, {{name}}",
+      "shipped_gone": "Feladtál egy csomagot",
+      "receiptConfirmed": "Megerősítetted az átvételt – {{other}}, {{name}}",
+      "receiptConfirmed_gone": "Megerősítettél egy átvételt",
+      "disputed": "Problémát jeleztél – {{other}}, {{name}}",
+      "disputed_gone": "Problémát jeleztél egy üzlettel"
+    },
+    "review": {
+      "written": "Értékelted ({{stars}}) – {{other}}, {{name}}",
+      "written_gone": "Véleményt írtál ({{stars}})",
+      "replied": "Válaszoltál a véleményre – {{other}}",
+      "replied_gone": "Válaszoltál egy véleményre"
+    },
+    "report": {
+      "filed": "Jelentést tettél: {{name}}",
+      "filed_gone": "Jelentést tettél"
+    }
+  }
+}

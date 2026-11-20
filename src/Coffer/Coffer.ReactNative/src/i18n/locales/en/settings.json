@@ -59,7 +59,9 @@
     "logoutText": "You can sign in again any time with the same account.",
     "language": "Language",
     "pending": "Waiting for review",
-    "pendingSubtitle": "Items from your photos, by collection"
+    "pendingSubtitle": "Items from your photos, by collection",
+    "activity": "My activity",
+    "activitySubtitle": "What you did and when, sorted by kind"
   },
   "profile": {
     "edit": "Edit profile",

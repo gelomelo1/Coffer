@@ -1,0 +1,148 @@
+{
+  "title": "My activity",
+  "intro": "Everything you did in Coffer, newest first. Tap an entry to open where it happened.",
+  "all": "All activity",
+  "byKind": "By kind",
+  "categories": {
+    "likes": "Likes and ratings",
+    "comments": "Comments",
+    "collection": "Collections and items",
+    "follows": "Follows",
+    "marketplace": "Marketplace",
+    "trades": "Trades and reviews",
+    "reports": "Reports"
+  },
+  "count_one": "{{count}} entry",
+  "count_other": "{{count}} entries",
+  "last": "last {{when}}",
+  "nothingYet": "Nothing yet",
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "unavailable": "No longer available",
+  "untitled": "an untitled item",
+  "openHint": "Opens where it happened",
+  "openFailed": "Couldn't open this. It may have been deleted.",
+  "emptyTitle": "Nothing here yet",
+  "empty": {
+    "all": "What you do in Coffer shows up here.",
+    "likes": "Items you like or rate show up here.",
+    "comments": "Your comments and replies show up here.",
+    "collection": "Collections and items you add, edit or delete show up here.",
+    "follows": "Collections you follow or unfollow show up here.",
+    "marketplace": "Your listings, chats, offers and meetups show up here.",
+    "trades": "Your deals and reviews show up here.",
+    "reports": "Reports you file show up here."
+  },
+  "terms": {
+    "proposal": {
+      "offer": "a price offer",
+      "meetup": "a meetup proposal"
+    }
+  },
+  "kinds": {
+    "reaction": {
+      "liked": "Liked {{name}}",
+      "liked_gone": "Liked an item",
+      "unliked": "Removed your like from {{name}}",
+      "unliked_gone": "Removed your like from an item",
+      "rated": "Rated {{name}} {{to}}",
+      "rated_gone": "Rated an item {{to}}",
+      "rerated": "Changed your rating of {{name}} from {{from}} to {{to}}",
+      "rerated_gone": "Changed an item's rating from {{from}} to {{to}}",
+      "unrated": "Removed your {{from}} rating from {{name}}",
+      "unrated_gone": "Removed your {{from}} rating from an item"
+    },
+    "comment": {
+      "posted": "Commented on {{name}}",
+      "posted_gone": "Commented on an item",
+      "replied": "Replied to a comment on {{name}}",
+      "replied_gone": "Replied to a comment",
+      "edited": "Edited your comment on {{name}}",
+      "edited_gone": "Edited a comment",
+      "deleted": "Deleted your comment on {{name}}",
+      "deleted_gone": "Deleted a comment"
+    },
+    "collection": {
+      "created": "Created the collection {{name}}",
+      "created_gone": "Created a collection",
+      "edited": "Edited the collection {{name}}",
+      "edited_gone": "Edited a collection",
+      "deleted": "Deleted the collection {{name}}",
+      "deleted_gone": "Deleted a collection"
+    },
+    "item": {
+      "added": "Added {{name}} to your collection",
+      "added_gone": "Added an item",
+      "addedToExisting": "Added {{quantity}} more of {{name}}",
+      "addedToExisting_gone": "Added {{quantity}} more of an item",
+      "edited": "Edited {{name}}",
+      "edited_gone": "Edited an item",
+      "deleted": "Deleted {{name}}",
+      "deleted_gone": "Deleted an item"
+    },
+    "follow": {
+      "followed": "Followed {{name}}",
+      "followed_gone": "Followed a collection",
+      "unfollowed": "Unfollowed {{name}}",
+      "unfollowed_gone": "Unfollowed a collection"
+    },
+    "listing": {
+      "posted": "Posted the listing {{name}}",
+      "posted_gone": "Posted a listing",
+      "edited": "Edited the listing {{name}}",
+      "edited_gone": "Edited a listing",
+      "archived": "Archived the listing {{name}}",
+      "archived_gone": "Archived a listing",
+      "reactivated": "Reactivated the listing {{name}}",
+      "reactivated_gone": "Reactivated a listing"
+    },
+    "chat": {
+      "started": "Started a chat with {{other}} about {{name}}",
+      "started_gone": "Started a chat"
+    },
+    "offer": {
+      "sent": "Offered {{price}} for {{name}}",
+      "sent_gone": "Sent a price offer of {{price}}"
+    },
+    "meetup": {
+      "proposed": "Proposed a meetup to {{other}} about {{name}}",
+      "proposed_gone": "Proposed a meetup"
+    },
+    "proposal": {
+      "accepted": "Accepted {{what}} from {{other}}",
+      "accepted_gone": "Accepted {{what}}",
+      "declined": "Declined {{what}} from {{other}}",
+      "declined_gone": "Declined {{what}}",
+      "withdrawn": "Withdrew {{what}} sent to {{other}}",
+      "withdrawn_gone": "Withdrew {{what}}"
+    },
+    "deal": {
+      "proposed": "Proposed a deal to {{other}} for {{name}}",
+      "proposed_gone": "Proposed a deal",
+      "accepted": "Accepted the deal with {{other}} for {{name}}",
+      "accepted_gone": "Accepted a deal",
+      "declined": "Declined the deal with {{other}} for {{name}}",
+      "declined_gone": "Declined a deal",
+      "cancelled": "Cancelled the deal with {{other}} for {{name}}",
+      "cancelled_gone": "Cancelled a deal",
+      "handoffConfirmed": "Confirmed handing {{name}} over to {{other}}",
+      "handoffConfirmed_gone": "Confirmed a handoff",
+      "shipped": "Shipped {{name}} to {{other}}",
+      "shipped_gone": "Shipped an order",
+      "receiptConfirmed": "Confirmed receiving {{name}} from {{other}}",
+      "receiptConfirmed_gone": "Confirmed receiving an order",
+      "disputed": "Reported a problem with {{name}} from {{other}}",
+      "disputed_gone": "Reported a problem with a deal"
+    },
+    "review": {
+      "written": "Reviewed {{other}} {{stars}} for {{name}}",
+      "written_gone": "Wrote a {{stars}} review",
+      "replied": "Replied to {{other}}'s review",
+      "replied_gone": "Replied to a review"
+    },
+    "report": {
+      "filed": "Reported: {{name}}",
+      "filed_gone": "Filed a report"
+    }
+  }
+}

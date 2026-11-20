@@ -17,6 +17,8 @@ export const ROUTES = {
     LANGUAGE: "settings/language" as any,
     DELETE_ACCOUNT: "settings/delete_account" as any,
     PENDING: "settings/pending" as any,
+    ACTIVITY: "settings/activity" as any,
+    ACTIVITY_LIST: "settings/activity/list" as any,
   },
   MYCOLLECTION: "mycollection" as any,
   ITEMDETAILS: "itemdetails" as any,
@@ -91,6 +93,16 @@ export const pageParams = {
     titleKey: "settings:pending.title",
     isSettingsShown: false,
   }),
+  activity: buildNavigationData({
+    titleKey: "activity:title",
+    isSettingsShown: false,
+  }),
+  activityList: (category: string | null) =>
+    buildNavigationData({
+      titleKey: "activity:title",
+      screenTitleKey: category ? `activity:categories.${category}` : "activity:all",
+      isSettingsShown: false,
+    }),
   deleteAccount: buildNavigationData({
     titleKey: "settings:deleteAccount.title",
     isSettingsShown: false,

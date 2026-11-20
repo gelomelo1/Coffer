@@ -11,7 +11,8 @@ import { ItemComment } from "@/src/types/entities/comment";
 import { apiErrorText } from "@/src/utils/api_error_text";
 import { formatTimeAgo } from "@/src/utils/market_api";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useCommentFocusStore } from "@/src/hooks/comment_focus_store";
 import { userLabel } from "@/src/utils/deleted_labels";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
@@ -62,6 +63,7 @@ function CommentRow({
   onEdit,
   onDelete,
   onReport,
+  highlightId,
 }: {
   comment: ItemComment;
   level: number;
@@ -70,6 +72,8 @@ function CommentRow({
   onEdit: (c: ItemComment) => void;
   onDelete: (c: ItemComment) => void;
   onReport: (c: ItemComment) => void;
+  /** The comment opened from My activity: tinted for a moment. */
+  highlightId?: string | null;
 }) {
   const { t } = useTranslation();
   const hidden = comment.isDeleted || comment.isRemoved;
@@ -88,7 +92,9 @@ function CommentRow({
           paddingLeft: level > 0 ? spacing.sm : 0,
           paddingTop: spacing.sm,
           gap: spacing.xxs,
+          backgroundColor: comment.id === highlightId ? colors.surfaceAlt : "transparent",
         }}
+        accessibilityState={comment.id === highlightId ? { selected: true } : undefined}
       >
         {hidden ? (
           <Text style={[typography.meta, { color: colors.textMuted, fontStyle: "italic", paddingBottom: spacing.sm }]}>
@@ -131,17 +137,25 @@ function CommentRow({
           onEdit={onEdit}
           onDelete={onDelete}
           onReport={onReport}
+          highlightId={highlightId}
         />
       ))}
     </View>
   );
 }
 
+const HIGHLIGHT_MS = 2500;
+
+function contains(comment: ItemComment, id: string): boolean {
+  return comment.id === id || comment.replies.some((r) => contains(r, id));
+}
+
 /**
  * Comments of one collection item — the same component on the item details pages and in the feed card sheet.
- * Rendered without a virtualized list so it can live inside the details ScrollView.
+ * Rendered without a virtualized list so it can live inside the details ScrollView. When a comment was opened from
+ * My activity, its thread is scrolled into view (onFocusY: y inside this section) and the comment tinted briefly.
  */
-function CommentSection({ itemId }: { itemId: string }) {
+function CommentSection({ itemId, onFocusY }: { itemId: string; onFocusY?: (y: number) => void }) {
   const { t } = useTranslation();
   const { data, isLoading, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } = useItemComments(itemId);
   const [mode, setMode] = useState<Mode>({ kind: "new" });
@@ -158,6 +172,34 @@ function CommentSection({ itemId }: { itemId: string }) {
 
   const threads = data?.pages.flatMap((p) => p.threads) ?? [];
   const total = data?.pages[0]?.totalComments ?? 0;
+
+  const focusItemId = useCommentFocusStore((s) => s.itemId);
+  const focusCommentId = useCommentFocusStore((s) => s.commentId);
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  const threadsY = useRef(0);
+  const threadY = useRef<Record<string, number>>({});
+
+  useEffect(() => {
+    if (focusItemId !== itemId || !focusCommentId || isLoading) return;
+    useCommentFocusStore.getState().clear();
+    const thread = threads.find((th) => contains(th, focusCommentId));
+    if (!thread) {
+      // Not among the loaded threads (or deleted since): show the comments at least.
+      onFocusY?.(0);
+      return;
+    }
+    setHighlightId(focusCommentId);
+    // Wait for the rows to be laid out before measuring.
+    const timer = setTimeout(() => onFocusY?.(threadsY.current + (threadY.current[thread.id] ?? 0)), 300);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusItemId, focusCommentId, itemId, isLoading, threads.length]);
+
+  useEffect(() => {
+    if (!highlightId) return;
+    const timer = setTimeout(() => setHighlightId(null), HIGHLIGHT_MS);
+    return () => clearTimeout(timer);
+  }, [highlightId]);
 
   const submit = async (body: string, mentionUserIds: string[]) => {
     if (mode.kind === "edit") await update.mutateAsync({ id: mode.comment.id, body, mentionUserIds });
@@ -198,9 +240,13 @@ function CommentSection({ itemId }: { itemId: string }) {
       ) : threads.length === 0 ? (
         <Text style={[typography.body, { color: colors.textMuted, fontStyle: "italic" }]}>{t("comments:empty")}</Text>
       ) : (
-        <View>
+        <View onLayout={(e) => (threadsY.current = e.nativeEvent.layout.y)}>
           {threads.map((thread, i) => (
-            <View key={thread.id} style={{ borderTopWidth: i === 0 ? 0 : borders.hairline, borderColor: colors.borderMuted }}>
+            <View
+              key={thread.id}
+              onLayout={(e) => (threadY.current[thread.id] = e.nativeEvent.layout.y)}
+              style={{ borderTopWidth: i === 0 ? 0 : borders.hairline, borderColor: colors.borderMuted }}
+            >
               <CommentRow
                 comment={thread}
                 level={0}
@@ -208,6 +254,7 @@ function CommentSection({ itemId }: { itemId: string }) {
                 onEdit={(comment) => setMode({ kind: "edit", comment })}
                 onDelete={setDeleting}
                 onReport={setReporting}
+                highlightId={highlightId}
               />
             </View>
           ))}

@@ -12,9 +12,9 @@ import { colors, spacing } from "@/src/theme/theme";
 import { ItemProvided } from "@/src/types/entities/item";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { navigate } from "expo-router/build/global-state/routing";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView } from "react-native";
+import { ScrollView, View } from "react-native";
 
 /** Someone else's item: details, like / rate, comments, report. */
 function OtherUserItemDetails() {
@@ -23,6 +23,8 @@ function OtherUserItemDetails() {
   const { user: currentUser } = useUserStore();
   const { user, collection, item, setItem } = useOtherUserStore();
   const [isReporting, setIsReporting] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
+  const commentsY = useRef(0);
   const isMine = currentUser?.id === collection?.userId;
 
   const goToCollection = () => {
@@ -32,7 +34,7 @@ function OtherUserItemDetails() {
   const onItemUpdate = (updated: ItemProvided) => setItem(updated);
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ padding: spacing.md, gap: spacing.lg, paddingBottom: spacing.xxl * 2 }}>
+    <ScrollView ref={scrollRef} style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ padding: spacing.md, gap: spacing.lg, paddingBottom: spacing.xxl * 2 }}>
       <CustomButton
         title={t("items:details.openCollection", { user: user?.name ?? "", collection: collection?.name ?? "" })}
         variant="outline"
@@ -57,7 +59,12 @@ function OtherUserItemDetails() {
           onPress={() => setIsReporting(true)}
         />
       )}
-      <CommentSection itemId={item!.id} />
+      <View onLayout={(e) => (commentsY.current = e.nativeEvent.layout.y)}>
+        <CommentSection
+          itemId={item!.id}
+          onFocusY={(y) => scrollRef.current?.scrollTo({ y: Math.max(0, commentsY.current + y - spacing.md), animated: true })}
+        />
+      </View>
       <ReportOverlay isVisible={isReporting} onClose={() => setIsReporting(false)} targetType="item" targetId={item!.id} />
     </ScrollView>
   );

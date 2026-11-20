@@ -38,4 +38,6 @@ export const querykeys = {
   accountDeletion: "accountDeletion",
   pending: "pending",
   pendingSummary: "pendingSummary",
+  activity: "activity",
+  activitySummary: "activitySummary",
 };

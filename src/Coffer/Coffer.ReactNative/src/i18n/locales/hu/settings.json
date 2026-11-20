@@ -59,7 +59,9 @@
     "logoutText": "Bármikor visszajelentkezhetsz ugyanazzal a fiókkal.",
     "language": "Nyelv",
     "pending": "Áttekintésre vár",
-    "pendingSubtitle": "A fotóid tárgyai, gyűjteményenként"
+    "pendingSubtitle": "A fotóid tárgyai, gyűjteményenként",
+    "activity": "Tevékenységeim",
+    "activitySubtitle": "Mit és mikor csináltál, fajtánként"
   },
   "profile": {
     "edit": "Profil szerkesztése",

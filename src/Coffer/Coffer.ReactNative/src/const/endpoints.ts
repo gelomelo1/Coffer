@@ -52,4 +52,5 @@ export const endpoints = {
   accountSuspension: "api/Account/Suspension",
   account: "api/Account",
   accountDeletion: "api/Account/Deletion",
+  activity: "api/Activity",
 };

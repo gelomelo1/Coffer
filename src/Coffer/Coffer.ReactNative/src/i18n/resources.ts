@@ -1,4 +1,5 @@
 import accessibility from "./locales/en/accessibility.json";
+import activity from "./locales/en/activity.json";
 import auth from "./locales/en/auth.json";
 import collections from "./locales/en/collections.json";
 import comments from "./locales/en/comments.json";
@@ -12,6 +13,7 @@ import notifications from "./locales/en/notifications.json";
 import settings from "./locales/en/settings.json";
 import validation from "./locales/en/validation.json";
 import hu_accessibility from "./locales/hu/accessibility.json";
+import hu_activity from "./locales/hu/activity.json";
 import hu_auth from "./locales/hu/auth.json";
 import hu_collections from "./locales/hu/collections.json";
 import hu_comments from "./locales/hu/comments.json";
@@ -28,6 +30,7 @@ import hu_validation from "./locales/hu/validation.json";
 /** English is the default and fallback language. A new language = a new folder + one entry here. */
 export const en = {
   accessibility,
+  activity,
   auth,
   collections,
   comments,
@@ -45,6 +48,7 @@ export const en = {
 /** Hungarian (same keys as English; tests/locale_parity.test.ts keeps them in sync). */
 export const hu = {
   accessibility: hu_accessibility,
+  activity: hu_activity,
   auth: hu_auth,
   collections: hu_collections,
   comments: hu_comments,

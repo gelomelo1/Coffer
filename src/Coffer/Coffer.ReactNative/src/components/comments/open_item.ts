@@ -4,6 +4,7 @@ import { endpoints } from "@/src/const/endpoints";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useCollectionStore } from "@/src/hooks/collection_store";
 import { useCollectionTypeStore } from "@/src/hooks/collection_type_store";
+import { useCommentFocusStore } from "@/src/hooks/comment_focus_store";
 import { useOtherUserStore } from "@/src/hooks/other_user_store";
 import { Collection } from "@/src/types/entities/collection";
 import { ItemProvided } from "@/src/types/entities/item";
@@ -12,10 +13,11 @@ import { apiErrorMessage } from "@/src/utils/market_api";
 import { navigate } from "expo-router/build/global-state/routing";
 
 /**
- * Opens a collection item (with its comments) from anywhere, e.g. from Settings › Reports. Loads the item, its
- * collection and owner, then shows the read-only item page — the same one the feed opens.
+ * Opens a collection item (with its comments) from anywhere, e.g. from Settings › Reports or My activity. Loads the
+ * item, its collection and owner, then shows the read-only item page — the same one the feed opens. With a
+ * commentId the page scrolls to that comment and highlights it once.
  */
-export async function openItem(itemId: string) {
+export async function openItem(itemId: string, opts?: { commentId?: string | null }) {
   try {
     const item = (await backendAxios.get<ItemProvided>(`${endpoints.items}/${itemId}`)).data;
     const collection = (await backendAxios.get<Collection>(`${endpoints.collections}/${item.collectionId}`)).data;
@@ -25,6 +27,7 @@ export async function openItem(itemId: string) {
 
     useCollectionStore.getState().setCollectionType(type);
     useOtherUserStore.getState().setValues(owner, collection, item);
+    if (opts?.commentId) useCommentFocusStore.getState().focus(item.id, opts.commentId);
     navigate({ pathname: ROUTES.OTHERUSERITEMDETAILS, params: pageParams.otheruseritemdetails(collection.name) });
   } catch (error) {
     showToast("error", apiErrorMessage(error, "comments:itemGone"));
