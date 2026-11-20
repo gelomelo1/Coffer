@@ -71,3 +71,11 @@ test("proposal kind and stars become words", () => {
   assert.equal(sentenceParams(entry({ kind: "review.written", details: { stars: 4 }, otherName: "Sam" }), deps).stars, "4★");
   assert.equal(sentenceParams(entry({ kind: "item.addedToExisting", details: { quantity: 2 } }), deps).quantity, 2);
 });
+
+test("activity caches are per user (a second account on the device never sees the first one's log)", async () => {
+  const { activityListKey, activitySummaryKey } = await import("../src/utils/activity_format.ts");
+  assert.notDeepEqual(activityListKey("user-a", null), activityListKey("user-b", null));
+  assert.notDeepEqual(activityListKey("user-a", "likes"), activityListKey("user-b", "likes"));
+  assert.notDeepEqual(activityListKey("user-a", "likes"), activityListKey("user-a", "comments"));
+  assert.notDeepEqual(activitySummaryKey("user-a"), activitySummaryKey("user-b"));
+});

@@ -85,3 +85,10 @@ export function sentenceParams(entry: ActivityEntryLike, deps: SentenceDeps): Re
   if (typeof details.proposal === "string") params.what = deps.term(`proposal.${details.proposal}`);
   return params;
 }
+
+/**
+ * Cache keys carry the signed-in user: the cache outlives a logout, and the next account on the device must never
+ * be shown the previous one's log, not even while its own loads.
+ */
+export const activityListKey = (userId: string | null | undefined, category: string | null) => ["activity", userId ?? "", category ?? "all"];
+export const activitySummaryKey = (userId: string | null | undefined) => ["activitySummary", userId ?? ""];
