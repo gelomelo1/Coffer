@@ -1,17 +1,15 @@
-using Coffer.BusinessLogic.Marketplace.Common;
+using Coffer.BusinessLogic.Account;
 using Coffer.BusinessLogic.Services.Interfaces;
 using Coffer.DataAccess;
-using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Coffer.BusinessLogic.Community
 {
     public interface IItemRemovalService
     {
         /// <summary>
-        /// Deletes a collection item like its owner would: DB row (comments, reactions, … cascade) and its vector
-        /// embedding now; the image file via <see cref="DeleteFileAsync"/> after the caller committed.
+        /// Removes a collection item like its owner would: tombstone (comments, reactions, reports stay linked) and its
+        /// vector embedding now; the image file via <see cref="DeleteFileAsync"/> after the caller committed.
         /// </summary>
         Task<string?> RemoveAsync(Guid itemId);
 
@@ -21,47 +19,29 @@ namespace Coffer.BusinessLogic.Community
     public sealed class ItemRemovalService : IItemRemovalService
     {
         private readonly CofferDbContext _db;
+        private readonly IContentTombstoneService _tombstones;
         private readonly IImageService _images;
-        private readonly HttpClient _http;
-        private readonly ILogger<ItemRemovalService> _log;
 
-        public ItemRemovalService(CofferDbContext db, IImageService images, HttpClient http, ILogger<ItemRemovalService> log)
+        public ItemRemovalService(CofferDbContext db, IContentTombstoneService tombstones, IImageService images)
         {
             _db = db;
+            _tombstones = tombstones;
             _images = images;
-            _http = http;
-            _log = log;
         }
 
-        private static string PythonUrl => Env.GetString("FASTAPI_URL") ?? throw new InvalidOperationException("FASTAPI_URL envionmental variable is not set");
-
-        public static string ItemFolder =>
-            Path.Combine(Env.GetString("IMAGESTORE_PATH") ?? throw new InvalidOperationException("IMAGESTORE_PATH envionmental variable is not set"), "items");
+        public static string ItemFolder => ContentTombstoneService.ItemFolder;
 
         public async Task<string?> RemoveAsync(Guid itemId)
         {
-            var item = await _db.Items.FirstOrDefaultAsync(i => i.Id == itemId);
-            if (item == null) return null;
+            var file = await _db.Items.Where(i => i.Id == itemId && i.DeletedAt == null).Select(i => i.Image).FirstOrDefaultAsync();
+            if (file == null) return null;
 
-            _db.Items.Remove(item);
-            await _db.SaveChangesAsync();
-
-            HttpResponseMessage response;
-            try
-            {
-                response = await _http.DeleteAsync($"{PythonUrl}/delete_embeddings/{itemId}");
-            }
-            catch (HttpRequestException e)
-            {
-                _log.LogWarning("Could not reach the AI service to delete the embedding of item {ItemId}: {Error}", itemId, e.Message);
-                throw MarketplaceException.Unavailable("theAiServiceIsNotReachableSo", "The AI service is not reachable, so the item could not be removed. Try again later.");
-            }
-            // The Python service answers 200 with {"status":"error"} on failure.
-            var body = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode || body.Contains("\"error\"", StringComparison.Ordinal))
-                throw MarketplaceException.Unavailable("theAiServiceRefusedToDeleteThe", "The AI service refused to delete the item's embedding. Try again later.");
-
-            return item.Image;
+            // Tombstone, so other users' comments, reactions and reports stay linked. The embedding goes now (an item
+            // the admin removed must leave image search even if the caller's commit is still pending); the file after commit.
+            var cleanup = await _tombstones.TombstoneItemAsync(itemId);
+            cleanup.Files.Clear();
+            await _tombstones.CleanupAsync(cleanup);
+            return file;
         }
 
         public Task DeleteFileAsync(Guid itemId, string? fileName) => _images.DeleteOwnedImageAsync(fileName, itemId, ItemFolder);

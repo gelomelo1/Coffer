@@ -27,8 +27,9 @@ namespace Coffer.Tests.Marketplace
 
         protected ReportService Reports() => new(Db.Context, Clock, new ReportSnapshotBuilder(Db.Context, Conversations()));
         protected Coffer.BusinessLogic.Moderation.SuspensionService Suspensions() => new(Db.Context, Clock, _cache);
-        protected Coffer.BusinessLogic.Community.ItemRemovalService ItemRemoval() => new(Db.Context, new ImageService(), new HttpClient(Python, false),
-            Microsoft.Extensions.Logging.Abstractions.NullLogger<Coffer.BusinessLogic.Community.ItemRemovalService>.Instance);
+        protected Coffer.BusinessLogic.Account.ContentTombstoneService Tombstones() => new(Db.Context, new ImageService(), new HttpClient(Python, false),
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<Coffer.BusinessLogic.Account.ContentTombstoneService>.Instance);
+        protected Coffer.BusinessLogic.Community.ItemRemovalService ItemRemoval() => new(Db.Context, Tombstones(), new ImageService());
         protected AdminReportService AdminReports() => new(Db.Context, Clock, Conversations(), Suspensions(), ItemRemoval());
         protected Coffer.BusinessLogic.Community.ItemCommentService Comments() => new(Db.Context, Clock);
         protected ReviewService Reviews() => new(Db.Context, Clock, Sut(), new ResponsivenessService(Db.Context, Clock));

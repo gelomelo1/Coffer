@@ -423,7 +423,7 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
                 .Where(c => c.Id == targetId).Select(c => new { exists = true, c.Body, c.IsRemoved, deleted = c.DeletedAt != null, c.EditedAt }).FirstOrDefaultAsync()
                 ?? (object)new { exists = false },
             _ => await _db.Items.AsNoTracking()
-                .Where(i => i.Id == targetId).Select(i => new { exists = true, i.Description, i.Image, i.Quantity }).FirstOrDefaultAsync()
+                .Where(i => i.Id == targetId && i.DeletedAt == null).Select(i => new { exists = true, i.Description, i.Image, i.Quantity }).FirstOrDefaultAsync()
                 ?? (object)new { exists = false },
         };
 

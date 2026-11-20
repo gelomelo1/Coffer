@@ -59,7 +59,7 @@ namespace Coffer.Tests
         }
 
         [Fact]
-        public async Task ItemDelete_Succeeds_DeletesRowImageAndEmbedding()
+        public async Task ItemDelete_Succeeds_TombstonesRowDeletesImageAndEmbedding()
         {
             var owner = Db.AddUser("owner");
             var item = Db.AddItem(Db.AddCollection(owner));
@@ -68,13 +68,13 @@ namespace Coffer.Tests
             var response = await _api.ClientFor(owner).DeleteAsync($"api/Items/{item.Id}");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.False(Db.NewContext().Items.Any(i => i.Id == item.Id));
+            Assert.NotNull(Db.NewContext().Items.Single(i => i.Id == item.Id).DeletedAt); // tombstone: other users' data stays linked
             Assert.False(File.Exists(image));
             Assert.Contains(_api.Python.Calls, c => c.Method == HttpMethod.Delete && c.Path == $"/delete_embeddings/{item.Id}");
         }
 
         [Fact]
-        public async Task ItemDelete_WhenImageFileIsMissing_StillDeletesTheItem()
+        public async Task ItemDelete_WhenImageFileIsMissing_StillTombstonesTheItem()
         {
             var owner = Db.AddUser("owner");
             var item = Db.AddItem(Db.AddCollection(owner));
@@ -82,11 +82,11 @@ namespace Coffer.Tests
             var response = await _api.ClientFor(owner).DeleteAsync($"api/Items/{item.Id}");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.False(Db.NewContext().Items.Any(i => i.Id == item.Id));
+            Assert.NotNull(Db.NewContext().Items.Single(i => i.Id == item.Id).DeletedAt); // tombstone: other users' data stays linked
         }
 
         [Fact]
-        public async Task ItemDelete_WhenPythonReportsError_KeepsRowAndImage()
+        public async Task ItemDelete_WhenPythonReportsError_StillTombstones()
         {
             var owner = Db.AddUser("owner");
             var item = Db.AddItem(Db.AddCollection(owner));
@@ -95,9 +95,10 @@ namespace Coffer.Tests
 
             var response = await _api.ClientFor(owner).DeleteAsync($"api/Items/{item.Id}");
 
-            Assert.False(response.IsSuccessStatusCode);
-            Assert.True(Db.NewContext().Items.Any(i => i.Id == item.Id), "item row deleted although embedding delete failed");
-            Assert.True(File.Exists(image), "image deleted although transaction rolled back");
+            // The database tombstone is what counts; a leftover embedding is never shown (searches skip tombstones).
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.NotNull(Db.NewContext().Items.Single(i => i.Id == item.Id).DeletedAt);
+            Assert.False(File.Exists(image));
         }
 
         [Fact]
@@ -111,7 +112,7 @@ namespace Coffer.Tests
             var response = await _api.ClientFor(owner).PutAsJsonAsync($"api/Items/{item.Id}", body);
 
             Assert.True(response.IsSuccessStatusCode);
-            Assert.False(Db.NewContext().Items.Any(i => i.Id == item.Id));
+            Assert.NotNull(Db.NewContext().Items.Single(i => i.Id == item.Id).DeletedAt); // tombstone: other users' data stays linked
             Assert.Contains(_api.Python.Calls, c => c.Method == HttpMethod.Delete && c.Path == $"/delete_embeddings/{item.Id}");
         }
 
@@ -136,7 +137,7 @@ namespace Coffer.Tests
         }
 
         [Fact]
-        public async Task CollectionDelete_WhenPythonReportsError_KeepsCollectionAndImages()
+        public async Task CollectionDelete_WhenPythonReportsError_StillTombstones()
         {
             var owner = Db.AddUser("owner");
             var collection = Db.AddCollection(owner);
@@ -146,9 +147,10 @@ namespace Coffer.Tests
 
             var response = await _api.ClientFor(owner).DeleteAsync($"api/Collections/{collection.Id}");
 
-            Assert.False(response.IsSuccessStatusCode);
-            Assert.True(Db.NewContext().Collections.Any(c => c.Id == collection.Id));
-            Assert.True(File.Exists(image));
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.NotNull(Db.NewContext().Collections.Single(c => c.Id == collection.Id).DeletedAt);
+            Assert.NotNull(Db.NewContext().Items.Single(i => i.Id == item.Id).DeletedAt);
+            Assert.False(File.Exists(image));
         }
 
         [Fact]
@@ -161,7 +163,7 @@ namespace Coffer.Tests
             var response = await _api.ClientFor(owner).DeleteAsync($"api/Collections/{collection.Id}");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.False(Db.NewContext().Collections.Any(c => c.Id == collection.Id));
+            Assert.NotNull(Db.NewContext().Collections.Single(c => c.Id == collection.Id).DeletedAt);
         }
 
         public void Dispose() => _api.Dispose();

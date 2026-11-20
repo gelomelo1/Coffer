@@ -24,6 +24,7 @@ namespace Coffer.ASPNET.Controllers
         private readonly string tempFolder = Env.GetString("IMAGECHECK_TEMP_PATH") ?? throw new InvalidOperationException("IMAGECHECK_TEMP_PATH envionmental variable is not set");
         private readonly string pythonServiceUrl = Env.GetString("FASTAPI_URL") ?? throw new InvalidOperationException("FASTAPI_URL envionmental variable is not set");
         private readonly HttpClient _httpClient;
+        private readonly Coffer.BusinessLogic.Account.IContentTombstoneService _tombstones;
         /// <summary>A page of items plus TotalQuantity: the pieces across every item matching the filter.</summary>
         public record ItemPage(List<ItemProvided> Items, int Page, int PageSize, int Total, int TotalQuantity);
 
@@ -40,8 +41,9 @@ namespace Coffer.ASPNET.Controllers
             return Ok(new ItemPage(result.Items, result.Page, result.PageSize, result.Total, quantity));
         }
 
-        public ItemsController(IItemsRepository repository, IUsersRepository usersRepository, IImageService imageService, IPermissionService<Guid, ItemRequired> permissionService, HttpClient httpClient) : base(repository, permissionService)
+        public ItemsController(IItemsRepository repository, IUsersRepository usersRepository, IImageService imageService, IPermissionService<Guid, ItemRequired> permissionService, HttpClient httpClient, Coffer.BusinessLogic.Account.IContentTombstoneService tombstones) : base(repository, permissionService)
         {
+            _tombstones = tombstones;
             _itemsRepository = repository;
             _imageService = imageService;
             _httpClient = httpClient;
@@ -224,31 +226,9 @@ namespace Coffer.ASPNET.Controllers
             if (item == null)
                 return NotFound();
 
-            using (var transaction = await _itemsRepository.BeginTransactionAsync())
-            {
-                try
-                {
-                    await _repository.DeleteItemAsync(id);
-
-                    var response = await _httpClient.DeleteAsync($"{pythonServiceUrl}/delete_embeddings/{id}");
-
-                    if (!await PythonServiceResponse.IsOkAsync(response))
-                    {
-                        throw new Exception("Failed to delete embedding via FastAPI");
-                    }
-
-                    await transaction.CommitAsync();
-                }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync();
-                    Console.WriteLine($"Failed to delete item {id}: {ex.Message}");
-                    return this.ApiError(500, "failedToDeleteItem", "Failed to delete item");
-                }
-            }
-
-            // Files cannot take part in the DB transaction, so they are only removed after a successful commit.
-            await _imageService.DeleteOwnedImageAsync(item.Image, item.Id, imageFolder);
+            // Tombstone, not a hard delete: other users' comments, reactions and reports on the item stay linked.
+            var cleanup = await _tombstones.TombstoneItemAsync(id);
+            await _tombstones.CleanupAsync(cleanup);
 
             return Ok();
         }

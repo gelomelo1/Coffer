@@ -226,14 +226,14 @@ namespace Coffer.Tests.Marketplace
         }
 
         [Fact]
-        public async Task RemoveItem_DeletesItemAndEmbedding()
+        public async Task RemoveItem_TombstonesItemAndDeletesEmbedding()
         {
             var (_, item) = SellerItem();
             var report = await Reports().CreateAsync(Buyer.Id, ReportOf(ReportTargetType.Item, item.Id, ReportRule.IllegalItem, "This shows a real weapon."));
 
             await AdminReports().ResolveAsync(Admin.Id, report.Id, new ResolveReportInput(ReportDecision.Removed, ReportRule.IllegalItem, "Weapons are not allowed on Coffer."));
 
-            Assert.False(Db.NewContext().Items.Any(i => i.Id == item.Id));
+            Assert.NotNull(Db.NewContext().Items.Single(i => i.Id == item.Id).DeletedAt);
             Assert.Contains(Python.Calls, c => c.Method == HttpMethod.Delete && c.Path == $"/delete_embeddings/{item.Id}");
             var detail = await AdminReports().GetAsync(report.Id);
             Assert.Contains("\"exists\":false", detail.CurrentState.GetRawText());
