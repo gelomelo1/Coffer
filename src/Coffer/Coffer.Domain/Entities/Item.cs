@@ -39,7 +39,7 @@ namespace Coffer.Domain.Entities
         }
     }
 
-    public class ItemProvided : IGenericEntity<Guid>
+    public class ItemProvided : IGenericEntity<Guid>, ITombstoned
     {
         public Guid Id { get; set; }
         public Guid CollectionId { get; set; }
@@ -53,6 +53,9 @@ namespace Coffer.Domain.Entities
         [JsonIgnore]
         public CollectionProvided Collection;
         public DateTime AcquiredAt { get; set; }
+
+        /// <summary>Set when deleted: the row stays as an empty placeholder so other users' data keeps its link.</summary>
+        public DateTime? DeletedAt { get; set; }
 
         public ItemProvided(Guid collectionId, int quantity, string image, string? description = null, string? privateNote = null)
         {

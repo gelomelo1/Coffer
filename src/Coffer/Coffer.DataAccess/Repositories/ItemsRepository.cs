@@ -29,7 +29,7 @@ namespace Coffer.DataAccess.Repositories
 
         public async Task<int> SumQuantityAsync(string? filter)
         {
-            IQueryable<ItemProvided> query = _dbSet;
+            IQueryable<ItemProvided> query = Live(_dbSet);
             if (!string.IsNullOrWhiteSpace(filter))
                 query = query.Where(filter);
             return await query.SumAsync(i => i.Quantity);

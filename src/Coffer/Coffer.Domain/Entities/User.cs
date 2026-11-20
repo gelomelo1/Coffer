@@ -42,7 +42,7 @@ namespace Coffer.Domain.Entities
         }
     }
 
-    public class UserProvided : IGenericEntity<Guid>
+    public class UserProvided : IGenericEntity<Guid>, ITombstoned
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
@@ -58,6 +58,9 @@ namespace Coffer.Domain.Entities
         /// <summary>Marketplace terms version the user accepted (null = not accepted).</summary>
         public string? MarketTermsVersion { get; set; }
         public DateTime? MarketTermsAcceptedAt { get; set; }
+
+        /// <summary>Set when deleted: the row stays as an empty placeholder so other users' data keeps its link.</summary>
+        public DateTime? DeletedAt { get; set; }
 
         protected UserProvided() { }
 

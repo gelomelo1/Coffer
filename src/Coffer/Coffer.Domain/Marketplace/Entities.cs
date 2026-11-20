@@ -14,7 +14,7 @@ namespace Coffer.Domain.Marketplace
         public double Longitude { get; set; }
     }
 
-    public class Listing
+    public class Listing : Coffer.Domain.Entities.Interfaces.ITombstoned
     {
         public Guid Id { get; set; }
         public Guid OwnerId { get; set; }
@@ -39,6 +39,8 @@ namespace Coffer.Domain.Marketplace
         public DateTime UpdatedAt { get; set; }
         public List<ListingLine> Lines { get; set; } = new();
         public List<ListingImage> Images { get; set; } = new();
+        /// <summary>Set when the owner deleted their account: content wiped, row kept for deals and chats.</summary>
+        public DateTime? DeletedAt { get; set; }
     }
 
     public class ListingLine

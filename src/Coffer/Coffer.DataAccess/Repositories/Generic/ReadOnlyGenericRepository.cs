@@ -29,9 +29,15 @@ namespace Coffer.DataAccess.Repositories.Generic
             _includeProvider = includeProvider;
         }
 
+        /// <summary>Hides tombstones (deleted rows kept only as placeholders) of entities that have them.</summary>
+        protected static IQueryable<TEntity> Live(IQueryable<TEntity> query) =>
+            typeof(ITombstoned).IsAssignableFrom(typeof(TEntity))
+                ? query.Where(e => EF.Property<DateTime?>(e, nameof(ITombstoned.DeletedAt)) == null)
+                : query;
+
         public virtual async Task<IEnumerable<TProvided>> GetItemsAsync(string? filter = null, string? orderBy = null, int? page = null, int? pageSize = null)
         {
-            IQueryable<TEntity> query = _dbSet;
+            IQueryable<TEntity> query = Live(_dbSet);
 
 
             var includes = _includeProvider?.GetDefaultIncludes();
@@ -56,7 +62,7 @@ namespace Coffer.DataAccess.Repositories.Generic
 
         public virtual async Task<Coffer.Domain.Paging.PagedList<TProvided>> GetPageAsync(string? filter, string? orderBy, int? page, int? pageSize)
         {
-            IQueryable<TEntity> query = _dbSet;
+            IQueryable<TEntity> query = Live(_dbSet);
             if (!string.IsNullOrWhiteSpace(filter))
                 query = query.Where(filter);
             // Id last, so rows with equal sort values keep one order and no row shows up on two pages.
@@ -75,7 +81,7 @@ namespace Coffer.DataAccess.Repositories.Generic
 
         public virtual async Task<TProvided?> GetItemByIdAsync(Tkey id)
         {
-            IQueryable<TEntity> query = _dbSet;
+            IQueryable<TEntity> query = Live(_dbSet);
 
             var includes = _includeProvider?.GetDefaultIncludes();
             if (includes != null && includes.Length > 0)

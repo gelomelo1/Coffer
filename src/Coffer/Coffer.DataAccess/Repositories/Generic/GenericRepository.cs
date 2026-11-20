@@ -32,7 +32,7 @@ namespace Coffer.DataAccess.Repositories.Generic
 
         public async Task<TProvided?> UpdateItemAsync(Tkey id, TProvided item)
         {
-            IQueryable<TEntity> query = _dbSet;
+            IQueryable<TEntity> query = Live(_dbSet);
 
             var includes = _includeProvider?.GetDefaultIncludes();
             if (includes != null && includes.Length > 0)
@@ -41,6 +41,7 @@ namespace Coffer.DataAccess.Repositories.Generic
                     query = query.Include(include);
             }
             var entity = await query.FirstOrDefaultAsync(e => EF.Property<Tkey>(e, "Id").Equals(id));
+            if (entity == null) return null;
 
             entity = MapToEntity(item, entity);
             await _dbContext.SaveChangesAsync();
@@ -56,7 +57,7 @@ namespace Coffer.DataAccess.Repositories.Generic
 
         public virtual async Task<TProvided?> UpdateItemAsync(Tkey id, TRequired item)
         {
-            IQueryable<TEntity> query = _dbSet;
+            IQueryable<TEntity> query = Live(_dbSet);
 
             var includes = _includeProvider?.GetDefaultIncludes();
             if (includes != null && includes.Length > 0)
@@ -65,6 +66,7 @@ namespace Coffer.DataAccess.Repositories.Generic
                     query = query.Include(include);
             }
             var entity = await query.FirstOrDefaultAsync(e => EF.Property<Tkey>(e, "Id").Equals(id));
+            if (entity == null) return null;
 
             entity = MapToEntity(item, entity);
             await _dbContext.SaveChangesAsync();

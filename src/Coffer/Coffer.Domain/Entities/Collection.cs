@@ -24,7 +24,7 @@ namespace Coffer.Domain.Entities
         }
     }
 
-    public class CollectionProvided : CollectionRequired, IGenericEntity<Guid>
+    public class CollectionProvided : CollectionRequired, IGenericEntity<Guid>, ITombstoned
     {
         public Guid Id { get; set; }
         public string? Image { get; set; }
@@ -32,6 +32,9 @@ namespace Coffer.Domain.Entities
         [JsonIgnore]
         public User User { get; set; }
         public DateTime CreatedAt { get; set; }
+
+        /// <summary>Set when deleted: the row stays as an empty placeholder so other users' data keeps its link.</summary>
+        public DateTime? DeletedAt { get; set; }
 
         public CollectionProvided(Guid userId, int collectionTypeId, string name, string? image = null, string? description = null) : base(userId, collectionTypeId, name, description)
         {
