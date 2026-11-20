@@ -19,6 +19,7 @@ from pydantic import BaseModel
 from uuid import UUID
 from typing import List
 from save_embeddings_to_vectordb import save_embeddings_to_vectordb
+from pending import pending_folder, pending_similars, save_pending_embedding
 import chromadb
 
 
@@ -162,6 +163,35 @@ async def delete_collection_embeddings(
 
         delete_embeddings_from_vectordb(app.state.collection, collection_id)
 
+        return {"status": "ok"}
+    except Exception as e:
+        return error_response(e)
+
+
+class PendingIds(BaseModel):
+    ids: List[UUID]
+
+
+class PendingEmbedding(BaseModel):
+    pendingId: UUID
+    itemId: UUID
+
+
+@app.post("/pending_similars/{collection_id}")
+async def pending_similars_route(collection_id: UUID, body: PendingIds):
+    """Matches for waiting caps, from their stored fingerprints."""
+    try:
+        response = pending_similars(app.state.collection, str(collection_id), pending_folder(), [str(i) for i in body.ids])
+        return {"status": "ok", "response": response}
+    except Exception as e:
+        return error_response(e)
+
+
+@app.post("/save_pending_embedding/{collection_id}")
+async def save_pending_embedding_route(collection_id: UUID, body: PendingEmbedding):
+    """A waiting cap was added as a new item: keep its fingerprint for future matches."""
+    try:
+        save_pending_embedding(app.state.collection, str(collection_id), pending_folder(), str(body.pendingId), str(body.itemId))
         return {"status": "ok"}
     except Exception as e:
         return error_response(e)
