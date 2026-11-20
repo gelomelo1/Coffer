@@ -15,6 +15,7 @@ export const ROUTES = {
     USER: "settings/user" as any,
     REPORTS: "settings/reports" as any,
     LANGUAGE: "settings/language" as any,
+    DELETE_ACCOUNT: "settings/delete_account" as any,
   },
   MYCOLLECTION: "mycollection" as any,
   ITEMDETAILS: "itemdetails" as any,
@@ -82,6 +83,10 @@ export const pageParams = {
   }),
   reports: buildNavigationData({
     titleKey: "settings:reports.title",
+    isSettingsShown: false,
+  }),
+  deleteAccount: buildNavigationData({
+    titleKey: "settings:deleteAccount.title",
     isSettingsShown: false,
   }),
   myfollows: buildNavigationData({

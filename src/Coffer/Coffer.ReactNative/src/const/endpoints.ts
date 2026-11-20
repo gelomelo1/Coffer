@@ -49,4 +49,6 @@ export const endpoints = {
   commentCounts: "api/Comments/Counts",
   mentionable: "api/Comments/Mentionable",
   accountSuspension: "api/Account/Suspension",
+  account: "api/Account",
+  accountDeletion: "api/Account/Deletion",
 };

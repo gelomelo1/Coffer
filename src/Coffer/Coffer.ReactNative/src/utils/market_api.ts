@@ -8,6 +8,7 @@ import { resolveText } from "./text_params";
 import { apiErrorText } from "./api_error_text";
 import { MessagePage, PAGE_SIZE, Paged } from "./paging";
 import {
+  AccountDeletionStatus,
   Carrier,
   City,
   Conversation,
@@ -131,6 +132,12 @@ export const marketApi = {
   proposeDeal: (conversationId: string, method: DeliveryMethod) => post<Deal>(endpoints.deals, { conversationId, method }),
   acceptDeal: (id: string) => post<Deal>(`${endpoints.deals}/${id}/Accept`),
   declineDeal: (id: string) => post<Deal>(`${endpoints.deals}/${id}/Decline`),
+  /** Whether the account can be deleted now, and the open trades that block it. */
+  accountDeletion: () => get<AccountDeletionStatus>(endpoints.accountDeletion),
+  /** Deletes the signed-in user's account (409 accountHasOpenTrades while trades are running). */
+  deleteAccount: async () => {
+    await backendAxios.delete(endpoints.account);
+  },
   cancelDeal: (id: string, reason?: string) => post<Deal>(`${endpoints.deals}/${id}/Cancel`, { reason: reason ?? null }),
   confirmHandoff: (id: string, pin: string) => post<Deal>(`${endpoints.deals}/${id}/ConfirmHandoff`, { pin }),
   ship: (id: string, carrier: string, trackingNumber: string, photo?: LocalImage | null) => {

@@ -85,5 +85,28 @@
     "device": "Device language",
     "deviceHint": "Follows your phone: {{language}}",
     "changed": "Language changed"
+  },
+  "deleteAccount": {
+    "title": "Delete account",
+    "row": "Delete account",
+    "rowSubtitle": "Permanently delete your account and your content",
+    "goesTitle": "What gets deleted",
+    "goes": "Your profile, collections, items, photos, listings, likes and follows. The text of your comments is removed.",
+    "staysTitle": "What stays for other people",
+    "stays": "Your comments stay in their threads as \"Comment deleted\". Your chat messages, trades and reviews stay in the other person's history, shown as \"Deleted user\".",
+    "final": "This can't be undone. You can sign up again later, but as a new user.",
+    "tradesTitle": "Open trades",
+    "tradesText": "Finish or cancel these trades first. Shipped trades end when the buyer confirms receipt, or by themselves on the date shown.",
+    "cancel": "Cancel trade",
+    "cancelTitle": "Cancel this trade?",
+    "cancelText": "The other person sees in the chat that you cancelled.",
+    "cancelReason": "Cancelled because I'm deleting my account.",
+    "endsBy": "Ends by {{date}} at the latest",
+    "with": "With {{name}}",
+    "typeName": "Type your username ({{name}}) to confirm",
+    "button": "Delete my account",
+    "confirmTitle": "Delete your account?",
+    "confirmText": "Your account and your content are deleted now. This can't be undone.",
+    "done": "Your account was deleted"
   }
 }

@@ -35,4 +35,5 @@ export const querykeys = {
   itemComments: "itemComments",
   commentCounts: "commentCounts",
   mentionable: "mentionable",
+  accountDeletion: "accountDeletion",
 };

@@ -85,5 +85,28 @@
     "device": "Az eszköz nyelve",
     "deviceHint": "A telefonodat követi: {{language}}",
     "changed": "Nyelv módosítva"
+  },
+  "deleteAccount": {
+    "title": "Fiók törlése",
+    "row": "Fiók törlése",
+    "rowSubtitle": "A fiókod és a tartalmaid végleges törlése",
+    "goesTitle": "Mi törlődik",
+    "goes": "A profilod, a gyűjteményeid, a tárgyaid, a fotóid, a hirdetéseid, a kedveléseid és a követéseid. A hozzászólásaid szövege is törlődik.",
+    "staysTitle": "Mi marad meg másoknak",
+    "stays": "A hozzászólásaid a helyükön maradnak „Hozzászólás törölve” jelzéssel. A csevegőüzeneteid, cseréid és értékeléseid a másik fél előzményeiben maradnak, „Törölt felhasználó” néven.",
+    "final": "Ez nem vonható vissza. Később újra regisztrálhatsz, de új felhasználóként.",
+    "tradesTitle": "Folyamatban lévő cserék",
+    "tradesText": "Előbb fejezd be vagy mondd le ezeket. A feladott cserék akkor zárulnak le, amikor a vevő visszaigazolja az átvételt, vagy maguktól a megadott napon.",
+    "cancel": "Csere lemondása",
+    "cancelTitle": "Lemondod ezt a cserét?",
+    "cancelText": "A másik fél a csevegésben látja, hogy lemondtad.",
+    "cancelReason": "Lemondva, mert törlöm a fiókomat.",
+    "endsBy": "Legkésőbb {{date}} napon zárul",
+    "with": "Vele: {{name}}",
+    "typeName": "A megerősítéshez írd be a felhasználóneved ({{name}})",
+    "button": "Fiókom törlése",
+    "confirmTitle": "Törlöd a fiókodat?",
+    "confirmText": "A fiókod és a tartalmaid most törlődnek. Ez nem vonható vissza.",
+    "done": "A fiókod törölve"
   }
 }

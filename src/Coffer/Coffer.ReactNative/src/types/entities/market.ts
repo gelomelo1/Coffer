@@ -230,6 +230,24 @@ export interface Carrier {
   label: string;
 }
 
+/** An open trade that keeps the account from being deleted (GET api/Account/Deletion). */
+export interface BlockingDeal {
+  dealId: string;
+  conversationId: string;
+  listingTitle: string;
+  other: UserSummary;
+  status: DealStatus;
+  /** Not shipped yet: can be cancelled now. */
+  canCancel: boolean;
+  /** Shipped: completes by itself at the latest then (earlier when the buyer confirms or disputes). */
+  endsLatestAt?: string | null;
+}
+
+export interface AccountDeletionStatus {
+  canDelete: boolean;
+  blockingDeals: BlockingDeal[];
+}
+
 export interface Deal {
   id: string;
   listingId: string;
