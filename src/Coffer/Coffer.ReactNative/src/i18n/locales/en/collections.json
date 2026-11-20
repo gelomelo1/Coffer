@@ -99,8 +99,8 @@
     "since": "You follow this collection since {{date}}"
   },
   "waiting": {
-    "banner_one": "{{count}} cap waiting for review",
-    "banner_other": "{{count}} caps waiting for review",
+    "banner_one": "{{count}} item waiting for review",
+    "banner_other": "{{count}} items waiting for review",
     "bannerHint": "From your photos. Add, skip or delete them.",
     "review": "Review",
     "tag_one": "{{count}} waiting",

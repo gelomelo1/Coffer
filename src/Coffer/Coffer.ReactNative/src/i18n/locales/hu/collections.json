@@ -99,8 +99,8 @@
     "since": "{{date}} óta követed ezt a gyűjteményt"
   },
   "waiting": {
-    "banner_one": "{{count}} kupak vár áttekintésre",
-    "banner_other": "{{count}} kupak vár áttekintésre",
+    "banner_one": "{{count}} tárgy vár áttekintésre",
+    "banner_other": "{{count}} tárgy vár áttekintésre",
     "bannerHint": "A fotóidról. Add hozzá, hagyd ki vagy töröld őket.",
     "review": "Áttekintés",
     "tag_one": "{{count}} vár",

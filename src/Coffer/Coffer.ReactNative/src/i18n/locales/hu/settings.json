@@ -59,7 +59,7 @@
     "logoutText": "Bármikor visszajelentkezhetsz ugyanazzal a fiókkal.",
     "language": "Nyelv",
     "pending": "Áttekintésre vár",
-    "pendingSubtitle": "A fotóid kupakjai, gyűjteményenként"
+    "pendingSubtitle": "A fotóid tárgyai, gyűjteményenként"
   },
   "profile": {
     "edit": "Profil szerkesztése",
@@ -113,9 +113,9 @@
   },
   "pending": {
     "title": "Áttekintésre vár",
-    "intro": "A fotóidon talált kupakok itt várnak, amíg hozzá nem adod vagy nem törlöd őket. Válassz egy gyűjteményt a folytatáshoz.",
-    "emptyTitle": "Nincs várakozó kupak",
-    "emptyText": "Az új fotók kupakjai itt jelennek meg.",
+    "intro": "A fotóidon talált tárgyak 30 napig várnak itt, amíg hozzá nem adod vagy nem törlöd őket. Válassz egy gyűjteményt a folytatáshoz.",
+    "emptyTitle": "Nincs várakozó tárgy",
+    "emptyText": "Az új fotók tárgyai itt jelennek meg.",
     "count_one": "{{count}} vár",
     "count_other": "{{count}} vár"
   }
