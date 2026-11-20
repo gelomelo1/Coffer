@@ -101,6 +101,18 @@ namespace Coffer.Tests.DevSeed
         }
 
         [Fact]
+        public async Task Enabled_DeletedSeedUser_IsNotListed()
+        {
+            Environment.SetEnvironmentVariable(DevLoginService.EnvName, "true");
+            _seedUser.DeletedAt = DateTime.UtcNow;
+            _api.Db.Context.SaveChanges();
+
+            var users = await _api.CreateClient().GetFromJsonAsync<List<DevLoginUserDto>>("api/auth/dev/users");
+
+            Assert.Empty(users!);
+        }
+
+        [Fact]
         public async Task Enabled_SuspendedSeedUser_GetsNoToken()
         {
             Environment.SetEnvironmentVariable(DevLoginService.EnvName, "true");

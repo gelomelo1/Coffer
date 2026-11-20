@@ -52,7 +52,7 @@ namespace Coffer.BusinessLogic.DevSeed
         public async Task<List<DevLoginUserDto>> UsersAsync()
         {
             var ids = SeedUserIds();
-            var users = await _db.Users.AsNoTracking().Where(u => ids.Contains(u.Id)).OrderBy(u => u.Name).ToListAsync();
+            var users = await _db.Users.AsNoTracking().Where(u => ids.Contains(u.Id) && u.DeletedAt == null).OrderBy(u => u.Name).ToListAsync();
             var result = new List<DevLoginUserDto>();
             foreach (var u in users)
                 result.Add(new DevLoginUserDto(u.Id, u.Name, u.Avatar, u.Country, u.Provider, await _suspensions.GetActiveAsync(u.Id) != null));
