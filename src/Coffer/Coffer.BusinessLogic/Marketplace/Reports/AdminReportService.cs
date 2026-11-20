@@ -431,7 +431,7 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
         {
             var list = ids.Distinct().ToList();
             var users = await _db.Users.AsNoTracking().Where(u => list.Contains(u.Id)).ToListAsync();
-            return users.ToDictionary(u => u.Id, UserSummaryDto.From);
+            return users.ToDictionary(u => u.Id, UserSummaryDto.ForAdmin);
         }
 
         private static UserSummaryDto User(Dictionary<Guid, UserSummaryDto> users, Guid id) =>

@@ -25,7 +25,9 @@ namespace Coffer.BusinessLogic.Marketplace.Reviews
         string? Reply,
         DateTime? RepliedAt,
         /// <summary>Reported and waiting for a moderator: shown with a notice, excluded from the average.</summary>
-        bool IsFrozen);
+        bool IsFrozen,
+        /// <summary>The listing went with its owner's account (no title; the app shows a placeholder).</summary>
+        bool ListingDeleted = false);
 
     public record DealReviewsDto(ReviewDto? Mine, ReviewDto? Theirs, bool TheyHaveSubmitted, bool CanReview, DateTime? Deadline);
 
@@ -214,6 +216,6 @@ namespace Coffer.BusinessLogic.Marketplace.Reviews
         private static ReviewDto ToDto(Review r) => new(
             r.Id, r.DealId, r.Deal.Listing.Title,
             r.Reviewer == null ? null : UserSummaryDto.From(r.Reviewer), UserSummaryDto.From(r.Reviewee),
-            r.ReviewerRole, r.Stars, r.ReasonTag, r.Comment, r.CreatedAt, r.PublishedAt, r.Reply, r.RepliedAt, r.IsFrozen);
+            r.ReviewerRole, r.Stars, r.ReasonTag, r.Comment, r.CreatedAt, r.PublishedAt, r.Reply, r.RepliedAt, r.IsFrozen, r.Deal.Listing.DeletedAt != null);
     }
 }

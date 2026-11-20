@@ -185,6 +185,7 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
         public async Task<MessageDto> PostAsync(Guid userId, Guid conversationId, PostMessageInput input)
         {
             var c = await LoadForParticipantAsync(userId, conversationId, tracked: true);
+            EnsureOtherNotDeleted(c, userId);
             var policy = PolicyFor(c.SubjectType);
             await policy.EnsureKindAllowedAsync(c.SubjectId, input.Kind);
             var now = _clock.UtcNow;
@@ -232,6 +233,7 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
         public async Task<MessageDto> RespondAsync(Guid userId, Guid conversationId, Guid messageId, string action)
         {
             var c = await LoadForParticipantAsync(userId, conversationId, tracked: true);
+            EnsureOtherNotDeleted(c, userId);
             var message = await _db.Messages.FirstOrDefaultAsync(m => m.Id == messageId && m.ConversationId == c.Id)
                 ?? throw MarketplaceException.NotFound("messageNotFound", "Message not found.");
             if (message.IsRemoved) throw MarketplaceException.Conflict("thisMessageWasRemovedByAModerator", "This message was removed by a moderator.");
@@ -293,6 +295,13 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
         }
 
         // ------------------------------------------------------------------ helpers
+
+        /// <summary>Nobody would read it: the history stays readable, but a chat with a deleted account takes no new messages.</summary>
+        private static void EnsureOtherNotDeleted(Conversation c, Guid userId)
+        {
+            if (c.Participants.Any(p => p.UserId != userId && p.User?.DeletedAt != null))
+                throw MarketplaceException.Conflict("otherUserDeleted", "This user deleted their account.");
+        }
 
         private async Task<Conversation> LoadForParticipantAsync(Guid userId, Guid conversationId, bool tracked = false)
         {

@@ -6,9 +6,15 @@ namespace Coffer.BusinessLogic.Marketplace.Common
     /// <summary>Folders where marketplace images live.</summary>
     public sealed record MarketplaceStorage(string ListingImages, string DealImages);
 
-    public sealed record UserSummaryDto(Guid Id, string Name, string? Avatar)
+    /// <summary>Another user as shown next to their content. A deleted account comes back as a placeholder (IsDeleted, no name, no avatar).</summary>
+    public sealed record UserSummaryDto(Guid Id, string Name, string? Avatar, bool IsDeleted = false)
     {
-        public static UserSummaryDto From(User u) => new(u.Id, u.Name, u.Avatar);
+        public static UserSummaryDto From(User u) => u.DeletedAt != null ? new(u.Id, "", null, true) : new(u.Id, u.Name, u.Avatar);
+
+        /// <summary>For Coffer.Manager (English, prints names as they come): a deleted account reads "Deleted user".</summary>
+        public static UserSummaryDto ForAdmin(User u) => u.DeletedAt != null ? new(u.Id, DeletedUserName, null, true) : new(u.Id, u.Name, u.Avatar);
+
+        public const string DeletedUserName = "Deleted user";
     }
 
     /// <summary>

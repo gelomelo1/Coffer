@@ -182,7 +182,7 @@ namespace Coffer.BusinessLogic.Moderation
             var items = users.Select(u =>
             {
                 var s = active.Where(x => x.UserId == u.Id).OrderByDescending(x => x.EndsAt).FirstOrDefault();
-                return new AdminUserDto(u.Id, u.Name, u.Avatar, u.Provider, u.CreatedAt,
+                return new AdminUserDto(u.Id, u.DeletedAt != null ? UserSummaryDto.DeletedUserName : u.Name, u.DeletedAt != null ? null : u.Avatar, u.Provider, u.CreatedAt,
                     s == null ? null : new ActiveSuspensionDto(s.Id, s.Reason, s.StartsAt, s.EndsAt),
                     removals.GetValueOrDefault(u.Id));
             }).ToList();
@@ -210,7 +210,7 @@ namespace Coffer.BusinessLogic.Moderation
             var now = _clock.UtcNow;
             var userIds = rows.Select(r => r.UserId).Distinct().ToList();
             var adminIds = rows.SelectMany(r => new[] { (Guid?)r.CreatedByAdminId, r.RevokedByAdminId }).Where(x => x.HasValue).Select(x => x!.Value).Distinct().ToList();
-            var users = await _db.Users.AsNoTracking().Where(u => userIds.Contains(u.Id)).ToDictionaryAsync(u => u.Id, UserSummaryDto.From);
+            var users = await _db.Users.AsNoTracking().Where(u => userIds.Contains(u.Id)).ToDictionaryAsync(u => u.Id, UserSummaryDto.ForAdmin);
             var admins = await _db.ManagerAdmins.AsNoTracking().Where(a => adminIds.Contains(a.Id))
                 .ToDictionaryAsync(a => a.Id, a => new ManagerAdminDto(a.Id, a.GithubId, a.Login));
             return rows.Select(s => new SuspensionDto(

@@ -496,7 +496,7 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
                 d.Carrier, Carriers.Label(d.Carrier), d.TrackingNumber, Carriers.TrackingUrl(d.Carrier, d.TrackingNumber),
                 d.ShipmentPhoto, d.ShippedAt, d.ShippedAt.HasValue && d.Status == DealStatus.Shipped ? d.ShippedAt + AutoCompleteAfter : null,
                 d.ReceiptPhoto, d.ReceivedAt, d.CompletedAt, d.CompletionReason, d.ReviewDeadline, d.DisputeReason, d.DisputedAt, d.CancelReason,
-                d.CreatedAt, d.UpdatedAt, actions);
+                d.CreatedAt, d.UpdatedAt, actions, d.Listing.DeletedAt != null);
         }
     }
 }

@@ -6,7 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Coffer.BusinessLogic.Community
 {
-    public sealed record MentionDto(Guid UserId, string Name);
+    /// <summary>A mentioned user; a deleted account is a placeholder (IsDeleted, no name).</summary>
+    public sealed record MentionDto(Guid UserId, string Name, bool IsDeleted = false);
 
     /// <summary>
     /// A comment as the viewer sees it. Deleted (by the author) and removed (by an admin) comments keep their place
@@ -179,7 +180,7 @@ namespace Coffer.BusinessLogic.Community
             limit = Math.Clamp(limit, 1, 20);
             var q = _db.Users.AsNoTracking().Where(u => u.Id != viewerId && u.DeletedAt == null);
             if (text.Length > 0) q = q.Where(u => u.Name.ToLower().StartsWith(text));
-            return await q.OrderBy(u => u.Name).Take(limit).Select(u => new MentionDto(u.Id, u.Name)).ToListAsync();
+            return await q.OrderBy(u => u.Name).Take(limit).Select(u => new MentionDto(u.Id, u.Name, false)).ToListAsync();
         }
 
         // ------------------------------------------------------------------ helpers
@@ -273,7 +274,7 @@ namespace Coffer.BusinessLogic.Community
                 deleted ? null : authors.GetValueOrDefault(c.AuthorId) ?? new UserSummaryDto(c.AuthorId, "deleted user", null),
                 !deleted && c.AuthorId == ownerId,
                 hidden ? "" : c.Body,
-                hidden ? new List<MentionDto>() : c.Mentions.Where(m => m.User != null).Select(m => new MentionDto(m.UserId, m.User.Name)).ToList(),
+                hidden ? new List<MentionDto>() : c.Mentions.Where(m => m.User != null).Select(m => m.User.DeletedAt != null ? new MentionDto(m.UserId, "", true) : new MentionDto(m.UserId, m.User.Name)).ToList(),
                 c.CreatedAt,
                 c.EditedAt,
                 deleted,

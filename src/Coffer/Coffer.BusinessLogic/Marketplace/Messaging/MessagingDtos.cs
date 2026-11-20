@@ -8,7 +8,8 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
     public record RespondInput(string Action);
 
     /// <summary>What a conversation is about, in subject-neutral terms (a listing today, maybe an item later).</summary>
-    public record SubjectSummaryDto(Guid Id, string Type, string Title, string? Image, string? Status, string? Kind, int? PriceCents);
+    /// <summary>What a chat is about. IsDeleted: the listing went with its owner's account (no title, no image).</summary>
+    public record SubjectSummaryDto(Guid Id, string Type, string Title, string? Image, string? Status, string? Kind, int? PriceCents, bool IsDeleted = false);
 
     public record MessageDto(
         Guid Id,

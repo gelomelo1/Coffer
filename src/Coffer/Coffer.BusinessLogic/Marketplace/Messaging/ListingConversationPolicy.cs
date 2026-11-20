@@ -71,6 +71,8 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
         public async Task<SubjectSummaryDto> DescribeAsync(Guid subjectId)
         {
             var l = await LoadAsync(subjectId);
+            if (l.DeletedAt != null)
+                return new SubjectSummaryDto(l.Id, Type, "", null, EnumText.ToSnake(l.Status), EnumText.ToSnake(l.Kind), l.PriceCents, true);
             return new SubjectSummaryDto(l.Id, Type, l.Title, l.Images.OrderBy(i => i.Position).Select(i => i.FileName).FirstOrDefault(),
                 EnumText.ToSnake(l.Status), EnumText.ToSnake(l.Kind), l.PriceCents);
         }

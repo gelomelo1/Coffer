@@ -47,7 +47,9 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
         DateTime CreatedAt,
         DateTime UpdatedAt,
         /// <summary>What the viewer can do now: accept, decline, cancel, show_pin, enter_pin, ship, confirm_receipt, dispute, review.</summary>
-        List<string> NextActions);
+        List<string> NextActions,
+        /// <summary>The listing went with its owner's account: no title, no image (the app shows a placeholder).</summary>
+        bool ListingDeleted = false);
 
     public static class Carriers
     {
