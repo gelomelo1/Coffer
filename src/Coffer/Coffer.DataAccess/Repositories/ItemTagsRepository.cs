@@ -98,6 +98,7 @@ namespace Coffer.DataAccess.Repositories
             {
                 var wanted = tags.Select(NormalizeTag).Where(t => t.Length > 0).Distinct().ToList();
                 var counts = await _dbSet
+                    .Where(t => t.Item!.DeletedAt == null && t.Item.Collection.DeletedAt == null && t.Item.Collection.User.DeletedAt == null)
                     .Where(t => wanted.Contains(t.Tag.ToLower()))
                     .GroupBy(t => t.Tag.ToLower())
                     .Select(g => new { Tag = g.Key, Count = g.Select(t => t.ItemId).Distinct().Count() })
@@ -110,6 +111,7 @@ namespace Coffer.DataAccess.Repositories
                 return new List<TagStat>();
 
             var rows = await _dbSet
+                .Where(t => t.Item!.DeletedAt == null && t.Item.Collection.DeletedAt == null && t.Item.Collection.User.DeletedAt == null)
                 .Where(t => t.Tag.ToLower().Contains(text))
                 .GroupBy(t => t.Tag.ToLower())
                 .Select(g => new { Tag = g.Key, Count = g.Select(t => t.ItemId).Distinct().Count() })
@@ -122,7 +124,7 @@ namespace Coffer.DataAccess.Repositories
 
         private IQueryable<ItemTags> BuildTagBaseQuery(string? collectionTypeIds)
         {
-            IQueryable<ItemTags> query = _dbSet;
+            IQueryable<ItemTags> query = _dbSet.Where(t => t.Item!.DeletedAt == null && t.Item.Collection.DeletedAt == null && t.Item.Collection.User.DeletedAt == null);
 
             var includes = includeProvider.GetDefaultIncludes();
             if (includes != null)

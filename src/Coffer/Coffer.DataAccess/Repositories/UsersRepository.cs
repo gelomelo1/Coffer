@@ -52,7 +52,7 @@ namespace Coffer.DataAccess.Repositories
             searchText = searchText.Trim().ToLower();
 
             var users = await _dbSet
-                .Where(u => u.Name.ToLower().Contains(searchText))
+                .Where(u => u.DeletedAt == null && u.Name.ToLower().Contains(searchText))
                 .OrderBy(u => u.Name)
                 .Take(10)
                 .ToListAsync();
@@ -68,6 +68,7 @@ namespace Coffer.DataAccess.Repositories
             searchText = searchText.Trim();
 
             var ranked = _dbSet
+                .Where(u => u.DeletedAt == null)
                 .Select(u => new
                 {
                     User = u,

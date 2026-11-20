@@ -177,16 +177,22 @@ namespace Coffer.BusinessLogic.Community
         {
             var text = (query ?? "").Trim().TrimStart('@').ToLowerInvariant();
             limit = Math.Clamp(limit, 1, 20);
-            var q = _db.Users.AsNoTracking().Where(u => u.Id != viewerId);
+            var q = _db.Users.AsNoTracking().Where(u => u.Id != viewerId && u.DeletedAt == null);
             if (text.Length > 0) q = q.Where(u => u.Name.ToLower().StartsWith(text));
             return await q.OrderBy(u => u.Name).Take(limit).Select(u => new MentionDto(u.Id, u.Name)).ToListAsync();
         }
 
         // ------------------------------------------------------------------ helpers
 
-        private async Task<Guid> OwnerOfAsync(Guid itemId) =>
-            await _db.Items.AsNoTracking().Where(i => i.Id == itemId).Select(i => (Guid?)i.Collection.UserId).FirstOrDefaultAsync()
-            ?? throw MarketplaceException.NotFound("itemNotFound", "Item not found.");
+        private async Task<Guid> OwnerOfAsync(Guid itemId)
+        {
+            var item = await _db.Items.AsNoTracking().Where(i => i.Id == itemId)
+                .Select(i => new { i.Collection.UserId, i.DeletedAt }).FirstOrDefaultAsync()
+                ?? throw MarketplaceException.NotFound("itemNotFound", "Item not found.");
+            // Other users' comments stay in the database (linked, for accountability), but a deleted item is not shown.
+            if (item.DeletedAt != null) throw MarketplaceException.NotFound("itemDeleted", "This item was deleted.");
+            return item.UserId;
+        }
 
         private async Task<ItemComment> OwnCommentAsync(Guid userId, Guid itemId, Guid commentId)
         {

@@ -30,7 +30,7 @@ namespace Coffer.DataAccess.Repositories
         public async Task<Coffer.Domain.Paging.GroupedPagedList<CollectionProvided>> GetGroupedPageAsync(Guid userId, IReadOnlyCollection<int> byNameTypeIds, int? page, int? pageSize)
         {
             var byName = byNameTypeIds.ToList();
-            var mine = _dbSet.Where(c => c.UserId == userId);
+            var mine = _dbSet.Where(c => c.UserId == userId && c.DeletedAt == null);
             var counts = await mine.GroupBy(c => c.CollectionTypeId)
                 .Select(g => new { TypeId = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.TypeId, x => x.Count);
@@ -50,7 +50,7 @@ namespace Coffer.DataAccess.Repositories
         public async Task<CollectionProvided?> GetCollectionByIdForDelete(Guid id)
         {
             return await _dbSet
-                .FirstOrDefaultAsync(collection => collection.Id == id);
+                .FirstOrDefaultAsync(collection => collection.Id == id && collection.DeletedAt == null);
         }
 
         public async Task<IEnumerable<CollectionProvided>> SearchCollections(string? collectionTypeIds, string searchText)
@@ -129,7 +129,7 @@ namespace Coffer.DataAccess.Repositories
         {
             var includes = includeProvider.GetDefaultIncludes();
 
-            IQueryable<CollectionProvided> query = _dbSet;
+            IQueryable<CollectionProvided> query = _dbSet.Where(c => c.DeletedAt == null && c.User.DeletedAt == null);
 
             if (includes != null)
             {

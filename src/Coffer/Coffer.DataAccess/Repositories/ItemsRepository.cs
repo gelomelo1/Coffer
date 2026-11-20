@@ -46,7 +46,8 @@ namespace Coffer.DataAccess.Repositories
                 .Include(i => i.ItemTags)
                 .Include(i => i.Collection)
                 .Include(i => i.Collection.Follows)
-                .Where(i => i.Collection.UserId != user.Id && i.AcquiredAt >= oneWeekAgo);
+                .Where(i => i.Collection.UserId != user.Id && i.AcquiredAt >= oneWeekAgo)
+                .Where(i => i.DeletedAt == null && i.Collection.DeletedAt == null && i.Collection.User.DeletedAt == null); // tombstones never reach the feed
 
             if (!string.IsNullOrWhiteSpace(filter))
                 baseQuery = baseQuery.Where(filter);
@@ -95,7 +96,7 @@ namespace Coffer.DataAccess.Repositories
 
             var includes = includeProvider.GetDefaultIncludes();
 
-            IQueryable<ItemProvided> query = _dbContext.Set<ItemProvided>();
+            IQueryable<ItemProvided> query = _dbContext.Set<ItemProvided>().Where(i => i.DeletedAt == null && i.Collection.DeletedAt == null && i.Collection.User.DeletedAt == null);
 
             if (includes != null)
             {
@@ -145,7 +146,8 @@ namespace Coffer.DataAccess.Repositories
             searchText = searchText.Trim();
 
             IQueryable<ItemProvided> query = _dbContext.Set<ItemProvided>()
-                .Include(i => i.Collection);
+                .Include(i => i.Collection)
+                .Where(i => i.DeletedAt == null && i.Collection.DeletedAt == null && i.Collection.User.DeletedAt == null);
 
             var includes = includeProvider.GetDefaultIncludes();
             if (includes != null)
@@ -336,7 +338,7 @@ namespace Coffer.DataAccess.Repositories
 
         public async Task<IEnumerable<ItemProvided>> GetItemsByCollectionAsync(Guid collectionId)
         {
-            IQueryable<ItemProvided> query = _dbSet;
+            IQueryable<ItemProvided> query = Live(_dbSet);
 
             var includes = includeProvider.GetDefaultIncludes();
 

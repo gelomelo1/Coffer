@@ -170,6 +170,7 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
                 .Include(x => x.Owner).Include(x => x.City).Include(x => x.CollectionType)
                 .Include(x => x.Lines).Include(x => x.Images)
                 .FirstOrDefaultAsync(x => x.Id == id) ?? throw MarketplaceException.NotFound("listingNotFound", "Listing not found.");
+            if (l.DeletedAt != null) throw MarketplaceException.NotFound("listingDeleted", "This listing was deleted together with its owner's account.");
 
             var isMine = l.OwnerId == viewerId;
             if (l.Status is ListingStatus.Archived or ListingStatus.Removed && !isMine && !await IsModeratorAsync(viewerId))
@@ -210,7 +211,7 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
             if (origin == null && (sort == "nearest" || query.RadiusKm.HasValue))
                 throw MarketplaceException.Validation("chooseACityToSortOrFilter", "Choose a city to sort or filter by distance.");
 
-            var q = BaseSummaryQuery().Where(l => l.Status == ListingStatus.Active && l.OwnerId != viewerId);
+            var q = BaseSummaryQuery().Where(l => l.Status == ListingStatus.Active && l.DeletedAt == null && l.OwnerId != viewerId);
             if (query.Kind.HasValue) q = q.Where(l => l.Kind == query.Kind.Value);
             if (query.CollectionTypeId.HasValue) q = q.Where(l => l.CollectionTypeId == query.CollectionTypeId.Value);
             if (query.Condition.HasValue) q = q.Where(l => l.Condition == query.Condition.Value);

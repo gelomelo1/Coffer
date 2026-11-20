@@ -26,7 +26,7 @@ namespace Coffer.DataAccess.Repositories
         public async Task<IEnumerable<FollowProvided>> FindFollowsOfUser(Guid userId)
         {
             return await _dbSet
-                .Where(f => f.UserId == userId)
+                .Where(f => f.UserId == userId && f.Collection.DeletedAt == null && f.Collection.User.DeletedAt == null)
                 .Include(f => f.Collection)
                 .ThenInclude(c => c.Follows)
                 .Include(f => f.Collection)
@@ -36,7 +36,7 @@ namespace Coffer.DataAccess.Repositories
 
         public async Task<Coffer.Domain.Paging.GroupedPagedList<FollowProvided>> FindFollowsPageOfUser(Guid userId, int? page, int? pageSize)
         {
-            var mine = _dbSet.Where(f => f.UserId == userId);
+            var mine = _dbSet.Where(f => f.UserId == userId && f.Collection.DeletedAt == null && f.Collection.User.DeletedAt == null);
             var counts = await mine.GroupBy(f => f.Collection.CollectionTypeId)
                 .Select(g => new { TypeId = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.TypeId, x => x.Count);
