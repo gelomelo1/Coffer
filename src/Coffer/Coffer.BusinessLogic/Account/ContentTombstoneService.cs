@@ -15,12 +15,15 @@ namespace Coffer.BusinessLogic.Account
         public List<(Guid OwnerId, string File, string Folder)> Files { get; } = new();
         public List<Guid> ItemEmbeddings { get; } = new();
         public List<Guid> CollectionEmbeddings { get; } = new();
+        /// <summary>Full paths deleted as they are (waiting caps' crops and fingerprints).</summary>
+        public List<string> RawFiles { get; } = new();
 
         public TombstoneCleanup Add(TombstoneCleanup other)
         {
             Files.AddRange(other.Files);
             ItemEmbeddings.AddRange(other.ItemEmbeddings);
             CollectionEmbeddings.AddRange(other.CollectionEmbeddings);
+            RawFiles.AddRange(other.RawFiles);
             return this;
         }
     }
@@ -37,6 +40,9 @@ namespace Coffer.BusinessLogic.Account
 
         /// <summary>Wipes a collection and all its items, and removes the follows of it; saves like <see cref="TombstoneItemAsync"/>.</summary>
         Task<TombstoneCleanup> TombstoneCollectionAsync(Guid collectionId);
+
+        /// <summary>Removes waiting-for-review caps (rows when the caller saves, files through <see cref="CleanupAsync"/>).</summary>
+        Task<TombstoneCleanup> RemovePendingAsync(System.Linq.Expressions.Expression<Func<Coffer.Domain.Entities.PendingItem, bool>> which);
 
         /// <summary>Removes files and embeddings after the database change is committed; failures are logged and skipped.</summary>
         Task CleanupAsync(TombstoneCleanup cleanup);
@@ -85,8 +91,25 @@ namespace Coffer.BusinessLogic.Account
             // someone's follows list is just noise.
             _db.Follows.RemoveRange(await _db.Follows.Where(f => f.CollectionId == collectionId).ToListAsync());
 
+            // Caps still waiting for review are the owner's own data; nobody else links to them.
+            cleanup.Add(await RemovePendingAsync(p => p.CollectionId == collectionId));
+
             cleanup.Add(await WipeItemsAsync(i => i.CollectionId == collectionId));
             await _db.SaveChangesAsync();
+            return cleanup;
+        }
+
+        /// <summary>Removes waiting caps (rows now, files with the cleanup).</summary>
+        public async Task<TombstoneCleanup> RemovePendingAsync(System.Linq.Expressions.Expression<Func<Coffer.Domain.Entities.PendingItem, bool>> which)
+        {
+            var cleanup = new TombstoneCleanup();
+            var rows = await _db.PendingItems.Where(which).ToListAsync();
+            foreach (var row in rows)
+            {
+                cleanup.RawFiles.Add(Path.Combine(Coffer.BusinessLogic.Pending.PendingItemService.PendingFolder, $"{row.Id}.jpg"));
+                cleanup.RawFiles.Add(Path.Combine(Coffer.BusinessLogic.Pending.PendingItemService.PendingFolder, $"{row.Id}.npy"));
+            }
+            _db.PendingItems.RemoveRange(rows);
             return cleanup;
         }
 
@@ -122,6 +145,12 @@ namespace Coffer.BusinessLogic.Account
 
             foreach (var (ownerId, file, folder) in cleanup.Files)
                 await _images.DeleteOwnedImageAsync(file, ownerId, folder);
+
+            foreach (var path in cleanup.RawFiles)
+            {
+                try { if (File.Exists(path)) File.Delete(path); }
+                catch (IOException e) { _log.LogWarning("Could not delete {Path}: {Error}", path, e.Message); }
+            }
         }
 
         private async Task DeleteEmbeddingAsync(string path)

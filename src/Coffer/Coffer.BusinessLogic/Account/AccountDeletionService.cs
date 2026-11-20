@@ -105,6 +105,8 @@ namespace Coffer.BusinessLogic.Account
                 // Collections and their items: tombstones, so other users' comments, reactions and reports stay linked.
                 var collectionIds = await _db.Collections.Where(c => c.UserId == userId && c.DeletedAt == null).Select(c => c.Id).ToListAsync();
                 foreach (var id in collectionIds) cleanup.Add(await _tombstones.TombstoneCollectionAsync(id));
+                // Any waiting caps left (e.g. in a collection deleted earlier) go too.
+                cleanup.Add(await _tombstones.RemovePendingAsync(p => p.UserId == userId));
 
                 // Listings: tombstones too, because deals and chats point at them.
                 var listings = await _db.Listings.Include(l => l.Lines).Include(l => l.Images)
