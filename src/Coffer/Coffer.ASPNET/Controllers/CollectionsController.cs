@@ -30,9 +30,11 @@ namespace Coffer.ASPNET.Controllers
         private readonly string pythonServiceUrl = Env.GetString("FASTAPI_URL") ?? throw new InvalidOperationException("FASTAPI_URL envionmental variable is not set");
         private readonly HttpClient _httpClient;
         private readonly Coffer.BusinessLogic.Account.IContentTombstoneService _tombstones;
+        private readonly Coffer.BusinessLogic.Pending.IPendingItemService _pending;
         private readonly IWebHostEnvironment _environment;
-        public CollectionsController(ICollectionsRepository collectionsRepository, IItemsRepository itemsRepository, IImageService imageService, IPermissionService<Guid, CollectionRequired> permissionService, HttpClient httpClient, IWebHostEnvironment environment, Coffer.BusinessLogic.Account.IContentTombstoneService tombstones) : base(collectionsRepository, permissionService)
+        public CollectionsController(ICollectionsRepository collectionsRepository, IItemsRepository itemsRepository, IImageService imageService, IPermissionService<Guid, CollectionRequired> permissionService, HttpClient httpClient, IWebHostEnvironment environment, Coffer.BusinessLogic.Account.IContentTombstoneService tombstones, Coffer.BusinessLogic.Pending.IPendingItemService pending) : base(collectionsRepository, permissionService)
         {
+            _pending = pending;
             _tombstones = tombstones;
             _collectionsRepository = collectionsRepository;
             _imageService = imageService;
@@ -164,7 +166,7 @@ namespace Coffer.ASPNET.Controllers
 
         [Authorize]
         [HttpPost("ImageCheck/{id}")]
-        public async Task<ActionResult<IEnumerable<ImageCheckResponse>>> UploadImageCheckTest(Guid id, IFormFile file)
+        public async Task<ActionResult<Coffer.BusinessLogic.Pending.ImageCheckResultDto>> UploadImageCheck(Guid id, IFormFile file)
         {
 
             if (!UserId.HasValue)
@@ -185,50 +187,10 @@ namespace Coffer.ASPNET.Controllers
             if (collection == null)
                 return this.ApiError(StatusCodes.Status400BadRequest, "noCollectionWithGivenId", "No collection with given id");
 
-            var collectionId = collection.Id;
-            var collectionTypeId = collection.CollectionTypeId;
-
-            using var formData = new MultipartFormDataContent();
-            using var stream = file.OpenReadStream();
-            using var streamContent = new StreamContent(stream);
-
-            streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
-            formData.Add(streamContent, "file", file.FileName);
-
             try
             {
-                var response = await _httpClient.PostAsync($"{pythonServiceUrl}/image_check/{collectionTypeId}/{collectionId}", formData);
-
-                response.EnsureSuccessStatusCode();
-
-                var jsonString = await response.Content.ReadAsStringAsync();
-
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
-
-                var imageCheckPythonServiceResponse = JsonSerializer.Deserialize<ImageCheckPythonServiceResponse>(jsonString, options);
-
-                List<ImageCheckResult> results = imageCheckPythonServiceResponse?.Response ?? new List<ImageCheckResult>();
-
-                List<ImageCheckResponse> imageCheckResponses = new List<ImageCheckResponse>();
-
-                foreach (var result in results)
-                {
-                    List<ItemProvided> items = new List<ItemProvided>();
-                    foreach(var similar in result.Similars)
-                    {
-                        var item = await _itemsRepository.GetItemByIdAsync(similar);
-                        if (item != null)
-                        {
-                            items.Add(item);
-                        }
-                    }
-                    imageCheckResponses.Add(new ImageCheckResponse(result.Id, result.State, result.Quantity, items));
-                }
-
-                return Ok(imageCheckResponses);
+                // Every detected cap goes onto the collection's waiting-for-review list (files moved out of temp).
+                return Ok(await _pending.CreateFromImageAsync(UserId.Value, collection, file));
             }
             catch (HttpRequestException ex)
             {

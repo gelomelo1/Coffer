@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
@@ -20,6 +21,8 @@ namespace Coffer.Tests
         public static string ItemImages => Path.Combine(Root, "images", "items");
         public static string CollectionImages => Path.Combine(Root, "images", "collectioncovers");
         public static string Temp => Path.Combine(Root, "temp");
+        /// <summary>Crops and fingerprints of caps waiting for review (IMAGESTORE_PATH/pending).</summary>
+        public static string Pending => Path.Combine(Root, "images", "pending");
         public const string PythonUrl = "http://python.test";
 
         static TestEnvironment()
@@ -27,6 +30,7 @@ namespace Coffer.Tests
             Directory.CreateDirectory(ItemImages);
             Directory.CreateDirectory(CollectionImages);
             Directory.CreateDirectory(Temp);
+            Directory.CreateDirectory(Pending);
             Environment.SetEnvironmentVariable("JWT_SECRET", "test-secret-test-secret-test-secret-1234");
             Environment.SetEnvironmentVariable("COFFER_CONNECTIONSTRING", "Host=unused");
             Environment.SetEnvironmentVariable("IMAGESTORE_PATH", Path.Combine(Root, "images"));
@@ -43,14 +47,20 @@ namespace Coffer.Tests
         public List<(HttpMethod Method, string Path)> Calls { get; } = new();
         public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.OK;
         public string Body { get; set; } = "{\"status\":\"ok\"}";
+        /// <summary>When set, answers per request (path-specific fakes); otherwise StatusCode + Body.</summary>
+        public Func<HttpRequestMessage, (HttpStatusCode Status, string Body)>? Responder { get; set; }
+        /// <summary>Request bodies, in call order (for asserting what was sent).</summary>
+        public List<string> Bodies { get; } = new();
 
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             Calls.Add((request.Method, request.RequestUri!.AbsolutePath));
-            return Task.FromResult(new HttpResponseMessage(StatusCode)
+            Bodies.Add(request.Content is StringContent or JsonContent ? await request.Content!.ReadAsStringAsync(cancellationToken) : "");
+            var (status, body) = Responder?.Invoke(request) ?? (StatusCode, Body);
+            return new HttpResponseMessage(status)
             {
-                Content = new StringContent(Body, Encoding.UTF8, "application/json")
-            });
+                Content = new StringContent(body, Encoding.UTF8, "application/json")
+            };
         }
     }
 
