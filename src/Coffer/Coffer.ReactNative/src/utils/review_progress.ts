@@ -6,3 +6,10 @@ export function remainingCount(total: number, loadedIds: string[], hidden: Set<s
   const stillListed = loadedIds.filter((id) => hidden.has(id)).length;
   return Math.max(0, total - stillListed);
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Whole days left until a waiting item is removed, rounded up and at least 1 ("in 1 day", never "in 0 days"). */
+export function daysUntil(iso: string, now: Date = new Date()): number {
+  return Math.max(1, Math.ceil((new Date(iso).getTime() - now.getTime()) / DAY_MS));
+}

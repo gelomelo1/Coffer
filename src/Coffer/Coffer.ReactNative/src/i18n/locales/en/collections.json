@@ -104,6 +104,10 @@
     "bannerHint": "From your photos. Add, skip or delete them.",
     "review": "Review",
     "tag_one": "{{count}} waiting",
-    "tag_other": "{{count}} waiting"
+    "tag_other": "{{count}} waiting",
+    "expiring_one": "{{count}} item is removed {{when}} if not reviewed",
+    "expiring_other": "{{count}} items are removed {{when}} if not reviewed",
+    "inDays_one": "in {{count}} day",
+    "inDays_other": "in {{count}} days"
   }
 }

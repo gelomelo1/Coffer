@@ -11,6 +11,8 @@ export interface PendingItem {
   state: "found" | "not found";
   /** Closest items of the collection (up to 3), computed when the list is read. */
   similars: ItemProvided[];
+  /** Removed then if nobody reviews it (30 days after the photo was checked). */
+  expiresAt: string;
 }
 
 /** One collection's share of the waiting list. */
@@ -20,6 +22,9 @@ export interface PendingSummary {
   collectionTypeId: number;
   count: number;
   latestId: string;
+  /** How many are removed within 3 days, and when the first one goes. */
+  expiringSoon: number;
+  nextExpiresAt: string;
 }
 
 /** What one checked photo produced. */

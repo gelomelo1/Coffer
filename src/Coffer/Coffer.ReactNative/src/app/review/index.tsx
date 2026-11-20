@@ -25,7 +25,7 @@ import { getDefaultAttributeValue, getItemPrimaryAttributeValue } from "@/src/ut
 import { HeldActionQueue } from "@/src/utils/held_action";
 import { pendingApi } from "@/src/utils/pending_api";
 import { missingRequired } from "@/src/utils/required_fields";
-import { remainingCount } from "@/src/utils/review_progress";
+import { daysUntil, remainingCount } from "@/src/utils/review_progress";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { router } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -34,6 +34,8 @@ import { AppState, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 const UNDO_MS = 5000;
+/** Items removed within this time get a note (matches the backend's 3-day warning). */
+const EXPIRY_WARNING_MS = 3 * 24 * 60 * 60 * 1000;
 
 type Kind = "add" | "delete" | "skip";
 interface CapState {
@@ -269,6 +271,14 @@ function Review() {
     return (
       <>
         <ScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerStyle={{ padding: spacing.md, gap: spacing.md }} keyboardShouldPersistTaps="handled">
+          {new Date(current.expiresAt).getTime() - Date.now() <= EXPIRY_WARNING_MS ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs, borderWidth: borders.width, borderColor: colors.danger, padding: spacing.sm }}>
+              <MaterialIcons name="schedule" size={sizes.iconSm} color={colors.danger} />
+              <Text style={[typography.label, { color: colors.danger, flex: 1 }]}>
+                {t("items:review.expiresSoon", { when: t("collections:waiting.inDays", { count: daysUntil(current.expiresAt) }) })}
+              </Text>
+            </View>
+          ) : null}
           <PhotoCompare pendingId={current.id} match={match} matchName={itemName} />
           <View style={{ gap: spacing.xs }}>
             <Text style={[typography.label, { color: colors.text }]}>{current.similars.length > 0 ? t("items:review.chooseMatch") : t("items:review.noMatches")}</Text>

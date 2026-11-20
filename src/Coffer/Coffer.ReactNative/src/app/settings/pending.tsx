@@ -9,10 +9,11 @@ import { borders, colors, sizes, spacing, typography } from "@/src/theme/theme";
 import { apiErrorText } from "@/src/utils/api_error_text";
 import { pendingImageUrl } from "@/src/utils/pending_api";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { daysUntil } from "@/src/utils/review_progress";
 import { useTranslation } from "react-i18next";
 import { Image, Pressable, Text, View } from "react-native";
 
-/** Every collection with caps waiting for review; opens that collection's review. */
+/** Every collection with items waiting for review; opens that collection's review. */
 function PendingOverview() {
   const { t } = useTranslation();
   const { token } = useUserStore();
@@ -47,6 +48,11 @@ function PendingOverview() {
                 {s.collectionName}
               </Text>
               <Text style={[typography.meta, { color: colors.textMuted }]}>{t("settings:pending.count", { count: s.count })}</Text>
+              {s.expiringSoon > 0 ? (
+                <Text style={[typography.meta, { color: colors.danger }]}>
+                  {t("collections:waiting.expiring", { count: s.expiringSoon, when: t("collections:waiting.inDays", { count: daysUntil(s.nextExpiresAt) }) })}
+                </Text>
+              ) : null}
             </View>
             <MaterialIcons name="chevron-right" size={sizes.iconMd} color={colors.text} />
           </Pressable>

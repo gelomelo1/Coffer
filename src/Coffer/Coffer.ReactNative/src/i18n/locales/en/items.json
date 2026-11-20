@@ -181,6 +181,7 @@
     "help2Title": "2. Each item waits for review",
     "help2Text": "Add it as new, add it to one you already have, skip it for later, or delete it. Required fields are marked; Add unlocks when they are filled. Items wait for 30 days.",
     "help3Title": "3. Changed your mind?",
-    "help3Text": "Every action can be undone for 5 seconds. Close any time: nothing undecided is lost."
+    "help3Text": "Every action can be undone for 5 seconds. Close any time: nothing undecided is lost.",
+    "expiresSoon": "Removed {{when}} if not reviewed"
   }
 }

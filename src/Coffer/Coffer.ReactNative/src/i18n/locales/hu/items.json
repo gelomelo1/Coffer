@@ -181,6 +181,7 @@
     "help2Title": "2. Minden tárgy áttekintésre vár",
     "help2Text": "Add hozzá újként, egy meglévőhöz, hagyd későbbre, vagy töröld. A kötelező mezők jelölve vannak; a Hozzáadás akkor válik elérhetővé, ha ki vannak töltve. A tárgyak 30 napig várnak.",
     "help3Title": "3. Meggondoltad magad?",
-    "help3Text": "Minden művelet 5 másodpercig visszavonható. Bármikor bezárhatod: semmi, amiről nem döntöttél, nem vész el."
+    "help3Text": "Minden művelet 5 másodpercig visszavonható. Bármikor bezárhatod: semmi, amiről nem döntöttél, nem vész el.",
+    "expiresSoon": "{{when}} törlődik, ha nem nézed át"
   }
 }

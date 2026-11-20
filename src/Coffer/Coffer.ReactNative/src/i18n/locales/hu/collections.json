@@ -104,6 +104,10 @@
     "bannerHint": "A fotóidról. Add hozzá, hagyd ki vagy töröld őket.",
     "review": "Áttekintés",
     "tag_one": "{{count}} vár",
-    "tag_other": "{{count}} vár"
+    "tag_other": "{{count}} vár",
+    "expiring_one": "{{count}} tárgy {{when}} törlődik, ha nem nézed át",
+    "expiring_other": "{{count}} tárgy {{when}} törlődik, ha nem nézed át",
+    "inDays_one": "{{count}} napon belül",
+    "inDays_other": "{{count}} napon belül"
   }
 }
