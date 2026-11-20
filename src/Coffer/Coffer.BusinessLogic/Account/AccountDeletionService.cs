@@ -136,6 +136,8 @@ namespace Coffer.BusinessLogic.Account
                 // The user's own subscriptions and likes: nothing else points at them.
                 _db.Follows.RemoveRange(await _db.Follows.Where(f => f.UserId == userId).ToListAsync());
                 _db.Reactions.RemoveRange(await _db.Reactions.Where(r => r.UserId == userId).ToListAsync());
+                // Their activity log is their personal data; nobody else's things point at it.
+                _db.ActivityEvents.RemoveRange(await _db.ActivityEvents.Where(e => e.UserId == userId).ToListAsync());
 
                 await _db.SaveChangesAsync();
                 await tx.CommitAsync();

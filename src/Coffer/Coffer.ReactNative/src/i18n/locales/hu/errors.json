@@ -155,6 +155,7 @@
     "tooManyWrongPinsTryAgainIn": "Túl sok hibás PIN-kód. Próbáld újra néhány perc múlva.",
     "trackingNumberMayOnlyContainLettersDigits": "A követési szám csak betűket, számokat, szóközt és kötőjelet tartalmazhat.",
     "unknown": "Ismeretlen: {{p0}}.",
+    "unknownActivityCategory": "Ismeretlen tevékenységkategória.",
     "unknownCity": "Ismeretlen város.",
     "unknownCondition": "Ismeretlen állapot.",
     "unknownDecision": "Ismeretlen döntés.",
