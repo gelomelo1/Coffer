@@ -24,6 +24,7 @@ export const ROUTES = {
   OTHERUSERITEMDETAILS: "otheruseritemdetails" as any,
   LISTINGDETAILS: "listingdetails" as any,
   CHAT: "chat" as any,
+  REVIEW: "review" as any,
 } as const;
 
 export const pageParams = {
@@ -89,6 +90,11 @@ export const pageParams = {
     titleKey: "settings:deleteAccount.title",
     isSettingsShown: false,
   }),
+  review: (collectionName: string) =>
+    buildNavigationData({
+      titleKey: "items:review.title",
+      screenTitle: collectionName,
+    }),
   myfollows: buildNavigationData({
     screenTitleKey: "navigation:tabs.myFollows",
   }),

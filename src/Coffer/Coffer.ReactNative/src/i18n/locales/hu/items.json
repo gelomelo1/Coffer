@@ -14,7 +14,7 @@
     "step2": "Készíts fotót, vagy válassz egyet a galériából",
     "chooseCollection": "Válassz gyűjteményt",
     "chooseFirst": "A folytatáshoz előbb válassz gyűjteményt.",
-    "takePhoto": "Fotó készítése",
+    "takePhoto": "Fotók készítése",
     "fromGallery": "Választás a galériából",
     "noCollections": "Még nincs gyűjteményed",
     "openingCamera": "Kamera megnyitása…",
@@ -96,5 +96,36 @@
     "chipA11y_one": "#{{tag}}, {{count}} tárgy használja",
     "chipA11y_other": "#{{tag}}, {{count}} tárgy használja",
     "new": "#{{tag}} · új"
+  },
+  "upload": {
+    "takePhotos": "Fotók készítése",
+    "fromGallery": "Választás a galériából",
+    "anotherTitle_one": "{{count}} fotó elkészült",
+    "anotherTitle_other": "{{count}} fotó elkészült",
+    "anotherText": "Készíts még egy fotót, vagy ellenőrizd a meglévőket.",
+    "takeAnother": "Még egy fotó",
+    "done_one": "Kész ({{count}})",
+    "done_other": "Kész ({{count}})",
+    "progressTitle": "{{current}}. fotó ellenőrzése ({{total}} közül)",
+    "progressText": "Minden megtalált kupak a gyűjtemény várólistájára kerül, így semmi sem vész el, ha abbahagyod.",
+    "finishedTitle_one": "{{count}} kupakot találtunk",
+    "finishedTitle_other": "{{count}} kupakot találtunk",
+    "finishedText": "Áttekintésre várnak a gyűjteményben.",
+    "finishedEmpty_one": "{{count}} fotón nem volt kupak.",
+    "finishedEmpty_other": "{{count}} fotón nem volt kupak.",
+    "photo": "{{number}}. fotó",
+    "waiting": "Várakozik",
+    "checking": "Ellenőrzés…",
+    "failed": "Nem sikerült ellenőrizni",
+    "noneFound": "Nincs rajta kupak",
+    "found_one": "{{count}} kupak",
+    "found_other": "{{count}} kupak",
+    "retry": "Újra",
+    "later": "Később",
+    "review_one": "{{count}} kupak áttekintése",
+    "review_other": "{{count}} kupak áttekintése"
+  },
+  "review": {
+    "title": "Áttekintésre vár"
   }
 }

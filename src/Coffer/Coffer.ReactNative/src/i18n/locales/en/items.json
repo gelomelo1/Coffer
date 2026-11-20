@@ -14,7 +14,7 @@
     "step2": "Take a photo or pick one from the gallery",
     "chooseCollection": "Choose a collection",
     "chooseFirst": "Choose a collection first to continue.",
-    "takePhoto": "Take a photo",
+    "takePhoto": "Take photos",
     "fromGallery": "Choose from gallery",
     "noCollections": "No collections yet",
     "openingCamera": "Opening the camera…",
@@ -96,5 +96,36 @@
     "chipA11y_one": "#{{tag}}, used by {{count}} item",
     "chipA11y_other": "#{{tag}}, used by {{count}} items",
     "new": "#{{tag}} · new"
+  },
+  "upload": {
+    "takePhotos": "Take photos",
+    "fromGallery": "Choose from gallery",
+    "anotherTitle_one": "{{count}} photo taken",
+    "anotherTitle_other": "{{count}} photos taken",
+    "anotherText": "Take another photo, or check the ones you have.",
+    "takeAnother": "Take another",
+    "done_one": "Done ({{count}})",
+    "done_other": "Done ({{count}})",
+    "progressTitle": "Checking photo {{current}} of {{total}}",
+    "progressText": "Every cap we find is added to the collection's waiting list, so nothing is lost if you stop.",
+    "finishedTitle_one": "{{count}} cap found",
+    "finishedTitle_other": "{{count}} caps found",
+    "finishedText": "They are waiting for review in the collection.",
+    "finishedEmpty_one": "{{count}} photo had no caps on it.",
+    "finishedEmpty_other": "{{count}} photos had no caps on them.",
+    "photo": "Photo {{number}}",
+    "waiting": "Waiting",
+    "checking": "Checking…",
+    "failed": "Couldn't be checked",
+    "noneFound": "No caps found",
+    "found_one": "{{count}} cap found",
+    "found_other": "{{count}} caps found",
+    "retry": "Retry",
+    "later": "Review later",
+    "review_one": "Review {{count}} cap",
+    "review_other": "Review {{count}} caps"
+  },
+  "review": {
+    "title": "Waiting for review"
   }
 }

@@ -36,4 +36,6 @@ export const querykeys = {
   commentCounts: "commentCounts",
   mentionable: "mentionable",
   accountDeletion: "accountDeletion",
+  pending: "pending",
+  pendingSummary: "pendingSummary",
 };

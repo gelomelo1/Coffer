@@ -19,6 +19,7 @@ export const endpoints = {
   itemsUpsert: "api/Items/Upsert",
   itemOptions: "api/ItemOptions",
   itemsImageCheck: "api/Collections/ImageCheck",
+  pending: "api/Pending",
   attributes: "api/Attributes",
   feed: "api/Feed",
   feedSearch: "api/Feed/Search",
