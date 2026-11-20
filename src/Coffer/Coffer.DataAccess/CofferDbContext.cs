@@ -43,6 +43,7 @@ namespace Coffer.DataAccess
         public DbSet<Report> Reports { get; set; }
         public DbSet<ModerationAction> ModerationActions { get; set; }
         public DbSet<PendingItem> PendingItems { get; set; }
+        public DbSet<ActivityEvent> ActivityEvents { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -60,6 +61,19 @@ namespace Coffer.DataAccess
                 e.Property(p => p.Image).IsRequired();
                 e.HasIndex(p => new { p.CollectionId, p.CreatedAt });
                 e.HasIndex(p => p.UserId);
+            });
+
+            // Private activity log (must match src/startup/activity_log_migration.sql). Targets have no foreign keys on
+            // purpose: an entry outlives its target and then reads "No longer available".
+            modelBuilder.Entity<ActivityEvent>(e =>
+            {
+                e.ToTable("activity_events");
+                e.HasOne<User>().WithMany().HasForeignKey(a => a.UserId).OnDelete(DeleteBehavior.Cascade);
+                e.Property(a => a.Kind).HasMaxLength(60).IsRequired();
+                e.Property(a => a.Category).HasMaxLength(20).IsRequired();
+                e.Property(a => a.Details).HasColumnType("jsonb").IsRequired();
+                e.HasIndex(a => new { a.UserId, a.Category, a.OccurredAt });
+                e.HasIndex(a => new { a.UserId, a.OccurredAt });
             });
 
             //CollectionType
