@@ -25,6 +25,7 @@ import { getDefaultAttributeValue, getItemPrimaryAttributeValue } from "@/src/ut
 import { HeldActionQueue } from "@/src/utils/held_action";
 import { pendingApi } from "@/src/utils/pending_api";
 import { missingRequired } from "@/src/utils/required_fields";
+import { remainingCount } from "@/src/utils/review_progress";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { router } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -219,7 +220,7 @@ function Review() {
   const primary = attributes.find((a) => a.primary);
   const newName = cap && primary ? String(cap.draft.values[primary.id] ?? "").trim() : "";
   const itemName = match ? (matchNames[cap!.selected] || t("items:review.newItem")) : newName || t("items:review.newItem");
-  const remaining = Math.max(0, list.total - hidden.size);
+  const remaining = remainingCount(list.total, list.items.map((i) => i.id), hidden);
   const bottomInset = keyboardOverlap ?? insets.bottom;
 
   const header = (
@@ -315,6 +316,12 @@ function Review() {
     <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: colors.bg }}>
       {header}
       {body()}
+      {/* The last cap's Undo must stay reachable on the "nothing waiting" / end screens too. */}
+      {undo && !current ? (
+        <View style={{ paddingBottom: insets.bottom }}>
+          <UndoBar label={undo.label} onUndo={onUndo} />
+        </View>
+      ) : null}
       <ReviewHelpSheet visible={help.open} onClose={help.hide} />
     </SafeAreaView>
   );
