@@ -1,6 +1,8 @@
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text.Json;
 using Coffer.BusinessLogic.Marketplace.Common;
+using Coffer.BusinessLogic.Services.Interfaces;
 using Coffer.DataAccess;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
@@ -17,10 +19,29 @@ namespace Coffer.BusinessLogic.Pending
     /// <summary>What one photo produced: the new waiting caps, and how many detections were lost (their files had vanished).</summary>
     public sealed record ImageCheckResultDto(List<PendingItemDto> Created, int Lost);
 
+    /// <summary>One collection's share of the user's waiting list.</summary>
+    public sealed record PendingSummaryDto(Guid CollectionId, string CollectionName, int CollectionTypeId, int Count, Guid LatestId);
+
+    /// <summary>Add a waiting cap: either more of an existing item (<see cref="MatchItemId"/>) or a new item (<see cref="Item"/>).</summary>
+    public sealed record AddPendingInput(Guid? MatchItemId, ItemRequired? Item, int Quantity);
+
     public interface IPendingItemService
     {
         /// <summary>Runs the AI check on one photo and puts every detected cap on the collection's waiting list.</summary>
         Task<ImageCheckResultDto> CreateFromImageAsync(Guid userId, CollectionProvided collection, IFormFile file);
+
+        /// <summary>The collection's waiting caps, newest first, with matches computed against the collection as it is now.</summary>
+        Task<Coffer.Domain.Paging.PagedList<PendingItemDto>> ListAsync(Guid userId, Guid collectionId, int? page, int? pageSize);
+
+        Task<List<PendingSummaryDto>> SummaryAsync(Guid userId);
+
+        /// <summary>File name of the owner's waiting cap's crop in <see cref="PendingItemService.PendingFolder"/>.</summary>
+        Task<string> ImageAsync(Guid userId, Guid pendingId);
+
+        Task<ItemProvided> AddAsync(Guid userId, Guid pendingId, AddPendingInput input);
+
+        /// <summary>Skip &amp; delete: the cap and its files are gone. Already gone is fine.</summary>
+        Task DeleteAsync(Guid userId, Guid pendingId);
     }
 
     public sealed class PendingItemService : IPendingItemService
@@ -31,13 +52,170 @@ namespace Coffer.BusinessLogic.Pending
         private readonly IItemsRepository _items;
         private readonly HttpClient _http;
         private readonly ILogger<PendingItemService> _log;
+        private readonly IImageService _images;
+        private readonly IPermissionService<Guid, ItemRequired> _itemPermissions;
 
-        public PendingItemService(CofferDbContext db, IItemsRepository items, HttpClient http, ILogger<PendingItemService> log)
+        public PendingItemService(CofferDbContext db, IItemsRepository items, HttpClient http, ILogger<PendingItemService> log,
+            IImageService images, IPermissionService<Guid, ItemRequired> itemPermissions)
         {
             _db = db;
             _items = items;
             _http = http;
             _log = log;
+            _images = images;
+            _itemPermissions = itemPermissions;
+        }
+
+        private static string ItemFolder => Coffer.BusinessLogic.Account.ContentTombstoneService.ItemFolder;
+
+        private static MarketplaceException AiSaveFailed() =>
+            MarketplaceException.Unavailable("theAiServiceCouldNotSaveTheItem", "The AI service could not save the item. It is still waiting for review.");
+
+        private static MarketplaceException PendingNotFound() =>
+            MarketplaceException.NotFound("pendingItemNotFound", "This item is no longer waiting for review.");
+
+        private async Task<PendingItem> OwnPendingAsync(Guid userId, Guid pendingId) =>
+            await _db.PendingItems.FirstOrDefaultAsync(p => p.Id == pendingId && p.UserId == userId) ?? throw PendingNotFound();
+
+        public async Task<Coffer.Domain.Paging.PagedList<PendingItemDto>> ListAsync(Guid userId, Guid collectionId, int? page, int? pageSize)
+        {
+            if (!await _db.Collections.AnyAsync(c => c.Id == collectionId && c.UserId == userId && c.DeletedAt == null))
+                throw PendingNotFound();
+            var query = _db.PendingItems.AsNoTracking().Where(p => p.CollectionId == collectionId && p.UserId == userId)
+                .OrderByDescending(p => p.CreatedAt).ThenBy(p => p.Id);
+            var rows = await Coffer.DataAccess.Extensions.PagingExtensions.ToPagedListAsync(query, page, pageSize);
+            var matches = await MatchAsync(collectionId, rows.Items.Select(r => r.Id).ToList());
+
+            var items = new List<PendingItemDto>();
+            foreach (var row in rows.Items)
+            {
+                var (state, similars) = matches.TryGetValue(row.Id, out var m) ? m : ("not found", new List<Guid>());
+                items.Add(new PendingItemDto(row.Id, row.CollectionId, row.Quantity, row.CreatedAt, state, await LiveItemsAsync(similars)));
+            }
+            return new Coffer.Domain.Paging.PagedList<PendingItemDto>(items, rows.Page, rows.PageSize, rows.Total);
+        }
+
+        private sealed record Match(Guid Id, string State, List<Guid>? Similars);
+        private sealed record MatchResponse(string Status, List<Match>? Response);
+
+        /// <summary>Fresh matches from the stored fingerprints. If the AI service fails, the list still shows: every cap "not found".</summary>
+        private async Task<Dictionary<Guid, (string State, List<Guid> Similars)>> MatchAsync(Guid collectionId, List<Guid> ids)
+        {
+            var result = new Dictionary<Guid, (string, List<Guid>)>();
+            if (ids.Count == 0) return result;
+            try
+            {
+                var response = await _http.PostAsJsonAsync($"{PythonUrl}/pending_similars/{collectionId}", new { ids });
+                if (!response.IsSuccessStatusCode) return result;
+                var parsed = JsonSerializer.Deserialize<MatchResponse>(await response.Content.ReadAsStringAsync(), Json);
+                foreach (var m in parsed?.Response ?? new()) result[m.Id] = (m.State, m.Similars ?? new());
+            }
+            catch (Exception e) when (e is HttpRequestException or JsonException or TaskCanceledException)
+            {
+                _log.LogWarning("Matching waiting caps failed: {Error}", e.Message);
+            }
+            return result;
+        }
+
+        public async Task<List<PendingSummaryDto>> SummaryAsync(Guid userId)
+        {
+            var rows = await _db.PendingItems.AsNoTracking().Where(p => p.UserId == userId)
+                .Join(_db.Collections.Where(c => c.DeletedAt == null), p => p.CollectionId, c => c.Id,
+                    (p, c) => new { PendingId = p.Id, p.CreatedAt, CollectionId = c.Id, c.Name, c.CollectionTypeId })
+                .ToListAsync();
+            return rows
+                .GroupBy(r => r.CollectionId)
+                .Select(g =>
+                {
+                    var latest = g.OrderByDescending(x => x.CreatedAt).First();
+                    return new PendingSummaryDto(g.Key, latest.Name, latest.CollectionTypeId, g.Count(), latest.PendingId);
+                })
+                .OrderBy(s => s.CollectionName)
+                .ToList();
+        }
+
+        public async Task<string> ImageAsync(Guid userId, Guid pendingId) => (await OwnPendingAsync(userId, pendingId)).Image;
+
+        public async Task DeleteAsync(Guid userId, Guid pendingId)
+        {
+            var row = await _db.PendingItems.FirstOrDefaultAsync(p => p.Id == pendingId);
+            if (row == null) return; // already gone: Skip & delete may be sent twice
+            if (row.UserId != userId) throw PendingNotFound();
+            _db.PendingItems.Remove(row);
+            await _db.SaveChangesAsync();
+            DeleteFiles(row.Id);
+        }
+
+        public async Task<ItemProvided> AddAsync(Guid userId, Guid pendingId, AddPendingInput input)
+        {
+            var row = await OwnPendingAsync(userId, pendingId);
+            if ((input.MatchItemId == null) == (input.Item == null))
+                throw MarketplaceException.Validation("chooseAMatchOrANewItem", "Choose an existing item or describe a new one.");
+            if (input.Quantity < 1)
+                throw MarketplaceException.Validation("quantityMustBeAtLeast1", "Quantity must be at least 1.");
+
+            if (input.MatchItemId is Guid matchId)
+            {
+                var match = await _db.Items.FirstOrDefaultAsync(i => i.Id == matchId && i.CollectionId == row.CollectionId && i.DeletedAt == null)
+                    ?? throw MarketplaceException.NotFound("matchItemNotFound", "The item to add to no longer exists.");
+                match.Quantity += input.Quantity;
+                _db.PendingItems.Remove(row);
+                await _db.SaveChangesAsync();
+                DeleteFiles(row.Id);
+                return match;
+            }
+
+            return await AddAsNewAsync(userId, row, input.Item!, input.Quantity);
+        }
+
+        private async Task<ItemProvided> AddAsNewAsync(Guid userId, PendingItem row, ItemRequired item, int quantity)
+        {
+            item.CollectionId = row.CollectionId;
+            item.Quantity = quantity;
+            item.Image = "";
+
+            var typeId = await _db.Collections.Where(c => c.Id == row.CollectionId).Select(c => c.CollectionTypeId).FirstAsync();
+            var attributes = await _db.Attributes.AsNoTracking().Where(a => a.CollectionTypeId == typeId).ToListAsync();
+            var missing = RequiredAttributes.Missing(attributes, item.ItemAttributes);
+            if (missing.Count > 0)
+                throw MarketplaceException.Validation("requiredAttributeMissing", $"{missing[0].Name} is required.", ErrorArgs.Of(missing[0].Name));
+            if (!await _itemPermissions.CanCreate(userId, item))
+                throw MarketplaceException.Validation("itemDetailsNotAllowed", "The item details contain something that is not allowed.");
+
+            string? copied = null;
+            await using var tx = await _db.Database.BeginTransactionAsync();
+            try
+            {
+                var created = await _items.InsertItemAsync(item);
+                copied = await _images.CopyImageAsync(created.Id, Path.Combine(PendingFolder, row.Image), ItemFolder);
+                created.Image = copied;
+                _db.PendingItems.Remove(row);
+                await _db.SaveChangesAsync();
+
+                // Its fingerprint makes the new item a match for later photos; without it the add is not complete.
+                var response = await _http.PostAsJsonAsync($"{PythonUrl}/save_pending_embedding/{row.CollectionId}", new { pendingId = row.Id, itemId = created.Id });
+                var body = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode || body.Contains("\"error\"", StringComparison.Ordinal))
+                    throw AiSaveFailed();
+
+                await tx.CommitAsync();
+                DeleteFiles(row.Id);
+                return created;
+            }
+            catch (Exception e)
+            {
+                await tx.RollbackAsync();
+                _db.ChangeTracker.Clear();
+                if (copied != null)
+                {
+                    try { await _images.DeleteImageAsync(copied, ItemFolder); }
+                    catch (Exception) { /* an orphan file is harmless */ }
+                }
+                if (e is MarketplaceException) throw;
+                if (e is HttpRequestException or TaskCanceledException) throw AiSaveFailed();
+                if (e is ArgumentException arg) throw MarketplaceException.Validation("itemDetailsNotAllowed", arg.Message);
+                throw;
+            }
         }
 
         private static string ImageStore => Env.GetString("IMAGESTORE_PATH") ?? throw new InvalidOperationException("IMAGESTORE_PATH envionmental variable is not set");
@@ -139,5 +317,28 @@ namespace Coffer.BusinessLogic.Pending
             }
             return result;
         }
+    }
+
+    /// <summary>Which required attributes (the primary always) have no value yet. Same rules as the app's required_fields.ts.</summary>
+    public static class RequiredAttributes
+    {
+        public static List<Domain.Entities.Attribute> Missing(IEnumerable<Domain.Entities.Attribute> attributes, IEnumerable<ItemAttributeRequired> values)
+        {
+            var byId = values.GroupBy(v => v.AttributeId).ToDictionary(g => g.Key, g => g.First());
+            return attributes
+                .Where(AttributeRules.IsRequired)
+                .OrderByDescending(a => a.Primary).ThenBy(a => a.Id)
+                .Where(a => !byId.TryGetValue(a.Id, out var v) || !IsFilled(a, v))
+                .ToList();
+        }
+
+        /// <summary>Text-like: not blank. Number and date: set. A yes/no always counts (false is an answer).</summary>
+        public static bool IsFilled(Domain.Entities.Attribute attribute, ItemAttributeRequired value) => attribute.DataType switch
+        {
+            Domain.Constants.AttributeType.Boolean => true,
+            Domain.Constants.AttributeType.Number => value.ValueNumber.HasValue,
+            Domain.Constants.AttributeType.Date => value.ValueDate.HasValue,
+            _ => !string.IsNullOrWhiteSpace(value.ValueString),
+        };
     }
 }
