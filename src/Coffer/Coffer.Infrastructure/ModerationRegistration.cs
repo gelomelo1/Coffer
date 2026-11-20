@@ -66,6 +66,7 @@ namespace Coffer.Infrastructure
             services.AddScoped<Coffer.BusinessLogic.Pending.IPendingItemService, Coffer.BusinessLogic.Pending.PendingItemService>();
             services.AddScoped<Coffer.BusinessLogic.Activity.IActivityLog, Coffer.BusinessLogic.Activity.ActivityLog>();
             services.AddScoped<Coffer.BusinessLogic.Activity.IActivityQueryService, Coffer.BusinessLogic.Activity.ActivityQueryService>();
+            services.AddScoped<Coffer.BusinessLogic.Activity.IActivityBackfill, Coffer.BusinessLogic.Activity.ActivityBackfill>();
             services.AddScoped<Coffer.BusinessLogic.Marketplace.IMarketplaceSweep, Coffer.BusinessLogic.Pending.PendingExpirySweep>();
             services.AddSingleton<IAuthorizationHandler, ManagerAdminHandler>();
 

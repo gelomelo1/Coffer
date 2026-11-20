@@ -139,5 +139,25 @@ namespace Coffer.ASPNET.Extensions
                 .GetAwaiter().GetResult();
             return app;
         }
+
+        /// <summary>
+        /// Fills My activity from existing dated data, once (after the dev seed, so seeded data is included). A failure
+        /// (e.g. the activity_log migration not applied yet) is logged and retried on the next start, never fatal.
+        /// </summary>
+        public static WebApplication RunActivityBackfill(this WebApplication app)
+        {
+            try
+            {
+                using var scope = app.Services.CreateScope();
+                var added = scope.ServiceProvider.GetRequiredService<Coffer.BusinessLogic.Activity.IActivityBackfill>()
+                    .RunAsync().GetAwaiter().GetResult();
+                if (added > 0) app.Logger.LogInformation("Activity log filled from existing data: {Count} entries.", added);
+            }
+            catch (Exception e)
+            {
+                app.Logger.LogWarning(e, "Activity log fill skipped; it will be retried on the next start.");
+            }
+            return app;
+        }
     }
 }

@@ -94,6 +94,10 @@ namespace Coffer.Tests
                 foreach (var d in services.Where(d => d.ServiceType == typeof(IHostedService) && d.ImplementationType == typeof(Coffer.BusinessLogic.Marketplace.MarketplaceMaintenanceService)).ToList())
                     services.Remove(d);
 
+                // The host starts lazily, after a test seeded its rows; filling the past then would log them as
+                // activity. The fill has its own tests (ActivityBackfillTests).
+                services.AddScoped<Coffer.BusinessLogic.Activity.IActivityBackfill, NoActivityBackfill>();
+
                 Overrides?.Invoke(services);
             });
         }
@@ -124,5 +128,13 @@ namespace Coffer.Tests
             if (disposing)
                 Db.Dispose();
         }
+    }
+}
+
+namespace Coffer.Tests
+{
+    internal sealed class NoActivityBackfill : Coffer.BusinessLogic.Activity.IActivityBackfill
+    {
+        public Task<int> RunAsync() => Task.FromResult(0);
     }
 }

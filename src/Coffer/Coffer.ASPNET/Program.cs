@@ -11,6 +11,7 @@ namespace Coffer.ASPNET
             var app = builder.Build()
                 .SetupMiddleware();
             app.RunDevelopmentSeed();
+            app.RunActivityBackfill();
             app.Run();
         }
     }
