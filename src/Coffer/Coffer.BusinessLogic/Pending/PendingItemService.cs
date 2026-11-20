@@ -14,13 +14,28 @@ using Microsoft.Extensions.Logging;
 namespace Coffer.BusinessLogic.Pending
 {
     /// <summary>A cap waiting for review, with its matches in the collection as it is now.</summary>
-    public sealed record PendingItemDto(Guid Id, Guid CollectionId, int Quantity, DateTime CreatedAt, string State, List<ItemProvided> Similars);
+    public sealed record PendingItemDto(Guid Id, Guid CollectionId, int Quantity, DateTime CreatedAt, string State, List<ItemProvided> Similars)
+    {
+        /// <summary>When it is removed if nobody reviews it.</summary>
+        public DateTime ExpiresAt => PendingExpiry.ExpiresAt(CreatedAt);
+    }
+
+    /// <summary>Waiting items don't stay forever: 30 days after their photo was checked they go, files included.</summary>
+    public static class PendingExpiry
+    {
+        public static readonly TimeSpan Lifetime = TimeSpan.FromDays(30);
+        /// <summary>Items expiring within this time are announced (banner, Settings, review screen).</summary>
+        public static readonly TimeSpan WarnBefore = TimeSpan.FromDays(3);
+        public static DateTime ExpiresAt(DateTime createdAt) => createdAt + Lifetime;
+    }
 
     /// <summary>What one photo produced: the new waiting caps, and how many detections were lost (their files had vanished).</summary>
     public sealed record ImageCheckResultDto(List<PendingItemDto> Created, int Lost);
 
     /// <summary>One collection's share of the user's waiting list.</summary>
-    public sealed record PendingSummaryDto(Guid CollectionId, string CollectionName, int CollectionTypeId, int Count, Guid LatestId);
+    public sealed record PendingSummaryDto(Guid CollectionId, string CollectionName, int CollectionTypeId, int Count, Guid LatestId,
+        /// <summary>How many expire within <see cref="PendingExpiry.WarnBefore"/>, and when the first one goes.</summary>
+        int ExpiringSoon, DateTime NextExpiresAt);
 
     /// <summary>Add a waiting cap: either more of an existing item (<see cref="MatchItemId"/>) or a new item (<see cref="Item"/>).</summary>
     public sealed record AddPendingInput(Guid? MatchItemId, ItemRequired? Item, int Quantity);
@@ -42,6 +57,9 @@ namespace Coffer.BusinessLogic.Pending
 
         /// <summary>Skip &amp; delete: the cap and its files are gone. Already gone is fine.</summary>
         Task DeleteAsync(Guid userId, Guid pendingId);
+
+        /// <summary>Removes items older than <see cref="PendingExpiry.Lifetime"/> with their files; returns how many.</summary>
+        Task<int> PurgeExpiredAsync(DateTime now);
     }
 
     public sealed class PendingItemService : IPendingItemService
@@ -54,10 +72,12 @@ namespace Coffer.BusinessLogic.Pending
         private readonly ILogger<PendingItemService> _log;
         private readonly IImageService _images;
         private readonly IPermissionService<Guid, ItemRequired> _itemPermissions;
+        private readonly IClock _clock;
 
         public PendingItemService(CofferDbContext db, IItemsRepository items, HttpClient http, ILogger<PendingItemService> log,
-            IImageService images, IPermissionService<Guid, ItemRequired> itemPermissions)
+            IImageService images, IPermissionService<Guid, ItemRequired> itemPermissions, IClock clock)
         {
+            _clock = clock;
             _db = db;
             _items = items;
             _http = http;
@@ -128,13 +148,27 @@ namespace Coffer.BusinessLogic.Pending
                 .Select(g =>
                 {
                     var latest = g.OrderByDescending(x => x.CreatedAt).First();
-                    return new PendingSummaryDto(g.Key, latest.Name, latest.CollectionTypeId, g.Count(), latest.PendingId);
+                    var oldest = g.Min(x => x.CreatedAt);
+                    var warnFrom = _clock.UtcNow + PendingExpiry.WarnBefore;
+                    var soon = g.Count(x => PendingExpiry.ExpiresAt(x.CreatedAt) <= warnFrom);
+                    return new PendingSummaryDto(g.Key, latest.Name, latest.CollectionTypeId, g.Count(), latest.PendingId, soon, PendingExpiry.ExpiresAt(oldest));
                 })
                 .OrderBy(s => s.CollectionName)
                 .ToList();
         }
 
         public async Task<string> ImageAsync(Guid userId, Guid pendingId) => (await OwnPendingAsync(userId, pendingId)).Image;
+
+        public async Task<int> PurgeExpiredAsync(DateTime now)
+        {
+            var cutoff = now - PendingExpiry.Lifetime;
+            var expired = await _db.PendingItems.Where(p => p.CreatedAt <= cutoff).ToListAsync();
+            if (expired.Count == 0) return 0;
+            _db.PendingItems.RemoveRange(expired);
+            await _db.SaveChangesAsync();
+            foreach (var row in expired) DeleteFiles(row.Id);
+            return expired.Count;
+        }
 
         public async Task DeleteAsync(Guid userId, Guid pendingId)
         {
@@ -344,5 +378,20 @@ namespace Coffer.BusinessLogic.Pending
             Domain.Constants.AttributeType.Date => value.ValueDate.HasValue,
             _ => !string.IsNullOrWhiteSpace(value.ValueString),
         };
+    }
+
+    /// <summary>Hourly: waiting items past their 30 days go (rows and files).</summary>
+    public sealed class PendingExpirySweep : Coffer.BusinessLogic.Marketplace.IMarketplaceSweep
+    {
+        private readonly IPendingItemService _pending;
+        private readonly IClock _clock;
+
+        public PendingExpirySweep(IPendingItemService pending, IClock clock)
+        {
+            _pending = pending;
+            _clock = clock;
+        }
+
+        public Task SweepAsync() => _pending.PurgeExpiredAsync(_clock.UtcNow);
     }
 }

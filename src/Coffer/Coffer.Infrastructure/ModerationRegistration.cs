@@ -64,6 +64,7 @@ namespace Coffer.Infrastructure
             services.AddScoped<IItemRemovalService, ItemRemovalService>();
             services.AddScoped<Coffer.BusinessLogic.Account.IContentTombstoneService, Coffer.BusinessLogic.Account.ContentTombstoneService>();
             services.AddScoped<Coffer.BusinessLogic.Pending.IPendingItemService, Coffer.BusinessLogic.Pending.PendingItemService>();
+            services.AddScoped<Coffer.BusinessLogic.Marketplace.IMarketplaceSweep, Coffer.BusinessLogic.Pending.PendingExpirySweep>();
             services.AddSingleton<IAuthorizationHandler, ManagerAdminHandler>();
 
             // Development seed / reset (only ever run from the API's startup, and only in Development).
