@@ -38,6 +38,12 @@ namespace Coffer.BusinessLogic.Activity
         /// action leaves no entry and every entry matches a real change.
         /// </summary>
         void Record(Guid userId, string kind, ActivityTargets targets, object? details = null);
+
+        /// <summary>
+        /// Record and save at once, right after an action that already saved (generic repository paths, where the
+        /// new row's id is only known after its save). Called only after the action succeeded.
+        /// </summary>
+        Task RecordNowAsync(Guid userId, string kind, ActivityTargets targets, object? details = null);
     }
 
     public sealed class ActivityLog : IActivityLog
@@ -74,6 +80,12 @@ namespace Coffer.BusinessLogic.Activity
                 OtherUserId = targets.OtherUserId,
                 Details = details == null ? "{}" : JsonSerializer.Serialize(details, Json),
             });
+        }
+
+        public async Task RecordNowAsync(Guid userId, string kind, ActivityTargets targets, object? details = null)
+        {
+            Record(userId, kind, targets, details);
+            await _db.SaveChangesAsync();
         }
     }
 }

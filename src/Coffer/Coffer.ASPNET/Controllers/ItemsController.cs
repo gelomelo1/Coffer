@@ -25,6 +25,7 @@ namespace Coffer.ASPNET.Controllers
         private readonly string pythonServiceUrl = Env.GetString("FASTAPI_URL") ?? throw new InvalidOperationException("FASTAPI_URL envionmental variable is not set");
         private readonly HttpClient _httpClient;
         private readonly Coffer.BusinessLogic.Account.IContentTombstoneService _tombstones;
+        private readonly Coffer.BusinessLogic.Activity.IActivityLog _activity;
         /// <summary>A page of items plus TotalQuantity: the pieces across every item matching the filter.</summary>
         public record ItemPage(List<ItemProvided> Items, int Page, int PageSize, int Total, int TotalQuantity);
 
@@ -41,8 +42,9 @@ namespace Coffer.ASPNET.Controllers
             return Ok(new ItemPage(result.Items, result.Page, result.PageSize, result.Total, quantity));
         }
 
-        public ItemsController(IItemsRepository repository, IUsersRepository usersRepository, IImageService imageService, IPermissionService<Guid, ItemRequired> permissionService, HttpClient httpClient, Coffer.BusinessLogic.Account.IContentTombstoneService tombstones) : base(repository, permissionService)
+        public ItemsController(IItemsRepository repository, IUsersRepository usersRepository, IImageService imageService, IPermissionService<Guid, ItemRequired> permissionService, HttpClient httpClient, Coffer.BusinessLogic.Account.IContentTombstoneService tombstones, Coffer.BusinessLogic.Activity.IActivityLog activity) : base(repository, permissionService)
         {
+            _activity = activity;
             _tombstones = tombstones;
             _itemsRepository = repository;
             _imageService = imageService;
@@ -88,7 +90,10 @@ namespace Coffer.ASPNET.Controllers
                     return Forbid();
                 }
 
-                return await base.Update(id, required);
+                var result = await base.Update(id, required);
+                if (result.Result is OkObjectResult)
+                    await _activity.RecordNowAsync(UserId.Value, "item.edited", new Coffer.BusinessLogic.Activity.ActivityTargets(ItemId: id, CollectionId: required.CollectionId));
+                return result;
             }
         }
 
@@ -131,6 +136,8 @@ namespace Coffer.ASPNET.Controllers
                         }
 
                         var newItem = await _repository.InsertItemAsync(upsertItem.Item);
+                        // Saved with the image update below, inside this transaction.
+                        _activity.Record(UserId.Value, "item.added", new Coffer.BusinessLogic.Activity.ActivityTargets(ItemId: newItem.Id, CollectionId: upsertItem.Item.CollectionId), new { quantity = upsertItem.Item.Quantity });
                         newItems.Add(new InsertedItem(new ItemIds(upsertItem.Id, newItem.Id), newItem));
                     }
                     else
@@ -141,6 +148,7 @@ namespace Coffer.ASPNET.Controllers
                             return Forbid();
                         }
 
+                        _activity.Record(UserId.Value, "item.edited", new Coffer.BusinessLogic.Activity.ActivityTargets(ItemId: upsertItem.Id, CollectionId: upsertItem.Item.CollectionId));
                         await _repository.UpdateItemAsync(upsertItem.Id, upsertItem.Item);
                     }
                 }
@@ -228,6 +236,7 @@ namespace Coffer.ASPNET.Controllers
 
             // Tombstone, not a hard delete: other users' comments, reactions and reports on the item stay linked.
             var cleanup = await _tombstones.TombstoneItemAsync(id);
+            await _activity.RecordNowAsync(UserId.Value, "item.deleted", new Coffer.BusinessLogic.Activity.ActivityTargets(ItemId: id, CollectionId: item.CollectionId));
             await _tombstones.CleanupAsync(cleanup);
 
             return Ok();

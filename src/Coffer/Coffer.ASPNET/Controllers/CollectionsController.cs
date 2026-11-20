@@ -31,9 +31,11 @@ namespace Coffer.ASPNET.Controllers
         private readonly HttpClient _httpClient;
         private readonly Coffer.BusinessLogic.Account.IContentTombstoneService _tombstones;
         private readonly Coffer.BusinessLogic.Pending.IPendingItemService _pending;
+        private readonly Coffer.BusinessLogic.Activity.IActivityLog _activity;
         private readonly IWebHostEnvironment _environment;
-        public CollectionsController(ICollectionsRepository collectionsRepository, IItemsRepository itemsRepository, IImageService imageService, IPermissionService<Guid, CollectionRequired> permissionService, HttpClient httpClient, IWebHostEnvironment environment, Coffer.BusinessLogic.Account.IContentTombstoneService tombstones, Coffer.BusinessLogic.Pending.IPendingItemService pending) : base(collectionsRepository, permissionService)
+        public CollectionsController(ICollectionsRepository collectionsRepository, IItemsRepository itemsRepository, IImageService imageService, IPermissionService<Guid, CollectionRequired> permissionService, HttpClient httpClient, IWebHostEnvironment environment, Coffer.BusinessLogic.Account.IContentTombstoneService tombstones, Coffer.BusinessLogic.Pending.IPendingItemService pending, Coffer.BusinessLogic.Activity.IActivityLog activity) : base(collectionsRepository, permissionService)
         {
+            _activity = activity;
             _pending = pending;
             _tombstones = tombstones;
             _collectionsRepository = collectionsRepository;
@@ -56,6 +58,22 @@ namespace Coffer.ASPNET.Controllers
             var byNameIds = (byName ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Select(x => int.TryParse(x, out var id) ? id : (int?)null).Where(x => x.HasValue).Select(x => x!.Value).ToList();
             return Ok(await _collectionsRepository.GetGroupedPageAsync(userId, byNameIds, page, pageSize));
+        }
+
+        public override async Task<ActionResult<CollectionProvided>> Create([FromBody] CollectionRequired required)
+        {
+            var result = await base.Create(required);
+            if (result.Result is CreatedAtActionResult { Value: CollectionProvided created })
+                await _activity.RecordNowAsync(UserId!.Value, "collection.created", new Coffer.BusinessLogic.Activity.ActivityTargets(CollectionId: created.Id));
+            return result;
+        }
+
+        public override async Task<ActionResult<CollectionProvided>> Update(Guid id, [FromBody] CollectionRequired required)
+        {
+            var result = await base.Update(id, required);
+            if (result.Result is OkObjectResult)
+                await _activity.RecordNowAsync(UserId!.Value, "collection.edited", new Coffer.BusinessLogic.Activity.ActivityTargets(CollectionId: id));
+            return result;
         }
 
         [HttpPost("CoverImage/Upload/{id}")]
@@ -98,6 +116,7 @@ namespace Coffer.ASPNET.Controllers
                     collection.Image = fileName;
                 }
                 await _repository.UpdateItemAsync(id, collection);
+                await _activity.RecordNowAsync(UserId.Value, "collection.edited", new Coffer.BusinessLogic.Activity.ActivityTargets(CollectionId: id));
                 return Ok(collection);
             }
             catch(Exception e)
@@ -218,6 +237,7 @@ namespace Coffer.ASPNET.Controllers
 
             // Tombstones, not a hard delete: other users' comments, reactions and reports on its items stay linked.
             var cleanup = await _tombstones.TombstoneCollectionAsync(id);
+            await _activity.RecordNowAsync(UserId.Value, "collection.deleted", new Coffer.BusinessLogic.Activity.ActivityTargets(CollectionId: id));
             await _tombstones.CleanupAsync(cleanup);
 
             return Ok();

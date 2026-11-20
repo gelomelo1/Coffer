@@ -56,10 +56,13 @@ namespace Coffer.BusinessLogic.Community
         private readonly CofferDbContext _db;
         private readonly IClock _clock;
 
-        public ItemCommentService(CofferDbContext db, IClock clock)
+        private readonly Coffer.BusinessLogic.Activity.IActivityLog? _activity;
+
+        public ItemCommentService(CofferDbContext db, IClock clock, Coffer.BusinessLogic.Activity.IActivityLog? activity = null)
         {
             _db = db;
             _clock = clock;
+            _activity = activity;
         }
 
         public async Task<CommentPageDto> ListAsync(Guid viewerId, Guid itemId, int page = 1, int pageSize = 20)
@@ -125,6 +128,7 @@ namespace Coffer.BusinessLogic.Community
 
             comment.Mentions = await ResolveMentionsAsync(body, input.MentionUserIds, comment.Id);
             _db.ItemComments.Add(comment);
+            _activity?.Record(userId, comment.ParentId == null ? "comment.posted" : "comment.replied", new Coffer.BusinessLogic.Activity.ActivityTargets(ItemId: itemId, CommentId: comment.Id));
             await _db.SaveChangesAsync();
             return await GetAsync(userId, comment.Id, ownerId);
         }
@@ -140,6 +144,7 @@ namespace Coffer.BusinessLogic.Community
             comment.EditedAt = _clock.UtcNow;
             _db.ItemCommentMentions.RemoveRange(comment.Mentions);
             comment.Mentions = await ResolveMentionsAsync(body, input!.MentionUserIds, comment.Id);
+            _activity?.Record(userId, "comment.edited", new Coffer.BusinessLogic.Activity.ActivityTargets(ItemId: itemId, CommentId: comment.Id));
             await _db.SaveChangesAsync();
             return await GetAsync(userId, comment.Id, ownerId);
         }
@@ -161,6 +166,7 @@ namespace Coffer.BusinessLogic.Community
                 comment.DeletedAt = _clock.UtcNow;
                 _db.ItemCommentMentions.RemoveRange(comment.Mentions);
             }
+            _activity?.Record(userId, "comment.deleted", new Coffer.BusinessLogic.Activity.ActivityTargets(ItemId: itemId, CommentId: comment.Id));
             await _db.SaveChangesAsync();
         }
 

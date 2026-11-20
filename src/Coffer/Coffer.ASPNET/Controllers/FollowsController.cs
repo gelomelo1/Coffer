@@ -1,4 +1,4 @@
-﻿using Coffer.ASPNET.Extensions;
+using Coffer.ASPNET.Extensions;
 using Coffer.ASPNET.Controllers.Generic;
 using Coffer.BusinessLogic.Services.Interfaces;
 using Coffer.DataAccess.Repositories;
@@ -16,8 +16,10 @@ namespace Coffer.ASPNET.Controllers
         private readonly IFollowsRepository _followsRepository;
         private readonly ICollectionsRepository _collectionRepository;
         private readonly IPermissionService<Guid, FollowRequired> _permissionService;
-        public FollowsController(IFollowsRepository followsRepository, ICollectionsRepository collectionRepository, IPermissionService<Guid, FollowRequired> permissionService)
+        private readonly Coffer.BusinessLogic.Activity.IActivityLog _activity;
+        public FollowsController(IFollowsRepository followsRepository, ICollectionsRepository collectionRepository, IPermissionService<Guid, FollowRequired> permissionService, Coffer.BusinessLogic.Activity.IActivityLog activity)
         {
+            _activity = activity;
             _followsRepository = followsRepository;
             _collectionRepository = collectionRepository;
             _permissionService = permissionService;
@@ -44,6 +46,7 @@ namespace Coffer.ASPNET.Controllers
                         return Forbid();
                     }
 
+                    _activity.Record(UserId.Value, "follow.followed", new Coffer.BusinessLogic.Activity.ActivityTargets(CollectionId: followRequired.CollectionId));
                     await _followsRepository.InsertItemAsync(followRequired);
                 }
                 else
@@ -53,6 +56,7 @@ namespace Coffer.ASPNET.Controllers
                     {
                         return Forbid();
                     }
+                    _activity.Record(UserId.Value, "follow.unfollowed", new Coffer.BusinessLogic.Activity.ActivityTargets(CollectionId: followRequired.CollectionId));
                     await _followsRepository.DeleteItemAsync(follow.Id);
                 }
 

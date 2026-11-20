@@ -73,10 +73,12 @@ namespace Coffer.BusinessLogic.Pending
         private readonly IImageService _images;
         private readonly IPermissionService<Guid, ItemRequired> _itemPermissions;
         private readonly IClock _clock;
+        private readonly Coffer.BusinessLogic.Activity.IActivityLog? _activity;
 
         public PendingItemService(CofferDbContext db, IItemsRepository items, HttpClient http, ILogger<PendingItemService> log,
-            IImageService images, IPermissionService<Guid, ItemRequired> itemPermissions, IClock clock)
+            IImageService images, IPermissionService<Guid, ItemRequired> itemPermissions, IClock clock, Coffer.BusinessLogic.Activity.IActivityLog? activity = null)
         {
+            _activity = activity;
             _clock = clock;
             _db = db;
             _items = items;
@@ -193,6 +195,7 @@ namespace Coffer.BusinessLogic.Pending
                 var match = await _db.Items.FirstOrDefaultAsync(i => i.Id == matchId && i.CollectionId == row.CollectionId && i.DeletedAt == null)
                     ?? throw MarketplaceException.NotFound("matchItemNotFound", "The item to add to no longer exists.");
                 match.Quantity += input.Quantity;
+                _activity?.Record(userId, "item.addedToExisting", new Coffer.BusinessLogic.Activity.ActivityTargets(ItemId: match.Id, CollectionId: match.CollectionId), new { quantity = input.Quantity });
                 _db.PendingItems.Remove(row);
                 await _db.SaveChangesAsync();
                 DeleteFiles(row.Id);
@@ -221,6 +224,7 @@ namespace Coffer.BusinessLogic.Pending
             try
             {
                 var created = await _items.InsertItemAsync(item);
+                _activity?.Record(userId, "item.added", new Coffer.BusinessLogic.Activity.ActivityTargets(ItemId: created.Id, CollectionId: row.CollectionId), new { quantity });
                 copied = await _images.CopyImageAsync(created.Id, Path.Combine(PendingFolder, row.Image), ItemFolder);
                 created.Image = copied;
                 _db.PendingItems.Remove(row);

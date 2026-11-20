@@ -16,12 +16,21 @@ namespace Coffer.ASPNET.Controllers
         private readonly IUsersRepository _usersRepository;
         private readonly IItemsRepository _itemsRepository;
         private readonly IPermissionService<Guid, ReactionRequired> _permissionService;
-        public ReactionsController(IReactionsRepository reactionsRepository, IUsersRepository usersRepository, IItemsRepository itemsRepository, IPermissionService<Guid, ReactionRequired> permissionService) : base(reactionsRepository)
+        private readonly Coffer.BusinessLogic.Activity.IActivityLog _activity;
+        public ReactionsController(IReactionsRepository reactionsRepository, IUsersRepository usersRepository, IItemsRepository itemsRepository, IPermissionService<Guid, ReactionRequired> permissionService, Coffer.BusinessLogic.Activity.IActivityLog activity) : base(reactionsRepository)
         {
+            _activity = activity;
             _reactionsRepository = reactionsRepository;
             _usersRepository = usersRepository;
             _itemsRepository = itemsRepository;
             _permissionService = permissionService;
+        }
+
+        /// <summary>Adds what the user did to their activity log; the repository save that follows persists it.</summary>
+        private void RecordReaction(bool oldLiked, int? oldRarity, bool newLiked, int? newRarity, Guid itemId)
+        {
+            foreach (var (kind, details) in Coffer.BusinessLogic.Activity.ReactionActivity.Changes(oldLiked, oldRarity, newLiked, newRarity))
+                _activity.Record(UserId!.Value, kind, new Coffer.BusinessLogic.Activity.ActivityTargets(ItemId: itemId), details);
         }
 
         [Authorize]
@@ -57,6 +66,7 @@ namespace Coffer.ASPNET.Controllers
                         return Forbid();
                     }
 
+                    RecordReaction(false, null, reactionRequired.Liked, reactionRequired.Rarity, reactionRequired.ItemId);
                     await _reactionsRepository.InsertItemAsync(reactionRequired);
                 }
                 else if (!reactionRequired.Liked && reactionRequired.Rarity == null)
@@ -67,6 +77,7 @@ namespace Coffer.ASPNET.Controllers
                         return Forbid();
                     }
 
+                    RecordReaction(existingReaction.Liked, existingReaction.Rarity, false, null, reactionRequired.ItemId);
                     await _reactionsRepository.DeleteItemAsync(existingReaction.Id);
                 }
                 else
@@ -77,6 +88,7 @@ namespace Coffer.ASPNET.Controllers
                         return Forbid();
                     }
 
+                    RecordReaction(existingReaction.Liked, existingReaction.Rarity, reactionRequired.Liked, reactionRequired.Rarity, reactionRequired.ItemId);
                     await _reactionsRepository.UpdateItemAsync(existingReaction.Id, reactionRequired);
                 }
 
