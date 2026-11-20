@@ -9,12 +9,13 @@ import { useConversation, useDeal, useListing, useMessages } from "@/src/hooks/m
 import { useKeyboardOverlapAtScreenBottom } from "@/src/hooks/keyboard_toolbar";
 import { useMarketStore } from "@/src/hooks/market_store";
 import { useUserStore } from "@/src/hooks/user_store";
-import { colors, spacing } from "@/src/theme/theme";
+import { colors, spacing, typography } from "@/src/theme/theme";
 import { marketApi } from "@/src/utils/market_api";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
+import { userLabel } from "@/src/utils/deleted_labels";
 import { useTranslation } from "react-i18next";
-import { FlatList, View } from "react-native";
+import { FlatList, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /** Buyer ↔ seller chat about one listing, with the deal panel pinned on top. */
@@ -64,7 +65,7 @@ function Chat() {
       ) : messages.length === 0 ? (
         // An inverted list would draw its empty state upside down.
         <View style={{ flex: 1, justifyContent: "center" }}>
-          <EmptyState icon="chat-bubble-outline" title={t("market:chat.sayHi", { name: conversation.other.name })} text={t("market:chat.emptyText")} />
+          <EmptyState icon="chat-bubble-outline" title={t("market:chat.sayHi", { name: userLabel(conversation.other, t) })} text={t("market:chat.emptyText")} />
         </View>
       ) : (
         <FlatList
@@ -80,7 +81,14 @@ function Chat() {
           renderItem={({ item }) => <MessageBubble message={item} conversationId={conversation.id} myId={user.id} />}
         />
       )}
-      <Composer conversationId={conversation.id} allowOffers={conversation.subject.kind !== "exchange"} bottomInset={keyboardVisible ? 0 : insets.bottom} />
+      {conversation.other.isDeleted ? (
+        // Nobody would read it: the history stays, but there is no one to write to.
+        <View style={{ padding: spacing.md, paddingBottom: spacing.md + insets.bottom, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.surface }}>
+          <Text style={[typography.meta, { color: colors.textMuted, textAlign: "center" }]}>{t("market:chat.otherDeleted")}</Text>
+        </View>
+      ) : (
+        <Composer conversationId={conversation.id} allowOffers={conversation.subject.kind !== "exchange"} bottomInset={keyboardVisible ? 0 : insets.bottom} />
+      )}
     </View>
   );
 }

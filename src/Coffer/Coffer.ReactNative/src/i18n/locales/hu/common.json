@@ -84,5 +84,11 @@
       "still": "A szerver még mindig nem válaszol."
     },
     "tryAgain": "Újrapróbálás"
+  },
+  "deleted": {
+    "user": "Törölt felhasználó",
+    "collection": "Törölt felhasználó gyűjteménye",
+    "item": "Törölt felhasználó tárgya",
+    "listing": "Törölt felhasználó hirdetése"
   }
 }

@@ -3,6 +3,8 @@ import { UserSummary } from "./market";
 export interface Mention {
   userId: string;
   name: string;
+  /** The mentioned account was deleted: the name is empty and nothing is highlighted. */
+  isDeleted?: boolean;
 }
 
 /**

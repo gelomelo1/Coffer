@@ -12,6 +12,7 @@ import { apiErrorText } from "@/src/utils/api_error_text";
 import { formatTimeAgo } from "@/src/utils/market_api";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useState } from "react";
+import { userLabel } from "@/src/utils/deleted_labels";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 import CommentBody from "./comment_body";
@@ -99,7 +100,7 @@ function CommentRow({
               <Avatar uri={comment.author?.avatar} size={32} />
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs, flexWrap: "wrap" }}>
-                  <Text style={[typography.label, { color: colors.text }]}>{comment.author?.name ?? t("comments:row.deletedUser")}</Text>
+                  <Text style={[typography.label, { color: colors.text }]}>{userLabel(comment.author, t)}</Text>
                   {comment.isOwner ? <Tag label={t("comments:row.owner")} color={colors.secondary} /> : null}
                 </View>
                 <Text style={[typography.caption, { color: colors.textMuted }]}>{meta}</Text>
@@ -125,7 +126,7 @@ function CommentRow({
           key={reply.id}
           comment={reply}
           level={level + 1}
-          parentAuthor={comment.author?.name}
+          parentAuthor={comment.author ? userLabel(comment.author, t) : undefined}
           onReply={onReply}
           onEdit={onEdit}
           onDelete={onDelete}
@@ -166,7 +167,7 @@ function CommentSection({ itemId }: { itemId: string }) {
 
   const context =
     mode.kind === "reply"
-      ? t("comments:composer.replyingTo", { name: mode.to.author?.name ?? t("comments:row.deletedUser") })
+      ? t("comments:composer.replyingTo", { name: userLabel(mode.to.author, t) })
       : mode.kind === "edit"
         ? t("comments:composer.editing")
         : null;
@@ -177,7 +178,7 @@ function CommentSection({ itemId }: { itemId: string }) {
       <CommentComposer
         context={context}
         onCancelContext={() => setMode({ kind: "new" })}
-        initialText={mode.kind === "edit" ? mode.comment.body : mode.kind === "reply" && mode.to.author ? `@${mode.to.author.name} ` : ""}
+        initialText={mode.kind === "edit" ? mode.comment.body : mode.kind === "reply" && mode.to.author && !mode.to.author.isDeleted ? `@${mode.to.author.name} ` : ""}
         initialMentions={
           mode.kind === "edit"
             ? mode.comment.mentions

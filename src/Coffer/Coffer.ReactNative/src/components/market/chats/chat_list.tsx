@@ -6,6 +6,7 @@ import { pressableShadowStyle } from "@/src/theme/pressable";
 import { borders, colors, spacing, typography } from "@/src/theme/theme";
 import { apiErrorText } from "@/src/utils/api_error_text";
 import { chatPreview, formatTimeAgo } from "@/src/utils/market_api";
+import { listingLabel, userLabel } from "@/src/utils/deleted_labels";
 import { useTranslation } from "react-i18next";
 import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { EmptyState, ListingImageView, Tag } from "../ui/retro";
@@ -42,17 +43,17 @@ function ChatList() {
         // System messages are nobody's words: no name in front of them.
         const sender = item.lastMessage?.senderId;
         const previewLine = !item.lastMessage
-          ? t("market:chats.preview", { name: item.other.name, text: preview })
+          ? t("market:chats.preview", { name: userLabel(item.other, t), text: preview })
           : sender == null
             ? preview
             : sender === item.other.id
-              ? t("market:chats.preview", { name: item.other.name, text: preview })
+              ? t("market:chats.preview", { name: userLabel(item.other, t), text: preview })
               : t("market:chats.previewMine", { text: preview });
         return (
           <Pressable
-            onPress={() => openChat(item.id, item.other.name, item.subject.title)}
+            onPress={() => openChat(item.id, userLabel(item.other, t), listingLabel(item.subject.title, item.subject.isDeleted, t))}
             accessibilityRole="button"
-            accessibilityLabel={[role, item.subject.title, item.other.name, preview, unread ? t("market:tabs.badge", { count: item.unreadCount }) : null]
+            accessibilityLabel={[role, listingLabel(item.subject.title, item.subject.isDeleted, t), userLabel(item.other, t), preview, unread ? t("market:tabs.badge", { count: item.unreadCount }) : null]
               .filter(Boolean)
               .join(", ")}
             style={({ pressed }) => [
@@ -79,7 +80,7 @@ function ChatList() {
                 </Text>
               </View>
               <Text style={[typography.bodyStrong, { color: colors.text }]} numberOfLines={1}>
-                {item.subject.title}
+                {listingLabel(item.subject.title, item.subject.isDeleted, t)}
               </Text>
               <Text style={[unread ? typography.label : typography.meta, { color: colors.text }]} numberOfLines={1}>
                 {previewLine}

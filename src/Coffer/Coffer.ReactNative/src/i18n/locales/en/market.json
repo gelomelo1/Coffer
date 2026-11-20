@@ -279,7 +279,6 @@
   "review": {
     "replyPosted": "Reply posted",
     "byline": "{{name}} · as {{role}} · {{listing}}",
-    "deletedUser": "Deleted user",
     "role": {
       "buyer": "buyer",
       "seller": "seller"
@@ -416,7 +415,8 @@
     "accept": "Accept",
     "decline": "Decline",
     "removed": "This message was removed by a moderator.",
-    "previewMeetup": "📅 Meetup proposal"
+    "previewMeetup": "📅 Meetup proposal",
+    "otherDeleted": "This user deleted their account."
   },
   "system": {
     "dealProposed": "🤝 Deal proposed: {{method}}. Waiting for the buyer to accept.",

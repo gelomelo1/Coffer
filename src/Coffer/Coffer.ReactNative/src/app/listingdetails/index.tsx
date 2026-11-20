@@ -20,6 +20,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { isAxiosError } from "axios";
 import { useState } from "react";
+import { userLabel } from "@/src/utils/deleted_labels";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 
@@ -240,19 +241,19 @@ function ListingDetails() {
                   return (
                     <ListRow
                       key={chat.id}
-                      title={chat.other.name}
+                      title={userLabel(chat.other, t)}
                       subtitle={preview ?? t("market:details.noPreview")}
                       titleLines={1}
                       leading={<MaterialIcons name="chat" size={sizes.iconMd} color={colors.text} />}
                       trailing={chat.unreadCount > 0 ? <Tag label={String(chat.unreadCount)} color={colors.danger} /> : undefined}
                       accessibilityLabel={[
-                        chat.other.name,
+                        userLabel(chat.other, t),
                         preview,
                         chat.unreadCount > 0 ? t("market:tabs.badge", { count: chat.unreadCount }) : null,
                       ]
                         .filter(Boolean)
                         .join(", ")}
-                      onPress={() => openChat(chat.id, chat.other.name, listing.title)}
+                      onPress={() => openChat(chat.id, userLabel(chat.other, t), listing.title)}
                       style={{ borderTopWidth: borders.hairline, borderColor: colors.borderMuted }}
                     />
                   );

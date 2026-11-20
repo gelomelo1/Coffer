@@ -6,6 +6,7 @@ import { Deal, DealStatus, DeliveryMethod, ListingDetail } from "@/src/types/ent
 import { backendText, daysLeft, formatDate, formatDateTime, formatPrice, LocalImage, marketApi } from "@/src/utils/market_api";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useState } from "react";
+import { userLabel } from "@/src/utils/deleted_labels";
 import { useTranslation } from "react-i18next";
 import { Linking, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import ReviewModal from "../review/review_modal";
@@ -127,8 +128,8 @@ function DealPanel({
               <WarningBanner />
               <Text style={[typography.body, { color: colors.text }]}>
                 {d.agreedPriceCents
-                  ? t("market:deal.proposesFor", { name: d.seller.name, method: deliveryLabels[d.method], price: formatPrice(d.agreedPriceCents) })
-                  : t("market:deal.proposes", { name: d.seller.name, method: deliveryLabels[d.method] })}
+                  ? t("market:deal.proposesFor", { name: userLabel(d.seller, t), method: deliveryLabels[d.method], price: formatPrice(d.agreedPriceCents) })
+                  : t("market:deal.proposes", { name: userLabel(d.seller, t), method: deliveryLabels[d.method] })}
               </Text>
               <View style={{ flexDirection: "row", gap: spacing.sm }}>
                 <CustomButton
@@ -163,7 +164,7 @@ function DealPanel({
             />
           ) : null}
           {d.status === "awaiting_shipment" && !has("ship") ? (
-            <Text style={[typography.body, { color: colors.text }]}>{t("market:deal.waitingShipment", { name: d.seller.name })}</Text>
+            <Text style={[typography.body, { color: colors.text }]}>{t("market:deal.waitingShipment", { name: userLabel(d.seller, t) })}</Text>
           ) : null}
 
           {d.trackingNumber ? (

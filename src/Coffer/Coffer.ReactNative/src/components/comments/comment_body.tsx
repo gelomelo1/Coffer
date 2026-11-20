@@ -10,9 +10,11 @@ const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
  */
 function CommentBody({ body, mentions, style }: { body: string; mentions: Mention[]; style?: StyleProp<TextStyle> }) {
   const base = [typography.body, { color: colors.text }, style];
-  if (mentions.length === 0) return <Text style={base}>{body}</Text>;
+  // A deleted account's mention has no name left to highlight (its "@Name" stays plain text).
+  const live = mentions.filter((m) => !m.isDeleted && m.name.length > 0);
+  if (live.length === 0) return <Text style={base}>{body}</Text>;
 
-  const names = [...mentions].sort((a, b) => b.name.length - a.name.length).map((m) => escape(m.name));
+  const names = [...live].sort((a, b) => b.name.length - a.name.length).map((m) => escape(m.name));
   const pattern = new RegExp(`(@(?:${names.join("|")}))(?![\\p{L}\\p{N}_.-])`, "giu");
   const parts = body.split(pattern);
 

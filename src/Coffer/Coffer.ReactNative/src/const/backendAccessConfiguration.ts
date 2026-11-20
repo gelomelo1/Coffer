@@ -5,6 +5,7 @@ import i18n from "../i18n";
 import { useSuspensionStore } from "../hooks/suspension_store";
 import { classifyFailure, isDeviceOffline } from "../utils/connectivity";
 import { getToken } from "../utils/token_store";
+import { ACCOUNT_DELETED_CODE, signOutDeletedAccount } from "../utils/account_deleted";
 
 // EXPO_PUBLIC_BACKEND_URL overrides the default at bundle time, e.g. http://10.0.2.2:5141 for the Android emulator.
 export const backendAxios = axios.create({
@@ -49,6 +50,10 @@ backendAxios.interceptors.response.use(
     }
 
     const data = error?.response?.data;
+    // The account was deleted (here or on another device): its token is useless, so sign out.
+    if (error?.response?.status === 401 && data?.code === ACCOUNT_DELETED_CODE) {
+      void signOutDeletedAccount();
+    }
     if (error?.response?.status === 403 && data?.code === "account_suspended") {
       useSuspensionStore.getState().setSuspension({ message: data.message, reason: data.reason, startsAt: data.startsAt, endsAt: data.endsAt });
     }

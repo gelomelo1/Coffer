@@ -7,6 +7,7 @@ import { Review } from "@/src/types/entities/market";
 import { formatDate, marketApi } from "@/src/utils/market_api";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useState } from "react";
+import { listingLabel, userLabel } from "@/src/utils/deleted_labels";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import ReportOverlay from "../ui/report_overlay";
@@ -29,9 +30,9 @@ function ReviewCard({ review, canRespond }: { review: Review; canRespond: boolea
       </View>
       <Text style={[typography.meta, { color: colors.text }]}>
         {t("market:review.byline", {
-          name: review.reviewer?.name ?? t("market:review.deletedUser"),
+          name: userLabel(review.reviewer, t),
           role: t(`market:review.role.${review.reviewerRole}`),
-          listing: review.listingTitle,
+          listing: listingLabel(review.listingTitle, review.listingDeleted, t),
         })}
       </Text>
       {review.isFrozen || review.reasonTag ? (
@@ -44,7 +45,7 @@ function ReviewCard({ review, canRespond }: { review: Review; canRespond: boolea
 
       {review.reply ? (
         <View style={{ borderLeftWidth: 4, borderLeftColor: colors.secondary, paddingLeft: spacing.sm, gap: 2 }}>
-          <Text style={[typography.label, { color: colors.text }]}>{t("market:review.replyFrom", { name: review.reviewee.name })}</Text>
+          <Text style={[typography.label, { color: colors.text }]}>{t("market:review.replyFrom", { name: userLabel(review.reviewee, t) })}</Text>
           <Text style={[typography.body, { color: colors.text }]}>{review.reply}</Text>
         </View>
       ) : null}

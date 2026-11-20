@@ -279,7 +279,6 @@
   "review": {
     "replyPosted": "Válasz közzétéve",
     "byline": "{{name}} · {{role}}ként · {{listing}}",
-    "deletedUser": "Törölt felhasználó",
     "role": {
       "buyer": "vevő",
       "seller": "eladó"
@@ -416,7 +415,8 @@
     "accept": "Elfogadás",
     "decline": "Elutasítás",
     "removed": "Ezt az üzenetet egy moderátor eltávolította.",
-    "previewMeetup": "📅 Találkozó-javaslat"
+    "previewMeetup": "📅 Találkozó-javaslat",
+    "otherDeleted": "Ez a felhasználó törölte a fiókját."
   },
   "system": {
     "dealProposed": "🤝 Üzletajánlat: {{method}}. A vevő elfogadására vár.",

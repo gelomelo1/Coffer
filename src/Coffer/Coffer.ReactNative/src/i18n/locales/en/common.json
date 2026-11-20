@@ -84,5 +84,11 @@
       "still": "The server still isn't answering."
     },
     "tryAgain": "Try again"
+  },
+  "deleted": {
+    "user": "Deleted user",
+    "collection": "Deleted user's collection",
+    "item": "Deleted user's item",
+    "listing": "Deleted user's listing"
   }
 }

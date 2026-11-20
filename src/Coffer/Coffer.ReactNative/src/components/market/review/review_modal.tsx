@@ -10,6 +10,7 @@ import { Deal, ReviewInput, ReviewReasonTag } from "@/src/types/entities/market"
 import { daysLeft, formatDate, marketApi } from "@/src/utils/market_api";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useEffect, useState } from "react";
+import { userLabel } from "@/src/utils/deleted_labels";
 import { useTranslation } from "react-i18next";
 import { ScrollView, Text, View } from "react-native";
 import { Chip, ChipRow, ErrorText, SectionCard, StarRating } from "../ui/retro";
@@ -36,6 +37,7 @@ function ReviewModal({ isVisible, onClose, deal }: { isVisible: boolean; onClose
   }, [isVisible]);
 
   const other = deal.myRole === "buyer" ? deal.seller : deal.buyer;
+  const otherName = userLabel(other, t);
   const low = stars > 0 && stars <= 2;
   const trimmed = comment.trim().length;
   const error =
@@ -52,7 +54,7 @@ function ReviewModal({ isVisible, onClose, deal }: { isVisible: boolean; onClose
     <CustomOverlay
       isVisible={isVisible}
       onClose={onClose}
-      overlayTitle={t("market:review.title", { name: other.name })}
+      overlayTitle={t("market:review.title", { name: otherName })}
       footerContent={
         data?.canReview ? (
           <CustomButton
@@ -73,8 +75,8 @@ function ReviewModal({ isVisible, onClose, deal }: { isVisible: boolean; onClose
               <MaterialIcons name="visibility-off" size={sizes.iconMd} color={colors.text} />
               <Text style={[typography.meta, { color: colors.text, flex: 1 }]}>
                 {left != null
-                  ? t("market:review.blindNoteDays", { name: other.name, count: left })
-                  : t("market:review.blindNote", { name: other.name })}
+                  ? t("market:review.blindNoteDays", { name: otherName, count: left })
+                  : t("market:review.blindNote", { name: otherName })}
               </Text>
             </View>
           </SectionCard>
@@ -85,7 +87,7 @@ function ReviewModal({ isVisible, onClose, deal }: { isVisible: boolean; onClose
               <ReviewCard review={data.mine} canRespond={false} />
               {!data.mine.publishedAt ? (
                 <Text style={[typography.meta, { color: colors.textMuted }]}>
-                  {t("market:review.hiddenUntil", { name: other.name, date: formatDate(data.deadline) })}
+                  {t("market:review.hiddenUntil", { name: otherName, date: formatDate(data.deadline) })}
                 </Text>
               ) : null}
             </>
@@ -93,11 +95,11 @@ function ReviewModal({ isVisible, onClose, deal }: { isVisible: boolean; onClose
 
           {data?.theirs ? (
             <>
-              <SectionHeader title={t("market:review.theirs", { name: other.name })} />
+              <SectionHeader title={t("market:review.theirs", { name: otherName })} />
               <ReviewCard review={data.theirs} canRespond />
             </>
           ) : data?.theyHaveSubmitted ? (
-            <Text style={[typography.bodyStrong, { color: colors.text }]}>{t("market:review.theySubmitted", { name: other.name })}</Text>
+            <Text style={[typography.bodyStrong, { color: colors.text }]}>{t("market:review.theySubmitted", { name: otherName })}</Text>
           ) : null}
 
           {data?.canReview ? (

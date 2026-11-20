@@ -9,6 +9,7 @@ import { borders, colors, spacing, typography } from "@/src/theme/theme";
 import { Deal, DealStatus } from "@/src/types/entities/market";
 import { apiErrorText } from "@/src/utils/api_error_text";
 import { formatPrice, formatTimeAgo } from "@/src/utils/market_api";
+import { listingLabel, userLabel } from "@/src/utils/deleted_labels";
 import { useTranslation } from "react-i18next";
 import { Pressable, RefreshControl, SectionList, Text, View } from "react-native";
 import { openChat } from "../chats/open_chat";
@@ -53,7 +54,7 @@ function DealList() {
       renderItem={({ item }) => {
         const other = item.myRole === "buyer" ? item.seller : item.buyer;
         const meta = [
-          item.myRole === "buyer" ? t("market:deals.buyingFrom", { name: other.name }) : t("market:deals.sellingTo", { name: other.name }),
+          item.myRole === "buyer" ? t("market:deals.buyingFrom", { name: userLabel(other, t) }) : t("market:deals.sellingTo", { name: userLabel(other, t) }),
           deliveryLabels[item.method],
           item.agreedPriceCents ? formatPrice(item.agreedPriceCents) : null,
           formatTimeAgo(item.updatedAt),
@@ -61,11 +62,12 @@ function DealList() {
           .filter(Boolean)
           .join(" · "); // i18n-ignore
         const wantsReview = item.nextActions.includes("review");
+        const title = listingLabel(item.listingTitle, item.listingDeleted, t);
         return (
           <Pressable
-            onPress={() => openChat(item.conversationId, other.name, item.listingTitle)}
+            onPress={() => openChat(item.conversationId, userLabel(other, t), title)}
             accessibilityRole="button"
-            accessibilityLabel={[item.listingTitle, dealStatusLabels[item.status], meta, wantsReview ? t("market:deals.review") : null]
+            accessibilityLabel={[title, dealStatusLabels[item.status], meta, wantsReview ? t("market:deals.review") : null]
               .filter(Boolean)
               .join(", ")}
             style={({ pressed }) => [
@@ -87,7 +89,7 @@ function DealList() {
             <ListingImageView fileName={item.listingImage} style={{ width: 56, height: 56 }} />
             <View style={{ flex: 1, gap: spacing.xxs }}>
               <Text style={[typography.bodyStrong, { color: colors.text }]} numberOfLines={2}>
-                {item.listingTitle}
+                {title}
               </Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.xxs }}>
                 <Tag label={dealStatusLabels[item.status]} color={dealStatusColors[item.status]} textColor={statusTextColor(item.status)} />

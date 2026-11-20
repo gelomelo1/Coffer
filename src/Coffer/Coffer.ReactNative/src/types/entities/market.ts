@@ -57,8 +57,11 @@ export type ListingSort = "nearest" | "price_asc" | "price_desc" | "newest";
 
 export interface UserSummary {
   id: string;
+  /** Empty for a deleted account: show it with userLabel(). */
   name: string;
   avatar?: string | null;
+  /** The account was deleted: a placeholder ("Deleted user"), no profile to open. */
+  isDeleted?: boolean;
 }
 
 export interface City {
@@ -170,6 +173,8 @@ export interface SubjectSummary {
   status?: string | null;
   kind?: string | null;
   priceCents?: number | null;
+  /** The listing went with its owner's account: show it with listingLabel(). */
+  isDeleted?: boolean;
 }
 
 export interface Message {
@@ -229,6 +234,8 @@ export interface Deal {
   id: string;
   listingId: string;
   listingTitle: string;
+  /** The listing went with its owner's account: show it with listingLabel(). */
+  listingDeleted?: boolean;
   listingImage?: string | null;
   listingKind: ListingKind;
   conversationId: string;
@@ -267,6 +274,8 @@ export interface Review {
   id: string;
   dealId: string;
   listingTitle: string;
+  /** The listing went with its owner's account: show it with listingLabel(). */
+  listingDeleted?: boolean;
   reviewer?: UserSummary | null;
   reviewee: UserSummary;
   reviewerRole: ReviewerRole;
