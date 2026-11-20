@@ -1,3 +1,4 @@
+using Coffer.BusinessLogic.Activity;
 using Coffer.BusinessLogic.Marketplace.Common;
 using Coffer.BusinessLogic.Marketplace.Deals;
 using Coffer.BusinessLogic.Marketplace.Reputation;
@@ -54,16 +55,18 @@ namespace Coffer.BusinessLogic.Marketplace.Reviews
         public const int MaxReply = 500;
 
         private readonly CofferDbContext _db;
+        private readonly IActivityLog? _activity;
         private readonly IClock _clock;
         private readonly IDealService _deals;
         private readonly ResponsivenessService _responsiveness;
 
-        public ReviewService(CofferDbContext db, IClock clock, IDealService deals, ResponsivenessService responsiveness)
+        public ReviewService(CofferDbContext db, IClock clock, IDealService deals, ResponsivenessService responsiveness, IActivityLog? activity = null)
         {
             _db = db;
             _clock = clock;
             _deals = deals;
             _responsiveness = responsiveness;
+            _activity = activity;
         }
 
         public async Task<ReviewDto> SubmitAsync(Guid userId, Guid dealId, ReviewInput input)
@@ -110,6 +113,8 @@ namespace Coffer.BusinessLogic.Marketplace.Reviews
                 theirs.PublishedAt ??= now;
             }
 
+            _activity?.Record(userId, "review.written", new ActivityTargets(ReviewId: review.Id, DealId: dealId, OtherUserId: review.RevieweeId),
+                new { stars = input.Stars });
             try { await _db.SaveChangesAsync(); }
             catch (DbUpdateException) { throw MarketplaceException.Conflict("youAlreadyReviewedThisDeal", "You already reviewed this deal."); }
             return await ToDtoAsync(review.Id);
@@ -143,6 +148,7 @@ namespace Coffer.BusinessLogic.Marketplace.Reviews
 
             review.Reply = Text.Required(text, 1, MaxReply, "Reply");
             review.RepliedAt = _clock.UtcNow;
+            _activity?.Record(userId, "review.replied", new ActivityTargets(ReviewId: review.Id, DealId: review.DealId, OtherUserId: review.ReviewerId));
             await _db.SaveChangesAsync();
             return await ToDtoAsync(reviewId);
         }

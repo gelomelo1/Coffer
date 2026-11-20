@@ -1,3 +1,4 @@
+using Coffer.BusinessLogic.Activity;
 using Coffer.BusinessLogic.Marketplace.Common;
 using Coffer.BusinessLogic.Marketplace.Messaging;
 using Coffer.DataAccess;
@@ -28,14 +29,16 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
         public const int MaxReason = 1000;
 
         private readonly CofferDbContext _db;
+        private readonly IActivityLog? _activity;
         private readonly IClock _clock;
         private readonly ReportSnapshotBuilder _snapshots;
 
-        public ReportService(CofferDbContext db, IClock clock, ReportSnapshotBuilder snapshots)
+        public ReportService(CofferDbContext db, IClock clock, ReportSnapshotBuilder snapshots, IActivityLog? activity = null)
         {
             _db = db;
             _clock = clock;
             _snapshots = snapshots;
+            _activity = activity;
         }
 
         public IReadOnlyList<ReportRuleDto> GetRules() => ReportRules.List;
@@ -82,6 +85,12 @@ namespace Coffer.BusinessLogic.Marketplace.Reports
                 throw MarketplaceException.Conflict("youAlreadyReportedThisItIsWaiting", "You already reported this. It is waiting for review.");
 
             _db.Reports.Add(report);
+            _activity?.Record(userId, "report.filed", new ActivityTargets(
+                    ReportId: report.Id, ItemId: report.ItemId, ListingId: report.ListingId, ConversationId: report.ConversationId,
+                    CommentId: report.TargetType == ReportTargetType.Comment ? report.TargetId : null,
+                    ReviewId: report.TargetType == ReportTargetType.Review ? report.TargetId : null,
+                    OtherUserId: report.TargetOwnerId),
+                new { target = EnumText.ToSnake(report.TargetType), rule = EnumText.ToSnake(report.Rule) });
             await _db.SaveChangesAsync();
             return ToMine(report);
         }

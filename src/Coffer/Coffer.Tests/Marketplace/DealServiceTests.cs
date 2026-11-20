@@ -19,8 +19,8 @@ namespace Coffer.Tests.Marketplace
             Buyer = Db.AddUser("buyer");
         }
 
-        protected ConversationService Conversations() => new(Db.Context, Clock, new IConversationSubjectPolicy[] { new ListingConversationPolicy(Db.Context) });
-        protected DealService Sut() => new(Db.Context, Clock, Conversations(), new ImageService(), new MarketplaceStorage(Folder, Folder));
+        protected ConversationService Conversations() => new(Db.Context, Clock, new IConversationSubjectPolicy[] { new ListingConversationPolicy(Db.Context) }, new Coffer.BusinessLogic.Activity.ActivityLog(Db.Context, Clock));
+        protected DealService Sut() => new(Db.Context, Clock, Conversations(), new ImageService(), new MarketplaceStorage(Folder, Folder), new Coffer.BusinessLogic.Activity.ActivityLog(Db.Context, Clock));
 
         protected static async Task<MarketplaceError> ErrorOf(Func<Task> act)
             => (await Assert.ThrowsAsync<MarketplaceException>(act)).Error;

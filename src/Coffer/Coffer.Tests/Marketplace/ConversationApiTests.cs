@@ -32,6 +32,22 @@ namespace Coffer.Tests.Marketplace
         }
 
         [Fact]
+        public async Task ChatAndOfferThroughTheApiLandInTheActivityLog()
+        {
+            var seller = Db.AddUser("seller");
+            var buyer = Db.AddUser("buyer");
+            var listing = SeedListing(seller);
+
+            var opened = await _api.ClientFor(buyer).PostAsync($"api/Listings/{listing.Id}/Conversations", null);
+            var conversationId = JsonDocument.Parse(await opened.Content.ReadAsStringAsync()).RootElement.GetProperty("id").GetGuid();
+            await _api.ClientFor(buyer).PostAsJsonAsync($"api/Conversations/{conversationId}/Messages", new { kind = "price_offer", amountCents = 900 });
+
+            using var fresh = Db.NewContext();
+            var kinds = fresh.ActivityEvents.Where(e => e.UserId == buyer.Id).OrderBy(e => e.OccurredAt).Select(e => e.Kind).ToList();
+            Assert.Equal(new[] { "chat.started", "offer.sent" }, kinds);
+        }
+
+        [Fact]
         public async Task Buyer_OpensChat_SendsOffer_SellerAccepts_StrangerLockedOut()
         {
             var seller = Db.AddUser("seller");

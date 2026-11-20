@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Coffer.BusinessLogic.Activity;
 using Coffer.BusinessLogic.Marketplace.Common;
 using Coffer.BusinessLogic.Marketplace.Messaging;
 using Coffer.BusinessLogic.Marketplace.Terms;
@@ -51,19 +52,21 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
         private const string QrPrefix = "coffer-handoff:";
 
         private readonly CofferDbContext _db;
+        private readonly IActivityLog? _activity;
         private readonly IClock _clock;
         private readonly IConversationService _conversations;
         private readonly IImageService _images;
         private readonly MarketplaceStorage _storage;
 
         public DealService(CofferDbContext db, IClock clock, IConversationService conversations,
-            IImageService images, MarketplaceStorage storage)
+            IImageService images, MarketplaceStorage storage, IActivityLog? activity = null)
         {
             _db = db;
             _clock = clock;
             _conversations = conversations;
             _images = images;
             _storage = storage;
+            _activity = activity;
         }
 
         // ------------------------------------------------------------------ lifecycle
@@ -107,6 +110,7 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
                 UpdatedAt = now,
             };
             _db.Deals.Add(deal);
+            RecordDeal(userId, "deal.proposed", deal, new { method = EnumText.ToSnake(method) });
             await SaveOrConflictAsync("dealAlreadyInProgress", "There is already a deal in progress for this listing.");
 
             var proposedArgs = new Dictionary<string, string> { ["method"] = ErrorArgs.Key($"market:system.method.{EnumText.ToSnake(method)}") };
@@ -136,6 +140,7 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
                 deal.Listing.Status = ListingStatus.PendingShipment;
             }
             Touch(deal);
+            RecordDeal(userId, "deal.accepted", deal);
             await _db.SaveChangesAsync();
 
             if (deal.Method == DeliveryMethod.LocalPickup)
@@ -153,6 +158,7 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
             var deal = await LoadAsync(userId, dealId);
             RequireBuyer(deal, userId);
             RequireStatus(deal, DealStatus.Proposed);
+            RecordDeal(userId, "deal.declined", deal);
             await CancelInternalAsync(deal, userId, DeclinedReason);
             return await GetAsync(userId, dealId);
         }
@@ -161,7 +167,9 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
         {
             var deal = await LoadAsync(userId, dealId);
             RequireStatus(deal, DealStatus.Proposed, DealStatus.AwaitingHandoff, DealStatus.AwaitingShipment);
-            await CancelInternalAsync(deal, userId, Text.Optional(reason, 300, "Reason"));
+            var cancelReason = Text.Optional(reason, 300, "Reason");
+            RecordDeal(userId, "deal.cancelled", deal);
+            await CancelInternalAsync(deal, userId, cancelReason);
             return await GetAsync(userId, dealId);
         }
 
@@ -198,6 +206,7 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
                 throw error;
             }
 
+            RecordDeal(userId, "deal.handoffConfirmed", deal); // only on the right PIN; a wrong PIN saves its counter but is no action
             await CompleteAsync(deal, CompletionReason.HandoffVerified);
             return await GetAsync(userId, dealId);
         }
@@ -221,6 +230,7 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
             deal.ShippedAt = _clock.UtcNow;
             deal.Status = DealStatus.Shipped;
             Touch(deal);
+            RecordDeal(userId, "deal.shipped", deal, new { carrier = code });
             await _db.SaveChangesAsync();
 
             var carrierParam = code == "other" ? ErrorArgs.Key("market:system.otherCarrier") : Carriers.Label(code)!;
@@ -238,6 +248,7 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
             RequireStatus(deal, DealStatus.Shipped);
             if (photo != null) deal.ReceiptPhoto = await SavePhotoAsync(photo);
             deal.ReceivedAt = _clock.UtcNow;
+            RecordDeal(userId, "deal.receiptConfirmed", deal);
             await CompleteAsync(deal, CompletionReason.ReceiptConfirmed);
             return await GetAsync(userId, dealId);
         }
@@ -262,6 +273,7 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
             deal.Listing.Status = ListingStatus.Archived;
             deal.Listing.UpdatedAt = now;
             Touch(deal);
+            RecordDeal(userId, "deal.disputed", deal);
             await _db.SaveChangesAsync();
 
             await _conversations.PostSystemAsync(deal.ConversationId, "disputed",
@@ -404,6 +416,11 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
         }
 
         private void Touch(Deal deal) => deal.UpdatedAt = _clock.UtcNow;
+
+        /// <summary>Logs a deal step for the party who took it (saved by the step's own save). Automatic and moderator steps are not logged.</summary>
+        private void RecordDeal(Guid userId, string kind, Deal deal, object? details = null) =>
+            _activity?.Record(userId, kind, new ActivityTargets(DealId: deal.Id, ConversationId: deal.ConversationId, ListingId: deal.ListingId,
+                OtherUserId: deal.SellerId == userId ? deal.BuyerId : deal.SellerId), details);
 
         private async Task SaveOrConflictAsync(string code, string message)
         {

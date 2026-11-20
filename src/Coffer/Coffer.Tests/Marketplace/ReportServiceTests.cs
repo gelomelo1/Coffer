@@ -25,15 +25,15 @@ namespace Coffer.Tests.Marketplace
             Admin = Db.AddManagerAdmin();
         }
 
-        protected ReportService Reports() => new(Db.Context, Clock, new ReportSnapshotBuilder(Db.Context, Conversations()));
+        protected ReportService Reports() => new(Db.Context, Clock, new ReportSnapshotBuilder(Db.Context, Conversations()), new Coffer.BusinessLogic.Activity.ActivityLog(Db.Context, Clock));
         protected Coffer.BusinessLogic.Moderation.SuspensionService Suspensions() => new(Db.Context, Clock, _cache);
         protected Coffer.BusinessLogic.Account.ContentTombstoneService Tombstones() => new(Db.Context, new ImageService(), new HttpClient(Python, false),
             Microsoft.Extensions.Logging.Abstractions.NullLogger<Coffer.BusinessLogic.Account.ContentTombstoneService>.Instance);
         protected Coffer.BusinessLogic.Community.ItemRemovalService ItemRemoval() => new(Db.Context, Tombstones(), new ImageService());
         protected AdminReportService AdminReports() => new(Db.Context, Clock, Conversations(), Suspensions(), ItemRemoval());
         protected Coffer.BusinessLogic.Community.ItemCommentService Comments() => new(Db.Context, Clock);
-        protected ReviewService Reviews() => new(Db.Context, Clock, Sut(), new ResponsivenessService(Db.Context, Clock));
-        protected ListingService Listings() => new(Db.Context, Clock, new ImageService(), new MarketplaceStorage(Folder, Folder));
+        protected ReviewService Reviews() => new(Db.Context, Clock, Sut(), new ResponsivenessService(Db.Context, Clock), new Coffer.BusinessLogic.Activity.ActivityLog(Db.Context, Clock));
+        protected ListingService Listings() => new(Db.Context, Clock, new ImageService(), new MarketplaceStorage(Folder, Folder), new Coffer.BusinessLogic.Activity.ActivityLog(Db.Context, Clock));
 
         protected static CreateReportInput ReportOf(ReportTargetType type, Guid id, ReportRule rule = ReportRule.ScamOrFraud,
             string reason = "This looks like a scam to me.") => new(type, id, rule, reason);

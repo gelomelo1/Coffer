@@ -1,3 +1,4 @@
+using Coffer.BusinessLogic.Activity;
 using Coffer.BusinessLogic.Marketplace.Cities;
 using Coffer.BusinessLogic.Marketplace.Common;
 using Coffer.BusinessLogic.Marketplace.Terms;
@@ -50,16 +51,18 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
         public const int MaxLines = 30;
 
         private readonly CofferDbContext _db;
+        private readonly IActivityLog? _activity;
         private readonly IClock _clock;
         private readonly IImageService _images;
         private readonly MarketplaceStorage _storage;
 
-        public ListingService(CofferDbContext db, IClock clock, IImageService images, MarketplaceStorage storage)
+        public ListingService(CofferDbContext db, IClock clock, IImageService images, MarketplaceStorage storage, IActivityLog? activity = null)
         {
             _db = db;
             _clock = clock;
             _images = images;
             _storage = storage;
+            _activity = activity;
         }
 
         // ------------------------------------------------------------------ commands
@@ -84,6 +87,7 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
             {
                 await AddImagesAsync(listing, images, saved);
                 _db.Listings.Add(listing);
+                _activity?.Record(userId, "listing.posted", new ActivityTargets(ListingId: listing.Id));
                 await _db.SaveChangesAsync();
             }
             catch
@@ -120,6 +124,7 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
                 var position = 0;
                 foreach (var image in listing.Images.OrderBy(i => i.Position)) image.Position = position++;
                 await AddImagesAsync(listing, newImages, saved, position);
+                _activity?.Record(userId, "listing.edited", new ActivityTargets(ListingId: id));
                 await _db.SaveChangesAsync();
             }
             catch
@@ -146,6 +151,8 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
 
             listing.Status = ListingStatus.Archived;
             listing.UpdatedAt = _clock.UtcNow;
+            if (listing.OwnerId == userId) // a moderator's archive is a moderation record, not their own activity
+                _activity?.Record(userId, "listing.archived", new ActivityTargets(ListingId: id));
             await _db.SaveChangesAsync();
             return await GetAsync(userId, id);
         }
@@ -158,6 +165,7 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
 
             listing.Status = ListingStatus.Active;
             listing.UpdatedAt = _clock.UtcNow;
+            _activity?.Record(userId, "listing.reactivated", new ActivityTargets(ListingId: id));
             await _db.SaveChangesAsync();
             return await GetAsync(userId, id);
         }

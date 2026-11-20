@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Coffer.BusinessLogic.Activity;
 using Coffer.BusinessLogic.Marketplace.Common;
 using Coffer.DataAccess;
 using Coffer.Domain.Marketplace;
@@ -37,14 +38,16 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
         private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
         private readonly CofferDbContext _db;
+        private readonly IActivityLog? _activity;
         private readonly IClock _clock;
         private readonly Dictionary<string, IConversationSubjectPolicy> _policies;
 
-        public ConversationService(CofferDbContext db, IClock clock, IEnumerable<IConversationSubjectPolicy> policies)
+        public ConversationService(CofferDbContext db, IClock clock, IEnumerable<IConversationSubjectPolicy> policies, IActivityLog? activity = null)
         {
             _db = db;
             _clock = clock;
             _policies = policies.ToDictionary(p => p.SubjectType);
+            _activity = activity;
         }
 
         private IConversationSubjectPolicy PolicyFor(string subjectType) =>
@@ -77,6 +80,7 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
                 },
             };
             _db.Conversations.Add(conversation);
+            _activity?.Record(userId, "chat.started", ActivityTargetsOf(conversation, userId));
             await _db.SaveChangesAsync();
             return await GetAsync(userId, conversation.Id);
         }
@@ -226,6 +230,11 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
             {
                 c.OwnerFirstResponseAt = now;
             }
+            // Plain text messages stay out of the log (too noisy); offers and meetup proposals are their own entries.
+            if (input.Kind == MessageKind.PriceOffer)
+                _activity?.Record(userId, "offer.sent", ActivityTargetsOf(c, userId), new { priceCents = input.AmountCents });
+            else if (input.Kind == MessageKind.MeetupProposal)
+                _activity?.Record(userId, "meetup.proposed", ActivityTargetsOf(c, userId));
             await _db.SaveChangesAsync();
             return ToDto(message);
         }
@@ -280,6 +289,8 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
             if (!isSender && c.OwnerFirstResponseAt == null
                 && c.Participants.Single(p => p.UserId == userId).Role == ParticipantRole.Owner)
                 c.OwnerFirstResponseAt = _clock.UtcNow;
+            _activity?.Record(userId, $"proposal.{newStatus.ToString().ToLowerInvariant()}", ActivityTargetsOf(c, userId),
+                new { proposal = message.Kind == MessageKind.PriceOffer ? "offer" : "meetup" });
             await _db.SaveChangesAsync();
             return ToDto(message);
         }
@@ -297,6 +308,11 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
         // ------------------------------------------------------------------ helpers
 
         /// <summary>Nobody would read it: the history stays readable, but a chat with a deleted account takes no new messages.</summary>
+        private static ActivityTargets ActivityTargetsOf(Conversation c, Guid userId) => new(
+            ConversationId: c.Id,
+            ListingId: c.SubjectType == ListingConversationPolicy.Type ? c.SubjectId : null,
+            OtherUserId: c.Participants.FirstOrDefault(p => p.UserId != userId)?.UserId);
+
         private static void EnsureOtherNotDeleted(Conversation c, Guid userId)
         {
             if (c.Participants.Any(p => p.UserId != userId && p.User?.DeletedAt != null))
