@@ -21,19 +21,19 @@ namespace Coffer.DataAccess.Repositories
         public async Task<User?> GetUserById(Guid userId)
         {
             return await _dbSet
-                .FirstOrDefaultAsync(user => user.Id == userId);
+                .FirstOrDefaultAsync(user => user.Id == userId && user.DeletedAt == null);
         }
 
         public async Task<User?> GetUserByLogin(string provider, string providerUserId)
         {
             return await _dbSet
-                .FirstOrDefaultAsync(u => u.Provider == provider && u.ProviderUserId == providerUserId);
+                .FirstOrDefaultAsync(u => u.Provider == provider && u.ProviderUserId == providerUserId && u.DeletedAt == null);
         }
 
         public async Task<User?> GetUserByName(string username)
         {
             return await _dbSet
-                .FirstOrDefaultAsync(user => user.Name == username);
+                .FirstOrDefaultAsync(user => user.Name == username && user.DeletedAt == null);
         }
 
         public async Task<User> InsertUserAsync(UserRequired newUser)

@@ -70,20 +70,25 @@ namespace Coffer.BusinessLogic.Community
             var all = _db.ItemComments.AsNoTracking().Where(c => c.ItemId == itemId);
             var totalComments = await all.CountAsync(c => c.DeletedAt == null && !c.IsRemoved);
 
-            // A thread is listed while it has anything visible left (the root itself or any reply).
+            // A thread is listed while it has anything visible left (the root itself or any reply). Comments of a
+            // deleted account always keep their place as a "Deleted user / Comment deleted" placeholder.
             var visibleRoots = all.Where(c => c.ParentId == null
-                && (c.DeletedAt == null && !c.IsRemoved || _db.ItemComments.Any(r => r.RootId == c.Id && r.Id != c.Id && r.DeletedAt == null && !r.IsRemoved)));
+                && (c.DeletedAt == null && !c.IsRemoved
+                    || _db.ItemComments.Any(r => r.RootId == c.Id && r.Id != c.Id && r.DeletedAt == null && !r.IsRemoved)
+                    || _db.Users.Any(u => u.Id == c.AuthorId && u.DeletedAt != null)));
             var totalThreads = await visibleRoots.CountAsync();
             var rootIds = await visibleRoots.OrderByDescending(c => c.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize).Select(c => c.Id).ToListAsync();
 
             var comments = await all.Where(c => rootIds.Contains(c.RootId)).Include(c => c.Mentions).ThenInclude(m => m.User)
                 .OrderBy(c => c.CreatedAt).ToListAsync();
             var authors = await UsersAsync(comments.Select(c => c.AuthorId));
+            var authorIds = comments.Select(c => c.AuthorId).Distinct().ToList();
+            var deletedAuthors = (await _db.Users.AsNoTracking().Where(u => authorIds.Contains(u.Id) && u.DeletedAt != null).Select(u => u.Id).ToListAsync()).ToHashSet();
 
             var byParent = comments.Where(c => c.ParentId != null).GroupBy(c => c.ParentId!.Value).ToDictionary(g => g.Key, g => g.ToList());
             var threads = rootIds
                 .Select(id => comments.First(c => c.Id == id))
-                .Select(root => Build(root, byParent, authors, ownerId, viewerId))
+                .Select(root => Build(root, byParent, authors, deletedAuthors, ownerId, viewerId))
                 .Where(t => t != null)
                 .Select(t => t!)
                 .ToList();
@@ -238,15 +243,16 @@ namespace Coffer.BusinessLogic.Community
 
         private static bool IsNameChar(char c) => char.IsLetterOrDigit(c) || c == '_' || c == '.' || c == '-';
 
-        private CommentDto? Build(ItemComment c, Dictionary<Guid, List<ItemComment>> byParent, Dictionary<Guid, UserSummaryDto> authors, Guid ownerId, Guid viewerId)
+        private CommentDto? Build(ItemComment c, Dictionary<Guid, List<ItemComment>> byParent, Dictionary<Guid, UserSummaryDto> authors,
+            HashSet<Guid> deletedAuthors, Guid ownerId, Guid viewerId)
         {
             var replies = (byParent.GetValueOrDefault(c.Id) ?? new List<ItemComment>())
-                .Select(r => Build(r, byParent, authors, ownerId, viewerId))
+                .Select(r => Build(r, byParent, authors, deletedAuthors, ownerId, viewerId))
                 .Where(r => r != null)
                 .Select(r => r!)
                 .ToList();
             var hidden = c.DeletedAt != null || c.IsRemoved;
-            if (hidden && replies.Count == 0) return null;
+            if (hidden && replies.Count == 0 && !deletedAuthors.Contains(c.AuthorId)) return null;
             return ToDto(c, authors, ownerId, viewerId, replies);
         }
 

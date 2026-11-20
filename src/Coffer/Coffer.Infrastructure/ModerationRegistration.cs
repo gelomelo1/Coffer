@@ -59,6 +59,8 @@ namespace Coffer.Infrastructure
             services.AddScoped<IManagerAuthService, ManagerAuthService>();
             services.AddScoped<ISuspensionService, SuspensionService>();
             services.AddScoped<IItemCommentService, ItemCommentService>();
+            services.AddScoped<Coffer.BusinessLogic.Account.IAccountDeletionService, Coffer.BusinessLogic.Account.AccountDeletionService>();
+            services.AddScoped<Coffer.BusinessLogic.Account.IDeletedAccounts, Coffer.BusinessLogic.Account.DeletedAccounts>();
             services.AddScoped<IItemRemovalService, ItemRemovalService>();
             services.AddScoped<Coffer.BusinessLogic.Account.IContentTombstoneService, Coffer.BusinessLogic.Account.ContentTombstoneService>();
             services.AddSingleton<IAuthorizationHandler, ManagerAdminHandler>();

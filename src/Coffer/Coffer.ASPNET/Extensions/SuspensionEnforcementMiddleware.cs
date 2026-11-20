@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Coffer.BusinessLogic.Account;
 using Coffer.BusinessLogic.Moderation;
 
 namespace Coffer.ASPNET.Extensions
@@ -17,12 +18,20 @@ namespace Coffer.ASPNET.Extensions
             _next = next;
         }
 
-        public async Task InvokeAsync(HttpContext context, ISuspensionService suspensions)
+        public async Task InvokeAsync(HttpContext context, ISuspensionService suspensions, IDeletedAccounts deletedAccounts)
         {
             // context.User comes from the default "Bearer" scheme (user tokens only; Manager tokens use another scheme).
             var userId = context.User.Identity?.IsAuthenticated == true
                 ? context.User.FindFirstValue(ClaimTypes.NameIdentifier)
                 : null;
+
+            // A deleted account's tokens are useless everywhere (the app signs out on this answer).
+            if (Guid.TryParse(userId, out var deletedId) && await deletedAccounts.IsDeletedAsync(deletedId))
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                await context.Response.WriteAsJsonAsync(new { message = "This account was deleted.", code = AccountDeletedCode });
+                return;
+            }
 
             if (Guid.TryParse(userId, out var id) && !IsExempt(context.Request))
             {
@@ -36,6 +45,8 @@ namespace Coffer.ASPNET.Extensions
 
             await _next(context);
         }
+
+        public const string AccountDeletedCode = "accountDeleted";
 
         private static bool IsExempt(HttpRequest request) =>
             HttpMethods.IsGet(request.Method) && request.Path.Equals("/api/Account/Suspension", StringComparison.OrdinalIgnoreCase);

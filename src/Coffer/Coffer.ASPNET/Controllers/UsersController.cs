@@ -24,6 +24,13 @@ namespace Coffer.ASPNET.Controllers
             _usersRepository = genericRepository;
         }
 
+        /// <summary>
+        /// No generic user delete: it would hard-delete the row and cascade away other users' data. Accounts are
+        /// deleted with DELETE api/Account, which keeps everything other users rely on.
+        /// </summary>
+        [NonAction]
+        public override Task<ActionResult> Delete(Guid id) => throw new NotSupportedException();
+
         [Authorize]
         [HttpPut("UserFrontend")]
         public async Task<ActionResult<UserProvided>> UpdateUserFrontend([FromBody] UserRequiredFrontend required)

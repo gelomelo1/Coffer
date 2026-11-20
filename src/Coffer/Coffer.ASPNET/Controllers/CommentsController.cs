@@ -1,4 +1,5 @@
 using Coffer.ASPNET.Controllers.Marketplace;
+using Coffer.BusinessLogic.Account;
 using Coffer.BusinessLogic.Community;
 using Coffer.BusinessLogic.Moderation;
 using Microsoft.AspNetCore.Mvc;
@@ -62,10 +63,24 @@ namespace Coffer.ASPNET.Controllers
     public class AccountController : MarketplaceControllerBase
     {
         private readonly ISuspensionService _suspensions;
+        private readonly IAccountDeletionService _deletion;
 
-        public AccountController(ISuspensionService suspensions)
+        public AccountController(ISuspensionService suspensions, IAccountDeletionService deletion)
         {
             _suspensions = suspensions;
+            _deletion = deletion;
+        }
+
+        /// <summary>Whether the account can be deleted now, and the open trades that block it.</summary>
+        [HttpGet("Deletion")]
+        public async Task<ActionResult<AccountDeletionStatusDto>> Deletion() => Ok(await _deletion.GetDeletionStatusAsync(Me));
+
+        /// <summary>Deletes the caller's account (204), or 409 accountHasOpenTrades while trades are still running.</summary>
+        [HttpDelete]
+        public async Task<IActionResult> Delete()
+        {
+            await _deletion.DeleteAccountAsync(Me);
+            return NoContent();
         }
 
         /// <summary>Active suspension or 204. Reachable while suspended so the app can explain why.</summary>
