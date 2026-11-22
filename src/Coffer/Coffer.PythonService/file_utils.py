@@ -1,3 +1,4 @@
+import re
 from fastapi import UploadFile
 import numpy as np
 import cv2
@@ -65,5 +66,16 @@ def find_file_containing(directory: str, substring: str) -> Optional[str]:
     """
     for filename in os.listdir(directory):
         if substring in filename:
+            return filename
+    return None
+
+def similarity_model_file(directory: str, collection_type_id: int) -> Optional[str]:
+    """
+    The embedding model of one item type: exactly "{id}_similarity_{classCount}.pt" (the class count is read from the
+    name). Exact matching matters: "1_similarity" is also a substring of type 11's "11_similarity_40.pt".
+    """
+    pattern = re.compile(rf"^{int(collection_type_id)}_similarity_[0-9]+\.pt$")
+    for filename in sorted(os.listdir(directory)):
+        if pattern.match(filename):
             return filename
     return None

@@ -34,6 +34,9 @@ namespace Coffer.BusinessLogic.ItemTypes
         Task<AdminAttributeDto> AddAttributeAsync(Guid adminId, int typeId, AttributeInput input);
         Task<AdminAttributeDto> UpdateAttributeAsync(Guid adminId, int attributeId, AttributeInput input);
         Task DeleteAttributeAsync(Guid adminId, int attributeId);
+        Task<AdminItemTypeDto> SetIconAsync(Guid adminId, int id, Microsoft.AspNetCore.Http.IFormFile? file);
+        Task<AdminItemTypeDto> SetModelsAsync(Guid adminId, int id, Microsoft.AspNetCore.Http.IFormFile? detection,
+            Microsoft.AspNetCore.Http.IFormFile? embedding, int? classCount);
     }
 
     /// <summary>
@@ -142,6 +145,51 @@ namespace Coffer.BusinessLogic.ItemTypes
             _db.CollectionTypes.Remove(type);
             Audit(adminId, "itemType.delete", new { itemTypeId = id, type.Name });
             await _db.SaveChangesAsync();
+            // Its files belong to nobody else (names carry the type id).
+            _files.DeleteIcon(type.Icon);
+            _files.DeleteModels(id);
+        }
+
+        // ------------------------------------------------------------------ icon and AI models
+
+        public async Task<AdminItemTypeDto> SetIconAsync(Guid adminId, int id, Microsoft.AspNetCore.Http.IFormFile? file)
+        {
+            var type = await _db.CollectionTypes.FirstOrDefaultAsync(t => t.Id == id) ?? throw TypeNotFound();
+            if (file == null) throw MarketplaceException.Validation("invalidIcon", "Choose the icon picture.");
+            var old = type.Icon;
+            var name = await _files.SaveIconAsync(id, file, _clock.UtcNow);
+            type.Icon = name;
+            Audit(adminId, "itemType.icon", new { itemTypeId = id, before = old, after = name });
+            try
+            {
+                await _db.SaveChangesAsync();
+            }
+            catch
+            {
+                _files.DeleteIcon(name);
+                throw;
+            }
+            if (!string.IsNullOrEmpty(old) && old != name) _files.DeleteIcon(old);
+            return await GetAsync(id);
+        }
+
+        public async Task<AdminItemTypeDto> SetModelsAsync(Guid adminId, int id, Microsoft.AspNetCore.Http.IFormFile? detection,
+            Microsoft.AspNetCore.Http.IFormFile? embedding, int? classCount)
+        {
+            if (!await _db.CollectionTypes.AnyAsync(t => t.Id == id)) throw TypeNotFound();
+            var saved = await _files.SaveModelsAsync(id, detection, embedding, classCount);
+            Audit(adminId, "itemType.models", new
+            {
+                itemTypeId = id,
+                detection = detection == null ? null : saved.Detection?.FileName,
+                detectionBytes = detection?.Length,
+                detectionSha256 = saved.DetectionSha256,
+                embedding = embedding == null ? null : saved.Embedding?.FileName,
+                embeddingBytes = embedding?.Length,
+                embeddingSha256 = saved.EmbeddingSha256,
+            });
+            await _db.SaveChangesAsync();
+            return await GetAsync(id);
         }
 
         // ------------------------------------------------------------------ attributes

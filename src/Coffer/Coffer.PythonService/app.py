@@ -10,7 +10,7 @@ from build_image_check_response import build_image_check_response
 from config import DOTENV_PATH, OBJECT_DETECTION_THRESHOLD, SIMILARITY_THRESHOLD, TEST_UPLOAD_DIR, VECTOR_COLLECTION_NAME
 from delete_embedding_from_vectordb import delete_embedding_from_vectordb
 from delete_embeddings_from_vectordb import delete_embeddings_from_vectordb
-from file_utils import find_file_containing, save_dicts_to_txt, save_images, uploadfile_to_numpy
+from file_utils import save_dicts_to_txt, save_images, similarity_model_file, uploadfile_to_numpy
 from initialize import initialize_models
 from itemids import ItemIds
 from object_detection_similarity_pipeline import object_detection_similarity_pipeline
@@ -98,7 +98,7 @@ async def image_check(
     file: UploadFile = File(...)):
     collection_id = str(collection_id)
     try:
-        object_detection_model, similarity_model = initialize_models(f"{collection_type_id}_detection.pt", find_file_containing(os.getenv("MODELS_PATH"), f"{collection_type_id}_similarity"))
+        object_detection_model, similarity_model = initialize_models(f"{collection_type_id}_detection.pt", similarity_model_file(os.getenv("MODELS_PATH"), collection_type_id))
 
         image_array = await uploadfile_to_numpy(file)
 

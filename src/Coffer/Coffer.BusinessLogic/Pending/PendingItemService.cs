@@ -1,3 +1,4 @@
+using Coffer.DataAccess.Extensions;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -164,7 +165,9 @@ namespace Coffer.BusinessLogic.Pending
         public async Task<int> PurgeExpiredAsync(DateTime now)
         {
             var cutoff = now - PendingExpiry.Lifetime;
-            var expired = await _db.PendingItems.Where(p => p.CreatedAt <= cutoff).ToListAsync();
+            // Items of a hidden (unpublished) item type wait: nobody can review them, and hiding deletes nothing.
+            var shown = _db.Collections.WherePublished(_db).Select(c => c.Id);
+            var expired = await _db.PendingItems.Where(p => p.CreatedAt <= cutoff && shown.Contains(p.CollectionId)).ToListAsync();
             if (expired.Count == 0) return 0;
             _db.PendingItems.RemoveRange(expired);
             await _db.SaveChangesAsync();

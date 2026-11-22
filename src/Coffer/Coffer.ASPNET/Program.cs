@@ -12,6 +12,7 @@ namespace Coffer.ASPNET
                 .SetupMiddleware();
             app.RunDevelopmentSeed();
             app.RunActivityBackfill();
+            app.SeedItemTypeIcons();
             app.Run();
         }
     }

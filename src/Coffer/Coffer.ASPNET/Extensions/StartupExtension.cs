@@ -144,6 +144,23 @@ namespace Coffer.ASPNET.Extensions
         /// Fills My activity from existing dated data, once (after the dev seed, so seeded data is included). A failure
         /// (e.g. the activity_log migration not applied yet) is logged and retried on the next start, never fatal.
         /// </summary>
+        /// <summary>Copies the icons that shipped in wwwroot/icons into the icon store (ICONSTORE_PATH) when missing.</summary>
+        public static WebApplication SeedItemTypeIcons(this WebApplication app)
+        {
+            try
+            {
+                var copied = Coffer.BusinessLogic.ItemTypes.IconSeed.CopyMissing(
+                    Path.Combine(app.Environment.WebRootPath ?? Path.Combine(app.Environment.ContentRootPath, "wwwroot"), "icons"),
+                    Coffer.BusinessLogic.ItemTypes.ItemTypeFiles.IconsFolder);
+                if (copied > 0) app.Logger.LogInformation("Copied {Count} item type icon(s) into the icon store.", copied);
+            }
+            catch (Exception e)
+            {
+                app.Logger.LogWarning(e, "Item type icons were not copied into the icon store.");
+            }
+            return app;
+        }
+
         public static WebApplication RunActivityBackfill(this WebApplication app)
         {
             try
