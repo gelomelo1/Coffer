@@ -8,6 +8,7 @@ export const ROUTES = {
     MARKET: "tabs/market" as any,
     COLLECTIONS: "tabs/collections" as any,
     MYFOLLOWS: "tabs/myfollows" as any,
+    COMMUNITY: "tabs/community" as any,
   },
   SETTINGS: {
     ROOT: "settings" as any,
@@ -28,6 +29,11 @@ export const ROUTES = {
   LISTINGDETAILS: "listingdetails" as any,
   CHAT: "chat" as any,
   REVIEW: "review" as any,
+  COMMUNITY: {
+    NEWS: "community/news" as any,
+    STATS: "community/stats" as any,
+    SHAPE: "community/shape" as any,
+  },
 } as const;
 
 export const pageParams = {
@@ -115,4 +121,12 @@ export const pageParams = {
   myfollows: buildNavigationData({
     screenTitleKey: "navigation:tabs.myFollows",
   }),
+  community: buildNavigationData({
+    screenTitleKey: "navigation:tabs.community",
+  }),
+  communityPage: (screenTitleKey: string) =>
+    buildNavigationData({
+      titleKey: "navigation:tabs.community",
+      screenTitleKey,
+    }),
 };

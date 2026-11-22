@@ -85,6 +85,27 @@ function CollectionLayout() {
           }}
         />
         <Tabs.Screen
+          name="community"
+          options={() => {
+            return {
+              title: t("navigation:tabs.community"),
+              tabBarIcon: () => (
+                <AnimatedTabIcon
+                  focused={pathname === `/${ROUTES.TABS.COMMUNITY}`}
+                  title={t("navigation:tabs.community")}
+                  icon={{ library: "materialcommunityicons", name: "account-group" }}
+                  navigate={() => {
+                    navigate({
+                      pathname: ROUTES.TABS.COMMUNITY,
+                      params: pageParams.community,
+                    });
+                  }}
+                />
+              ),
+            };
+          }}
+        />
+        <Tabs.Screen
           name="market"
           options={() => {
             return {

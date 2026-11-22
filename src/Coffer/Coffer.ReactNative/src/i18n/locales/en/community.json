@@ -1,0 +1,23 @@
+{
+  "comingSoon": "Coming soon",
+  "tiles": {
+    "news": {
+      "title": "News",
+      "subtitle": "What's new in Coffer"
+    },
+    "stats": {
+      "title": "Stats & facts",
+      "subtitle": "The community in numbers"
+    },
+    "shape": {
+      "title": "Shape What's Next",
+      "subtitle": "Help bring new item types to Coffer"
+    }
+  },
+  "news": {
+    "comingSoon": "Updates about Coffer and its community will appear here: new features, events and stories from collectors."
+  },
+  "shape": {
+    "comingSoon": "Soon you can help bring new kinds of collectibles to Coffer: send photos and details so the app learns to recognise them."
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "comingSoon": "Hamarosan",
+  "tiles": {
+    "news": {
+      "title": "Hírek",
+      "subtitle": "Újdonságok a Cofferben"
+    },
+    "stats": {
+      "title": "Statisztikák és érdekességek",
+      "subtitle": "A közösség számokban"
+    },
+    "shape": {
+      "title": "Alakítsd a jövőt",
+      "subtitle": "Segíts új tárgytípusokat hozni a Cofferbe"
+    }
+  },
+  "news": {
+    "comingSoon": "Itt jelennek majd meg a Coffer és a közösség hírei: új funkciók, események és gyűjtők történetei."
+  },
+  "shape": {
+    "comingSoon": "Hamarosan segíthetsz új gyűjthető tárgyakat hozni a Cofferbe: küldj fotókat és adatokat, hogy az app megtanulja felismerni őket."
+  }
+}

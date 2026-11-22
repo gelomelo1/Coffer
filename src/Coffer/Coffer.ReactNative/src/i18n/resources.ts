@@ -3,6 +3,7 @@ import activity from "./locales/en/activity.json";
 import auth from "./locales/en/auth.json";
 import collections from "./locales/en/collections.json";
 import comments from "./locales/en/comments.json";
+import community from "./locales/en/community.json";
 import common from "./locales/en/common.json";
 import errors from "./locales/en/errors.json";
 import feed from "./locales/en/feed.json";
@@ -17,6 +18,7 @@ import hu_activity from "./locales/hu/activity.json";
 import hu_auth from "./locales/hu/auth.json";
 import hu_collections from "./locales/hu/collections.json";
 import hu_comments from "./locales/hu/comments.json";
+import hu_community from "./locales/hu/community.json";
 import hu_common from "./locales/hu/common.json";
 import hu_errors from "./locales/hu/errors.json";
 import hu_feed from "./locales/hu/feed.json";
@@ -34,6 +36,7 @@ export const en = {
   auth,
   collections,
   comments,
+  community,
   common,
   errors,
   feed,
@@ -52,6 +55,7 @@ export const hu = {
   auth: hu_auth,
   collections: hu_collections,
   comments: hu_comments,
+  community: hu_community,
   common: hu_common,
   errors: hu_errors,
   feed: hu_feed,
