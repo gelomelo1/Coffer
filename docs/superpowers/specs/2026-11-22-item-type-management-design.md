@@ -28,7 +28,7 @@ administrator re-checked on every request, every change in the admin audit log.
 
 - Training models (the existing "Similarity Check Training" tab stays as it is).
 - Deleting AI models (a wrong upload is replaced by uploading again).
-- Translations beyond English + Hungarian (the two app languages).
+- New app languages (the JSON accepts any language code; the app itself stays English + Hungarian).
 - Reordering attributes (they keep their creation order, as today).
 
 ## Anti-goals
@@ -78,7 +78,7 @@ Your human partner picked **1**.
 ### Data
 
 - `collection_types`: add `published boolean NOT NULL DEFAULT false`, `unpublished_at timestamptz NULL`
-  (when it was last hidden), `description_translations jsonb NOT NULL DEFAULT '{}'` (Hungarian description).
+  (when it was last hidden), `description_translations jsonb NOT NULL DEFAULT '{}'` (translated descriptions, same JSON shape).
 - Migration `src/startup/item_type_management_migration.sql`: adds the columns and sets `published = true` for every
   type whose two model files exist — decided at deploy as the explicit statement list for current data: Cap (id 1)
   published; Stamp (id 2) stays unpublished (no models, no collections — nobody loses anything).
