@@ -60,3 +60,34 @@ namespace Coffer.ASPNET.Controllers.Manager
         }
     }
 }
+
+namespace Coffer.ASPNET.Controllers.Manager
+{
+    /// <summary>Option sets: the lists select, multi-select and autocomplete attributes pick from.</summary>
+    [Route("api/Admin/OptionSets")]
+    public class AdminOptionSetsController : ManagerControllerBase
+    {
+        private readonly IOptionSetAdminService _sets;
+
+        public AdminOptionSetsController(IOptionSetAdminService sets)
+        {
+            _sets = sets;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<List<AdminOptionSetDto>>> List() => Ok(await _sets.ListAsync());
+
+        [HttpPost]
+        public async Task<ActionResult<AdminOptionSetDto>> Create([FromBody] OptionSetInput input) => Ok(await _sets.CreateAsync(AdminId, input));
+
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<AdminOptionSetDto>> Update(int id, [FromBody] OptionSetInput input) => Ok(await _sets.UpdateAsync(AdminId, id, input));
+
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            await _sets.DeleteAsync(AdminId, id);
+            return NoContent();
+        }
+    }
+}

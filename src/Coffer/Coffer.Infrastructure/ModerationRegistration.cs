@@ -70,6 +70,7 @@ namespace Coffer.Infrastructure
             services.AddScoped<Coffer.BusinessLogic.ItemTypes.IItemTypeVisibility, Coffer.BusinessLogic.ItemTypes.ItemTypeVisibility>();
             services.AddSingleton<Coffer.BusinessLogic.ItemTypes.IItemTypeFiles, Coffer.BusinessLogic.ItemTypes.ItemTypeFiles>();
             services.AddScoped<Coffer.BusinessLogic.ItemTypes.IItemTypeAdminService, Coffer.BusinessLogic.ItemTypes.ItemTypeAdminService>();
+            services.AddScoped<Coffer.BusinessLogic.ItemTypes.IOptionSetAdminService, Coffer.BusinessLogic.ItemTypes.OptionSetAdminService>();
             services.AddScoped<Coffer.BusinessLogic.Marketplace.IMarketplaceSweep, Coffer.BusinessLogic.Pending.PendingExpirySweep>();
             services.AddSingleton<IAuthorizationHandler, ManagerAdminHandler>();
 

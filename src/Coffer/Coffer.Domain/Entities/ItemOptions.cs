@@ -20,6 +20,10 @@ namespace Coffer.Domain.Entities
         [JsonIgnore]
         public Dictionary<string, string> OptionLabelsTranslations { get; set; } = new();
 
+        /// <summary>Highest option id ever given out: a removed option's id is never reused (old values keep their meaning).</summary>
+        [JsonIgnore]
+        public int LastOptionId { get; set; }
+
         [JsonIgnore]
         public ICollection<Attribute> Attributes { get; set; } = new List<Attribute>();
     }

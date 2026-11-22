@@ -239,7 +239,7 @@ namespace Coffer.Tests.ItemTypes
         }
 
         /// <summary>Every item type admin route, with a body where it takes one.</summary>
-        public static IEnumerable<(HttpMethod Method, string Url)> AdminRoutes(int typeId, int attributeId) => new[]
+        public static IEnumerable<(HttpMethod Method, string Url)> AdminRoutes(int typeId, int attributeId, int optionSetId) => new[]
         {
             (HttpMethod.Get, "api/Admin/ItemTypes"),
             (HttpMethod.Get, $"api/Admin/ItemTypes/{typeId}"),
@@ -249,6 +249,10 @@ namespace Coffer.Tests.ItemTypes
             (HttpMethod.Post, $"api/Admin/ItemTypes/{typeId}/Attributes"),
             (HttpMethod.Put, $"api/Admin/Attributes/{attributeId}"),
             (HttpMethod.Delete, $"api/Admin/Attributes/{attributeId}"),
+            (HttpMethod.Get, "api/Admin/OptionSets"),
+            (HttpMethod.Post, "api/Admin/OptionSets"),
+            (HttpMethod.Put, $"api/Admin/OptionSets/{optionSetId}"),
+            (HttpMethod.Delete, $"api/Admin/OptionSets/{optionSetId}"),
         };
 
         [Fact]
@@ -258,9 +262,10 @@ namespace Coffer.Tests.ItemTypes
             var attributeId = await AddAttribute(id, "Country");
             var roleAdmin = Db.AddUser("legacy-admin", UserRole.Admin);
             var former = Db.AddManagerAdmin("2002", "former");
+            var set = OptionSet();
             var before = Db.NewContext().AdminAuditLog.Count();
 
-            foreach (var (method, url) in AdminRoutes(id, attributeId))
+            foreach (var (method, url) in AdminRoutes(id, attributeId, set.Id))
             {
                 HttpRequestMessage Request() => new(method, url)
                 {
@@ -274,6 +279,7 @@ namespace Coffer.Tests.ItemTypes
             using var fresh = Db.NewContext();
             Assert.Equal("Coins", fresh.CollectionTypes.Single(t => t.Id == id).Name);
             Assert.True(fresh.Attributes.Any(a => a.Id == attributeId));
+            Assert.Equal("Logo;Flag", fresh.ItemOptions.Single(o => o.Id == set.Id).OptionLabels);
             Assert.Equal(before, fresh.AdminAuditLog.Count());
         }
 

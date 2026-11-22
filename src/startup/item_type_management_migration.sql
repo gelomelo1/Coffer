@@ -8,4 +8,7 @@ ALTER TABLE collection_types
     ADD COLUMN IF NOT EXISTS description_translations jsonb NOT NULL DEFAULT '{}';
 -- Rollout: Cap has both AI models; Stamp has none (and no collections), so it stays hidden until its models are uploaded.
 UPDATE collection_types SET published = true WHERE id = 1;
+-- Option ids are never reused: remember the highest one given out per option set.
+ALTER TABLE item_options ADD COLUMN IF NOT EXISTS last_option_id integer NOT NULL DEFAULT 0;
+UPDATE item_options SET last_option_id = COALESCE((SELECT max(x::int) FROM unnest(string_to_array(option_ids, ';')) AS x WHERE x <> ''), 0);
 COMMIT;
