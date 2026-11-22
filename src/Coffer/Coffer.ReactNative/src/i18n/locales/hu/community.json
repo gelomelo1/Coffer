@@ -19,5 +19,59 @@
   },
   "shape": {
     "comingSoon": "Hamarosan segíthetsz új gyűjthető tárgyakat hozni a Cofferbe: küldj fotókat és adatokat, hogy az app megtanulja felismerni őket."
+  },
+  "stats": {
+    "numbers": "A közösség számokban",
+    "totals": {
+      "members": "Tagok",
+      "items": "Gyűjtött tárgyak",
+      "pieces_one": "összesen {{formatted}} darab",
+      "pieces_other": "összesen {{formatted}} darab",
+      "collections": "Gyűjtemények",
+      "interactions": "Interakciók",
+      "recent": "+{{week}} a héten · +{{month}} ebben a hónapban"
+    },
+    "growth": {
+      "title": "Növekedés",
+      "members": "Tagok",
+      "items": "Tárgyak",
+      "collections": "Gyűjtemények",
+      "thisWeek": "Ez a hét",
+      "summary": "{{series}}: {{from}} → {{to}} az elmúlt 12 hétben"
+    },
+    "highlights": {
+      "title": "Ezen a héten",
+      "collector": "A hét gyűjtője",
+      "actions_one": "{{count}} tevékenység a héten",
+      "actions_other": "{{count}} tevékenység a héten",
+      "noCollector": "Még senki. Légy te az első a héten!",
+      "openProfile": "Megnyitja a profilját",
+      "trending": "Felkapott tárgytípus",
+      "added_one": "{{count}} új tárgy a héten",
+      "added_other": "{{count}} új tárgy a héten",
+      "noTrend": "Ezen a héten még nem került fel tárgy"
+    },
+    "milestones": {
+      "title": "Heti mérföldkövek",
+      "intro": "Mindenki előrébb viszi őket, egyszerűen azzal, hogy gyűjt. Ha a heti cél teljesül, a következő hét célja egy lépcsővel feljebb lép; ha nem, egy lépcsővel visszalép.",
+      "itemsAdded": "Felvett tárgyak",
+      "activeUsers": "Aktív gyűjtők",
+      "goal": "A heti cél: {{target}}",
+      "progress": "{{progress}} / {{target}}",
+      "reached": "A cél teljesült!",
+      "streak_one": "{{count}} hete sorozatban",
+      "streak_other": "{{count}} hete sorozatban",
+      "level": "{{rung}}. szint a {{rungs}}-ból",
+      "best": "Eddigi legmagasabb cél: {{target}}",
+      "mineItems_one": "A heti {{total}}-ból {{count}} a tiéd",
+      "mineItems_other": "A heti {{total}}-ból {{count}} a tiéd",
+      "mineItemsNone": "Vegyél fel egy tárgyat a héten, és told előre a célt",
+      "mineActive": "Te is a hét aktív gyűjtői között vagy",
+      "mineInactive": "Csinálj bármit a Cofferben a héten, és aktív gyűjtőnek számítasz",
+      "mineItemsAll_one": "A heti egyetlen tárgyat te vetted fel",
+      "mineItemsAll_other": "A heti mind a(z) {{count}} tárgyat te vetted fel"
+    },
+    "updated": "Frissítve: {{when}}",
+    "profileFailed": "Nem sikerült megnyitni a profilt."
   }
 }

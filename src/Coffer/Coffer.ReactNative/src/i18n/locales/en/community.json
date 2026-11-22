@@ -19,5 +19,59 @@
   },
   "shape": {
     "comingSoon": "Soon you can help bring new kinds of collectibles to Coffer: send photos and details so the app learns to recognise them."
+  },
+  "stats": {
+    "numbers": "The community in numbers",
+    "totals": {
+      "members": "Members",
+      "items": "Collected items",
+      "pieces_one": "{{formatted}} piece in total",
+      "pieces_other": "{{formatted}} pieces in total",
+      "collections": "Collections",
+      "interactions": "Interactions",
+      "recent": "+{{week}} this week · +{{month}} this month"
+    },
+    "growth": {
+      "title": "Growth",
+      "members": "Members",
+      "items": "Items",
+      "collections": "Collections",
+      "thisWeek": "This week",
+      "summary": "{{series}}: {{from}} → {{to}} in the last 12 weeks"
+    },
+    "highlights": {
+      "title": "This week",
+      "collector": "Collector of the week",
+      "actions_one": "{{count}} action this week",
+      "actions_other": "{{count}} actions this week",
+      "noCollector": "No one yet. Be the first this week!",
+      "openProfile": "Opens their profile",
+      "trending": "Trending item type",
+      "added_one": "{{count}} item added this week",
+      "added_other": "{{count}} items added this week",
+      "noTrend": "Nothing added yet this week"
+    },
+    "milestones": {
+      "title": "Weekly milestones",
+      "intro": "Everyone moves these just by collecting. Reach the goal and next week's goal climbs a step; miss it and it steps back.",
+      "itemsAdded": "Items added",
+      "activeUsers": "Active collectors",
+      "goal": "This week's goal: {{target}}",
+      "progress": "{{progress}} of {{target}}",
+      "reached": "Goal reached!",
+      "streak_one": "{{count}} week in a row",
+      "streak_other": "{{count}} weeks in a row",
+      "level": "Level {{rung}} of {{rungs}}",
+      "best": "Highest goal so far: {{target}}",
+      "mineItems_one": "You added {{count}} of this week's {{total}}",
+      "mineItems_other": "You added {{count}} of this week's {{total}}",
+      "mineItemsNone": "Add an item this week to push the goal",
+      "mineActive": "You're one of this week's active collectors",
+      "mineInactive": "Do anything in Coffer this week to count as active",
+      "mineItemsAll_one": "You added this week's only item",
+      "mineItemsAll_other": "You added all {{count}} of this week's items"
+    },
+    "updated": "Updated {{when}}",
+    "profileFailed": "Couldn't open this profile."
   }
 }
