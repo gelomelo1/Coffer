@@ -17,8 +17,11 @@ namespace Coffer.ASPNET.Controllers
         private readonly ICollectionsRepository _collectionRepository;
         private readonly IPermissionService<Guid, FollowRequired> _permissionService;
         private readonly Coffer.BusinessLogic.Activity.IActivityLog _activity;
-        public FollowsController(IFollowsRepository followsRepository, ICollectionsRepository collectionRepository, IPermissionService<Guid, FollowRequired> permissionService, Coffer.BusinessLogic.Activity.IActivityLog activity)
+        private readonly Coffer.BusinessLogic.ItemTypes.IItemTypeVisibility _visibility;
+        public FollowsController(IFollowsRepository followsRepository, ICollectionsRepository collectionRepository, IPermissionService<Guid, FollowRequired> permissionService, Coffer.BusinessLogic.Activity.IActivityLog activity,
+            Coffer.BusinessLogic.ItemTypes.IItemTypeVisibility visibility)
         {
+            _visibility = visibility;
             _activity = activity;
             _followsRepository = followsRepository;
             _collectionRepository = collectionRepository;
@@ -34,6 +37,8 @@ namespace Coffer.ASPNET.Controllers
                 return Unauthorized();
             }
 
+            // Missing or of an unpublished item type: nothing to follow or unfollow.
+            await _visibility.EnsureCollectionAsync(followRequired.CollectionId);
             try
             {
                 var follow = await _followsRepository.FindFollowByUserCollectionIdAsync(UserId.Value, followRequired.CollectionId);

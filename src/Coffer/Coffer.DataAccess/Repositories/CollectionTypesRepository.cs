@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Coffer.DataAccess.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
@@ -16,5 +17,8 @@ namespace Coffer.DataAccess.Repositories
         public CollectionTypesRepository(CofferDbContext dbContext, IIncludeProvider<CollectionTypeProvided> includeProvider) : base(dbContext, includeProvider)
         {
         }
+
+        /// <summary>Unpublished item types don't exist for the app.</summary>
+        protected override IQueryable<CollectionTypeProvided> Visible(IQueryable<CollectionTypeProvided> query) => Live(query).WherePublished();
     }
 }

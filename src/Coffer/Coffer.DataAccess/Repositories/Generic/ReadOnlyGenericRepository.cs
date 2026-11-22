@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Coffer.DataAccess.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
@@ -35,9 +36,15 @@ namespace Coffer.DataAccess.Repositories.Generic
                 ? query.Where(e => EF.Property<DateTime?>(e, nameof(ITombstoned.DeletedAt)) == null)
                 : query;
 
+        /// <summary>
+        /// What the app may see of this entity: tombstones hidden, and (overridden where it applies) everything of an
+        /// unpublished item type. Every generic list, page, get-by-id and update goes through here.
+        /// </summary>
+        protected virtual IQueryable<TEntity> Visible(IQueryable<TEntity> query) => Live(query);
+
         public virtual async Task<IEnumerable<TProvided>> GetItemsAsync(string? filter = null, string? orderBy = null, int? page = null, int? pageSize = null)
         {
-            IQueryable<TEntity> query = Live(_dbSet);
+            IQueryable<TEntity> query = Visible(_dbSet);
 
 
             var includes = _includeProvider?.GetDefaultIncludes();
@@ -62,7 +69,7 @@ namespace Coffer.DataAccess.Repositories.Generic
 
         public virtual async Task<Coffer.Domain.Paging.PagedList<TProvided>> GetPageAsync(string? filter, string? orderBy, int? page, int? pageSize)
         {
-            IQueryable<TEntity> query = Live(_dbSet);
+            IQueryable<TEntity> query = Visible(_dbSet);
             if (!string.IsNullOrWhiteSpace(filter))
                 query = query.Where(filter);
             // Id last, so rows with equal sort values keep one order and no row shows up on two pages.
@@ -81,7 +88,7 @@ namespace Coffer.DataAccess.Repositories.Generic
 
         public virtual async Task<TProvided?> GetItemByIdAsync(Tkey id)
         {
-            IQueryable<TEntity> query = Live(_dbSet);
+            IQueryable<TEntity> query = Visible(_dbSet);
 
             var includes = _includeProvider?.GetDefaultIncludes();
             if (includes != null && includes.Length > 0)

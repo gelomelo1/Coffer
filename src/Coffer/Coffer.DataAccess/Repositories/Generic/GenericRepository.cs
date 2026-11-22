@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Coffer.DataAccess.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
@@ -32,7 +33,7 @@ namespace Coffer.DataAccess.Repositories.Generic
 
         public async Task<TProvided?> UpdateItemAsync(Tkey id, TProvided item)
         {
-            IQueryable<TEntity> query = Live(_dbSet);
+            IQueryable<TEntity> query = Visible(_dbSet);
 
             var includes = _includeProvider?.GetDefaultIncludes();
             if (includes != null && includes.Length > 0)
@@ -57,7 +58,7 @@ namespace Coffer.DataAccess.Repositories.Generic
 
         public virtual async Task<TProvided?> UpdateItemAsync(Tkey id, TRequired item)
         {
-            IQueryable<TEntity> query = Live(_dbSet);
+            IQueryable<TEntity> query = Visible(_dbSet);
 
             var includes = _includeProvider?.GetDefaultIncludes();
             if (includes != null && includes.Length > 0)

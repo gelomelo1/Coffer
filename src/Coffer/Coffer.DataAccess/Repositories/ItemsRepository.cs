@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Coffer.DataAccess.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
@@ -22,6 +23,8 @@ namespace Coffer.DataAccess.Repositories
             this.includeProvider = includeProvider;
         }
 
+        protected override IQueryable<ItemProvided> Visible(IQueryable<ItemProvided> query) => Live(query).WherePublished(_dbContext);
+
         public async Task<IDbContextTransaction> BeginTransactionAsync()
         {
             return await _dbContext.Database.BeginTransactionAsync();
@@ -29,7 +32,7 @@ namespace Coffer.DataAccess.Repositories
 
         public async Task<int> SumQuantityAsync(string? filter)
         {
-            IQueryable<ItemProvided> query = Live(_dbSet);
+            IQueryable<ItemProvided> query = Visible(_dbSet);
             if (!string.IsNullOrWhiteSpace(filter))
                 query = query.Where(filter);
             return await query.SumAsync(i => i.Quantity);
@@ -47,7 +50,8 @@ namespace Coffer.DataAccess.Repositories
                 .Include(i => i.Collection)
                 .Include(i => i.Collection.Follows)
                 .Where(i => i.Collection.UserId != user.Id && i.AcquiredAt >= oneWeekAgo)
-                .Where(i => i.DeletedAt == null && i.Collection.DeletedAt == null && i.Collection.User.DeletedAt == null); // tombstones never reach the feed
+                .Where(i => i.DeletedAt == null && i.Collection.DeletedAt == null && i.Collection.User.DeletedAt == null) // tombstones never reach the feed
+                .WherePublished(_dbContext);
 
             if (!string.IsNullOrWhiteSpace(filter))
                 baseQuery = baseQuery.Where(filter);
@@ -96,7 +100,7 @@ namespace Coffer.DataAccess.Repositories
 
             var includes = includeProvider.GetDefaultIncludes();
 
-            IQueryable<ItemProvided> query = _dbContext.Set<ItemProvided>().Where(i => i.DeletedAt == null && i.Collection.DeletedAt == null && i.Collection.User.DeletedAt == null);
+            IQueryable<ItemProvided> query = _dbContext.Set<ItemProvided>().Where(i => i.DeletedAt == null && i.Collection.DeletedAt == null && i.Collection.User.DeletedAt == null).WherePublished(_dbContext);
 
             if (includes != null)
             {
@@ -147,7 +151,8 @@ namespace Coffer.DataAccess.Repositories
 
             IQueryable<ItemProvided> query = _dbContext.Set<ItemProvided>()
                 .Include(i => i.Collection)
-                .Where(i => i.DeletedAt == null && i.Collection.DeletedAt == null && i.Collection.User.DeletedAt == null);
+                .Where(i => i.DeletedAt == null && i.Collection.DeletedAt == null && i.Collection.User.DeletedAt == null)
+                .WherePublished(_dbContext);
 
             var includes = includeProvider.GetDefaultIncludes();
             if (includes != null)
@@ -338,7 +343,7 @@ namespace Coffer.DataAccess.Repositories
 
         public async Task<IEnumerable<ItemProvided>> GetItemsByCollectionAsync(Guid collectionId)
         {
-            IQueryable<ItemProvided> query = Live(_dbSet);
+            IQueryable<ItemProvided> query = Visible(_dbSet);
 
             var includes = includeProvider.GetDefaultIncludes();
 

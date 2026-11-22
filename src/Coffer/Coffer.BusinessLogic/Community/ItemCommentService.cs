@@ -1,3 +1,4 @@
+using Coffer.DataAccess.Extensions;
 using Coffer.BusinessLogic.Marketplace.Common;
 using Coffer.DataAccess;
 using Coffer.Domain.Community;
@@ -151,6 +152,7 @@ namespace Coffer.BusinessLogic.Community
 
         public async Task DeleteAsync(Guid userId, Guid itemId, Guid commentId)
         {
+            await OwnerOfAsync(itemId); // missing, deleted or hidden item → not found
             var comment = await OwnCommentAsync(userId, itemId, commentId);
             var hasReplies = await _db.ItemComments.AnyAsync(c => c.ParentId == comment.Id);
             var reported = await _db.Reports.AnyAsync(r => r.TargetType == ReportTargetType.Comment && r.TargetId == comment.Id);
@@ -173,8 +175,9 @@ namespace Coffer.BusinessLogic.Community
         public async Task<Dictionary<Guid, int>> CountAsync(IEnumerable<Guid> itemIds)
         {
             var ids = itemIds.Distinct().ToList();
+            var shown = _db.Items.WherePublished(_db).Select(i => i.Id);
             return await _db.ItemComments.AsNoTracking()
-                .Where(c => ids.Contains(c.ItemId) && c.DeletedAt == null && !c.IsRemoved)
+                .Where(c => ids.Contains(c.ItemId) && shown.Contains(c.ItemId) && c.DeletedAt == null && !c.IsRemoved)
                 .GroupBy(c => c.ItemId)
                 .Select(g => new { g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.Key, x => x.Count);
@@ -193,7 +196,7 @@ namespace Coffer.BusinessLogic.Community
 
         private async Task<Guid> OwnerOfAsync(Guid itemId)
         {
-            var item = await _db.Items.AsNoTracking().Where(i => i.Id == itemId)
+            var item = await _db.Items.AsNoTracking().Where(i => i.Id == itemId).WherePublished(_db)
                 .Select(i => new { i.Collection.UserId, i.DeletedAt }).FirstOrDefaultAsync()
                 ?? throw MarketplaceException.NotFound("itemNotFound", "Item not found.");
             // Other users' comments stay in the database (linked, for accountability), but a deleted item is not shown.

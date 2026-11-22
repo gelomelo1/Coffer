@@ -33,8 +33,11 @@ namespace Coffer.ASPNET.Controllers
         private readonly Coffer.BusinessLogic.Pending.IPendingItemService _pending;
         private readonly Coffer.BusinessLogic.Activity.IActivityLog _activity;
         private readonly IWebHostEnvironment _environment;
-        public CollectionsController(ICollectionsRepository collectionsRepository, IItemsRepository itemsRepository, IImageService imageService, IPermissionService<Guid, CollectionRequired> permissionService, HttpClient httpClient, IWebHostEnvironment environment, Coffer.BusinessLogic.Account.IContentTombstoneService tombstones, Coffer.BusinessLogic.Pending.IPendingItemService pending, Coffer.BusinessLogic.Activity.IActivityLog activity) : base(collectionsRepository, permissionService)
+        private readonly Coffer.BusinessLogic.ItemTypes.IItemTypeVisibility _visibility;
+        public CollectionsController(ICollectionsRepository collectionsRepository, IItemsRepository itemsRepository, IImageService imageService, IPermissionService<Guid, CollectionRequired> permissionService, HttpClient httpClient, IWebHostEnvironment environment, Coffer.BusinessLogic.Account.IContentTombstoneService tombstones, Coffer.BusinessLogic.Pending.IPendingItemService pending, Coffer.BusinessLogic.Activity.IActivityLog activity,
+            Coffer.BusinessLogic.ItemTypes.IItemTypeVisibility visibility) : base(collectionsRepository, permissionService)
         {
+            _visibility = visibility;
             _activity = activity;
             _pending = pending;
             _tombstones = tombstones;
@@ -62,6 +65,7 @@ namespace Coffer.ASPNET.Controllers
 
         public override async Task<ActionResult<CollectionProvided>> Create([FromBody] CollectionRequired required)
         {
+            await _visibility.EnsureTypeAsync(required.CollectionTypeId);
             var result = await base.Create(required);
             if (result.Result is CreatedAtActionResult { Value: CollectionProvided created })
                 await _activity.RecordNowAsync(UserId!.Value, "collection.created", new Coffer.BusinessLogic.Activity.ActivityTargets(CollectionId: created.Id));
@@ -70,6 +74,7 @@ namespace Coffer.ASPNET.Controllers
 
         public override async Task<ActionResult<CollectionProvided>> Update(Guid id, [FromBody] CollectionRequired required)
         {
+            await _visibility.EnsureTypeAsync(required.CollectionTypeId);
             var result = await base.Update(id, required);
             if (result.Result is OkObjectResult)
                 await _activity.RecordNowAsync(UserId!.Value, "collection.edited", new Coffer.BusinessLogic.Activity.ActivityTargets(CollectionId: id));

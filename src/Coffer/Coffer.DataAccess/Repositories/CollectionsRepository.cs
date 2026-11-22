@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Coffer.DataAccess.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,6 +23,8 @@ namespace Coffer.DataAccess.Repositories
             this.includeProvider = includeProvider;
         }
 
+        protected override IQueryable<CollectionProvided> Visible(IQueryable<CollectionProvided> query) => Live(query).WherePublished(_dbContext);
+
         public async Task<IDbContextTransaction> BeginTransactionAsync()
         {
             return await _dbContext.Database.BeginTransactionAsync();
@@ -30,7 +33,7 @@ namespace Coffer.DataAccess.Repositories
         public async Task<Coffer.Domain.Paging.GroupedPagedList<CollectionProvided>> GetGroupedPageAsync(Guid userId, IReadOnlyCollection<int> byNameTypeIds, int? page, int? pageSize)
         {
             var byName = byNameTypeIds.ToList();
-            var mine = _dbSet.Where(c => c.UserId == userId && c.DeletedAt == null);
+            var mine = _dbSet.Where(c => c.UserId == userId && c.DeletedAt == null).WherePublished(_dbContext);
             var counts = await mine.GroupBy(c => c.CollectionTypeId)
                 .Select(g => new { TypeId = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.TypeId, x => x.Count);
@@ -49,7 +52,7 @@ namespace Coffer.DataAccess.Repositories
 
         public async Task<CollectionProvided?> GetCollectionByIdForDelete(Guid id)
         {
-            return await _dbSet
+            return await _dbSet.WherePublished(_dbContext)
                 .FirstOrDefaultAsync(collection => collection.Id == id && collection.DeletedAt == null);
         }
 
@@ -129,7 +132,7 @@ namespace Coffer.DataAccess.Repositories
         {
             var includes = includeProvider.GetDefaultIncludes();
 
-            IQueryable<CollectionProvided> query = _dbSet.Where(c => c.DeletedAt == null && c.User.DeletedAt == null);
+            IQueryable<CollectionProvided> query = _dbSet.Where(c => c.DeletedAt == null && c.User.DeletedAt == null).WherePublished(_dbContext);
 
             if (includes != null)
             {

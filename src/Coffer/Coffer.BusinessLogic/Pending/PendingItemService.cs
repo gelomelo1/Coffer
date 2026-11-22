@@ -97,12 +97,15 @@ namespace Coffer.BusinessLogic.Pending
         private static MarketplaceException PendingNotFound() =>
             MarketplaceException.NotFound("pendingItemNotFound", "This item is no longer waiting for review.");
 
+        private IQueryable<Guid> ShownCollections => _db.Collections.WherePublished(_db).Select(c => c.Id);
+
         private async Task<PendingItem> OwnPendingAsync(Guid userId, Guid pendingId) =>
-            await _db.PendingItems.FirstOrDefaultAsync(p => p.Id == pendingId && p.UserId == userId) ?? throw PendingNotFound();
+            await _db.PendingItems.FirstOrDefaultAsync(p => p.Id == pendingId && p.UserId == userId && ShownCollections.Contains(p.CollectionId))
+            ?? throw PendingNotFound();
 
         public async Task<Coffer.Domain.Paging.PagedList<PendingItemDto>> ListAsync(Guid userId, Guid collectionId, int? page, int? pageSize)
         {
-            if (!await _db.Collections.AnyAsync(c => c.Id == collectionId && c.UserId == userId && c.DeletedAt == null))
+            if (!await _db.Collections.WherePublished(_db).AnyAsync(c => c.Id == collectionId && c.UserId == userId && c.DeletedAt == null))
                 throw PendingNotFound();
             var query = _db.PendingItems.AsNoTracking().Where(p => p.CollectionId == collectionId && p.UserId == userId)
                 .OrderByDescending(p => p.CreatedAt).ThenBy(p => p.Id);
@@ -143,7 +146,7 @@ namespace Coffer.BusinessLogic.Pending
         public async Task<List<PendingSummaryDto>> SummaryAsync(Guid userId)
         {
             var rows = await _db.PendingItems.AsNoTracking().Where(p => p.UserId == userId)
-                .Join(_db.Collections.Where(c => c.DeletedAt == null), p => p.CollectionId, c => c.Id,
+                .Join(_db.Collections.Where(c => c.DeletedAt == null).WherePublished(_db), p => p.CollectionId, c => c.Id,
                     (p, c) => new { PendingId = p.Id, p.CreatedAt, CollectionId = c.Id, c.Name, c.CollectionTypeId })
                 .ToListAsync();
             return rows
@@ -177,7 +180,7 @@ namespace Coffer.BusinessLogic.Pending
 
         public async Task DeleteAsync(Guid userId, Guid pendingId)
         {
-            var row = await _db.PendingItems.FirstOrDefaultAsync(p => p.Id == pendingId);
+            var row = await _db.PendingItems.FirstOrDefaultAsync(p => p.Id == pendingId && ShownCollections.Contains(p.CollectionId));
             if (row == null) return; // already gone: Skip & delete may be sent twice
             if (row.UserId != userId) throw PendingNotFound();
             _db.PendingItems.Remove(row);

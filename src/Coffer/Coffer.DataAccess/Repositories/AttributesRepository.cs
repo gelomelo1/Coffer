@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Coffer.DataAccess.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,5 +18,7 @@ namespace Coffer.DataAccess.Repositories
         public AttributesRepository(CofferDbContext dbContext, IIncludeProvider<Attribute>? includeProvider = null) : base(dbContext, includeProvider)
         {
         }
+
+        protected override IQueryable<Attribute> Visible(IQueryable<Attribute> query) => Live(query).WherePublished(_dbContext);
     }
 }

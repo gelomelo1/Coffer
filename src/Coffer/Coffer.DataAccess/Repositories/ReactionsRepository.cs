@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Coffer.DataAccess.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,6 +17,9 @@ namespace Coffer.DataAccess.Repositories
         public ReactionsRepository(CofferDbContext dbContext, IIncludeProvider<ReactionProvided>? includeProvider = null) : base(dbContext, includeProvider)
         {
         }
+
+        /// <summary>Reactions on items of an unpublished item type are not listed (nothing is deleted).</summary>
+        protected override IQueryable<ReactionProvided> Visible(IQueryable<ReactionProvided> query) => Live(query).WherePublished(_dbContext);
 
         public async Task<ReactionProvided?> FindReactionByUserItemIdAsync(Guid userId, Guid itemId)
         {
