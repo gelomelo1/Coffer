@@ -1,3 +1,4 @@
+using Coffer.DataAccess.Extensions;
 using Coffer.BusinessLogic.Marketplace.Common;
 using Coffer.BusinessLogic.Marketplace.Terms;
 using Coffer.DataAccess;
@@ -41,6 +42,8 @@ namespace Coffer.BusinessLogic.Marketplace.Messaging
         public async Task EnsureCanStartAsync(Guid userId, Guid subjectId)
         {
             await MarketTerms.EnsureAcceptedAsync(_db, userId);
+            if (!await _db.Listings.Where(l => l.Id == subjectId).WherePublished(_db).AnyAsync())
+                throw MarketplaceException.NotFound("listingNotFound", "Listing not found.");
             var listing = await LoadAsync(subjectId);
             if (listing.OwnerId == userId) throw MarketplaceException.Forbidden("youCanTMessageYourselfAboutYour", "You can't message yourself about your own listing.");
             if (listing.Status is ListingStatus.Archived or ListingStatus.Sold or ListingStatus.Removed)

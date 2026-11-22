@@ -10,6 +10,9 @@ namespace Coffer.Tests.ItemTypes
     /// <summary>Icons (ICONSTORE_PATH) and AI models (MODELS_PATH) of an item type: names come from the type id only.</summary>
     public class ItemTypeFilesTests
     {
+        /// <summary>Sets MODELS_PATH / ICONSTORE_PATH even when no API test has run yet.</summary>
+        static ItemTypeFilesTests() => TestEnvironment.Ensure();
+
         private static readonly byte[] PngMagic = { 0x89, 0x50, 0x4E, 0x47 };
         private static readonly ItemTypeFiles Sut = new();
         private static readonly DateTime Now = new(2026, 11, 22, 10, 30, 0, DateTimeKind.Utc);

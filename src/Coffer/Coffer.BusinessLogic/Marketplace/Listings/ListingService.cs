@@ -1,3 +1,4 @@
+using Coffer.DataAccess.Extensions;
 using Coffer.BusinessLogic.Activity;
 using Coffer.BusinessLogic.Marketplace.Cities;
 using Coffer.BusinessLogic.Marketplace.Common;
@@ -174,7 +175,7 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
 
         public async Task<ListingDetailDto> GetAsync(Guid viewerId, Guid id)
         {
-            var l = await _db.Listings.AsNoTracking()
+            var l = await _db.Listings.AsNoTracking().WherePublished(_db)
                 .Include(x => x.Owner).Include(x => x.City).Include(x => x.CollectionType)
                 .Include(x => x.Lines).Include(x => x.Images)
                 .FirstOrDefaultAsync(x => x.Id == id) ?? throw MarketplaceException.NotFound("listingNotFound", "Listing not found.");
@@ -282,14 +283,14 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
 
         public async Task<Dictionary<string, int>> CountMineAsync(Guid userId)
         {
-            var byStatus = await _db.Listings.AsNoTracking().Where(l => l.OwnerId == userId)
+            var byStatus = await _db.Listings.AsNoTracking().Where(l => l.OwnerId == userId).WherePublished(_db)
                 .GroupBy(l => l.Status).Select(g => new { g.Key, Count = g.Count() }).ToListAsync();
             return MyListingFilters.Statuses.ToDictionary(kv => kv.Key, kv => byStatus.Where(x => kv.Value.Contains(x.Key)).Sum(x => x.Count));
         }
 
         // ------------------------------------------------------------------ helpers
 
-        private IQueryable<Listing> BaseSummaryQuery() => _db.Listings.AsNoTracking()
+        private IQueryable<Listing> BaseSummaryQuery() => _db.Listings.AsNoTracking().WherePublished(_db)
             .Include(l => l.Owner).Include(l => l.City).Include(l => l.CollectionType).Include(l => l.Images);
 
         public static ListingSummaryDto ToSummary(Listing l, double? distance) => new(
@@ -314,7 +315,7 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
         }
 
         private async Task<Listing> LoadAsync(Guid id) =>
-            await _db.Listings.Include(l => l.Lines).Include(l => l.Images).FirstOrDefaultAsync(l => l.Id == id)
+            await _db.Listings.WherePublished(_db).Include(l => l.Lines).Include(l => l.Images).FirstOrDefaultAsync(l => l.Id == id)
             ?? throw MarketplaceException.NotFound("listingNotFound", "Listing not found.");
 
         private Task<bool> HasOpenDealAsync(Guid listingId) =>
@@ -381,7 +382,7 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
                     ? MarketplaceException.Validation("addImagesBetween", $"Add 1 to {MaxImages} images.", ErrorArgs.Of($"{MaxImages}"))
                     : MarketplaceException.Validation("addImagesAtMost", $"Add at most {MaxImages} images.", ErrorArgs.Of($"{MaxImages}"));
 
-            if (!await _db.CollectionTypes.AnyAsync(t => t.Id == input.CollectionTypeId))
+            if (!await _db.CollectionTypes.AnyAsync(t => t.Id == input.CollectionTypeId && t.Published))
                 throw MarketplaceException.Validation("unknownItemType", "Unknown item type.");
             if (!await _db.Cities.AnyAsync(c => c.Id == input.CityId))
                 throw MarketplaceException.Validation("unknownCity", "Unknown city.");

@@ -1,3 +1,4 @@
+using Coffer.DataAccess.Extensions;
 using System.Security.Cryptography;
 using System.Text;
 using Coffer.BusinessLogic.Activity;
@@ -78,7 +79,7 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
                 ?? throw MarketplaceException.NotFound("conversationNotFound", "Conversation not found.");
             if (conversation.SubjectType != ListingConversationPolicy.Type)
                 throw MarketplaceException.Validation("dealsCanOnlyBeMadeAboutListings", "Deals can only be made about listings.");
-            var listing = await _db.Listings.FirstOrDefaultAsync(l => l.Id == conversation.SubjectId)
+            var listing = await _db.Listings.WherePublished(_db).FirstOrDefaultAsync(l => l.Id == conversation.SubjectId)
                 ?? throw MarketplaceException.NotFound("listingNotFound", "Listing not found.");
 
             var owner = conversation.Participants.Single(p => p.Role == ParticipantRole.Owner).UserId;

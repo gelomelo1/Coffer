@@ -119,6 +119,7 @@ namespace Coffer.BusinessLogic.Activity
                     .Select(d => new DealRow(d.Id, d.ListingId, d.ConversationId)).ToListAsync()).ToDictionary(d => d.Id);
 
                 var itemIds = Ids(events.Select(e => e.ItemId).Concat(t._comments.Values.Select(c => (Guid?)c.ItemId)));
+                var hiddenTypes = await db.CollectionTypes.AsNoTracking().Where(t => !t.Published).Select(t => t.Id).ToListAsync();
                 var items = await db.Items.AsNoTracking().Where(i => itemIds.Contains(i.Id))
                     .Select(i => new { i.Id, i.CollectionId, i.Image, i.Description, Gone = i.DeletedAt != null }).ToListAsync();
                 var primary = await db.ItemAttributes.AsNoTracking().Where(a => itemIds.Contains(a.ItemId) && a.Attribute.Primary)
@@ -132,7 +133,7 @@ namespace Coffer.BusinessLogic.Activity
 
                 var collectionIds = Ids(events.Select(e => e.CollectionId).Concat(items.Select(i => (Guid?)i.CollectionId)));
                 t._collections = (await db.Collections.AsNoTracking().Where(c => collectionIds.Contains(c.Id))
-                    .Select(c => new CollectionRow(c.Id, c.Name, c.Image, c.DeletedAt != null)).ToListAsync()).ToDictionary(c => c.Id);
+                    .Select(c => new CollectionRow(c.Id, c.Name, c.Image, c.DeletedAt != null || hiddenTypes.Contains(c.CollectionTypeId))).ToListAsync()).ToDictionary(c => c.Id);
 
                 // An item in a deleted collection is gone too.
                 t._items = items.ToDictionary(i => i.Id, i => new ItemRow(i.Id, i.CollectionId, i.Image,
@@ -142,7 +143,7 @@ namespace Coffer.BusinessLogic.Activity
                 var listingIds = Ids(events.Select(e => e.ListingId).Concat(t._deals.Values.Select(d => (Guid?)d.ListingId)));
                 t._listings = (await db.Listings.AsNoTracking().Where(l => listingIds.Contains(l.Id))
                         .Select(l => new ListingRow(l.Id, l.Title, l.Images.OrderBy(i => i.Position).Select(i => i.FileName).FirstOrDefault(),
-                            l.DeletedAt != null || l.Status == ListingStatus.Removed)).ToListAsync())
+                            l.DeletedAt != null || l.Status == ListingStatus.Removed || hiddenTypes.Contains(l.CollectionTypeId))).ToListAsync())
                     .ToDictionary(l => l.Id);
 
                 var conversationIds = Ids(events.Select(e => e.ConversationId));
