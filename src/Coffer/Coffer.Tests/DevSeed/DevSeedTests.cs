@@ -68,7 +68,7 @@ namespace Coffer.Tests.DevSeed
         {
             Directory.CreateDirectory(_images);
             File.WriteAllBytes(Path.Combine(_images, "cap.jpg"), new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 1, 2, 3 });
-            var type = new CollectionTypeProvided("Cap", "Bottle caps", "#0f0", "cap", new List<Attribute>());
+            var type = new CollectionTypeProvided("Cap", "Bottle caps", "#0f0", "cap", new List<Attribute>()) { Published = true };
             _db.Context.CollectionTypes.Add(type);
             _db.Context.SaveChanges();
             _db.Context.Attributes.Add(new Attribute { CollectionTypeId = type.Id, Name = "Brand", DataType = AttributeType.String, Primary = true });

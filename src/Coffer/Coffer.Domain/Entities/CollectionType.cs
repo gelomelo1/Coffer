@@ -35,6 +35,18 @@ namespace Coffer.Domain.Entities
         public int Id { get; set; }
         public DateTime CreatedAt { get; set; }
 
+        /// <summary>Shown in the app. A new type starts hidden; publishing needs its AI models (see the Manager).</summary>
+        [JsonIgnore]
+        public bool Published { get; set; }
+
+        /// <summary>When it was last hidden (waiting-for-review items don't count that time towards their 30 days).</summary>
+        [JsonIgnore]
+        public DateTime? UnpublishedAt { get; set; }
+
+        /// <summary>Description in other languages (language code → text); English stays in Description.</summary>
+        [JsonIgnore]
+        public Dictionary<string, string> DescriptionTranslations { get; set; } = new();
+
         public ICollection<Attribute> Attributes { get; set; } = new List<Attribute>();
 
         public CollectionTypeProvided(string name, string description, string color, string icon, ICollection<Attribute> attributes) : base(name, description, color, icon)

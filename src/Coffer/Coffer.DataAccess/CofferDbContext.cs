@@ -146,6 +146,7 @@ namespace Coffer.DataAccess
 
             // Translations of reference names: language code → text, stored as JSON (jsonb on PostgreSQL).
             Translations<CollectionTypeProvided>(modelBuilder, t => t.NameTranslations);
+            Translations<CollectionTypeProvided>(modelBuilder, t => t.DescriptionTranslations);
             Translations<Coffer.Domain.Entities.Attribute>(modelBuilder, a => a.NameTranslations);
             Translations<ItemOptions>(modelBuilder, o => o.OptionLabelsTranslations);
 

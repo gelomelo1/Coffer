@@ -35,7 +35,7 @@ namespace Coffer.Tests.Marketplace
             var type = Db.Context.CollectionTypes.FirstOrDefault();
             if (type == null)
             {
-                type = new CollectionTypeProvided("Coins", "desc", "#a98d3c", "coin");
+                type = new CollectionTypeProvided("Coins", "desc", "#a98d3c", "coin") { Published = true };
                 Db.Context.CollectionTypes.Add(type);
                 Db.Context.SaveChanges();
             }

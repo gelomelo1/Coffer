@@ -28,7 +28,7 @@ namespace Coffer.Tests.Deletion
             var type = _db.Context.CollectionTypes.FirstOrDefault();
             if (type == null)
             {
-                type = new CollectionTypeProvided("Coins", "desc", "#a98d3c", "coin");
+                type = new CollectionTypeProvided("Coins", "desc", "#a98d3c", "coin") { Published = true };
                 _db.Context.CollectionTypes.Add(type);
                 _db.Context.SaveChanges();
             }

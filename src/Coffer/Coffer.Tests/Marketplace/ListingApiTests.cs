@@ -15,7 +15,7 @@ namespace Coffer.Tests.Marketplace
 
         private (int typeId, int cityId) Seed()
         {
-            var type = new CollectionTypeProvided("Stamps", "d", "#19283f", "stamp");
+            var type = new CollectionTypeProvided("Stamps", "d", "#19283f", "stamp") { Published = true };
             var city = new City { ExternalId = 1, Name = "Budapest", CountryCode = "HU", Latitude = 47.5, Longitude = 19.04 };
             Db.Context.CollectionTypes.Add(type);
             Db.Context.Cities.Add(city);

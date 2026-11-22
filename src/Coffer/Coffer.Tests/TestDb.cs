@@ -67,7 +67,7 @@ namespace Coffer.Tests
             var type = Context.CollectionTypes.FirstOrDefault();
             if (type == null)
             {
-                type = new CollectionTypeProvided("Coins", "desc", "#fff", "icon");
+                type = new CollectionTypeProvided("Coins", "desc", "#fff", "icon") { Published = true };
                 Context.CollectionTypes.Add(type);
                 Context.SaveChanges();
             }
@@ -79,7 +79,7 @@ namespace Coffer.Tests
 
         public CollectionTypeProvided AddCollectionType(string name)
         {
-            var type = new CollectionTypeProvided(name, "desc", "#fff", "icon");
+            var type = new CollectionTypeProvided(name, "desc", "#fff", "icon") { Published = true };
             Context.CollectionTypes.Add(type);
             Context.SaveChanges();
             return type;
