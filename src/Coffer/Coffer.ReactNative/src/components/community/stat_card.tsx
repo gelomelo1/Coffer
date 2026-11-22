@@ -37,8 +37,20 @@ function useCountUp(value: number) {
   return shown;
 }
 
-/** One big community number: icon, label, the number (counting up), and an optional line under it. */
-export function StatCard({ icon, label, value, sub, accent = false }: { icon: IconName; label: string; value: number; sub?: string; accent?: boolean }) {
+interface StatCardProps {
+  icon: IconName;
+  label: string;
+  value: number;
+  sub?: string;
+  /** "+3 this week · +15 this month" */
+  trend?: string;
+  /** Nothing new this month: a flat arrow instead of a rising one. */
+  trendFlat?: boolean;
+  accent?: boolean;
+}
+
+/** One big community number: icon, label, the number (counting up), an optional line under it and the recent change. */
+export function StatCard({ icon, label, value, sub, trend, trendFlat = false, accent = false }: StatCardProps) {
   const { i18n } = useTranslation();
   const shown = useCountUp(value);
   const fg = accent ? colors.onPrimary : colors.text;
@@ -46,7 +58,7 @@ export function StatCard({ icon, label, value, sub, accent = false }: { icon: Ic
   return (
     <View
       accessible
-      accessibilityLabel={[label, value.toLocaleString(i18n.language), sub].filter(Boolean).join(", ")}
+      accessibilityLabel={[label, value.toLocaleString(i18n.language), sub, trend].filter(Boolean).join(", ")}
       style={{
         flex: 1,
         minHeight: 128,
@@ -65,6 +77,16 @@ export function StatCard({ icon, label, value, sub, accent = false }: { icon: Ic
       </View>
       <Text style={[typography.display, { color: fg, fontVariant: ["tabular-nums"] }]}>{compactNumber(shown, i18n.language)}</Text>
       {sub ? <Text style={[typography.caption, { color: accent ? colors.onPrimary : colors.textMuted }]}>{sub}</Text> : null}
+      {trend ? (
+        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.xxs }}>
+          <MaterialCommunityIcons
+            name={trendFlat ? "trending-neutral" : "trending-up"}
+            size={16}
+            color={trendFlat ? (accent ? colors.onPrimary : colors.textMuted) : accent ? colors.secondary : colors.success}
+          />
+          <Text style={[typography.caption, { color: accent ? colors.onPrimary : colors.text, flex: 1 }]}>{trend}</Text>
+        </View>
+      ) : null}
     </View>
   );
 }

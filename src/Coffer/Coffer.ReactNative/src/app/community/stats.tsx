@@ -31,6 +31,10 @@ function Stats() {
     }
   };
   const n = (v: number) => v.toLocaleString(i18n.language);
+  // "+x this week · +x this month"; left out when the server doesn't send the period (an older API).
+  type Period = { thisWeek: number; thisMonth: number } | undefined;
+  const recent = (p: Period) => (p ? t("community:stats.totals.recent", { week: n(p.thisWeek), month: n(p.thisMonth) }) : undefined);
+  const flat = (p: Period) => !p || p.thisMonth === 0;
   const items = data.milestones.find((m) => m.key === "itemsAdded");
   const active = data.milestones.find((m) => m.key === "activeUsers");
 
@@ -49,15 +53,24 @@ function Stats() {
             label={t("community:stats.totals.items")}
             value={data.totals.items}
             sub={t("community:stats.totals.pieces", { count: data.totals.pieces, formatted: n(data.totals.pieces) })}
+            trend={recent(data.newItems)}
+            trendFlat={flat(data.newItems)}
           />
         </View>
         <View style={{ flexDirection: "row", gap: spacing.sm }}>
-          <StatCard icon="treasure-chest" label={t("community:stats.totals.collections")} value={data.totals.collections} />
+          <StatCard
+            icon="treasure-chest"
+            label={t("community:stats.totals.collections")}
+            value={data.totals.collections}
+            trend={recent(data.newCollections)}
+            trendFlat={flat(data.newCollections)}
+          />
           <StatCard
             icon="heart-multiple-outline"
             label={t("community:stats.totals.interactions")}
             value={data.totals.interactions}
-            sub={t("community:stats.totals.recent", { week: n(data.interactions.thisWeek), month: n(data.interactions.thisMonth) })}
+            trend={recent(data.interactions)}
+            trendFlat={flat(data.interactions)}
           />
         </View>
       </View>

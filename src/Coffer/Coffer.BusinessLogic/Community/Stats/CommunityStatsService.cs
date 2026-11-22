@@ -16,8 +16,10 @@ namespace Coffer.BusinessLogic.Community.Stats
     /// <summary>The viewer's part this week: items added (for "itemsAdded"), or 1/0 (for "activeUsers").</summary>
     public sealed record MyMilestoneDto(int Count, bool Active);
     public sealed record MilestoneDto(string Key, int Target, int Progress, int Streak, int BestTarget, int Rung, int Rungs, MyMilestoneDto Mine);
-    public sealed record CommunityStatsDto(DateTime GeneratedAt, StatsTotals Totals, PeriodCounts Interactions, List<GrowthPoint> Growth,
-        TopCollectorDto? TopCollector, TrendingTypeDto? TrendingType, List<MilestoneDto> Milestones);
+    /// <summary>NewItems / NewCollections: visible items first added, and visible collections created, in the period.</summary>
+    public sealed record CommunityStatsDto(DateTime GeneratedAt, StatsTotals Totals, PeriodCounts Interactions, PeriodCounts NewItems,
+        PeriodCounts NewCollections, List<GrowthPoint> Growth, TopCollectorDto? TopCollector, TrendingTypeDto? TrendingType,
+        List<MilestoneDto> Milestones);
 
     public interface ICommunityStatsService
     {
@@ -177,7 +179,9 @@ namespace Coffer.BusinessLogic.Community.Stats
                     week => week.Select(e => e.UserId).Distinct().Count()),
             };
 
-            var stats = new CommunityStatsDto(now, totals, interactions, growth, topCollector, trendingType, milestones);
+            var newItems = new PeriodCounts(itemDates.Count(d => d >= weekStart), itemDates.Count(d => d >= monthStart));
+            var newCollections = new PeriodCounts(collectionDatesUtc.Count(d => d >= weekStart), collectionDatesUtc.Count(d => d >= monthStart));
+            var stats = new CommunityStatsDto(now, totals, interactions, newItems, newCollections, growth, topCollector, trendingType, milestones);
             return new Shared(weekStart, stats);
         }
 

@@ -108,6 +108,30 @@ namespace Coffer.Tests.Community
         }
 
         [Fact]
+        public async Task NewItemsAndCollectionsThisWeekAndMonth()
+        {
+            var anna = User("anna");
+            var thisWeek = Db.AddCollection(anna, Db.AddCollectionType("Caps").Id, "New caps");
+            thisWeek.CreatedAt = WeekStart.AddHours(5);
+            var thisMonth = Db.AddCollection(anna, thisWeek.CollectionTypeId, "Older caps");
+            thisMonth.CreatedAt = WeekStart.AddDays(-3);
+            var lastMonth = Db.AddCollection(anna, thisWeek.CollectionTypeId, "Oldest caps");
+            lastMonth.CreatedAt = new DateTime(2026, 10, 20, 0, 0, 0, DateTimeKind.Utc);
+            Db.Context.SaveChanges();
+            var newItem = Db.AddItem(thisWeek);
+            var monthItem = Db.AddItem(thisMonth);
+            var oldItem = Db.AddItem(lastMonth);
+            Event(anna, "item.added", WeekStart.AddHours(6), itemId: newItem.Id);
+            Event(anna, "item.added", WeekStart.AddDays(-2), itemId: monthItem.Id);
+            Event(anna, "item.added", new DateTime(2026, 10, 21, 0, 0, 0, DateTimeKind.Utc), itemId: oldItem.Id);
+
+            var stats = await Sut().GetAsync(anna.Id);
+
+            Assert.Equal(new PeriodCounts(ThisWeek: 1, ThisMonth: 2), stats.NewItems);
+            Assert.Equal(new PeriodCounts(ThisWeek: 1, ThisMonth: 2), stats.NewCollections);
+        }
+
+        [Fact]
         public async Task GrowthIsTwelveCumulativeWeeks()
         {
             var early = User("early", WeekStart.AddDays(-100));
