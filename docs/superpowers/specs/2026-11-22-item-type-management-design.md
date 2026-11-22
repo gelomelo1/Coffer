@@ -13,10 +13,10 @@ administrator re-checked on every request, every change in the admin audit log.
 ## Goals
 
 - A new Manager tab **Item types**: list of types (published state, models present, how many collections use it) and
-  a detail panel: English + Hungarian name, description, colour, icon (upload + preview), attributes, AI models,
-  publish switch.
-- A new Manager tab **Option sets**: the lists a Select / Multi-select / Autocomplete attribute picks from (English +
-  Hungarian labels).
+  a detail panel: English name, name translations (JSON), description, description translations (JSON), colour, icon
+  (upload + preview), attributes, AI models, publish switch.
+- A new Manager tab **Option sets**: the lists a Select / Multi-select / Autocomplete attribute picks from (English
+  labels + label translations as JSON).
 - Admin API under `api/Admin/*` for all of it.
 - **Publishing**: a new type starts unpublished. It can be published only when both AI models (object detection and
   embedding) are uploaded; after that it can be published and unpublished freely.
@@ -83,6 +83,22 @@ Your human partner picked **1**.
   type whose two model files exist — decided at deploy as the explicit statement list for current data: Cap (id 1)
   published; Stamp (id 2) stays unpublished (no models, no collections — nobody loses anything).
 - No new tables. Models and icons are files; their presence is read from disk.
+
+### Translations (JSON, as stored)
+
+Every translatable column is `jsonb`, language code → text; English stays in the plain column:
+`collection_types.name_translations` `{"hu": "Kupak"}`, `description_translations` `{"hu": "…"}`,
+`attributes.name_translations` `{"hu": "Márka"}`, `item_options.option_labels_translations`
+`{"hu": "Logó;Zászló;Tájkép;Címer"}` (same `;` order and count as `option_labels`).
+
+The Manager edits each of these as a JSON text box (decided by your human partner): the admin pastes / edits the JSON
+itself. When the stored value is empty (`{}`), the box shows a **grey placeholder example** of correct JSON for that
+field (e.g. `{"hu": "Kupak"}`, or for option labels one entry per option in the right count) — a hint only: it is never
+saved, it disappears when the admin starts typing, and an untouched box saves as `{}`. The Manager checks the JSON
+before sending (shows the parse error next to the box); the backend validates again: a JSON object; keys are
+two-letter lowercase language codes other than `en`; values non-empty strings within the field's length limit; for
+option labels exactly as many `;`-separated non-empty parts as the English labels. Invalid → 400
+`invalidTranslations` with the reason.
 
 ### What "in use" means (rule A)
 
@@ -176,9 +192,11 @@ Errors use the existing `{ code, message, params }` payload; Manager shows the m
 ```
 [Item types ▾]                                              Signed in as … · Sign out
 ┌ Types ───────────────┐ ┌ Cap ─────────────────────────────────────────────────────┐
-│ ● Cap      published │ │ Name [Cap      ]  Hungarian [Kupak   ]  Colour [#84A98C]■ │
-│ ○ Stamp    hidden    │ │ Description [..............................] HU [.....]   │
-│ ○ Coin     hidden    │ │ Icon [img] (Upload icon…)                                 │
+│ ● Cap      published │ │ Name [Cap      ]  Colour [#84A98C]■                       │
+│ ○ Stamp    hidden    │ │ Name translations (JSON) [{"hu": "Kupak"}              ]  │
+│ ○ Coin     hidden    │ │ Description [..............................]              │
+│                      │ │ Description translations (JSON) [{"hu": "…"} (grey)    ]  │
+│                      │ │ Icon [img] (Upload icon…)                                 │
 │ (New item type)      │ │ AI models: detection ✓ 6.2 MB · embedding ✓ 45 MB (60)    │
 └──────────────────────┘ │            (Upload models…)                               │
                          │ Published [on/off]  — needs: models ✓ primary ✓ icon ✓     │
@@ -191,7 +209,8 @@ Errors use the existing `{ code, message, params }` payload; Manager shows the m
 ```
 
 Option sets tab: list of sets ("used by: Cap › Features, Stamp › Features") and an editor of rows (id, English
-label, Hungarian label, "used by N items"); remove is disabled for used options.
+label, "used by N items") plus the label translations JSON box; remove is disabled for used options. Attribute
+dialog: name, name translations JSON box, data type, primary, required, option set.
 
 ### App changes
 
@@ -206,7 +225,7 @@ label, Hungarian label, "used by N items"); remove is disabled for used options.
 2. Publishing also needs exactly one primary attribute and an icon (the app needs both to show items).
 3. Hidden time doesn't count towards waiting items' 30 days.
 4. No model delete; re-upload replaces. Old embedding files of the type are removed on replace.
-5. A Hungarian description is added (the app shows descriptions in both languages).
+5. A description translations column is added (same JSON shape), so descriptions can be translated too.
 6. Unpublished things answer 404, not 403, so their existence isn't revealed.
 7. Anonymous icon endpoint (as today) with strict file-name validation; unpublished types' icons are fetchable by exact
    name only (names are not listed anywhere public).
