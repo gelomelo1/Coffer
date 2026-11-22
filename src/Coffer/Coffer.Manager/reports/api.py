@@ -5,7 +5,12 @@ ManagerAuth  - GitHub device-flow sign-in brokered by the backend (api/Manager/A
 AdminApi     - the admin-only endpoints (api/Admin/*). Every call needs that Manager token; the backend enforces
                the administrator check on each request.
 """
+import os
+
 import requests
+
+# Model files can be hundreds of MB: uploads get much longer than the normal 15 s.
+UPLOAD_TIMEOUT = 600
 
 
 class ApiError(Exception):
@@ -22,14 +27,19 @@ class _Client:
         self.session = session or requests.Session()
         self.timeout = timeout
 
-    def _json(self, method, path, params=None, json=None):
-        response = self._request(method, path, params=params, json=json)
+    def _json(self, method, path, params=None, json=None, files=None, data=None, timeout=None):
+        response = self._request(method, path, params=params, json=json, files=files, data=data, timeout=timeout)
         if response.status_code == 204 or not response.content:
             return None
         return response.json()
 
-    def _request(self, method, path, params=None, json=None):
+    def _request(self, method, path, params=None, json=None, files=None, data=None, timeout=None):
         headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
+        extra = {}
+        if files is not None:
+            extra["files"] = files
+        if data is not None:
+            extra["data"] = data
         try:
             response = self.session.request(
                 method,
@@ -37,7 +47,8 @@ class _Client:
                 headers=headers,
                 params=params,
                 json=json,
-                timeout=self.timeout,
+                timeout=timeout or self.timeout,
+                **extra,
             )
         except requests.RequestException as e:
             raise ApiError(0, f"Can't reach the API: {e}") from e
@@ -140,3 +151,66 @@ class AdminApi(_Client):
     def image(self, kind, file_name):
         """kind: "listing" or "item" (thumbnail.kind from the API)."""
         return self._request("GET", f"/api/Admin/Images/{kind}/{file_name}").content
+
+    # ------------------------------------------------------------------ item types, attributes, option sets
+
+    def item_types(self):
+        return self._json("GET", "/api/Admin/ItemTypes")
+
+    def item_type(self, type_id):
+        return self._json("GET", f"/api/Admin/ItemTypes/{type_id}")
+
+    def create_item_type(self, body):
+        return self._json("POST", "/api/Admin/ItemTypes", json=body)
+
+    def update_item_type(self, type_id, body):
+        return self._json("PUT", f"/api/Admin/ItemTypes/{type_id}", json=body)
+
+    def delete_item_type(self, type_id):
+        return self._json("DELETE", f"/api/Admin/ItemTypes/{type_id}")
+
+    def set_published(self, type_id, published):
+        return self._json("POST", f"/api/Admin/ItemTypes/{type_id}/Publish", json={"published": bool(published)})
+
+    def upload_icon(self, type_id, path):
+        return self._upload(f"/api/Admin/ItemTypes/{type_id}/Icon", {"file": path})
+
+    def upload_models(self, type_id, detection_path=None, embedding_path=None, class_count=None):
+        files = {k: v for k, v in (("detection", detection_path), ("embedding", embedding_path)) if v}
+        data = {"classCount": str(class_count)} if class_count is not None else None
+        return self._upload(f"/api/Admin/ItemTypes/{type_id}/Models", files, data)
+
+    def add_attribute(self, type_id, body):
+        return self._json("POST", f"/api/Admin/ItemTypes/{type_id}/Attributes", json=body)
+
+    def update_attribute(self, attribute_id, body):
+        return self._json("PUT", f"/api/Admin/Attributes/{attribute_id}", json=body)
+
+    def delete_attribute(self, attribute_id):
+        return self._json("DELETE", f"/api/Admin/Attributes/{attribute_id}")
+
+    def option_sets(self):
+        return self._json("GET", "/api/Admin/OptionSets")
+
+    def create_option_set(self, body):
+        return self._json("POST", "/api/Admin/OptionSets", json=body)
+
+    def update_option_set(self, set_id, body):
+        return self._json("PUT", f"/api/Admin/OptionSets/{set_id}", json=body)
+
+    def delete_option_set(self, set_id):
+        return self._json("DELETE", f"/api/Admin/OptionSets/{set_id}")
+
+    def icon(self, file_name):
+        """An item type icon (public endpoint): PNG bytes."""
+        return self._request("GET", f"/api/CollectionTypes/Icon/{file_name}").content
+
+    def _upload(self, path, files, data=None):
+        handles = {}
+        try:
+            for field, file_path in files.items():
+                handles[field] = (os.path.basename(file_path), open(file_path, "rb"), "application/octet-stream")
+            return self._json("POST", path, files=handles, data=data, timeout=UPLOAD_TIMEOUT)
+        finally:
+            for _, handle, _ in handles.values():
+                handle.close()
