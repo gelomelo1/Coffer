@@ -67,6 +67,7 @@ namespace Coffer.Infrastructure
             services.AddScoped<Coffer.BusinessLogic.Activity.IActivityLog, Coffer.BusinessLogic.Activity.ActivityLog>();
             services.AddScoped<Coffer.BusinessLogic.Activity.IActivityQueryService, Coffer.BusinessLogic.Activity.ActivityQueryService>();
             services.AddScoped<Coffer.BusinessLogic.Activity.IActivityBackfill, Coffer.BusinessLogic.Activity.ActivityBackfill>();
+            services.AddScoped<Coffer.BusinessLogic.Community.Stats.ICommunityStatsService, Coffer.BusinessLogic.Community.Stats.CommunityStatsService>();
             services.AddScoped<Coffer.BusinessLogic.ItemTypes.IItemTypeVisibility, Coffer.BusinessLogic.ItemTypes.ItemTypeVisibility>();
             services.AddSingleton<Coffer.BusinessLogic.ItemTypes.IItemTypeFiles, Coffer.BusinessLogic.ItemTypes.ItemTypeFiles>();
             services.AddScoped<Coffer.BusinessLogic.ItemTypes.IItemTypeAdminService, Coffer.BusinessLogic.ItemTypes.ItemTypeAdminService>();

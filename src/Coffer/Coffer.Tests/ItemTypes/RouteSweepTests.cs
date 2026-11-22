@@ -96,6 +96,7 @@ namespace Coffer.Tests.ItemTypes
             ["POST api/Listings"] = "HiddenTypeMarketTests.CantCreateOrEditListingOfHiddenType",
             ["PUT api/Listings/{id:guid}"] = "same filtered load as archive (HiddenTypeMarketTests.CantCreateOrEditListingOfHiddenType)",
             ["GET api/Activity"] = "HiddenTypeMarketTests.ActivityEntriesOfHiddenTypeAreUnavailable (entries stay, targets unavailable)",
+            ["GET api/Community/Stats"] = "CommunityStatsTests.HiddenAndDeletedAreNotCounted (numbers count published types only)",
             ["GET api/Feed/Search"] = "Postgres-only trigram search: base query filtered like Search/Items (device check)",
             ["GET api/Feed/Search/Collections"] = "Postgres-only trigram search: base query filtered (device check)",
             ["GET api/Feed/SearchTag"] = "Postgres-only trigram search: tag base query filtered (device check)",
