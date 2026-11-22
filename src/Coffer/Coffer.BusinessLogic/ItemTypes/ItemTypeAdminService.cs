@@ -155,7 +155,7 @@ namespace Coffer.BusinessLogic.ItemTypes
         public async Task<AdminItemTypeDto> SetIconAsync(Guid adminId, int id, Microsoft.AspNetCore.Http.IFormFile? file)
         {
             var type = await _db.CollectionTypes.FirstOrDefaultAsync(t => t.Id == id) ?? throw TypeNotFound();
-            if (file == null) throw MarketplaceException.Validation("invalidIcon", "Choose the icon picture.");
+            if (file == null) throw ItemTypeFiles.InvalidIcon();
             var old = type.Icon;
             var name = await _files.SaveIconAsync(id, file, _clock.UtcNow);
             type.Icon = name;
@@ -198,7 +198,7 @@ namespace Coffer.BusinessLogic.ItemTypes
         {
             if (!await _db.CollectionTypes.AnyAsync(t => t.Id == typeId)) throw TypeNotFound();
             if (await _db.Attributes.CountAsync(a => a.CollectionTypeId == typeId) >= MaxAttributes)
-                throw MarketplaceException.Validation("tooManyAttributes", $"An item type can have at most {MaxAttributes} attributes.");
+                throw MarketplaceException.Validation("tooManyAttributes", "An item type can have at most 30 attributes.");
             var (name, translations) = await ValidateAttributeAsync(typeId, null, input);
 
             var attribute = new Attribute

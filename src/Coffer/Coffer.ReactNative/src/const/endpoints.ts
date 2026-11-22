@@ -12,7 +12,8 @@ export const endpoints = {
   collections: "api/Collections",
   collectionsCoverImage: `${backendAxios.defaults.baseURL}/api/Collections/CoverImage`,
   collectionsCoverImageUpload: "api/Collections/CoverImage/Upload",
-  icons: `${backendAxios.defaults.baseURL}/icons`,
+  // Item type icons, served from the icon store (uploaded in Coffer.Manager).
+  icons: `${backendAxios.defaults.baseURL}/api/CollectionTypes/Icon`,
   items: "api/Items",
   itemsCoverImage: `${backendAxios.defaults.baseURL}/api/Items/CoverImage`,
   itemsTempImage: `${backendAxios.defaults.baseURL}/api/Items/TempImage`,

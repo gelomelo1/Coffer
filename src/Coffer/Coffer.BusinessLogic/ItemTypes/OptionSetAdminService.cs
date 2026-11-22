@@ -55,7 +55,7 @@ namespace Coffer.BusinessLogic.ItemTypes
         {
             var labels = ValidateLabels(input);
             if (labels.Any(o => o.Id != null))
-                throw MarketplaceException.Validation("unknownOption", "A new option set can't refer to existing option ids.");
+                throw MarketplaceException.Validation("newSetWithOptionIds", "A new option set can't refer to existing option ids.");
             var set = new ItemOptions
             {
                 OptionIds = string.Join(";", labels.Select((_, i) => i + 1)),
@@ -86,9 +86,9 @@ namespace Coffer.BusinessLogic.ItemTypes
             {
                 var usage = await UsageAsync(set.Id);
                 var used = removed.Where(i => usage.GetValueOrDefault(i) > 0).ToList();
+                var list = string.Join(", ", used);
                 if (used.Count > 0)
-                    throw MarketplaceException.Conflict("optionInUse", $"Items use option(s) {string.Join(", ", used)}: they can't be removed.",
-                        ErrorArgs.Of(string.Join(", ", used)));
+                    throw MarketplaceException.Conflict("optionInUse", $"Items use option(s) {list}: they can't be removed.", ErrorArgs.Of(list));
             }
 
             var next = Math.Max(set.LastOptionId, current.DefaultIfEmpty(0).Max());
@@ -120,7 +120,7 @@ namespace Coffer.BusinessLogic.ItemTypes
         {
             var options = input.Options ?? new List<OptionInput>();
             if (options.Count == 0 || options.Count > MaxOptions)
-                throw MarketplaceException.Validation("invalidOptions", $"An option set needs 1–{MaxOptions} options.");
+                throw MarketplaceException.Validation("invalidOptions", "An option set needs 1–200 options.");
             return options.Select(o =>
             {
                 var label = Text.Required(o.Label, 1, MaxLabel, "Option");

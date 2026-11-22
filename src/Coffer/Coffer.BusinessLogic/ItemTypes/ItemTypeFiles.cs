@@ -54,6 +54,8 @@ namespace Coffer.BusinessLogic.ItemTypes
             MaxFrames = 1,
         };
 
+        private static MarketplaceException InvalidModel() => MarketplaceException.Validation("invalidModel", "A model file must be a PyTorch .pt file of at most 300 MB.");
+
         public static string ModelsFolder => Env.GetString("MODELS_PATH") ?? throw new InvalidOperationException("MODELS_PATH environmental variable is not set");
         public static string IconsFolder => Env.GetString("ICONSTORE_PATH") ?? throw new InvalidOperationException("ICONSTORE_PATH environmental variable is not set");
 
@@ -72,7 +74,7 @@ namespace Coffer.BusinessLogic.ItemTypes
             if (detection == null && embedding == null)
                 throw MarketplaceException.Validation("noModelFiles", "Choose the detection model, the embedding model, or both.");
             if (embedding != null && (classCount is null || classCount < MinClassCount || classCount > MaxClassCount))
-                throw MarketplaceException.Validation("classCountRequired", $"The embedding model needs its class count ({MinClassCount}–{MaxClassCount}).");
+                throw MarketplaceException.Validation("classCountRequired", "The embedding model needs its class count (2–100000).");
             foreach (var file in new[] { detection, embedding }.Where(f => f != null)) await CheckModelAsync(file!);
 
             Directory.CreateDirectory(ModelsFolder);
@@ -112,12 +114,12 @@ namespace Coffer.BusinessLogic.ItemTypes
         private static async Task CheckModelAsync(IFormFile file)
         {
             if (file.Length < ZipMagic.Length || file.Length > MaxModelBytes)
-                throw MarketplaceException.Validation("invalidModel", $"A model file must be a PyTorch .pt file of at most {MaxModelBytes / 1024 / 1024} MB.");
+                throw InvalidModel();
             var header = new byte[ZipMagic.Length];
             await using var stream = file.OpenReadStream();
             var read = await stream.ReadAsync(header);
             if (read != ZipMagic.Length || !header.SequenceEqual(ZipMagic))
-                throw MarketplaceException.Validation("invalidModel", "This is not a PyTorch .pt model file.");
+                throw InvalidModel();
         }
 
         /// <summary>Copies to "{target}.uploading", then moves into place: the AI service never reads half a file.</summary>
@@ -154,7 +156,7 @@ namespace Coffer.BusinessLogic.ItemTypes
         public async Task<string> SaveIconAsync(int typeId, IFormFile file, DateTime now)
         {
             if (file == null || file.Length == 0 || file.Length > MaxIconBytes)
-                throw InvalidIcon($"An icon must be a PNG, JPEG or WebP picture of at most {MaxIconBytes / 1024} KB.");
+                throw InvalidIcon();
             Image image;
             try
             {
@@ -163,12 +165,12 @@ namespace Coffer.BusinessLogic.ItemTypes
             }
             catch (Exception e) when (e is UnknownImageFormatException or InvalidImageContentException or NotSupportedException)
             {
-                throw InvalidIcon("This is not a PNG, JPEG or WebP picture.");
+                throw InvalidIcon();
             }
             using (image)
             {
                 if (image.Width > MaxIconSide || image.Height > MaxIconSide)
-                    throw InvalidIcon($"An icon can be at most {MaxIconSide}×{MaxIconSide} pixels.");
+                    throw InvalidIcon();
                 image.Metadata.ExifProfile = null;
                 image.Metadata.XmpProfile = null;
                 image.Metadata.IccProfile = null;
@@ -194,7 +196,7 @@ namespace Coffer.BusinessLogic.ItemTypes
             return (File.OpenRead(path), "image/png");
         }
 
-        private static MarketplaceException InvalidIcon(string message) => MarketplaceException.Validation("invalidIcon", message);
+        public static MarketplaceException InvalidIcon() => MarketplaceException.Validation("invalidIcon", "An icon must be a PNG, JPEG or WebP picture of at most 1 MB and 1024×1024 pixels.");
     }
 }
 
