@@ -190,6 +190,14 @@ class MetricsTests(unittest.TestCase):
         self.assertAlmostEqual(metrics.pick_confidence(conf, f1), 0.9, places=3)
         self.assertAlmostEqual(metrics.pick_confidence(conf, 1 - np.abs(conf - 0.4)), 0.4, places=3)
 
+    def test_selection_breaks_recall_ties_with_map(self):
+        from training.embedding_train import is_better
+        best = {"r1": 1.0, "map_at_r": 0.80}
+        self.assertTrue(is_better({"r1": 1.0, "map_at_r": 0.85}, best))
+        self.assertFalse(is_better({"r1": 1.0, "map_at_r": 0.80}, best))
+        self.assertFalse(is_better({"r1": 0.95, "map_at_r": 0.99}, best))
+        self.assertTrue(is_better({"r1": 0.1, "map_at_r": 0.1}, None))
+
     def test_compare_marks_delta_and_missing_live(self):
         rows = metrics.compare({"r1": 0.9, "r5": 1.0}, {"r1": 0.8}, ["r1", "r5"])
         self.assertAlmostEqual(rows[0]["delta"], 0.1)

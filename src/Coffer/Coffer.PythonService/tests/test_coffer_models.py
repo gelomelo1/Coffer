@@ -120,6 +120,15 @@ class CofferModelTests(unittest.TestCase):
         model = cm.load_detection_model(self.path("d.pt"), yolo_factory=FakeYolo)
         self.assertEqual((model.imgsz, model.confidence, model.meta["format"]), (512, 0.45, cm.DETECTION_FORMAT))
 
+    def test_detection_candidate_file_loads(self):
+        """Uploads are validated as "{id}_detection.pt.candidate"; Ultralytics only opens names ending in .pt."""
+        from ultralytics import YOLO
+        YOLO("yolov8n.yaml").save(self.path("d.pt"))
+        os.replace(self.path("d.pt"), self.path("7_detection.pt.candidate"))
+        model = cm.load_detection_model(self.path("7_detection.pt.candidate"))
+        self.assertEqual(model.detect(np.zeros((64, 64, 3), np.uint8)), [])
+        self.assertEqual(os.listdir(self.dir), ["7_detection.pt.candidate"])
+
     def test_cache_reuses_until_file_changes(self):
         loads = []
         cache = ModelCache(loaders={"embedding": lambda p: loads.append(p) or object(), "detection": lambda p: object()})

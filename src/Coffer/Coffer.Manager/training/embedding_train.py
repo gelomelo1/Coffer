@@ -60,6 +60,14 @@ def build_train_transform(cfg):
     return transforms.Compose(steps)
 
 
+def is_better(val: dict, best) -> bool:
+    """Best epoch by validation Recall@1, ties broken by MAP@R: with few validation caps Recall@1 is soon 1.0
+    while the ranking (and the gap between same and different caps) still improves."""
+    if best is None:
+        return True
+    return (round(val["r1"], 6), round(val["map_at_r"], 6)) > (round(best["r1"], 6), round(best["map_at_r"], 6))
+
+
 def _frozen_modules(net, stages: int):
     b = net.backbone
     groups = [[b.conv1, b.bn1], [b.layer1], [b.layer2], [b.layer3]]
@@ -128,7 +136,7 @@ def train_embedding(run_dir: str, cfg, data, device: str, stop_file: str) -> str
     with open(metrics_path, "w", newline="") as f:
         csv.writer(f).writerow(["epoch", "loss", "val_r1", "val_map_at_r", "lr"])
 
-    best_r1, best_state, best_epoch, since_best = -1.0, None, 0, 0
+    best_val, best_state, best_epoch, since_best = None, None, 0, 0
     for epoch in range(1, cfg.epochs + 1):
         net.train()
         for module in frozen:
@@ -153,13 +161,15 @@ def train_embedding(run_dir: str, cfg, data, device: str, stop_file: str) -> str
         val = retrieval_metrics(embed_paths(net, val_paths, cfg.image_size, device), val_labels)
         with open(metrics_path, "a", newline="") as f:
             csv.writer(f).writerow([epoch, round(total / max(1, batches), 5), round(val["r1"], 4), round(val["map_at_r"], 4), lr])
-        if val["r1"] > best_r1:
-            best_r1, best_state, best_epoch, since_best = val["r1"], copy.deepcopy(net.state_dict()), epoch, 0
+        if is_better(val, best_val):
+            best_val, best_state, best_epoch, since_best = val, copy.deepcopy(net.state_dict()), epoch, 0
         else:
             since_best += 1
         runs.write_progress(run_dir, "training", epoch=epoch, epochs=cfg.epochs, loss=round(total / max(1, batches), 4),
-                            val_r1=round(val["r1"], 4), best_val_r1=round(best_r1, 4), best_epoch=best_epoch)
-        runs.log(run_dir, f"Epoch {epoch}/{cfg.epochs}: loss {total / max(1, batches):.4f}, validation R@1 {val['r1']:.3f}")
+                            val_r1=round(val["r1"], 4), val_map_at_r=round(val["map_at_r"], 4),
+                            best_val_r1=round(best_val["r1"], 4), best_epoch=best_epoch)
+        runs.log(run_dir, f"Epoch {epoch}/{cfg.epochs}: loss {total / max(1, batches):.4f}, "
+                          f"validation R@1 {val['r1']:.3f}, MAP@R {val['map_at_r']:.3f}")
         if since_best >= cfg.patience:
             runs.log(run_dir, f"No improvement for {cfg.patience} epochs: stopping early (best epoch {best_epoch}).")
             break

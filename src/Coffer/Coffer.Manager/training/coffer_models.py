@@ -168,7 +168,24 @@ def load_detection_model(path: str, yolo_factory=None) -> DetectionModel:
     if yolo_factory is None:
         from ultralytics import YOLO
         yolo_factory = YOLO
-    return DetectionModel(yolo_factory(path), int(meta["imgsz"]), float(meta["confidence"]), meta)
+    return DetectionModel(_open_yolo(yolo_factory, path), int(meta["imgsz"]), float(meta["confidence"]), meta)
+
+
+def _open_yolo(yolo_factory, path: str):
+    """Ultralytics only opens files named *.pt; an upload being validated is "*.pt.candidate", so it is opened
+    through a temporary .pt copy (the weights are read into memory, the copy is removed)."""
+    if path.lower().endswith(".pt"):
+        return yolo_factory(path)
+    import os
+    import shutil
+    import tempfile
+    folder = tempfile.mkdtemp()
+    try:
+        copy = os.path.join(folder, "model.pt")
+        shutil.copyfile(path, copy)
+        return yolo_factory(copy)
+    finally:
+        shutil.rmtree(folder, ignore_errors=True)
 
 
 def add_detection_metadata(path: str, *, imgsz: int, confidence: float, run_id: str) -> None:
