@@ -30,13 +30,14 @@ namespace Coffer.BusinessLogic.News
         Task<string> UploadImageAsync(Guid adminId, IFormFile? file);
         Task<PagedList<NewsCardDto>> ListPublishedAsync(int? page, int? pageSize);
         Task<NewsPostDto> GetPublishedAsync(Guid id);
+        Task<List<LinkTargetDto>> LinkTargetsAsync(string? type, string? query);
     }
 
     /// <summary>
     /// News posts: administrators write drafts in Coffer.Manager and publish them; the app reads only published posts.
     /// The first publish fixes the post's date; edits while published are marked "edited". Every change is audited.
     /// </summary>
-    public sealed class NewsService : INewsService
+    public sealed partial class NewsService : INewsService
     {
         public const int MaxTitle = 120;
         public const int MaxContent = 50_000;

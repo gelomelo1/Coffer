@@ -192,6 +192,7 @@
     "unknownFilterUseActiveSoldArchivedOr": "Unknown filter (use active, sold, archived or all).",
     "unknownImageKind": "Unknown image kind.",
     "unknownItemType": "Unknown item type.",
+    "unknownLinkTargetType": "The link type must be user, collection, item, listing or news.",
     "unknownListingKind": "Unknown listing kind.",
     "unknownNewsStatus": "Status must be draft, published or all.",
     "unknownOption": "An option id does not belong to this set.",

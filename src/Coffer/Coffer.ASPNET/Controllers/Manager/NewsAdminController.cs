@@ -20,6 +20,11 @@ namespace Coffer.ASPNET.Controllers.Manager
         public async Task<ActionResult<PagedList<AdminNewsDto>>> List([FromQuery] string? status, [FromQuery] int? page = null, [FromQuery] int? pageSize = null)
             => Ok(await _news.AdminListAsync(status, page, pageSize));
 
+        /// <summary>The link picker: live users, collections, items, listings or news whose name contains the query.</summary>
+        [HttpGet("LinkTargets")]
+        public async Task<ActionResult<List<LinkTargetDto>>> LinkTargets([FromQuery] string? type, [FromQuery] string? query)
+            => Ok(await _news.LinkTargetsAsync(type, query));
+
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<AdminNewsDto>> Get(Guid id) => Ok(await _news.AdminGetAsync(id));
 

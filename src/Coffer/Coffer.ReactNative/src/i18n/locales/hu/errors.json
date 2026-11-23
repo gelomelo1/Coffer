@@ -192,6 +192,7 @@
     "unknownFilterUseActiveSoldArchivedOr": "Ismeretlen szűrő (active, sold, archived vagy all lehet).",
     "unknownImageKind": "Ismeretlen képtípus.",
     "unknownItemType": "Ismeretlen tárgytípus.",
+    "unknownLinkTargetType": "A hivatkozás típusa user, collection, item, listing vagy news lehet.",
     "unknownListingKind": "Ismeretlen hirdetésfajta.",
     "unknownNewsStatus": "Az állapot draft, published vagy all lehet.",
     "unknownOption": "Egy opcióazonosító nem ehhez a készlethez tartozik.",
