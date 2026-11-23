@@ -111,6 +111,7 @@ namespace Coffer.Tests.ItemTypes
             ["GET api/Account/Suspension"] = "the user's own suspension",
             ["GET api/Activity/Summary"] = "counts of the user's own log; entries stay (targets resolve as unavailable)",
             ["GET api/CollectionTypes/Icon/{fileName}"] = "icon file by exact name; hidden types are listed nowhere",
+            ["GET api/News/Image/{fileName}"] = "news image by unguessable name (posts are not about item types)",
             ["GET api/Collections/CoverImage/{fileName}"] = "image file by unguessable name; never listed for hidden types",
             ["GET api/Items/CoverImage/{fileName}"] = "image file by unguessable name; never listed for hidden types",
             ["GET api/Items/TempImage/{fileName}"] = "upload temp file by unguessable name",
@@ -153,6 +154,7 @@ namespace Coffer.Tests.ItemTypes
         private static readonly HashSet<string> NotTypeRelated = new()
         {
             "GET api/Health", "GET api/Cities/Search", "GET api/Market/Terms", "POST api/Market/Terms/Accept",
+            "GET api/News", "GET api/News/{id:guid}",
             "GET api/Comments/Mentionable",
             "GET api/Users", "GET api/Users/{id}", "GET api/Users/Page", "GET api/Users/UserExists/{username}", "POST api/Users",
             "PUT api/Users/{id}", "PUT api/Users/UserFrontend", "GET api/Feed/Search/Users",

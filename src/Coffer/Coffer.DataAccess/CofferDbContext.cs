@@ -44,6 +44,7 @@ namespace Coffer.DataAccess
         public DbSet<ModerationAction> ModerationActions { get; set; }
         public DbSet<PendingItem> PendingItems { get; set; }
         public DbSet<ActivityEvent> ActivityEvents { get; set; }
+        public DbSet<NewsPost> NewsPosts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -149,6 +150,17 @@ namespace Coffer.DataAccess
             Translations<CollectionTypeProvided>(modelBuilder, t => t.DescriptionTranslations);
             Translations<Coffer.Domain.Entities.Attribute>(modelBuilder, a => a.NameTranslations);
             Translations<ItemOptions>(modelBuilder, o => o.OptionLabelsTranslations);
+
+            // News posts: status stored as "draft" / "published".
+            modelBuilder.Entity<NewsPost>(e =>
+            {
+                e.ToTable("news_posts");
+                e.Property(n => n.Title).HasMaxLength(120).IsRequired();
+                e.Property(n => n.HeroImage).HasMaxLength(80);
+                e.Property(n => n.Status).HasMaxLength(20)
+                    .HasConversion(v => v == NewsStatus.Published ? "published" : "draft", v => v == "published" ? NewsStatus.Published : NewsStatus.Draft);
+                e.HasIndex(n => new { n.Status, n.PublishedAt });
+            });
 
             //Collection
             modelBuilder.Entity<CollectionProvided>()
