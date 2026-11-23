@@ -64,7 +64,10 @@ def launcher() -> None:
                    check=True)
     with open(os.path.join(APP, "README.txt"), "w", encoding="utf-8") as f:
         f.write("Label Studio (portable)\n=======================\n\n"
-                "Start LabelStudio.exe: Label Studio opens in the browser at http://localhost:8080.\n"
+                "Start LabelStudio.exe: when Label Studio is ready, the browser opens its sign-in page\n"
+                "(http://localhost:8080/user/login/, or the next free port if 8080 is taken: see the window).\n"
+                "If the browser ever shows 'Not Found' for /index.html, it remembers a redirect from another app\n"
+                "that used the same port: open the /user/login/ address above directly.\n"
                 "The first start prepares the database (about a minute); sign up there with any e-mail and password.\n"
                 "Everything you make is kept in the 'data' folder next to LabelStudio.exe: copy the whole folder to\n"
                 "move it to another PC. Another port: LabelStudio.exe --port 8090. Close the window to stop it.\n\n"
