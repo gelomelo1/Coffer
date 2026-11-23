@@ -4,6 +4,7 @@ from similarity_check_training.view import SimilarityCheckTrainingView
 from reports.session import LoginView, Session, describe_expiry
 from reports.view import ReportedContentView, ReportsView, SuspensionsView
 from itemtypes.view import ItemTypesView, OptionSetsView
+from news.view import NewsView
 
 VIEWS = [
     ("Similarity Check Training", lambda parent, session: SimilarityCheckTrainingView(parent)),
@@ -12,6 +13,7 @@ VIEWS = [
     ("Suspended users", SuspensionsView),
     ("Item types", ItemTypesView),
     ("Option sets", OptionSetsView),
+    ("News", NewsView),
 ]
 
 
@@ -68,10 +70,17 @@ class App(tk.Tk):
         self.show_view(VIEWS[0][0])
 
     def show_view(self, name):
+        self.current_view = name
         frame = self.views[name]
         frame.tkraise()
         if hasattr(frame, "refresh"):
             frame.refresh()
 
     def switch_view(self, event):
-        self.show_view(self.view_selector.get())
+        name = self.view_selector.get()
+        current = self.views.get(getattr(self, "current_view", None))
+        # A tab with unsaved work (News) may keep the user there.
+        if name != self.current_view and current is not None and hasattr(current, "can_leave") and not current.can_leave():
+            self.view_selector.set(self.current_view)
+            return
+        self.show_view(name)

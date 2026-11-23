@@ -205,6 +205,40 @@ class AdminApi(_Client):
         """An item type icon (public endpoint): PNG bytes."""
         return self._request("GET", f"/api/CollectionTypes/Icon/{file_name}").content
 
+    # ------------------------------------------------------------------ news
+
+    def news(self, status=None, page=1, page_size=100):
+        """status: "draft", "published" or None for all; newest updated first."""
+        return self._json("GET", "/api/Admin/News", params=_params(status=status, page=page, pageSize=page_size))
+
+    def news_post(self, news_id):
+        return self._json("GET", f"/api/Admin/News/{news_id}")
+
+    def create_news(self, body):
+        """body: {title, heroImage, content}; a new post is a draft."""
+        return self._json("POST", "/api/Admin/News", json=body)
+
+    def update_news(self, news_id, body):
+        return self._json("PUT", f"/api/Admin/News/{news_id}", json=body)
+
+    def publish_news(self, news_id, published):
+        return self._json("POST", f"/api/Admin/News/{news_id}/Publish", json={"published": bool(published)})
+
+    def delete_news(self, news_id):
+        return self._json("DELETE", f"/api/Admin/News/{news_id}")
+
+    def upload_news_image(self, path):
+        """A banner or content image; answers its stored name (re-encoded by the API)."""
+        return self._upload("/api/Admin/News/Images", {"file": path})["fileName"]
+
+    def link_targets(self, target_type, query):
+        """target_type: user, collection, item, listing or news. Up to 20 {type, id, label, detail, link}."""
+        return self._json("GET", "/api/Admin/News/LinkTargets", params={"type": target_type, "query": query or ""})
+
+    def news_image(self, file_name):
+        """A news image (public endpoint): JPEG or PNG bytes."""
+        return self._request("GET", f"/api/News/Image/{file_name}").content
+
     def _upload(self, path, files, data=None):
         handles = {}
         try:
