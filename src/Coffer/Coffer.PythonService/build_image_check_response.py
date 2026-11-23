@@ -3,6 +3,7 @@ import numpy as np
 
 from save_temp_files import save_temp_files
 from vector_db_utils import query_vectordb
+from vector_store import similarity_from_distance
 
 def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
     """Compute cosine similarity between two vectors."""
@@ -14,7 +15,7 @@ def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
 def build_image_check_response(
     results: List[Dict],
     vector_db_collection,
-    main_threshold,
+    thresholds: Dict[str, float],
     save_path: str,
     metadata_filters: List[Tuple[str, str]] = []
 ) -> List[Dict]:
@@ -25,8 +26,7 @@ def build_image_check_response(
     Args:
         results: List of dicts {"id": str, "image": np.ndarray, "embedding": np.ndarray}.
         vector_db_collection: ChromaDB collection object for similarity search.
-        main_threshold: Threshold to consider 'found'.
-        secondary_threshold: Threshold to include in similars array.
+        thresholds: {"found": cosine for 'found' (also merges crops of one photo), "similar": cosine for similars}.
         metadata_filters: Metadata filters to apply when querying the DB.
 
     Returns:
@@ -40,7 +40,8 @@ def build_image_check_response(
 
         """
 
-    secondary_threshold = main_threshold - 0.1
+    main_threshold = thresholds["found"]
+    secondary_threshold = thresholds["similar"]
     n = len(results)
     used_indices = set() 
     response = []
@@ -69,9 +70,9 @@ def build_image_check_response(
             top_n=3
         )
 
-        similars = [r["id"] for r in db_results if 1 - r["distance"] >= secondary_threshold]
+        similars = [r["id"] for r in db_results if similarity_from_distance(r["distance"]) >= secondary_threshold]
 
-        top_similarity = 1 - db_results[0]["distance"] if db_results else 0
+        top_similarity = similarity_from_distance(db_results[0]["distance"]) if db_results else 0
         state = "found" if top_similarity >= main_threshold else "not found"
 
         save_temp_files(item_i, save_path)

@@ -7,7 +7,7 @@ import os
 from dotenv import load_dotenv
 from fastapi.concurrency import asynccontextmanager
 from build_image_check_response import build_image_check_response
-from config import DOTENV_PATH, OBJECT_DETECTION_THRESHOLD, SIMILARITY_THRESHOLD, TEST_UPLOAD_DIR, VECTOR_COLLECTION_NAME
+from config import DOTENV_PATH, LEGACY_THRESHOLDS, OBJECT_DETECTION_THRESHOLD, TEST_UPLOAD_DIR, VECTOR_COLLECTION_NAME
 from delete_embedding_from_vectordb import delete_embedding_from_vectordb
 from delete_embeddings_from_vectordb import delete_embeddings_from_vectordb
 from file_utils import save_dicts_to_txt, save_images, similarity_model_file, uploadfile_to_numpy
@@ -21,6 +21,7 @@ from typing import List
 from save_embeddings_to_vectordb import save_embeddings_to_vectordb
 from pending import pending_folder, pending_similars, save_pending_embedding
 import chromadb
+from vector_store import open_cosine_collection
 
 
 load_dotenv()
@@ -32,9 +33,7 @@ async def lifespan(app: FastAPI):
     )
     print("vector_db initialized:", app.state.vector_db)
 
-    app.state.collection = app.state.vector_db.get_or_create_collection(
-        name=VECTOR_COLLECTION_NAME
-    )
+    app.state.collection = open_cosine_collection(app.state.vector_db, VECTOR_COLLECTION_NAME)
     print(f"Collection '{VECTOR_COLLECTION_NAME}' ready.")
 
     yield
@@ -112,7 +111,7 @@ async def image_check(
         response = build_image_check_response(
             results,
             vector_db_collection=app.state.collection,
-            main_threshold=SIMILARITY_THRESHOLD,
+            thresholds=LEGACY_THRESHOLDS,
             save_path=os.getenv("IMAGECHECK_TEMP_PATH"),
             metadata_filters=[("collection_id", collection_id)]
         )
@@ -181,7 +180,7 @@ class PendingEmbedding(BaseModel):
 async def pending_similars_route(collection_id: UUID, body: PendingIds):
     """Matches for waiting caps, from their stored fingerprints."""
     try:
-        response = pending_similars(app.state.collection, str(collection_id), pending_folder(), [str(i) for i in body.ids])
+        response = pending_similars(app.state.collection, str(collection_id), pending_folder(), [str(i) for i in body.ids], LEGACY_THRESHOLDS)
         return {"status": "ok", "response": response}
     except Exception as e:
         return error_response(e)

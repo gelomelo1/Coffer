@@ -76,6 +76,20 @@ class PendingTests(unittest.TestCase):
         self.assertEqual(by_id[missing], {"id": missing, "state": "not found", "similars": []})
         self.assertEqual(collection.queries, [{"collection_id": self.collection_id}])
 
+    def test_pending_similars_use_the_given_thresholds(self):
+        from pending import pending_similars
+        stored, match = str(uuid.uuid4()), str(uuid.uuid4())
+        self.write_npy(stored)
+        folder = os.path.join(self.store, "pending")
+
+        loose = pending_similars(FakeCollection(matches=[(match, 0.05)]), self.collection_id, folder, [stored],
+                                 {"found": 0.9, "similar": 0.8})
+        strict = pending_similars(FakeCollection(matches=[(match, 0.05)]), self.collection_id, folder, [stored],
+                                  {"found": 0.99, "similar": 0.97})
+
+        self.assertEqual((loose[0]["state"], loose[0]["similars"]), ("found", [match]))
+        self.assertEqual((strict[0]["state"], strict[0]["similars"]), ("not found", []))
+
     def test_save_pending_embedding_adds_under_item_id(self):
         pending_id, item_id = str(uuid.uuid4()), str(uuid.uuid4())
         self.write_npy(pending_id)
