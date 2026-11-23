@@ -167,6 +167,13 @@ class ViewTests(unittest.TestCase):
             embedding.destroy()
             detection.destroy()
 
+    def test_help_explains_every_setting_of_its_tab(self):
+        from training.help import HELP
+        for kind in ("embedding", "detection"):
+            labels = [label for _, label, _ in view_module.SETTINGS[kind]] + [label for _, label in view_module.AUGMENTATION[kind]]
+            missing = [label for label in labels if label.split(" (")[0] not in HELP[kind]]
+            self.assertEqual(missing, [], kind)
+
     def test_deploy_embedding_sends_class_count(self):
         done = runs.create_run(self.root, config.EmbeddingConfig(name="d", train_dir="a", test_dir="b"))
         runs.write_progress(done, "done")
