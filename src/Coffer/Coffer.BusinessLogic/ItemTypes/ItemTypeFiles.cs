@@ -32,7 +32,11 @@ namespace Coffer.BusinessLogic.ItemTypes
         void DeleteIcon(string? fileName);
         /// <summary>Null when the name is not a valid icon name or the file is missing.</summary>
         (Stream Stream, string ContentType)? OpenIcon(string fileName);
-        Task<SavedModels> SaveModelsAsync(int typeId, IFormFile? detection, IFormFile? embedding, int? classCount);
+        /// <summary>Stores the models only after the AI service loaded every one of them (validator); otherwise nothing
+        /// changes and "modelInvalid" is thrown.</summary>
+        Task<SavedModels> SaveModelsAsync(int typeId, IFormFile? detection, IFormFile? embedding, int? classCount, IModelValidator validator);
+        /// <summary>The live model file of a type ("detection" or "embedding"), or null.</summary>
+        string? ModelPath(int typeId, string kind);
         void DeleteModels(int typeId);
     }
 
@@ -69,7 +73,7 @@ namespace Coffer.BusinessLogic.ItemTypes
             return null;
         }
 
-        public async Task<SavedModels> SaveModelsAsync(int typeId, IFormFile? detection, IFormFile? embedding, int? classCount)
+        public async Task<SavedModels> SaveModelsAsync(int typeId, IFormFile? detection, IFormFile? embedding, int? classCount, IModelValidator validator)
         {
             if (detection == null && embedding == null)
                 throw MarketplaceException.Validation("noModelFiles", "Choose the detection model, the embedding model, or both.");
@@ -78,18 +82,52 @@ namespace Coffer.BusinessLogic.ItemTypes
             foreach (var file in new[] { detection, embedding }.Where(f => f != null)) await CheckModelAsync(file!);
 
             Directory.CreateDirectory(ModelsFolder);
-            string? detectionSha = null, embeddingSha = null;
-            if (detection != null)
-                detectionSha = await WriteAtomicallyAsync(detection, Path.Combine(ModelsFolder, DetectionName(typeId)));
-            if (embedding != null)
+            var staged = new List<(string Candidate, string Final, string Kind, string Sha)>();
+            try
             {
-                var name = $"{typeId}_similarity_{classCount}.pt";
-                embeddingSha = await WriteAtomicallyAsync(embedding, Path.Combine(ModelsFolder, name));
-                // The AI service takes the first match: older embeddings of this type must go.
-                foreach (var old in EmbeddingFiles(typeId).Where(f => Path.GetFileName(f.Path) != name)) File.Delete(old.Path);
+                if (detection != null)
+                {
+                    var final = Path.Combine(ModelsFolder, DetectionName(typeId));
+                    staged.Add((final + ".candidate", final, "detection", await WriteAtomicallyAsync(detection, final + ".candidate")));
+                }
+                if (embedding != null)
+                {
+                    var final = Path.Combine(ModelsFolder, $"{typeId}_similarity_{classCount}.pt");
+                    staged.Add((final + ".candidate", final, "embedding", await WriteAtomicallyAsync(embedding, final + ".candidate")));
+                }
+
+                // The AI service must be able to load every new file before any of them replaces a live model.
+                foreach (var (candidate, _, kind, _) in staged)
+                {
+                    var result = await validator.ValidateAsync(Path.GetFileName(candidate), kind);
+                    if (!result.Ok)
+                        throw MarketplaceException.Validation("modelInvalid", "The AI service could not load this model file.");
+                }
+
+                foreach (var (candidate, final, kind, _) in staged)
+                {
+                    File.Move(candidate, final, overwrite: true);
+                    // The AI service takes the first match: older embeddings of this type must go.
+                    if (kind == "embedding")
+                        foreach (var old in EmbeddingFiles(typeId).Where(f => f.Path != final)) File.Delete(old.Path);
+                }
             }
-            return new SavedModels(Detection(typeId), Embedding(typeId), detectionSha, embeddingSha);
+            finally
+            {
+                foreach (var (candidate, _, _, _) in staged)
+                    if (File.Exists(candidate)) File.Delete(candidate);
+            }
+
+            string? Sha(string kind) => staged.Where(f => f.Kind == kind).Select(f => f.Sha).FirstOrDefault();
+            return new SavedModels(Detection(typeId), Embedding(typeId), Sha("detection"), Sha("embedding"));
         }
+
+        public string? ModelPath(int typeId, string kind) => kind switch
+        {
+            "detection" => File.Exists(Path.Combine(ModelsFolder, DetectionName(typeId))) ? Path.Combine(ModelsFolder, DetectionName(typeId)) : null,
+            "embedding" => EmbeddingFiles(typeId).Select(f => f.Path).FirstOrDefault(),
+            _ => null,
+        };
 
         public void DeleteModels(int typeId)
         {

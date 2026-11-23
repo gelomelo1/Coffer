@@ -37,6 +37,8 @@ namespace Coffer.BusinessLogic.ItemTypes
         Task<AdminItemTypeDto> SetIconAsync(Guid adminId, int id, Microsoft.AspNetCore.Http.IFormFile? file);
         Task<AdminItemTypeDto> SetModelsAsync(Guid adminId, int id, Microsoft.AspNetCore.Http.IFormFile? detection,
             Microsoft.AspNetCore.Http.IFormFile? embedding, int? classCount);
+        /// <summary>Path of the type's live model ("detection" or "embedding"); NotFound "modelNotFound" otherwise.</summary>
+        Task<string> ModelFileAsync(int id, string kind);
     }
 
     /// <summary>
@@ -55,9 +57,11 @@ namespace Coffer.BusinessLogic.ItemTypes
         private readonly CofferDbContext _db;
         private readonly IClock _clock;
         private readonly IItemTypeFiles _files;
+        private readonly IModelValidator _validator;
 
-        public ItemTypeAdminService(CofferDbContext db, IClock clock, IItemTypeFiles files)
+        public ItemTypeAdminService(CofferDbContext db, IClock clock, IItemTypeFiles files, IModelValidator validator)
         {
+            _validator = validator;
             _db = db;
             _clock = clock;
             _files = files;
@@ -177,7 +181,7 @@ namespace Coffer.BusinessLogic.ItemTypes
             Microsoft.AspNetCore.Http.IFormFile? embedding, int? classCount)
         {
             if (!await _db.CollectionTypes.AnyAsync(t => t.Id == id)) throw TypeNotFound();
-            var saved = await _files.SaveModelsAsync(id, detection, embedding, classCount);
+            var saved = await _files.SaveModelsAsync(id, detection, embedding, classCount, _validator);
             Audit(adminId, "itemType.models", new
             {
                 itemTypeId = id,
@@ -310,6 +314,12 @@ namespace Coffer.BusinessLogic.ItemTypes
         private static MarketplaceException InUse(int used) =>
             MarketplaceException.Conflict("attributeInUse", $"{used} item(s) have a value for this attribute: it can't be deleted or change its data type or option set.",
                 ErrorArgs.Of($"{used}"));
+
+        public async Task<string> ModelFileAsync(int id, string kind)
+        {
+            if (!await _db.CollectionTypes.AnyAsync(t => t.Id == id)) throw TypeNotFound();
+            return _files.ModelPath(id, kind) ?? throw MarketplaceException.NotFound("modelNotFound", "This item type has no such model.");
+        }
 
         private static MarketplaceException TypeNotFound() => MarketplaceException.NotFound("itemTypeNotFound", "Item type not found.");
 

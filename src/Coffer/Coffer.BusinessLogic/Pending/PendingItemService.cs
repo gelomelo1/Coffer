@@ -131,7 +131,8 @@ namespace Coffer.BusinessLogic.Pending
             if (ids.Count == 0) return result;
             try
             {
-                var response = await _http.PostAsJsonAsync($"{PythonUrl}/pending_similars/{collectionId}", new { ids });
+                var typeId = await _db.Collections.Where(c => c.Id == collectionId).Select(c => c.CollectionTypeId).FirstOrDefaultAsync();
+                var response = await _http.PostAsJsonAsync($"{PythonUrl}/pending_similars/{collectionId}?type_id={typeId}", new { ids });
                 if (!response.IsSuccessStatusCode) return result;
                 var parsed = JsonSerializer.Deserialize<MatchResponse>(await response.Content.ReadAsStringAsync(), Json);
                 foreach (var m in parsed?.Response ?? new()) result[m.Id] = (m.State, m.Similars ?? new());

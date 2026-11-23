@@ -85,7 +85,7 @@ namespace Coffer.Tests.ItemTypes
         {
             var id = NewTypeId();
 
-            var saved = await Sut.SaveModelsAsync(id, Upload(Model(), "best.pt", field: "detection"), Upload(Model(), "anything.pt", field: "embedding"), 60);
+            var saved = await Sut.SaveModelsAsync(id, Upload(Model(), "best.pt", field: "detection"), Upload(Model(), "anything.pt", field: "embedding"), 60, new FakeModelValidator());
 
             Assert.True(File.Exists(Path.Combine(TestEnvironment.Models, $"{id}_detection.pt")));
             Assert.True(File.Exists(Path.Combine(TestEnvironment.Models, $"{id}_similarity_60.pt")));
@@ -97,15 +97,15 @@ namespace Coffer.Tests.ItemTypes
 
         [Fact]
         public void ModelRejectsNonZip() =>
-            Assert.Equal("invalidModel", Code(() => Sut.SaveModelsAsync(NewTypeId(), Upload(new byte[] { 1, 2, 3, 4, 5 }, "x.pt"), null, null)));
+            Assert.Equal("invalidModel", Code(() => Sut.SaveModelsAsync(NewTypeId(), Upload(new byte[] { 1, 2, 3, 4, 5 }, "x.pt"), null, null, new FakeModelValidator())));
 
         [Fact]
         public async Task ReplacingEmbeddingRemovesOldFile()
         {
             var id = NewTypeId();
-            await Sut.SaveModelsAsync(id, null, Upload(Model(), "a.pt"), 10);
+            await Sut.SaveModelsAsync(id, null, Upload(Model(), "a.pt"), 10, new FakeModelValidator());
 
-            await Sut.SaveModelsAsync(id, null, Upload(Model(), "b.pt"), 12);
+            await Sut.SaveModelsAsync(id, null, Upload(Model(), "b.pt"), 12, new FakeModelValidator());
 
             Assert.Equal(new[] { $"{id}_similarity_12.pt" }, Directory.GetFiles(TestEnvironment.Models, $"{id}_similarity_*").Select(Path.GetFileName));
         }
@@ -113,9 +113,9 @@ namespace Coffer.Tests.ItemTypes
         [Fact]
         public void EmbeddingNeedsClassCount()
         {
-            Assert.Equal("classCountRequired", Code(() => Sut.SaveModelsAsync(NewTypeId(), null, Upload(Model(), "a.pt"), null)));
-            Assert.Equal("classCountRequired", Code(() => Sut.SaveModelsAsync(NewTypeId(), null, Upload(Model(), "a.pt"), 1)));
-            Assert.Equal("noModelFiles", Code(() => Sut.SaveModelsAsync(NewTypeId(), null, null, null)));
+            Assert.Equal("classCountRequired", Code(() => Sut.SaveModelsAsync(NewTypeId(), null, Upload(Model(), "a.pt"), null, new FakeModelValidator())));
+            Assert.Equal("classCountRequired", Code(() => Sut.SaveModelsAsync(NewTypeId(), null, Upload(Model(), "a.pt"), 1, new FakeModelValidator())));
+            Assert.Equal("noModelFiles", Code(() => Sut.SaveModelsAsync(NewTypeId(), null, null, null, new FakeModelValidator())));
         }
 
         [Fact]
@@ -123,8 +123,8 @@ namespace Coffer.Tests.ItemTypes
         {
             var id = NewTypeId();
             var other = NewTypeId();
-            await Sut.SaveModelsAsync(id, Upload(Model(), "d.pt"), Upload(Model(), "e.pt"), 5);
-            await Sut.SaveModelsAsync(other, Upload(Model(), "d.pt"), null, null);
+            await Sut.SaveModelsAsync(id, Upload(Model(), "d.pt"), Upload(Model(), "e.pt"), 5, new FakeModelValidator());
+            await Sut.SaveModelsAsync(other, Upload(Model(), "d.pt"), null, null, new FakeModelValidator());
 
             Sut.DeleteModels(id);
 

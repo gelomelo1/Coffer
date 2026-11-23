@@ -90,6 +90,8 @@
     "messageNotFound": "Message not found.",
     "missingDeviceCode": "Missing device code.",
     "missingPayload": "Missing payload.",
+    "modelInvalid": "The AI service could not load this model file.",
+    "modelNotFound": "This item type has no such model.",
     "mustBeAtMostCharacters": "{{p0}} must be at most {{p1}} characters.",
     "newSetWithOptionIds": "A new option set can't refer to existing option ids.",
     "newsImageNotFound": "An image of the post was not uploaded (or was deleted).",

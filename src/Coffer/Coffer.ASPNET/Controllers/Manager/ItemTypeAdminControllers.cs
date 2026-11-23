@@ -56,6 +56,14 @@ namespace Coffer.ASPNET.Controllers.Manager
         public async Task<ActionResult<AdminItemTypeDto>> Models(int id, IFormFile? detection, IFormFile? embedding, [FromForm] int? classCount)
             => Ok(await _types.SetModelsAsync(AdminId, id, detection, embedding, classCount));
 
+        /// <summary>The live model file ("detection" or "embedding"), for the Manager's comparison with a new model.</summary>
+        [HttpGet("{id:int}/Models/{kind}")]
+        public async Task<IActionResult> ModelFile(int id, string kind)
+        {
+            var path = await _types.ModelFileAsync(id, kind);
+            return PhysicalFile(path, "application/octet-stream", Path.GetFileName(path));
+        }
+
         [HttpPost("{id:int}/Publish")]
         public async Task<ActionResult<AdminItemTypeDto>> Publish(int id, [FromBody] PublishInput input)
             => Ok(await _publishing.SetPublishedAsync(AdminId, id, input.Published));

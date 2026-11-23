@@ -90,6 +90,8 @@
     "messageNotFound": "Az üzenet nem található.",
     "missingDeviceCode": "Hiányzik az eszközkód.",
     "missingPayload": "Hiányzik az adatcsomag.",
+    "modelInvalid": "Az MI szolgáltatás nem tudta betölteni ezt a modellfájlt.",
+    "modelNotFound": "Ennek a tárgytípusnak nincs ilyen modellje.",
     "mustBeAtMostCharacters": "{{p0}}: legfeljebb {{p1}} karakter lehet.",
     "newSetWithOptionIds": "Új opciókészlet nem hivatkozhat meglévő opcióazonosítókra.",
     "newsImageNotFound": "A bejegyzés egyik képe nincs feltöltve (vagy törölték).",

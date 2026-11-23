@@ -71,6 +71,7 @@ namespace Coffer.Infrastructure
             services.AddScoped<Coffer.BusinessLogic.News.INewsService, Coffer.BusinessLogic.News.NewsService>();
             services.AddScoped<Coffer.BusinessLogic.ItemTypes.IItemTypeVisibility, Coffer.BusinessLogic.ItemTypes.ItemTypeVisibility>();
             services.AddSingleton<Coffer.BusinessLogic.ItemTypes.IItemTypeFiles, Coffer.BusinessLogic.ItemTypes.ItemTypeFiles>();
+            services.AddHttpClient<Coffer.BusinessLogic.ItemTypes.IModelValidator, Coffer.BusinessLogic.ItemTypes.HttpModelValidator>(c => c.Timeout = TimeSpan.FromMinutes(2));
             services.AddScoped<Coffer.BusinessLogic.ItemTypes.IItemTypeAdminService, Coffer.BusinessLogic.ItemTypes.ItemTypeAdminService>();
             services.AddScoped<Coffer.BusinessLogic.ItemTypes.IOptionSetAdminService, Coffer.BusinessLogic.ItemTypes.OptionSetAdminService>();
             services.AddScoped<Coffer.BusinessLogic.ItemTypes.IItemTypePublishing, Coffer.BusinessLogic.ItemTypes.ItemTypePublishing>();

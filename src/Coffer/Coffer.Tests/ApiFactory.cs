@@ -105,6 +105,9 @@ namespace Coffer.Tests
                 // activity. The fill has its own tests (ActivityBackfillTests).
                 services.AddScoped<Coffer.BusinessLogic.Activity.IActivityBackfill, NoActivityBackfill>();
 
+                // Model uploads are checked by the AI service; by default every model loads (ModelValidationTests vary it).
+                services.AddSingleton<Coffer.BusinessLogic.ItemTypes.IModelValidator>(new Coffer.Tests.ItemTypes.FakeModelValidator());
+
                 Overrides?.Invoke(services);
             });
         }
