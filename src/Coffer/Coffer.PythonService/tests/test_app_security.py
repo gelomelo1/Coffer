@@ -71,7 +71,7 @@ class AppSecurityTests(unittest.TestCase):
     # --- input validation (ids end up in file paths / vector DB filters) ---
 
     def test_image_check_rejects_non_numeric_collection_type(self):
-        with mock.patch.object(app_module, "initialize_models") as init:
+        with mock.patch.object(app_module, "type_models") as init:
             response = self.client.post(
                 f"/image_check/..%2E%2E/{uuid.uuid4()}",
                 files={"file": ("a.jpg", b"123", "image/jpeg")},
@@ -80,7 +80,7 @@ class AppSecurityTests(unittest.TestCase):
         init.assert_not_called()
 
     def test_image_check_rejects_non_uuid_collection_id(self):
-        with mock.patch.object(app_module, "initialize_models") as init:
+        with mock.patch.object(app_module, "type_models") as init:
             response = self.client.post(
                 "/image_check/1/not-a-uuid",
                 files={"file": ("a.jpg", b"123", "image/jpeg")},

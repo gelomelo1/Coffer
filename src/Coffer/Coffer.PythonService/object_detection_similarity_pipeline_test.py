@@ -1,51 +1,25 @@
 import uuid
-from typing import List, Tuple, Dict
-import numpy as np
-from ultralytics import YOLO
-from torch import nn
+from typing import Dict, List, Tuple
 
+import numpy as np
+
+from coffer_models import DetectionModel, EmbeddingModel
 from cosine_similarity import cosine_similarity
-from crop_objects_from_image import crop_objects_from_image
-from image_to_cnn_embedding import image_to_cnn_embedding
+
 
 def object_detection_similarity_pipeline_test(
-    yolo_model: YOLO,
-    cnn_model: nn.Module,
+    detection: DetectionModel,
+    embedding: EmbeddingModel,
     image_array: np.ndarray,
-    conf_threshold: float = 0.8
 ) -> Tuple[List[Dict], List[Dict], List[Dict]]:
-    """
-    Full pipeline: YOLO object detection, CLIP embeddings, and pairwise cosine similarity.
-
-    Args:
-        yolo_model (YOLO): Loaded YOLO model.
-        clip_model (SentenceTransformer): Loaded CLIP model.
-        image_array (np.ndarray): Input RGB image as NumPy array.
-        conf_threshold (float): YOLO detection confidence threshold.
-
-    Returns:
-        Tuple:
-            - cropped_images: List of dicts {"id": str, "image": np.ndarray}
-            - embeddings: List of dicts {"id": str, "embedding": np.ndarray}
-            - similarities: List of dicts {"id1": str, "id2": str, "similarity": float}
-    """
-
-    crops = crop_objects_from_image(yolo_model, image_array, conf_threshold=conf_threshold)
-
-    cropped_images = [{"id": str(uuid.uuid4()), "image": crop} for crop in crops]
-
-    embeddings = []
-    for item in cropped_images:
-        emb = image_to_cnn_embedding(cnn_model, item["image"])
-        embeddings.append({"id": item["id"], "embedding": emb})
+    """Development check: crops, their embeddings, and the cosine similarity of every pair of crops."""
+    cropped_images = [{"id": str(uuid.uuid4()), "image": crop} for crop in detection.crops(image_array)]
+    embeddings = [{"id": item["id"], "embedding": embedding.embed(item["image"])} for item in cropped_images]
 
     similarities = []
-    n = len(embeddings)
-    for i in range(n):
-        for j in range(i + 1, n):
-            id1 = embeddings[i]["id"]
-            id2 = embeddings[j]["id"]
+    for i in range(len(embeddings)):
+        for j in range(i + 1, len(embeddings)):
             sim = cosine_similarity(embeddings[i]["embedding"], embeddings[j]["embedding"])
-            similarities.append({"id1": id1, "id2": id2, "similarity": sim})
+            similarities.append({"id1": embeddings[i]["id"], "id2": embeddings[j]["id"], "similarity": sim})
 
     return cropped_images, embeddings, similarities
