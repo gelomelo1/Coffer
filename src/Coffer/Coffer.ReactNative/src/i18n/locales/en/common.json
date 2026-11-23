@@ -18,7 +18,8 @@
     "select": "Select an option",
     "none": "None",
     "ok": "OK",
-    "clear": "Clear"
+    "clear": "Clear",
+    "shareLink": "Share app link"
   },
   "states": {
     "loading": "Loading",
@@ -90,5 +91,8 @@
     "collection": "Deleted user's collection",
     "item": "Deleted user's item",
     "listing": "Deleted user's listing"
+  },
+  "links": {
+    "cantOpen": "This link can't be opened."
   }
 }

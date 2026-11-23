@@ -1,4 +1,5 @@
 import { Avatar } from "@/src/components/custom_ui/avatar";
+import { ShareLinkButton } from "@/src/components/custom_ui/share_link_button";
 import CustomButton from "@/src/components/custom_ui/custom_button";
 import CustomText from "@/src/components/custom_ui/custom_text";
 import { ListRow } from "@/src/components/custom_ui/list_row";
@@ -106,9 +107,12 @@ function ListingDetails() {
               <Tag label={listingStatusLabels[listing.status]} color={listing.status === "removed" ? colors.danger : colors.accent} />
             ) : null}
           </View>
-          <Text accessibilityRole="header" style={[typography.display, { color: colors.text }]}>
-            {listing.title}
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.sm }}>
+            <Text accessibilityRole="header" style={[typography.display, { color: colors.text, flex: 1 }]}>
+              {listing.title}
+            </Text>
+            <ShareLinkButton kind="listing" id={listing.id} style={{ marginTop: spacing.xxs }} />
+          </View>
           <Text style={[typography.headline, { color: colors.text }]}>{priceLine(listing)}</Text>
 
           <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: spacing.md, rowGap: spacing.xs }}>

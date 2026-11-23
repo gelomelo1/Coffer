@@ -14,13 +14,13 @@ import { navigate } from "expo-router/build/global-state/routing";
 import { useTranslation } from "react-i18next";
 import { Image, Pressable, Text, View } from "react-native";
 
-async function openProfile(userId: string) {
+export async function openProfile(userId: string, failedKey = "community:stats.profileFailed") {
   try {
     const user = (await backendAxios.get<User>(`${endpoints.users}/${userId}`)).data;
     useOtherUserStore.getState().setUser(user);
     navigate({ pathname: ROUTES.OTHERUSER, params: pageParams.otheruser(user.name) });
   } catch (error) {
-    showToast("error", apiErrorMessage(error, "community:stats.profileFailed"));
+    showToast("error", apiErrorMessage(error, failedKey));
   }
 }
 

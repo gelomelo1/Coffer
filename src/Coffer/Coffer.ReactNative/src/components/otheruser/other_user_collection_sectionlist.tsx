@@ -1,4 +1,5 @@
 import { SectionHeader } from "@/src/components/custom_ui/card";
+import { ShareLinkButton } from "@/src/components/custom_ui/share_link_button";
 import ListFooterLoading from "@/src/components/custom_ui/list_footer";
 import { Loading } from "@/src/components/custom_ui/loading";
 import { isNearEnd } from "@/src/utils/paging";
@@ -40,8 +41,11 @@ function OtherUserCollectionSectionList({ currentUser, user, collections, allLoa
       onScroll={onEndReached ? (e) => isNearEnd(e.nativeEvent, 600) && onEndReached() : undefined}
       scrollEventThrottle={200}
     >
-      <View style={{ borderWidth: borders.width, borderColor: colors.border, backgroundColor: colors.surface, padding: spacing.md }}>
-        <UserInfoCard user={user} otherUser />
+      <View style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.sm, borderWidth: borders.width, borderColor: colors.border, backgroundColor: colors.surface, padding: spacing.md }}>
+        <View style={{ flex: 1 }}>
+          <UserInfoCard user={user} otherUser />
+        </View>
+        <ShareLinkButton kind="user" id={user.id} />
       </View>
 
       <View style={{ gap: spacing.sm }}>

@@ -31,6 +31,7 @@ export const ROUTES = {
   REVIEW: "review" as any,
   COMMUNITY: {
     NEWS: "community/news" as any,
+    NEWS_POST: "community/news-post" as any,
     STATS: "community/stats" as any,
     SHAPE: "community/shape" as any,
   },
@@ -129,4 +130,9 @@ export const pageParams = {
       titleKey: "navigation:tabs.community",
       screenTitleKey,
     }),
+  /** A news post: the id travels as its own route param (the page loads the post). */
+  newsPost: (id: string) => ({
+    ...buildNavigationData({ titleKey: "navigation:tabs.community", screenTitleKey: "community:tiles.news.title" }),
+    id,
+  }),
 };

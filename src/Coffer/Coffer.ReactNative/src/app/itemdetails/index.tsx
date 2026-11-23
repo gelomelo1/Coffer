@@ -1,4 +1,5 @@
 import CommentSection from "@/src/components/comments/comment_section";
+import { ShareLinkButton } from "@/src/components/custom_ui/share_link_button";
 import CustomButton from "@/src/components/custom_ui/custom_button";
 import ItemDeleteForm from "@/src/components/itemdetails/item_delete_form";
 import { ItemAttributeList, ItemHero, ItemStats, ItemTags, ItemTextBlock } from "@/src/components/itemdetails/item_details_view";
@@ -27,7 +28,7 @@ function ItemDetails() {
     <>
       <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ padding: spacing.md, gap: spacing.lg, paddingBottom: spacing.xxl * 2 }}>
         <ItemHero item={item} collectionType={collectionType!} />
-        <View style={{ flexDirection: "row", gap: spacing.sm }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
           <CustomButton
             title={t("common:actions.edit")}
             variant="outline"
@@ -42,6 +43,7 @@ function ItemDetails() {
             onPress={() => setIsDeleteOpen(true)}
             containerStyle={{ flex: 1 }}
           />
+          <ShareLinkButton kind="item" id={item.id} />
         </View>
         <ItemStats
           item={item}

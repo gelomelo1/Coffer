@@ -16,7 +16,7 @@ import { apiErrorMessage } from "@/src/utils/market_api";
 import { navigate } from "expo-router/build/global-state/routing";
 
 /** My own collection opens its editor; someone else's (a followed one) opens their collection page. */
-async function openCollection(collectionId: string) {
+export async function openCollection(collectionId: string) {
   try {
     const collection = (await backendAxios.get<Collection>(`${endpoints.collections}/${collectionId}`)).data;
     const type = useCollectionTypeStore.getState().collectionTypes.find((t) => t.id === collection.collectionTypeId);

@@ -1,4 +1,5 @@
 import FeedLike from "@/src/components/collections/tabs/home/feed_like";
+import { ShareLinkButton } from "@/src/components/custom_ui/share_link_button";
 import FeedRarity from "@/src/components/collections/tabs/home/feed_rarity";
 import CommentSection from "@/src/components/comments/comment_section";
 import CustomButton from "@/src/components/custom_ui/custom_button";
@@ -35,13 +36,17 @@ function OtherUserItemDetails() {
 
   return (
     <ScrollView ref={scrollRef} style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ padding: spacing.md, gap: spacing.lg, paddingBottom: spacing.xxl * 2 }}>
-      <CustomButton
-        title={t("items:details.openCollection", { user: user?.name ?? "", collection: collection?.name ?? "" })}
-        variant="outline"
-        size="sm"
-        icon={<MaterialIcons name="grid-view" size={18} color={colors.text} />}
-        onPress={goToCollection}
-      />
+      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+        <CustomButton
+          title={t("items:details.openCollection", { user: user?.name ?? "", collection: collection?.name ?? "" })}
+          variant="outline"
+          size="sm"
+          icon={<MaterialIcons name="grid-view" size={18} color={colors.text} />}
+          onPress={goToCollection}
+          containerStyle={{ flex: 1 }}
+        />
+        <ShareLinkButton kind="item" id={item?.id} />
+      </View>
       <ItemHero item={item!} collectionType={collectionType!} />
       <ItemStats
         item={item!}

@@ -18,7 +18,8 @@
     "select": "Válassz egy lehetőséget",
     "none": "Nincs",
     "ok": "OK",
-    "clear": "Törlés"
+    "clear": "Törlés",
+    "shareLink": "Alkalmazáslink megosztása"
   },
   "states": {
     "loading": "Betöltés",
@@ -90,5 +91,8 @@
     "collection": "Törölt felhasználó gyűjteménye",
     "item": "Törölt felhasználó tárgya",
     "listing": "Törölt felhasználó hirdetése"
+  },
+  "links": {
+    "cantOpen": "Ez a link nem nyitható meg."
   }
 }

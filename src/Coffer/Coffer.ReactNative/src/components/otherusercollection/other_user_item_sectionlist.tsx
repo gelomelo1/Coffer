@@ -1,4 +1,5 @@
 import ListFooterLoading from "@/src/components/custom_ui/list_footer";
+import { ShareLinkButton } from "@/src/components/custom_ui/share_link_button";
 import { ItemPaging } from "@/src/hooks/collection_items";
 import { EmptyState } from "@/src/components/custom_ui/states";
 import { colors, sizes, spacing, typography } from "@/src/theme/theme";
@@ -130,14 +131,17 @@ function OtherUserItemSectionList({
       scrollEventThrottle={16}
       ListHeaderComponent={
         <>
-          <CustomButton
-            title={t("settings:otherUser.allCollections", { name: user.name })}
-            variant="outline"
-            size="sm"
-            icon={<MaterialIcons name="person" size={sizes.iconSm} color={colors.text} />}
-            containerStyle={{ marginHorizontal: spacing.md, alignSelf: "flex-start" }}
-            onPress={handleCollectionNavigation}
-          />
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.sm, marginHorizontal: spacing.md }}>
+            <CustomButton
+              title={t("settings:otherUser.allCollections", { name: user.name })}
+              variant="outline"
+              size="sm"
+              icon={<MaterialIcons name="person" size={sizes.iconSm} color={colors.text} />}
+              containerStyle={{ flexShrink: 1 }}
+              onPress={handleCollectionNavigation}
+            />
+            <ShareLinkButton kind="collection" id={collection.id} />
+          </View>
           <OtherUserCollectionInfoCard
             currentUser={currentUser}
             collection={collection}

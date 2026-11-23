@@ -1,4 +1,5 @@
 import { SectionHeader } from "@/src/components/custom_ui/card";
+import { ShareLinkButton } from "@/src/components/custom_ui/share_link_button";
 import CustomButton from "@/src/components/custom_ui/custom_button";
 import CustomHTMLView from "@/src/components/custom_ui/custom_html_view";
 import CustomImage from "@/src/components/custom_ui/custom_image";
@@ -58,7 +59,7 @@ function CollectionInfoCard() {
             <Text style={[typography.bodyStrong, { color: colors.text }]}>{t("collections:info.followers", { count: collection.follows.length })}</Text>
           </View>
         </View>
-        <View style={{ flexDirection: "row", gap: spacing.sm, padding: spacing.md, paddingTop: 0 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm, padding: spacing.md, paddingTop: 0 }}>
           <CustomButton
             title={t("common:actions.edit")}
             variant="outline"
@@ -75,6 +76,7 @@ function CollectionInfoCard() {
             onPress={() => setIsDeleteOpen(true)}
             containerStyle={{ flex: 1 }}
           />
+          <ShareLinkButton kind="collection" id={collection.id} />
         </View>
       </View>
       <View style={{ marginHorizontal: spacing.md }}>
