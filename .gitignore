@@ -29,7 +29,8 @@ venv/
 # OS / Editor
 # ----------------------------
 .DS_Store
-.vscode/
+.vscode/*
+!.vscode/tasks.json
 .idea/
 
 #Environment variables
@@ -45,3 +46,10 @@ venv/
 #Other
 UserTokens.txt
 docker-compose.prod.yml
+
+# Executable builds (Coffer.Manager, Label Studio) and Ultralytics base weights downloaded at runtime
+src/Coffer/Coffer.Manager/build/
+src/Coffer/Coffer.Manager/dist/
+src/Coffer/Coffer.Manager/*.pt
+tools/label-studio/build/
+tools/label-studio/dist/

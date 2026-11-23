@@ -1,5 +1,6 @@
 """Coffer.Manager sign-in: GitHub device flow through the backend, then a Manager token kept in memory only."""
 import os
+import sys
 import tkinter as tk
 import webbrowser
 from datetime import datetime
@@ -9,8 +10,15 @@ from dotenv import load_dotenv
 
 from reports.api import AdminApi, ApiError, ManagerAuth
 
-# Coffer.Manager/.env (git-ignored): COFFER_API_URL=http://localhost:5141
-ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
+def env_file() -> Path:
+    """Coffer.Manager/.env (git-ignored): COFFER_API_URL=http://localhost:5141. The packaged executable keeps it
+    next to Coffer.Manager.exe."""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent / ".env"
+    return Path(__file__).resolve().parent.parent / ".env"
+
+
+ENV_FILE = env_file()
 load_dotenv(ENV_FILE)
 
 

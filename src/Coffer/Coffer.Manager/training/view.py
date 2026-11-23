@@ -90,6 +90,13 @@ NOTES = {
 CLASSES = {"embedding": EmbeddingConfig, "detection": DetectionConfig}
 
 
+def worker_command(run_dir: str) -> list:
+    """How to start one training run: the packaged executable runs it itself, from source it is a module."""
+    if getattr(sys, "frozen", False):
+        return [sys.executable, "--train-worker", run_dir]
+    return [sys.executable, "-m", "training.worker", run_dir]
+
+
 def device_text() -> str:
     try:
         import torch
@@ -317,7 +324,10 @@ class ModelTrainingView(_AdminView):
             cfg.base_model = live
             config.save(cfg, os.path.join(run_dir, "config.json"))
 
-        self.processes[run_dir] = self.launcher([sys.executable, "-m", "training.worker", run_dir], cwd=MANAGER_DIR)
+        # Packaged, the worker runs in the runs folder (base weights Ultralytics downloads land there, not in the app).
+        cwd = self.runs_root if getattr(sys, "frozen", False) else MANAGER_DIR
+        flags = getattr(subprocess, "CREATE_NO_WINDOW", 0) if getattr(sys, "frozen", False) else 0
+        self.processes[run_dir] = self.launcher(worker_command(run_dir), cwd=cwd, creationflags=flags)
         self.info_var.set(f"Started {os.path.basename(run_dir)}")
         self.refresh()
         self.select_run(run_dir)

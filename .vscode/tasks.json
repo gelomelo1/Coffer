@@ -1,0 +1,27 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Coffer.Manager executable",
+      "detail": "Standalone Coffer.Manager for Windows → src/Coffer/Coffer.Manager/dist/Coffer.Manager (copy the whole folder)",
+      "type": "process",
+      "command": "${workspaceFolder}/src/Coffer/Coffer.Manager/venv/Scripts/python.exe",
+      "args": ["${workspaceFolder}/src/Coffer/Coffer.Manager/packaging/build_manager.py"],
+      "options": { "cwd": "${workspaceFolder}/src/Coffer/Coffer.Manager", "env": { "PYTHONIOENCODING": "utf-8" } },
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "Build Label Studio executable",
+      "detail": "Portable Label Studio for Windows → tools/label-studio/dist/LabelStudio (copy the whole folder)",
+      "type": "process",
+      "command": "${workspaceFolder}/src/Coffer/Coffer.Manager/venv/Scripts/python.exe",
+      "args": ["${workspaceFolder}/tools/label-studio/build_label_studio.py"],
+      "options": { "cwd": "${workspaceFolder}", "env": { "PYTHONIOENCODING": "utf-8" } },
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    }
+  ]
+}
