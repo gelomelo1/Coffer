@@ -14,6 +14,7 @@ from tkinter import filedialog, messagebox, ttk
 from typing import Optional, get_args
 
 from training import config, runs
+from training.help import HELP
 from training.coffer_models import BACKBONES
 from training.config import LOSSES, DetectionConfig, EmbeddingConfig
 from reports.view import _AdminView, _tree
@@ -148,6 +149,7 @@ class SettingsForm(tk.Frame):
         buttons.pack(fill="x", padx=8, pady=8)
         tk.Button(buttons, text="Start training", bg=GREEN, fg="white", width=16, command=lambda: view.start(kind)).pack(side="left")
         tk.Button(buttons, text="Reset to defaults", command=self.reset).pack(side="left", padx=8)
+        tk.Button(buttons, text="How to prepare the data", command=lambda: view.show_help(kind)).pack(side="left", padx=8)
         if kind == "embedding":
             tk.Button(buttons, text="Crop photos with the live detector…", command=view.crop_photos).pack(side="left", padx=8)
 
@@ -420,6 +422,9 @@ class ModelTrainingView(_AdminView):
         if self.selected and os.path.isdir(self.selected):
             os.startfile(self.selected)
 
+    def show_help(self, kind: str) -> "HelpWindow":
+        return HelpWindow(self, kind)
+
     # ------------------------------------------------------------------ deploy
 
     def can_deploy(self, run_dir: str) -> bool:
@@ -499,6 +504,25 @@ class ModelTrainingView(_AdminView):
             self.after(0, lambda: self.info_var.set(message))
 
         threading.Thread(target=work, daemon=True).start()
+
+
+class HelpWindow(tk.Toplevel):
+    """The data-preparation workflow of one model kind (read-only, scrollable)."""
+
+    def __init__(self, parent, kind: str):
+        super().__init__(parent)
+        self.title("Detection model — how to prepare the data" if kind == "detection" else "Embedding model — how to prepare the data")
+        self.geometry("860x640")
+        frame = tk.Frame(self)
+        frame.pack(fill="both", expand=True, padx=10, pady=10)
+        scroll = ttk.Scrollbar(frame, orient="vertical")
+        self.text = tk.Text(frame, wrap="word", font=("Consolas", 10), padx=10, pady=8, yscrollcommand=scroll.set)
+        scroll.configure(command=self.text.yview)
+        scroll.pack(side="right", fill="y")
+        self.text.pack(side="left", fill="both", expand=True)
+        self.text.insert("1.0", HELP[kind])
+        self.text.configure(state="disabled")
+        tk.Button(self, text="Close", command=self.destroy).pack(pady=(0, 10))
 
 
 class _ChooseType(tk.Toplevel):

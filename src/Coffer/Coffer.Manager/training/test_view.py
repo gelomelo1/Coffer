@@ -152,6 +152,21 @@ class ViewTests(unittest.TestCase):
         self.view.poll_once()
         self.assertEqual(runs.read_progress(run_dir)["phase"], "stopped")
 
+    def test_help_explains_each_workflow(self):
+        embedding = self.view.show_help("embedding")
+        detection = self.view.show_help("detection")
+        try:
+            embedding_text = embedding.text.get("1.0", "end")
+            detection_text = detection.text.get("1.0", "end")
+            self.assertIn("Crop photos with the live detector", embedding_text)
+            self.assertIn("different caps", embedding_text)
+            self.assertIn("Label Studio", detection_text)
+            self.assertIn("classes.txt", detection_text)
+            self.assertIn("test", detection_text)
+        finally:
+            embedding.destroy()
+            detection.destroy()
+
     def test_deploy_embedding_sends_class_count(self):
         done = runs.create_run(self.root, config.EmbeddingConfig(name="d", train_dir="a", test_dir="b"))
         runs.write_progress(done, "done")
