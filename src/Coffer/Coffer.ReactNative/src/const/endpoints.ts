@@ -55,4 +55,5 @@ export const endpoints = {
   accountDeletion: "api/Account/Deletion",
   activity: "api/Activity",
   communityStats: "api/Community/Stats",
+  news: "api/News",
 };

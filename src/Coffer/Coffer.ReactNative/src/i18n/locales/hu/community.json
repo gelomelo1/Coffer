@@ -15,7 +15,16 @@
     }
   },
   "news": {
-    "comingSoon": "Itt jelennek majd meg a Coffer és a közösség hírei: új funkciók, események és gyűjtők történetei."
+    "today": "Ma",
+    "yesterday": "Tegnap",
+    "daysAgo_one": "{{count}} napja",
+    "daysAgo_other": "{{count}} napja",
+    "dateEdited": "{{date}} · szerkesztve",
+    "openHint": "Megnyitja a bejegyzést",
+    "emptyTitle": "Még nincs hír",
+    "emptyText": "Itt jelennek meg a Cofferrel és a közösséggel kapcsolatos hírek: új funkciók, események és gyűjtői történetek.",
+    "goneTitle": "Ez a bejegyzés nem érhető el",
+    "goneText": "Lehet, hogy visszavonták vagy törölték."
   },
   "shape": {
     "comingSoon": "Hamarosan segíthetsz új gyűjthető tárgyakat hozni a Cofferbe: küldj fotókat és adatokat, hogy az app megtanulja felismerni őket."

@@ -15,7 +15,16 @@
     }
   },
   "news": {
-    "comingSoon": "Updates about Coffer and its community will appear here: new features, events and stories from collectors."
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo_one": "{{count}} day ago",
+    "daysAgo_other": "{{count}} days ago",
+    "dateEdited": "{{date}} · edited",
+    "openHint": "Opens the post",
+    "emptyTitle": "No news yet",
+    "emptyText": "Updates about Coffer and its community will appear here: new features, events and stories from collectors.",
+    "goneTitle": "This post is not available",
+    "goneText": "It may have been taken down or deleted."
   },
   "shape": {
     "comingSoon": "Soon you can help bring new kinds of collectibles to Coffer: send photos and details so the app learns to recognise them."
