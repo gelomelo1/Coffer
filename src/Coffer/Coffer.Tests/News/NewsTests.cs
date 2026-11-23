@@ -178,6 +178,57 @@ namespace Coffer.Tests.News
             Assert.Equal(HttpStatusCode.NotFound, (await Admin().GetAsync($"api/Admin/News/{gone}")).StatusCode);
         }
 
+        /// <summary>Makes a stored image look uploaded <paramref name="days"/> days ago.</summary>
+        private static void Age(string name, int days) => File.SetLastWriteTimeUtc(StoreFile(name), DateTime.UtcNow.AddDays(-days));
+
+        [Fact]
+        public async Task UnusedUploadsAreRemovedAfterAWeek()
+        {
+            var abandoned = await Upload();
+            var recent = await Upload();
+            Age(abandoned, 8);
+            Age(recent, 6);
+
+            await Create("Any save tidies the store");
+
+            Assert.False(File.Exists(StoreFile(abandoned)));
+            Assert.True(File.Exists(StoreFile(recent)));
+        }
+
+        [Fact]
+        public async Task AReplacedBannerIsRemovedOnceOld()
+        {
+            var first = await Upload();
+            var second = await Upload();
+            var id = await Create("Banner swap", hero: first);
+            Age(first, 8);
+
+            var response = await Admin().PutAsJsonAsync($"api/Admin/News/{id}", Body(title: "Banner swap", hero: second));
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.False(File.Exists(StoreFile(first)));
+            Assert.True(File.Exists(StoreFile(second)));
+        }
+
+        [Fact]
+        public async Task ImagesInUseAreNeverRemoved()
+        {
+            var hero = await Upload();
+            var inline = await Upload();
+            var inDraft = await Upload();
+            var id = await Create("Published one", hero: hero, content: $"![x](coffer-image:{inline})");
+            await Publish(id);
+            await Create("Someone's draft", content: $"![y](coffer-image:{inDraft})");
+            foreach (var name in new[] { hero, inline, inDraft }) Age(name, 30);
+
+            await Admin().PutAsJsonAsync($"api/Admin/News/{id}", Body(title: "Published one, renamed", hero: hero, content: $"![x](coffer-image:{inline})"));
+            await Upload();
+
+            Assert.True(File.Exists(StoreFile(hero)));
+            Assert.True(File.Exists(StoreFile(inline)));
+            Assert.True(File.Exists(StoreFile(inDraft)));
+        }
+
         [Fact]
         public async Task ImageUploadIsReencodedAndServed()
         {

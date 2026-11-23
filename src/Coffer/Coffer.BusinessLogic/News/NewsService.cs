@@ -41,6 +41,8 @@ namespace Coffer.BusinessLogic.News
     {
         public const int MaxTitle = 120;
         public const int MaxContent = 50_000;
+        /// <summary>How long an image no post uses is kept (an upload into a post not saved yet, a replaced banner).</summary>
+        public static readonly TimeSpan UnusedImageGrace = TimeSpan.FromDays(7);
 
         private readonly CofferDbContext _db;
         private readonly IClock _clock;
@@ -79,6 +81,7 @@ namespace Coffer.BusinessLogic.News
             _db.NewsPosts.Add(post);
             Audit(adminId, "news.create", post.Id, new { title });
             await _db.SaveChangesAsync();
+            await DeleteUnusedImagesAsync();
             return ToAdmin(post);
         }
 
@@ -97,6 +100,7 @@ namespace Coffer.BusinessLogic.News
             if (changed && post.Status == NewsStatus.Published) post.EditedAt = now;
             Audit(adminId, "news.update", id, new { before, after = new { title, hero, contentLength = content.Length } });
             await _db.SaveChangesAsync();
+            await DeleteUnusedImagesAsync();
             return ToAdmin(post);
         }
 
@@ -126,6 +130,7 @@ namespace Coffer.BusinessLogic.News
             Audit(adminId, "news.delete", id, new { post.Title });
             await _db.SaveChangesAsync();
             foreach (var name in images.Where(n => !stillUsed.Contains(n))) NewsImages.Delete(name);
+            await DeleteUnusedImagesAsync();
         }
 
         public async Task<string> UploadImageAsync(Guid adminId, IFormFile? file)
@@ -141,6 +146,7 @@ namespace Coffer.BusinessLogic.News
                 NewsImages.Delete(name);
                 throw;
             }
+            await DeleteUnusedImagesAsync();
             return name;
         }
 
@@ -173,6 +179,14 @@ namespace Coffer.BusinessLogic.News
                 if (!NewsImages.Exists(name))
                     throw MarketplaceException.Validation("newsImageNotFound", "An image of the post was not uploaded (or was deleted).");
             return (title, hero, content);
+        }
+
+        /// <summary>Removes images no post uses once they are older than <see cref="UnusedImageGrace"/>.</summary>
+        private async Task DeleteUnusedImagesAsync()
+        {
+            var posts = await _db.NewsPosts.AsNoTracking().Select(n => new { n.HeroImage, n.Content }).ToListAsync();
+            var used = posts.SelectMany(p => NewsImages.ReferencedIn(p.Content).Append(p.HeroImage)).OfType<string>().ToHashSet();
+            NewsImages.DeleteUnused(used, _clock.UtcNow - UnusedImageGrace);
         }
 
         private void Audit(Guid adminId, string action, Guid? newsId, object details) =>

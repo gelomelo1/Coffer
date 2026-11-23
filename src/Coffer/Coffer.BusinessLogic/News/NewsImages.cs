@@ -95,6 +95,32 @@ namespace Coffer.BusinessLogic.News
             File.Delete(Path.Combine(Folder, fileName!));
         }
 
+        /// <summary>
+        /// Deletes stored images that no post refers to and that were uploaded before <paramref name="uploadedBeforeUtc"/>:
+        /// replaced banners and uploads that were never saved into a post. Younger files are kept, so an image uploaded into
+        /// a post that is still being written survives. Returns how many were deleted.
+        /// </summary>
+        public static int DeleteUnused(IReadOnlySet<string> referenced, DateTime uploadedBeforeUtc)
+        {
+            if (!Directory.Exists(Folder)) return 0;
+            var deleted = 0;
+            foreach (var path in Directory.EnumerateFiles(Folder))
+            {
+                var name = Path.GetFileName(path);
+                if (!Name.IsMatch(name) || referenced.Contains(name) || File.GetLastWriteTimeUtc(path) >= uploadedBeforeUtc) continue;
+                try
+                {
+                    File.Delete(path);
+                    deleted++;
+                }
+                catch (IOException)
+                {
+                    // In use or already gone: the next save tries again.
+                }
+            }
+            return deleted;
+        }
+
         private static MarketplaceException Invalid() =>
             MarketplaceException.Validation("invalidImage", "An image must be a PNG, JPEG or WebP picture of at most 8 MB.");
     }
