@@ -1,19 +1,19 @@
 import tkinter as tk
 from tkinter import ttk
-from similarity_check_training.view import SimilarityCheckTrainingView
 from reports.session import LoginView, Session, describe_expiry
 from reports.view import ReportedContentView, ReportsView, SuspensionsView
 from itemtypes.view import ItemTypesView, OptionSetsView
 from news.view import NewsView
+from training.view import ModelTrainingView
 
 VIEWS = [
-    ("Similarity Check Training", lambda parent, session: SimilarityCheckTrainingView(parent)),
     ("Reported content", ReportedContentView),
     ("Individual reports", ReportsView),
     ("Suspended users", SuspensionsView),
     ("Item types", ItemTypesView),
     ("Option sets", OptionSetsView),
     ("News", NewsView),
+    ("Model training", ModelTrainingView),
 ]
 
 

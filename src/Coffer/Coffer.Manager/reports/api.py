@@ -239,6 +239,18 @@ class AdminApi(_Client):
         """A news image (public endpoint): JPEG or PNG bytes."""
         return self._request("GET", f"/api/News/Image/{file_name}").content
 
+    def download_model(self, type_id, kind, dest_path):
+        """Saves the item type's live model ("detection" or "embedding") to dest_path. False when it has none."""
+        try:
+            content = self._request("GET", f"/api/Admin/ItemTypes/{type_id}/Models/{kind}", timeout=UPLOAD_TIMEOUT).content
+        except ApiError as e:
+            if e.status == 404:
+                return False
+            raise
+        with open(dest_path, "wb") as f:
+            f.write(content)
+        return True
+
     def _upload(self, path, files, data=None):
         handles = {}
         try:
