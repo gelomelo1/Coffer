@@ -69,6 +69,10 @@ class ConfigTests(Folder):
         self.assertIn("classes per batch", messages)
         self.assertEqual([], config.validate(config.EmbeddingConfig(name="run", train_dir="a", test_dir="b")))
 
+    def test_embedding_size_must_match_the_vector_store(self):
+        messages = " ".join(config.validate(config.EmbeddingConfig(name="r", train_dir="a", test_dir="b", embedding_dim=128)))
+        self.assertIn("256", messages)
+
     def test_detection_image_size_must_be_multiple_of_32(self):
         self.assertTrue(config.validate(config.DetectionConfig(name="d", train_dir="a", test_dir="b", imgsz=600)))
         self.assertEqual([], config.validate(config.DetectionConfig(name="d", train_dir="a", test_dir="b")))
@@ -86,16 +90,16 @@ class ConfigTests(Folder):
 
 class EmbeddingDataTests(Folder):
     def test_valid_data_and_manifest(self):
-        train = self.classes("train", {"c1": 4, "c2": 4, "c3": 4, "c4": 4})
+        train = self.classes("train", {"c1": 4, "c2": 4, "c3": 4, "c4": 4, "c5": 4})
         test = self.classes("test", {"t1": 3, "t2": 3}, start=100)
         data = datasets.check_embedding(train, test)
-        self.assertEqual(sorted(data.train), ["c1", "c2", "c3", "c4"])
-        self.assertEqual(len(data.manifest["train"]), 16)
+        self.assertEqual(sorted(data.train), ["c1", "c2", "c3", "c4", "c5"])
+        self.assertEqual(len(data.manifest["train"]), 20)
         self.assertEqual(len(data.manifest["test"]), 6)
         self.assertEqual(len(data.manifest["test"][0]["sha1"]), 40)
 
     def test_embedding_test_overlap_by_content_is_refused(self):
-        train = self.classes("train", {"c1": 4, "c2": 4, "c3": 4, "c4": 4})
+        train = self.classes("train", {"c1": 4, "c2": 4, "c3": 4, "c4": 4, "c5": 4})
         test = self.classes("test", {"t1": 3, "t2": 3}, start=100)
         shutil.copy(os.path.join(train, "c1", os.listdir(os.path.join(train, "c1"))[0]), os.path.join(test, "t1", "renamed.jpg"))
         with self.assertRaises(datasets.DatasetError) as e:
@@ -103,24 +107,35 @@ class EmbeddingDataTests(Folder):
         self.assertIn("renamed.jpg", str(e.exception))
 
     def test_embedding_test_class_name_overlap_is_refused(self):
-        train = self.classes("train", {"c1": 4, "c2": 4, "c3": 4, "c4": 4})
+        train = self.classes("train", {"c1": 4, "c2": 4, "c3": 4, "c4": 4, "c5": 4})
         test = self.classes("test", {"C1": 3, "t2": 3}, start=100)
         with self.assertRaises(datasets.DatasetError) as e:
             datasets.check_embedding(train, test)
         self.assertIn("C1", str(e.exception))
 
     def test_class_with_one_image_is_refused(self):
-        train = self.classes("train", {"c1": 4, "c2": 4, "c3": 4, "c4": 1})
+        train = self.classes("train", {"c1": 4, "c2": 4, "c3": 4, "c5": 4, "c4": 1})
         test = self.classes("test", {"t1": 3, "t2": 3}, start=100)
         with self.assertRaises(datasets.DatasetError) as e:
             datasets.check_embedding(train, test)
         self.assertIn("c4", str(e.exception))
 
     def test_class_with_three_images_warns(self):
-        train = self.classes("train", {"c1": 4, "c2": 4, "c3": 4, "c4": 3})
+        train = self.classes("train", {"c1": 4, "c2": 4, "c3": 4, "c5": 4, "c4": 3})
         test = self.classes("test", {"t1": 3, "t2": 3}, start=100)
         data = datasets.check_embedding(train, test)
         self.assertTrue(any("c4" in w for w in data.warnings))
+
+    def test_four_training_caps_are_too_few(self):
+        train = self.classes("train", {"c1": 4, "c2": 4, "c3": 4, "c4": 4})
+        test = self.classes("test", {"t1": 3, "t2": 3}, start=100)
+        with self.assertRaises(datasets.DatasetError) as e:
+            datasets.check_embedding(train, test)
+        self.assertIn("5", str(e.exception))
+
+    def test_split_classes_keeps_two_for_validation(self):
+        train, val = datasets.split_classes([f"c{i}" for i in range(6)], 0.15, seed=0)
+        self.assertEqual((len(train), len(val)), (4, 2))
 
     def test_split_classes_is_seeded_and_disjoint(self):
         classes = [f"c{i}" for i in range(20)]
@@ -150,6 +165,22 @@ class DetectionDataTests(Folder):
         with self.assertRaises(datasets.DatasetError):
             datasets.check_detection(train, test)
 
+    def test_one_long_session_still_leaves_training_photos(self):
+        names = [f"IMG20251009{10 + i // 60:02d}{i % 60:02d}00.jpg" for i in range(100)]  # one sitting, shots a minute apart
+        warnings = []
+        train, val = datasets.split_by_session(names, 0.15, seed=0, warnings=warnings)
+        self.assertEqual(len(train) + len(val), 100)
+        self.assertTrue(8 <= len(val) <= 23, len(val))
+        self.assertTrue(warnings)
+
+    def test_few_large_sessions_do_not_swallow_training(self):
+        names = ([f"IMG20251009{10 + i // 60:02d}{i % 60:02d}00.jpg" for i in range(50)]
+                 + [f"IMG20251010{10 + i // 60:02d}{i % 60:02d}00.jpg" for i in range(10)]
+                 + [f"IMG20251011{10 + i // 60:02d}{i % 60:02d}00.jpg" for i in range(30)])
+        for seed in range(5):
+            train, val = datasets.split_by_session(names, 0.15, seed=seed)
+            self.assertTrue(1 <= len(val) <= 21, (seed, len(val)))
+
     def test_split_by_session_keeps_sessions_together(self):
         names = ["IMG20251009173435.jpg", "IMG20251009173456.jpg", "IMG20251010120000.jpg",
                  "IMG20251011120000.jpg", "IMG20251012120000.jpg", "other.jpg"]
@@ -174,6 +205,20 @@ class MetricsTests(unittest.TestCase):
         e = np.eye(3, dtype=np.float32)
         genuine, impostor = metrics.pair_scores(e, ["a", "a", "b"])
         self.assertEqual((len(genuine), len(impostor)), (1, 2))
+
+    def test_top_impostor_is_the_closest_other_cap_per_query(self):
+        e = np.array([[1, 0], [0.8, 0.6], [0, 1], [0.6, 0.8]], dtype=np.float32)
+        top = metrics.top_impostor_scores(e, ["a", "a", "b", "b"])
+        np.testing.assert_allclose(top, [0.6, 0.96, 0.6, 0.96], atol=1e-5)
+
+    def test_found_threshold_limits_false_found_per_query(self):
+        top = np.array([0.30] * 48 + [0.70, 0.95])
+        rec = metrics.recommended_thresholds(np.array([0.99, 0.98, 0.9]), top)
+        self.assertLessEqual(np.mean(top >= rec["found"]), 0.02)
+        self.assertIn("false_found", rec)
+        low = metrics.recommended_thresholds(np.array([0.9]), np.array([0.1] * 10))
+        self.assertGreaterEqual(low["found"], metrics.MIN_FOUND)
+        self.assertGreaterEqual(low["similar"], metrics.MIN_SIMILAR)
 
     def test_threshold_at_fmr(self):
         impostor = np.round(np.arange(0.1, 1.01, 0.1), 2)

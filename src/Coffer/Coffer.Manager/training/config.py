@@ -7,6 +7,8 @@ from typing import Optional
 from training.coffer_models import BACKBONES
 
 LOSSES = ("triplet", "subcenter_arcface")
+# Every item type shares one vector collection of fingerprints with this many numbers.
+VECTOR_DIMENSION = 256
 
 
 @dataclass
@@ -89,7 +91,8 @@ def validate(cfg) -> list:
             errors.append(f"Backbone must be one of {', '.join(BACKBONES)}.")
         if cfg.loss not in LOSSES:
             errors.append(f"Loss must be one of {', '.join(LOSSES)}.")
-        _range(errors, "Embedding size", cfg.embedding_dim, 32, 2048)
+        if cfg.embedding_dim != VECTOR_DIMENSION:
+            errors.append(f"The embedding size must be {VECTOR_DIMENSION}: the vector store holds {VECTOR_DIMENSION}-number fingerprints.")
         _range(errors, "Image size", cfg.image_size, 64, 512)
         _range(errors, "Frozen stages", cfg.frozen_stages, 0, 4)
         _range(errors, "Epochs", cfg.epochs, 1, 500)

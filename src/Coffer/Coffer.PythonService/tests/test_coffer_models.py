@@ -160,9 +160,9 @@ class ValidateEndpointTests(unittest.TestCase):
         shutil.rmtree(self.dir, ignore_errors=True)
 
     def test_validate_accepts_good_and_rejects_bad(self):
-        net = cm.EmbeddingNet("resnet18", 16, pretrained=False)
+        net = cm.EmbeddingNet("resnet18", 256, pretrained=False)
         cm.save_embedding_model(os.path.join(self.dir, "5_similarity_2.pt.candidate"), net, backbone="resnet18",
-                                embedding_dim=16, image_size=64, thresholds=cm.LEGACY_THRESHOLDS, classes=["a", "b"], run_id="r")
+                                embedding_dim=256, image_size=64, thresholds=cm.LEGACY_THRESHOLDS, classes=["a", "b"], run_id="r")
         open(os.path.join(self.dir, "6_similarity_2.pt"), "wb").write(os.urandom(200))
 
         good = self.client.post("/models/validate", json={"fileName": "5_similarity_2.pt.candidate", "kind": "embedding"})
@@ -174,6 +174,15 @@ class ValidateEndpointTests(unittest.TestCase):
         self.assertEqual(bad.status_code, 422)
         self.assertEqual(escape.status_code, 422)
         self.assertEqual(wrong_kind.status_code, 422)
+
+    def test_validate_rejects_a_different_embedding_size(self):
+        """Every item type shares one vector store of 256-number fingerprints."""
+        cm.save_embedding_model(os.path.join(self.dir, "5_similarity_2.pt.candidate"), cm.EmbeddingNet("resnet18", 32),
+                                backbone="resnet18", embedding_dim=32, image_size=64, thresholds=cm.LEGACY_THRESHOLDS,
+                                classes=["a", "b"], run_id="r")
+        response = self.client.post("/models/validate", json={"fileName": "5_similarity_2.pt.candidate", "kind": "embedding"})
+        self.assertEqual(response.status_code, 422)
+        self.assertIn("256", response.json()["message"])
 
 
 if __name__ == "__main__":

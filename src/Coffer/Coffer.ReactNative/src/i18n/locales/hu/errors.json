@@ -60,6 +60,7 @@
     "fieldLengthBetween": "{{p0}}: {{p1}}–{{p2}} karakter lehet.",
     "fieldRequiredMaxCharacters": "{{p0}}: kötelező (legfeljebb {{p1}} karakter).",
     "filteringOrOrderingOnThisFieldIs": "Erre a mezőre nem lehet szűrni vagy rendezni",
+    "fingerprintRebuildFailed": "Az új modell él, de a tárolt ujjlenyomatokat nem sikerült újraépíteni. Töltsd fel újra a modellt.",
     "githubSignInIsNotAvailableRight": "A GitHub-bejelentkezés most nem érhető el. Próbáld újra később.",
     "imagesMustBeAtMost8Mb": "A képek legfeljebb 8 MB-osak lehetnek.",
     "internalServerError": "Belső szerverhiba {{p0}}",

@@ -56,6 +56,30 @@ class VectorStoreTests(unittest.TestCase):
             np.testing.assert_allclose(by_id[i][0], v, atol=1e-6)
         self.assertEqual(by_id["c"][1], {"collection_id": "y"})
 
+    def test_interrupted_swap_is_finished(self):
+        """A crash after the old collection was deleted leaves only the checked cosine copy: it becomes the collection."""
+        copy = self.client.create_collection(self.name + "_cosine", configuration={"hnsw": {"space": "cosine"}})
+        copy.add(ids=["a", "b"], embeddings=[unit([1, 0, 0]), unit([0, 1, 0])], metadatas=[{"collection_id": "x"}] * 2)
+
+        c = open_cosine_collection(self.client, self.name)
+
+        self.assertEqual(c.name, self.name)
+        self.assertEqual(sorted(c.get()["ids"]), ["a", "b"])
+        self.assertNotIn(self.name + "_cosine", [x.name for x in self.client.list_collections()])
+
+    def test_leftover_copy_is_redone_from_the_original(self):
+        """A crash while copying leaves the original intact and a partial copy: the copy is rebuilt."""
+        old = self.client.get_or_create_collection(self.name)
+        old.add(ids=["a", "b", "c"], embeddings=[unit([1, 0, 0]), unit([0, 1, 0]), unit([0, 0, 1])])
+        partial = self.client.create_collection(self.name + "_cosine", configuration={"hnsw": {"space": "cosine"}})
+        partial.add(ids=["a"], embeddings=[unit([1, 0, 0])])
+
+        c = open_cosine_collection(self.client, self.name)
+
+        self.assertEqual(self.space(c), "cosine")
+        self.assertEqual(sorted(c.get()["ids"]), ["a", "b", "c"])
+        self.assertEqual([x.name for x in self.client.list_collections() if x.name.startswith(self.name)], [self.name])
+
     def test_identical_vectors_have_similarity_one(self):
         c = open_cosine_collection(self.client, self.name)
         c.add(ids=["a"], embeddings=[unit([3, 4, 0])])

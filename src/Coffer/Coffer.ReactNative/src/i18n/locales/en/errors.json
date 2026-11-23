@@ -60,6 +60,7 @@
     "fieldLengthBetween": "{{p0}} must be {{p1}} to {{p2}} characters.",
     "fieldRequiredMaxCharacters": "{{p0}} is required (max {{p1}} characters).",
     "filteringOrOrderingOnThisFieldIs": "Filtering or ordering on this field is not allowed",
+    "fingerprintRebuildFailed": "The new model is live, but the stored fingerprints could not be rebuilt. Upload the model again.",
     "githubSignInIsNotAvailableRight": "GitHub sign-in is not available right now. Try again later.",
     "imagesMustBeAtMost8Mb": "Images must be at most 8 MB.",
     "internalServerError": "Internal server error {{p0}}",

@@ -123,6 +123,64 @@ namespace Coffer.Tests.ItemTypes
             Assert.Contains(($"{id}_similarity_60.pt.candidate", "embedding"), _validator.Calls);
         }
 
+        private (Guid Live, Guid Gone, Guid Waiting, Guid Other) SeedType(int typeId)
+        {
+            var owner = Db.AddUser("owner" + Guid.NewGuid().ToString("N")[..6]);
+            var collection = Db.AddCollection(owner, typeId, "Caps");
+            var live = Db.AddItem(collection);
+            var gone = Db.AddItem(collection);
+            gone.DeletedAt = DateTime.UtcNow;
+            var waiting = new PendingItem { Id = Guid.NewGuid(), UserId = owner.Id, CollectionId = collection.Id, Quantity = 1, Image = "w.jpg", CreatedAt = DateTime.UtcNow };
+            Db.Context.PendingItems.Add(waiting);
+            var otherType = NewType();
+            var other = Db.AddItem(Db.AddCollection(owner, otherType, "Other"));
+            Db.Context.SaveChanges();
+            return (live.Id, gone.Id, waiting.Id, other.Id);
+        }
+
+        [Fact]
+        public async Task EmbeddingUploadRebuildsTheFingerprintsOfThatType()
+        {
+            var id = NewType();
+            var seeded = SeedType(id);
+
+            var response = await Upload(id, null, Model(3), classCount: 10);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var call = _api.Python.Calls.FindIndex(c => c.Path == $"/reembed/{id}");
+            Assert.True(call >= 0, string.Join(", ", _api.Python.Calls));
+            var body = _api.Python.Bodies[call];
+            Assert.Contains(seeded.Live.ToString(), body);
+            Assert.Contains(seeded.Waiting.ToString(), body);
+            Assert.DoesNotContain(seeded.Gone.ToString(), body);
+            Assert.DoesNotContain(seeded.Other.ToString(), body);
+        }
+
+        [Fact]
+        public async Task DetectionOnlyUploadKeepsTheFingerprints()
+        {
+            var id = NewType();
+            SeedType(id);
+            await Upload(id, Model(1), null);
+            Assert.DoesNotContain(_api.Python.Calls, c => c.Path.StartsWith("/reembed/"));
+        }
+
+        [Fact]
+        public async Task FailedRebuildIsReportedAndTheModelStaysLive()
+        {
+            var id = NewType();
+            SeedType(id);
+            _api.Python.Responder = r => r.RequestUri!.AbsolutePath.StartsWith("/reembed/")
+                ? (HttpStatusCode.InternalServerError, "{\"status\":\"error\",\"message\":\"boom\"}")
+                : (HttpStatusCode.OK, "{\"status\":\"ok\"}");
+
+            var response = await Upload(id, null, Model(4), classCount: 10);
+
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            Assert.Equal("fingerprintRebuildFailed", await Code(response));
+            Assert.True(File.Exists(ModelFile($"{id}_similarity_10.pt")));
+        }
+
         [Fact]
         public async Task ModelDownloadServesTheFile()
         {

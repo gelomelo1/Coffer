@@ -9,7 +9,8 @@ import os
 from dotenv import load_dotenv
 from fastapi.concurrency import asynccontextmanager
 from build_image_check_response import build_image_check_response
-from config import DOTENV_PATH, LEGACY_THRESHOLDS, TEST_UPLOAD_DIR, VECTOR_COLLECTION_NAME
+from config import DOTENV_PATH, LEGACY_THRESHOLDS, TEST_UPLOAD_DIR, VECTOR_COLLECTION_NAME, VECTOR_DIMENSION
+from reembed import reembed
 from coffer_models import load_detection_model, load_embedding_model
 from model_cache import ModelCache
 from delete_embedding_from_vectordb import delete_embedding_from_vectordb
@@ -226,9 +227,46 @@ async def validate_model(body: ValidateModel):
     probe = np.zeros((64, 64, 3), dtype=np.uint8)
     try:
         if expected == "embedding":
-            load_embedding_model(path).embed(probe)
+            model = load_embedding_model(path)
+            model.embed(probe)
+            if int(model.meta.get("embedding_dim", 256)) != VECTOR_DIMENSION:
+                return JSONResponse(status_code=422, content={"status": "error", "message":
+                    f"The model makes {model.meta.get('embedding_dim')}-number fingerprints; the vector store holds {VECTOR_DIMENSION}."})
         else:
             load_detection_model(path).detect(probe)
         return {"status": "ok"}
     except Exception as e:
         return JSONResponse(status_code=422, content={"status": "error", "message": f"{type(e).__name__}: {e}"})
+
+
+class ReembedItem(BaseModel):
+    id: UUID
+    collectionId: UUID
+    image: str
+
+
+class ReembedPending(BaseModel):
+    id: UUID
+    image: str
+
+
+class ReembedBody(BaseModel):
+    items: List[ReembedItem] = []
+    pending: List[ReembedPending] = []
+
+
+@app.post("/reembed/{collection_type_id}")
+async def reembed_route(collection_type_id: int, body: ReembedBody):
+    """The item type has a new embedding model: rebuild every fingerprint of its items and waiting caps with it."""
+    try:
+        folder = os.getenv("MODELS_PATH")
+        name = similarity_model_file(folder, collection_type_id) if folder and os.path.isdir(folder) else None
+        if name is None:
+            raise FileNotFoundError(f"Item type {collection_type_id} has no embedding model")
+        model = MODELS.embedding(os.path.join(folder, name))
+        counts = reembed(app.state.collection, model, os.getenv("IMAGESTORE_PATH", ""),
+                         [{"id": str(i.id), "collectionId": str(i.collectionId), "image": i.image} for i in body.items],
+                         [{"id": str(p.id), "image": p.image} for p in body.pending])
+        return {"status": "ok", **counts}
+    except Exception as e:
+        return error_response(e)

@@ -62,7 +62,10 @@ def ultralytics_args(cfg, data_yaml: str, run_dir: str, device: str) -> dict:
 def train_detection(run_dir: str, cfg, data, device: str, stop_file: str) -> str:
     from ultralytics import YOLO
 
-    train, val = split_by_session(data.train, cfg.val_fraction, cfg.seed, path_of=lambda pair: pair[0])
+    warnings = []
+    train, val = split_by_session(data.train, cfg.val_fraction, cfg.seed, path_of=lambda pair: pair[0], warnings=warnings)
+    for warning in warnings:
+        runs.log(run_dir, f"Warning: {warning}")
     runs.log(run_dir, f"Training photos: {len(train)}; validation photos (whole sessions): {len(val)}.")
     data_yaml = write_yolo_dataset(run_dir, train, val, data.class_name)
 

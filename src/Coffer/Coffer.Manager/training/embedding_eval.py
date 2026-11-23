@@ -4,7 +4,7 @@ import numpy as np
 from PIL import Image
 
 from training.coffer_models import load_embedding_model
-from training.metrics import pair_scores, recommended_thresholds, retrieval_metrics
+from training.metrics import pair_scores, recommended_thresholds, retrieval_metrics, top_impostor_scores
 
 
 def evaluate_embedding(model_path: str, test: dict, device: str = "cpu") -> dict:
@@ -25,6 +25,6 @@ def evaluate_embedding(model_path: str, test: dict, device: str = "cpu") -> dict
         "genuine_mean": float(np.mean(genuine)) if len(genuine) else None,
         "impostor_mean": float(np.mean(impostor)) if len(impostor) else None,
         "impostor_max": float(np.max(impostor)) if len(impostor) else None,
-        "thresholds": recommended_thresholds(genuine, impostor),
+        "thresholds": recommended_thresholds(genuine, top_impostor_scores(emb, labels)),
     })
     return result

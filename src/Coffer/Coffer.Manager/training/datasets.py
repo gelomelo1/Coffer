@@ -13,7 +13,8 @@ from datetime import datetime
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
 STAMP = re.compile(r"(20\d{6})[_-]?(\d{6})")
 SESSION_GAP_SECONDS = 600
-MIN_TRAIN_CLASSES = 4
+MIN_TRAIN_CLASSES = 5
+MIN_VAL_CLASSES = 2
 MIN_TRAIN_IMAGES = 5
 
 
@@ -160,10 +161,11 @@ def check_detection(train_dir: str, test_dir: str) -> DetectionData:
 
 
 def split_classes(classes, fraction: float, seed: int):
-    """(training classes, validation classes): a seeded, class-disjoint split (at least one validation class)."""
+    """(training classes, validation classes): a seeded, class-disjoint split. At least two validation classes:
+    with one, every retrieval scores perfectly and no epoch can be told from another."""
     ordered = sorted(classes)
     random.Random(seed).shuffle(ordered)
-    count = max(1, round(len(ordered) * fraction))
+    count = max(MIN_VAL_CLASSES, round(len(ordered) * fraction))
     return sorted(ordered[count:]), sorted(ordered[:count])
 
 
@@ -177,9 +179,12 @@ def _stamp(path: str):
         return None
 
 
-def split_by_session(items, fraction: float, seed: int, path_of=lambda item: item):
+def split_by_session(items, fraction: float, seed: int, path_of=lambda item: item, warnings=None):
     """(train, val): photos taken within 10 minutes of each other (by the time in their file name) stay on the
-    same side, so near-identical shots never sit in both. Files without a time are sessions of their own."""
+    same side, so near-identical shots never sit in both. Files without a time are sessions of their own.
+    Whole sessions are taken while validation stays within 1.5 x its target share; if the sessions are too big
+    (e.g. one long sitting), the latest photos of the largest session fill it instead, with a warning."""
+    n = len(items)
     stamped = sorted((s, i) for i, item in enumerate(items) if (s := _stamp(path_of(item))) is not None)
     sessions, current, last = [], [], None
     for stamp, index in stamped:
@@ -191,17 +196,29 @@ def split_by_session(items, fraction: float, seed: int, path_of=lambda item: ite
     if current:
         sessions.append(current)
     stamped_indexes = {i for _, i in stamped}
-    sessions += [[i] for i in range(len(items)) if i not in stamped_indexes]
+    sessions += [[i] for i in range(n) if i not in stamped_indexes]
 
+    target = max(1, round(n * fraction))
+    limit = max(target, int(target * 1.5))
     random.Random(seed).shuffle(sessions)
-    target = max(1, round(len(items) * fraction))
-    val_indexes = set()
-    for session in sessions:
-        if len(val_indexes) >= target or len(val_indexes) + len(session) > max(target, len(items) - 1):
-            continue
-        val_indexes.update(session)
-    if not val_indexes and sessions:
-        val_indexes.update(min(sessions, key=len))
+    val, used = [], set()
+    for k, session in enumerate(sessions):
+        if len(val) >= target:
+            break
+        if len(val) + len(session) <= limit:
+            val.extend(session)
+            used.add(k)
+    if len(val) < max(1, target // 2):
+        rest = sorted((s for k, s in enumerate(sessions) if k not in used), key=len, reverse=True)
+        for session in rest:
+            need = target - len(val)
+            if need <= 0:
+                break
+            val.extend(session[-min(need, len(session) - 1 if len(session) > 1 else 1):])
+        if warnings is not None:
+            warnings.append("The photos come from too few sessions: validation photos had to be taken from the same "
+                            "sitting as training photos, so validation scores are optimistic. Photograph on more days.")
+    val_indexes = set(val)
     train = [item for i, item in enumerate(items) if i not in val_indexes]
-    val = [item for i, item in enumerate(items) if i in val_indexes]
-    return train, val
+    validation = [item for i, item in enumerate(items) if i in val_indexes]
+    return train, validation

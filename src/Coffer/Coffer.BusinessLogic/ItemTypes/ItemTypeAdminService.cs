@@ -58,9 +58,12 @@ namespace Coffer.BusinessLogic.ItemTypes
         private readonly IClock _clock;
         private readonly IItemTypeFiles _files;
         private readonly IModelValidator _validator;
+        private readonly IFingerprintRebuilder _fingerprints;
 
-        public ItemTypeAdminService(CofferDbContext db, IClock clock, IItemTypeFiles files, IModelValidator validator)
+        public ItemTypeAdminService(CofferDbContext db, IClock clock, IItemTypeFiles files, IModelValidator validator,
+            IFingerprintRebuilder fingerprints)
         {
+            _fingerprints = fingerprints;
             _validator = validator;
             _db = db;
             _clock = clock;
@@ -193,6 +196,17 @@ namespace Coffer.BusinessLogic.ItemTypes
                 embeddingSha256 = saved.EmbeddingSha256,
             });
             await _db.SaveChangesAsync();
+
+            if (embedding != null)
+            {
+                // Stored fingerprints were made by the previous model: rebuild them all with the new one.
+                var rebuild = await _fingerprints.RebuildAsync(id);
+                Audit(adminId, "itemType.fingerprints", new { itemTypeId = id, rebuild.Ok, rebuild.Items, rebuild.Pending, rebuild.Missing, rebuild.Message });
+                await _db.SaveChangesAsync();
+                if (!rebuild.Ok)
+                    throw MarketplaceException.Conflict("fingerprintRebuildFailed",
+                        "The new model is live, but the stored fingerprints could not be rebuilt. Upload the model again.");
+            }
             return await GetAsync(id);
         }
 

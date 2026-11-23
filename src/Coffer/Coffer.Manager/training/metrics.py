@@ -1,4 +1,6 @@
 """Test-set metrics and recommended thresholds."""
+import math
+
 import numpy as np
 
 
@@ -42,6 +44,21 @@ def pair_scores(emb: np.ndarray, labels: list):
     return sims[i, j][same], sims[i, j][~same]
 
 
+MIN_FOUND = 0.6
+MIN_SIMILAR = 0.5
+
+
+def top_impostor_scores(emb: np.ndarray, labels: list) -> np.ndarray:
+    """For each image, its similarity to the closest image of another cap: what a photo of a cap that is NOT in a
+    collection would score against that collection's best (wrong) match."""
+    emb = np.asarray(emb, dtype=np.float32)
+    labels = np.asarray(labels)
+    sims = emb @ emb.T
+    sims[labels[:, None] == labels[None, :]] = -np.inf
+    top = sims.max(axis=1)
+    return top[np.isfinite(top)]
+
+
 def threshold_at_fmr(impostor: np.ndarray, fmr: float) -> float:
     """The lowest cosine at which at most `fmr` of impostor pairs (different caps) would count as a match."""
     impostor = np.sort(np.asarray(impostor, dtype=np.float64))[::-1]
@@ -53,14 +70,21 @@ def threshold_at_fmr(impostor: np.ndarray, fmr: float) -> float:
     return float(min(1.0, impostor[allowed] + 1e-6))
 
 
-def recommended_thresholds(genuine: np.ndarray, impostor: np.ndarray) -> dict:
-    """found: ≤ 1% of different-cap pairs pass; similar: ≤ 5%. With the share of same-cap pairs each one keeps."""
-    found = threshold_at_fmr(impostor, 0.01)
-    similar = min(found, threshold_at_fmr(impostor, 0.05))
+def recommended_thresholds(genuine: np.ndarray, top_impostor: np.ndarray) -> dict:
+    """Per query, as the app works: a photo is compared with a whole collection and its best match decides.
+    found: at most 2% of photos of caps NOT in the collection would still be "found" (their closest other cap is
+    above it); similar: at most 10%. Never below MIN_FOUND / MIN_SIMILAR (small test sets are noisy).
+    found_recall / similar_recall: share of same-cap pairs that reach each threshold."""
+    top_impostor = np.asarray(top_impostor, dtype=np.float64)
+    found = max(MIN_FOUND, threshold_at_fmr(top_impostor, 0.02))
+    similar = max(MIN_SIMILAR, min(found, threshold_at_fmr(top_impostor, 0.10)))
     genuine = np.asarray(genuine)
     recall = (lambda t: float(np.mean(genuine >= t)) if len(genuine) else 0.0)
-    return {"found": round(found, 4), "similar": round(similar, 4),
-            "found_recall": recall(found), "similar_recall": recall(similar)}
+    # Rounded up, never down: rounding down could let in the impostor score the threshold was set to exclude.
+    found, similar = math.ceil(found * 1e4) / 1e4, math.ceil(similar * 1e4) / 1e4
+    return {"found": found, "similar": similar, "found_recall": recall(found),
+            "similar_recall": recall(similar),
+            "false_found": float(np.mean(top_impostor >= found)) if len(top_impostor) else 0.0}
 
 
 def pick_confidence(conf_axis, f1_curve, cap: float = 0.9) -> float:

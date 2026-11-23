@@ -35,7 +35,6 @@ SETTINGS = {
     "embedding": [
         ("backbone", "Backbone", BACKBONES),
         ("pretrained", "Start from ImageNet weights", "bool"),
-        ("embedding_dim", "Embedding size", None),
         ("image_size", "Image size (px)", None),
         ("frozen_stages", "Frozen backbone stages (0–4)", None),
         ("epochs", "Epochs (at most)", None),
@@ -447,8 +446,11 @@ class ModelTrainingView(_AdminView):
         kind = runs.read_json(run_dir, "config.json")["kind"]
         path = os.path.join(run_dir, f"{kind}.pt")
         name = next((t["name"] for t in self.types if t["id"] == type_id), f"#{type_id}")
+        rebuild = ("\n\nEvery stored fingerprint of this item type is rebuilt with the new model; with many items this "
+                   "takes a few minutes." if kind == "embedding" else "")
         if not messagebox.askyesno("Coffer.Manager", f"Replace the live {kind} model of {name} with this run's model?\n\n"
-                                                     "Photo checks of this item type use it from the next request.", parent=self):
+                                                     "Photo checks of this item type use it from the next request." + rebuild,
+                                   parent=self):
             return False
         api = self.session.api()
         if kind == "embedding":

@@ -197,7 +197,7 @@ namespace Coffer.Tests.ItemTypes
 
             using var fresh = Db.NewContext();
             var audit = fresh.AdminAuditLog.Where(a => a.AdminId == _admin.Id).OrderBy(a => a.CreatedAt).ToList();
-            Assert.Equal(new[] { "itemType.icon", "itemType.models", "itemType.publish", "itemType.unpublish" }, audit.Select(a => a.Action));
+            Assert.Equal(new[] { "itemType.icon", "itemType.models", "itemType.fingerprints", "itemType.publish", "itemType.unpublish" }, audit.Select(a => a.Action));
             Assert.Matches("\"detectionSha256\":\"[0-9a-f]{64}\"", audit[1].Details);
         }
 
