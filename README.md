@@ -125,14 +125,16 @@ Reports in the dataset are filed through the real report service (so they carry 
 through the real moderation workflow. Nobody gets an admin role from the seed.
 
 **Dev login:** with `DEV_LOGIN_ENABLED=true` the app's sign-in screen (dev builds only) shows a red "DEV LOGIN" strip
-with the users of `DEV_SEED_DATA_JSON`; one tap signs you in as that user — no Google/GitHub needed
+with the users of `DEV_SEED_DATA_JSON`; one tap signs you in as that user — no sign-in provider needed
 (`GET api/auth/dev/users`, `POST api/auth/dev/login`). Only users defined in the seed can be used, suspended seed users
 get no token, the endpoints answer 404 unless the API runs in Development with the flag on, and the API refuses to start
 when the flag is set in any other environment.
 
-**Your own account:** put your GitHub account in `users` with `"provider": "github"` and your numeric GitHub id as
-`providerUserId` — you can then sign in to the app as that seeded user. If a seed user would duplicate an existing
-login while reset is off, startup stops and says so.
+**Your own account:** put yourself in `users` with `"provider"` set to `google`, `facebook` or `reddit` and your
+provider id as `providerUserId` (Google/Facebook: the ID token's `sub`; Reddit: your account id) — you can then sign in
+to the app as that seeded user. `github` is still accepted here (the seed is the only place a GitHub user can be
+created); such users sign in through the dev login. If a seed user would duplicate an existing login while reset is
+off, startup stops and says so.
 
 ### Database reset on startup
 

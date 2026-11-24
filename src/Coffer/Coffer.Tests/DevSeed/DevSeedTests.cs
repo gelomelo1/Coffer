@@ -323,6 +323,25 @@ namespace Coffer.Tests.DevSeed
             Assert.True(_db.NewContext().Users.Any(u => u.Id == mine.Id));
         }
 
+        [Theory]
+        [InlineData("google", true)]
+        [InlineData("facebook", true)]
+        [InlineData("reddit", true)]
+        [InlineData("github", true)]
+        [InlineData("twitter", false)]
+        [InlineData("", false)]
+        public void Seed_accepts_google_facebook_reddit_github_and_rejects_others(string provider, bool accepted)
+        {
+            var data = Data();
+            data.Users[0].Provider = provider;
+            var reference = new SeedReferenceData(new HashSet<int> { TypeId }, new Dictionary<int, (int, int)> { [BrandId] = (TypeId, 0) });
+
+            var problems = Record.Exception(() => DevSeedValidator.Validate(data, reference)) is DevSeedConfigException e ? e.Problems : new List<string>();
+
+            if (accepted) Assert.DoesNotContain(problems, p => p.StartsWith("users[0].provider"));
+            else Assert.Contains("users[0].provider must be one of \"google\", \"facebook\", \"reddit\", \"github\".", problems);
+        }
+
         [Fact]
         public void Validator_ReportsEveryBrokenReference_WithItsPath()
         {
