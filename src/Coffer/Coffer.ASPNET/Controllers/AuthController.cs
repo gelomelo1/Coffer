@@ -24,15 +24,22 @@ namespace Coffer.ASPNET.Controllers
         private readonly ISessionService _sessions;
         private readonly ISignInService _signIn;
         private readonly IGoogleIdTokenValidator _google;
+        private readonly OAuthTransactionStore _transactions;
+        private readonly IFacebookOAuthClient _facebook;
+        private readonly Coffer.BusinessLogic.Auth.AuthOptions _options;
         private readonly ILogger<AuthController> _log;
 
         public AuthController(IUsersRepository usersRepository, ISessionService sessions, ISignInService signIn,
-            IGoogleIdTokenValidator google, ILogger<AuthController> log)
+            IGoogleIdTokenValidator google, OAuthTransactionStore transactions, IFacebookOAuthClient facebook,
+            Coffer.BusinessLogic.Auth.AuthOptions options, ILogger<AuthController> log)
         {
             _usersRepository = usersRepository;
             _sessions = sessions;
             _signIn = signIn;
             _google = google;
+            _transactions = transactions;
+            _facebook = facebook;
+            _options = options;
             _log = log;
         }
 
@@ -53,6 +60,45 @@ namespace Coffer.ASPNET.Controllers
                 return SignInFailed(Providers.Google, e);
             }
             return SignInAnswer(await _signIn.CompleteAsync(identity));
+        }
+
+        public record CompleteRequest(string? TransactionId, string? Code, string? State);
+
+        /// <summary>Starts a Facebook sign-in: the app opens authorizeUrl in the browser and waits for redirectUri.</summary>
+        [HttpPost("facebook/start")]
+        [AllowAnonymous]
+        [EnableRateLimiting(AuthRateLimits.SignIn)]
+        public IActionResult FacebookStart()
+        {
+            var transaction = _transactions.Create(Providers.Facebook, withNonceAndPkce: true);
+            return Ok(new OAuthStart(transaction.Id, _facebook.AuthorizeUrl(transaction), _options.Facebook.RedirectUri));
+        }
+
+        [HttpPost("facebook/complete")]
+        [AllowAnonymous]
+        [EnableRateLimiting(AuthRateLimits.SignIn)]
+        public Task<IActionResult> FacebookComplete([FromBody] CompleteRequest? req) =>
+            CompleteBrowserSignIn(Providers.Facebook, req, transaction => _facebook.CompleteAsync(transaction, req?.Code ?? ""));
+
+        /// <summary>
+        /// The browser came back: the transaction is used up whatever happens next (a callback can't be replayed), must
+        /// belong to this provider, and the returned state must be the one we generated for it.
+        /// </summary>
+        private async Task<IActionResult> CompleteBrowserSignIn(string provider, CompleteRequest? req, Func<OAuthTransaction, Task<ProviderIdentity>> complete)
+        {
+            var transaction = _transactions.Take(req?.TransactionId);
+            try
+            {
+                if (transaction == null) throw new ProviderSignInException("unknown, expired or already used transaction");
+                if (transaction.Provider != provider) throw new ProviderSignInException($"transaction belongs to {transaction.Provider}");
+                if (!SecureRandom.Same(req?.State, transaction.State)) throw new ProviderSignInException("state mismatch");
+                var identity = await complete(transaction);
+                return SignInAnswer(await _signIn.CompleteAsync(identity));
+            }
+            catch (ProviderSignInException e)
+            {
+                return SignInFailed(provider, e);
+            }
         }
 
         public record RegisterRequest(string? RegistrationId, string? Username, string? Country);
