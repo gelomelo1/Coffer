@@ -13,9 +13,9 @@ Final verification (all green):
 
 | Suite | Result |
 |---|---|
-| `dotnet test src/Coffer/Coffer.Tests` | 631 passed, 0 failed |
+| `dotnet test src/Coffer/Coffer.Tests` | 633 passed, 0 failed |
 | `python -m unittest discover -s tests` (Coffer.PythonService) | 43 passed |
-| `npm run test:unit` (Coffer.ReactNative) | 158 passed |
+| `npm run test:unit` (Coffer.ReactNative) | 164 passed |
 | `npx tsc --noEmit` | no errors |
 | `npx eslint src` | 0 errors (47 warnings, all pre-existing) |
 | `npm run check:i18n`, `npm run check:errors` | passed / up to date |
@@ -33,7 +33,7 @@ Final verification (all green):
 | A5 | **Production (GitHub secrets)**: add `COFFER_ROOT_PATH=/app`, `GOOGLE_CLIENT_IDS`, the four `FACEBOOK_*` and four `REDDIT_*` values, `TRUSTED_PROXIES` (the network nginx connects from, e.g. `172.18.0.0/16`); remove `IMAGESTORE_PATH`, `ICONSTORE_PATH`, `VECTORSTORE_PATH`, `MODELS_PATH`, `IMAGECHECK_TEMP_PATH` and `GITHUB_CLIENT_SECRET` (the Manager keeps `GITHUB_CLIENT_ID` / `COFFER_MANAGER_*`). Production no longer reads `/var/www/coffer/.env.production`; `deploy.yml` still downloads `.env.production.zip` — switch it to the secrets. | Every auth value is required: the API refuses to start without them. |
 | A6 | **New app build**: `npx expo prebuild --clean`, then `npm run android`. The dev backend URL is `http://10.0.2.2:5141` (emulator only). EAS cloud builds need the `EXPO_PUBLIC_*` values as EAS environment variables. | New intent filter (`fb<id>`), HTTPS-only network policy; the hand-edited `usesCleartextTraffic="true"` in the git-ignored `android/` folder disappears. |
 | A7 | Tell users: everyone signs in again once; accounts registered with GitHub can no longer sign in to the app (their data stays; GitHub users can still come from the dev seed). | Old one-year tokens have no session and are rejected; GitHub app sign-in was removed. |
-| A8 | Delete the backup of the old env files when you no longer need it: `C:\Users\gelli\AppData\Local\Temp\claude\ee8100112c9b1208\64e95826-6334-4d96-b2d1-7fc2c3d50232\scratchpad\env-backup` | It holds the previous `src/.env`, `src/.env.development` and `src/.env.enc` (secrets). |
+| A8 | Move or delete the local backup of the old env files (its location was given with this report; it is outside the repository). | It holds the previous `src/.env`, `src/.env.development` and `src/.env.enc` (secrets), in a temporary folder that may be cleared. |
 
 ---
 
@@ -55,6 +55,9 @@ Severity: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low
 | 🟡 | Tokens could fall back to **AsyncStorage** (unencrypted, included in Android backups). | SecureStore only; legacy keys deleted. | code review (`src/utils/token_store.ts`) |
 | 🟡 | Auth responses had no cache headers. | `Cache-Control: no-store` on every `api/auth/*` response. | `SessionApiTests.Auth_responses_are_not_cached` |
 | 🟡 | A suspended user's request to log out would have been blocked with 403 (server session not ended). | `POST api/auth/logout` is exempt from the suspension block, like the suspension status. | `SessionApiTests.Suspended_user_can_still_log_out` |
+| 🟠 | (Found in the final review.) A failed token refresh signed the person out whatever the cause — offline, timeout, 5xx, 429 — and left the server session orphaned. | Only a definitive 401/400 from the refresh signs out; otherwise the tokens stay and the request reports the refresh's own failure (retry page). | `session_over.test.ts`, `refresh_gate.test.ts` |
+| 🟡 | (Found in the final review.) The Facebook/Reddit redirect deep links had no route: cancel/deny could leave the person on an "unmatched route" screen. | `+native-intent.tsx` keeps `oauth/reddit` and `authorize` links on the sign-in screen. Check once on a device. | `native_intent.test.ts` |
+| 🟡 | (Found in the final review.) `JWT_SECRET` from `.env.example` (public) passed the 32-byte check. | A secret starting with `change-me` stops startup. | `AuthOptionsTests.Placeholder_jwt_secret_is_rejected` |
 | 🔵 | Google sign-in requested `offlineAccess` (a server auth code nobody used). | Removed; only `profile` and `email`. | code review (`src/utils/google_signin.ts`) |
 | 🔵 | App logged whole provider error/response objects with `console.error`. | Short fixed messages only; tokens never logged. Backend logs provider failures by reason only. | `FacebookSignInTests.Logs_never_contain_code_or_tokens` |
 | 🔵 | React Query cache was re-created on every render of the root and never cleared on logout (data of the previous account could be shown). | One cache; cleared on every sign-out. | code review (`src/utils/session.ts`) |
@@ -299,5 +302,5 @@ Severity: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low
 | R6 | Android Custom Tabs keep the Facebook/Reddit browser login after Coffer sign-out. | Provider cookies are outside the app's control; Coffer's own session is ended. |
 | R7 | The legacy in-app `Admin` role can still edit other users' profile fields and role through `PUT api/Users/{id}`. | Not an OAuth path (the identity is now locked). Moderation moved to Coffer.Manager; consider removing the role's write access. |
 | R8 | Coffer.Manager tokens (8 h) are not session-revocable; app and Manager tokens share `JWT_SECRET` (different audience and scheme). | Manager sign-in was kept unchanged by decision; removing an admin id takes effect on the next request. |
-| R9 | Session revocation is cached ≤ 10 s per API process. | Immediate in the process that revoked; other instances catch up within 10 s. |
+| R9 | Session revocation is cached ≤ 10 s per API process. | Usually immediate in the process that revoked (the cache entry is evicted), but a request that read "active" just before the revoke can keep the token working for up to 10 s; other instances catch up within 10 s. |
 | R10 | Facebook e-mail addresses are not marked verified by Facebook. | Stored for display only, never used to match or merge accounts. |
