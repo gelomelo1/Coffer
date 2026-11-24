@@ -20,17 +20,17 @@ namespace Coffer.ASPNET.Controllers
     public class AuthController : BaseController
     {
         private readonly IUsersRepository _usersRepository;
-        private readonly IJwtService _jwtService;
+        private readonly Coffer.BusinessLogic.Auth.Sessions.ISessionService _sessions;
         private readonly IGithubService _githubService;
         private readonly ITempTokenService _tempTokenService;
         private readonly Coffer.BusinessLogic.Moderation.ISuspensionService _suspensions;
 
-        public AuthController(IUsersRepository usersRepository, IJwtService jwtService, IGithubService githubService, ITempTokenService tempTokenService,
+        public AuthController(IUsersRepository usersRepository, Coffer.BusinessLogic.Auth.Sessions.ISessionService sessions, IGithubService githubService, ITempTokenService tempTokenService,
             Coffer.BusinessLogic.Moderation.ISuspensionService suspensions)
         {
             _suspensions = suspensions;
             _usersRepository = usersRepository;
-            _jwtService = jwtService;
+            _sessions = sessions;
             _githubService = githubService;
             _tempTokenService = tempTokenService;
         }
@@ -49,7 +49,7 @@ namespace Coffer.ASPNET.Controllers
                 {
                     var suspended = await SuspendedAsync(user.Id);
                     if (suspended != null) return suspended;
-                    var jwt = _jwtService.GenerateToken(user);
+                    var jwt = (await _sessions.IssueAsync(user.Id)).AccessToken;
                     return Ok(new { exists = true, token = jwt });
                 }
 
@@ -89,7 +89,7 @@ namespace Coffer.ASPNET.Controllers
 
                 var user = await _usersRepository.InsertUserAsync(new UserRequired("google", payload.Subject, req.Username, payload.Email, req.Country, payload.Picture, UserRole.User));
 
-                var jwt = _jwtService.GenerateToken(user);
+                var jwt = (await _sessions.IssueAsync(user.Id)).AccessToken;
 
                 _tempTokenService.RemoveToken(req.TempId);
 
@@ -116,7 +116,7 @@ namespace Coffer.ASPNET.Controllers
                 {
                     var suspended = await SuspendedAsync(user.Id);
                     if (suspended != null) return suspended;
-                    var jwt = _jwtService.GenerateToken(user);
+                    var jwt = (await _sessions.IssueAsync(user.Id)).AccessToken;
                     return Ok(new { exists = true, token = jwt });
                 }
 
@@ -150,7 +150,7 @@ namespace Coffer.ASPNET.Controllers
                     new UserRequired("github", githubUser.Id, req.Username, githubUser.Email, req.Country, githubUser.AvatarUrl, UserRole.User)
                 );
 
-                var jwt = _jwtService.GenerateToken(user);
+                var jwt = (await _sessions.IssueAsync(user.Id)).AccessToken;
 
                 _tempTokenService.RemoveToken(req.TempId);
 

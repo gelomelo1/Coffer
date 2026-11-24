@@ -21,13 +21,13 @@ namespace Coffer.BusinessLogic.DevSeed
     {
         public const string EnvName = "DEV_LOGIN_ENABLED";
         private readonly CofferDbContext _db;
-        private readonly IJwtService _jwt;
+        private readonly Coffer.BusinessLogic.Auth.Sessions.ISessionService _sessions;
         private readonly ISuspensionService _suspensions;
 
-        public DevLoginService(CofferDbContext db, IJwtService jwt, ISuspensionService suspensions)
+        public DevLoginService(CofferDbContext db, Coffer.BusinessLogic.Auth.Sessions.ISessionService sessions, ISuspensionService suspensions)
         {
             _db = db;
-            _jwt = jwt;
+            _sessions = sessions;
             _suspensions = suspensions;
         }
 
@@ -68,7 +68,7 @@ namespace Coffer.BusinessLogic.DevSeed
             // Same rule as the real sign-in: a suspended account gets no token.
             if (await _suspensions.GetActiveAsync(user.Id) is { } active)
                 throw new MarketplaceException(MarketplaceError.Forbidden, SuspensionService.SuspendedCode, $"Your account is suspended until {active.EndsAt:yyyy-MM-dd HH:mm} UTC.", ErrorArgs.Of($"{active.EndsAt:yyyy-MM-dd HH:mm}"));
-            return new DevLoginResultDto(_jwt.GenerateToken(user));
+            return new DevLoginResultDto((await _sessions.IssueAsync(user.Id)).AccessToken);
         }
     }
 }

@@ -45,6 +45,8 @@ namespace Coffer.DataAccess
         public DbSet<PendingItem> PendingItems { get; set; }
         public DbSet<ActivityEvent> ActivityEvents { get; set; }
         public DbSet<NewsPost> NewsPosts { get; set; }
+        public DbSet<Coffer.Domain.Auth.AuthSession> AuthSessions { get; set; }
+        public DbSet<Coffer.Domain.Auth.AuthRefreshToken> AuthRefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -52,6 +54,7 @@ namespace Coffer.DataAccess
 
             MarketplaceModel.Configure(modelBuilder);
             CommunityModel.Configure(modelBuilder);
+            AuthModel.Configure(modelBuilder);
 
             // Waiting-for-review list (must match src/startup/item_review_queue_migration.sql).
             modelBuilder.Entity<PendingItem>(e =>

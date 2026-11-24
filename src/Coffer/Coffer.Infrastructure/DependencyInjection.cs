@@ -25,21 +25,14 @@ namespace Coffer.Infrastructure
             #endregion
 
             #region AddAuthentication
+            // App user tokens: 15-minute HS256 access tokens of a live session (checked per request by the
+            // SuspensionEnforcementMiddleware). The key comes from AuthOptions (JWT_SECRET, 32+ bytes).
             services.AddAuthentication("Bearer")
-                .AddJwtBearer("Bearer", options =>
-                {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidIssuer = "coffer.backend",
-                        ValidAudience = "coffer.backend",
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Env.GetString("JWT_SECRET") ?? throw new InvalidOperationException("JWT_SECRET envionmental variable is not set")))
-                    };
-                })
+                .AddJwtBearer("Bearer", _ => { })
                 .AddManagerAuthentication();
+            services.AddOptions<Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerOptions>("Bearer")
+                .Configure<Coffer.BusinessLogic.Auth.AuthOptions>((options, auth) =>
+                    options.TokenValidationParameters = Coffer.BusinessLogic.Auth.Sessions.AccessTokenIssuer.ValidationParameters(auth.JwtKey));
             services.AddAuthorization();
             services.AddModeration();
             #endregion
@@ -77,7 +70,9 @@ namespace Coffer.Infrastructure
             #region AddServices
             // Every sign-in setting is required; resolved once at startup (SetupMiddleware) so a missing one stops the API.
             services.AddSingleton(_ => Coffer.BusinessLogic.Auth.AuthOptions.FromEnvironment(Environment.GetEnvironmentVariable));
-            services.AddScoped<IJwtService, JwtService>();
+            services.AddSingleton<Coffer.BusinessLogic.Auth.Sessions.AccessTokenIssuer>();
+            services.AddSingleton<Coffer.BusinessLogic.Auth.Sessions.SessionGuardCache>();
+            services.AddScoped<Coffer.BusinessLogic.Auth.Sessions.ISessionService, Coffer.BusinessLogic.Auth.Sessions.SessionService>();
             services.AddScoped<IGithubService, GithubService>();
             services.AddScoped<IImageService, ImageService>();
             services.AddMemoryCache();

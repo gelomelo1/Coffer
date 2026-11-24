@@ -1,12 +1,13 @@
 using System.Security.Claims;
 using Coffer.BusinessLogic.Account;
+using Coffer.BusinessLogic.Auth.Sessions;
 using Coffer.BusinessLogic.Moderation;
 
 namespace Coffer.ASPNET.Extensions
 {
     /// <summary>
     /// Enforces temporary suspensions on the server for every request made with a Coffer user token — including
-    /// tokens issued before the suspension (they live a year), so signing in again doesn't help. The only exception
+    /// tokens issued before the suspension, so signing in again doesn't help. The only exception
     /// is GET api/Account/Suspension, which tells the app why and until when.
     /// </summary>
     public sealed class SuspensionEnforcementMiddleware
@@ -18,12 +19,24 @@ namespace Coffer.ASPNET.Extensions
             _next = next;
         }
 
-        public async Task InvokeAsync(HttpContext context, ISuspensionService suspensions, IDeletedAccounts deletedAccounts)
+        public async Task InvokeAsync(HttpContext context, ISuspensionService suspensions, IDeletedAccounts deletedAccounts, ISessionService sessions)
         {
             // context.User comes from the default "Bearer" scheme (user tokens only; Manager tokens use another scheme).
             var userId = context.User.Identity?.IsAuthenticated == true
                 ? context.User.FindFirstValue(ClaimTypes.NameIdentifier)
                 : null;
+
+            // Every user token belongs to a live session: logout, account deletion and refresh-token reuse end it.
+            if (userId != null)
+            {
+                var sessionId = AccessTokenIssuer.SessionId(context.User);
+                if (sessionId == null || !await sessions.IsActiveAsync(sessionId.Value))
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    await context.Response.WriteAsJsonAsync(new { message = "Your session has ended. Sign in again.", code = SessionRevokedCode });
+                    return;
+                }
+            }
 
             // A deleted account's tokens are useless everywhere (the app signs out on this answer).
             if (Guid.TryParse(userId, out var deletedId) && await deletedAccounts.IsDeletedAsync(deletedId))
@@ -47,6 +60,7 @@ namespace Coffer.ASPNET.Extensions
         }
 
         public const string AccountDeletedCode = "accountDeleted";
+        public const string SessionRevokedCode = "sessionRevoked";
 
         private static bool IsExempt(HttpRequest request) =>
             HttpMethods.IsGet(request.Method) && request.Path.Equals("/api/Account/Suspension", StringComparison.OrdinalIgnoreCase);

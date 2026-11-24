@@ -126,8 +126,11 @@ namespace Coffer.Tests
             var client = CreateClient();
             if (user != null)
             {
-                var token = new JwtService().GenerateToken(user);
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                // A real session, like a sign-in: the API checks it on every request.
+                using var scope = Services.CreateScope();
+                var tokens = scope.ServiceProvider.GetRequiredService<Coffer.BusinessLogic.Auth.Sessions.ISessionService>()
+                    .IssueAsync(user.Id).GetAwaiter().GetResult();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken);
             }
             return client;
         }
