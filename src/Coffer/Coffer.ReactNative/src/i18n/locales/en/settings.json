@@ -70,6 +70,8 @@
     "loggedInWith": "Signed in with",
     "provider": {
       "google": "Google",
+      "facebook": "Facebook",
+      "reddit": "Reddit",
       "github": "GitHub"
     },
     "summary": "About",

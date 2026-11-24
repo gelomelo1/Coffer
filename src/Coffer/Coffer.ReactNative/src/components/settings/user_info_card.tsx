@@ -1,3 +1,4 @@
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { none } from "@/src/const/emptyIdUpdate";
 import { endpoints } from "@/src/const/endpoints";
 import { useUpdateData } from "@/src/hooks/data_hooks";
@@ -38,6 +39,15 @@ function Meta({ icon, label, value }: { icon: React.ReactNode; label: string; va
   );
 }
 
+/** The sign-in provider's logo (GitHub only for users from the development seed or made before it was removed). */
+function ProviderIcon({ provider }: { provider: string }) {
+  if (provider === "google")
+    return <Image source={require("../../../assets/images/googlesignin.png")} style={{ width: 18, height: 18 }} />;
+  if (provider === "facebook") return <FontAwesome name="facebook-official" size={18} color="#1877F2" />;
+  if (provider === "reddit") return <FontAwesome name="reddit" size={18} color="#FF4500" />;
+  return <Image source={require("../../../assets/images/githubsignin.png")} style={{ width: 18, height: 18, tintColor: colors.text }} />;
+}
+
 /**
  * Profile: avatar, name, country, member since, login provider (own profile) and the rich-text summary.
  * The owner edits country and summary in place; Save sends both, Cancel drops the draft.
@@ -49,8 +59,6 @@ function UserInfoCard({ user, setUser, otherUser = false }: UserInfoCardProps) {
   const [draftCountry, setDraftCountry] = useState<Country | null>(null);
   const [draftSummary, setDraftSummary] = useState(user?.summary ?? "");
 
-  const providerIcon =
-    user?.provider === "google" ? require("../../../assets/images/googlesignin.png") : require("../../../assets/images/githubsignin.png");
 
   const { mutateAsync: updateUser, isPending } = useUpdateData<UserFrontend, User>(endpoints.userFrontend);
 
@@ -118,7 +126,7 @@ function UserInfoCard({ user, setUser, otherUser = false }: UserInfoCardProps) {
           />
           {!otherUser && user.provider ? (
             <Meta
-              icon={<Image source={providerIcon} style={{ width: 18, height: 18, tintColor: user.provider === "github" ? colors.text : undefined }} />}
+              icon={<ProviderIcon provider={user.provider} />}
               label={t("settings:profile.loggedInWith")}
               value={t(`settings:profile.provider.${user.provider}`, { defaultValue: user.provider })}
             />

@@ -1,179 +1,141 @@
-import {
-  GoogleSignin,
-  SignInResponse,
-} from "@react-native-google-signin/google-signin";
-import * as AuthSession from "expo-auth-session";
+import * as WebBrowser from "expo-web-browser";
 import { navigate } from "expo-router/build/global-state/routing";
-import { useEffect, useState } from "react";
-import {
-  githubClientId,
-  redirectUriScheme,
-  webGoogleClientId,
-} from "../const/authAccessConfiguration";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import showToast from "../components/custom_ui/toast";
 import { endpoints } from "../const/endpoints";
 import { ROUTES } from "../const/navigation_params";
+import { apiErrorText } from "../utils/api_error_text";
+import { parseAuthResult, queryParam } from "../utils/auth_redirect";
 import { postData } from "../utils/backend_access";
-import { setToken } from "../utils/token_store";
+import { GoogleSignin } from "../utils/google_signin";
+import { signInWith } from "../utils/session";
+import type { StoredSession } from "../utils/token_store";
 
-const reidrectUri = AuthSession.makeRedirectUri({
-  scheme: redirectUriScheme,
-});
+export type SignInProvider = "google" | "facebook" | "reddit";
 
-interface useGoogleAuthProps {
-  onUserExistsChange?: (exists: boolean | null) => void;
-  onSuccessfulRegistration?: () => void;
-  onSuccessfulLogin?: () => void;
+/** The backend's answer to every provider's sign-in step. */
+type SignInAnswer =
+  | ({ status: "signedIn" } & StoredSession)
+  | { status: "registrationRequired"; registrationId: string };
+
+type OAuthStart = { transactionId: string; authorizeUrl: string; redirectUri: string };
+
+const BROWSER: Record<"facebook" | "reddit", { start: string; complete: string }> = {
+  facebook: { start: endpoints.facebookStart, complete: endpoints.facebookComplete },
+  reddit: { start: endpoints.redditStart, complete: endpoints.redditComplete },
+};
+
+interface UseSignInProps {
+  /** A new identity: show the registration form (username + country). */
+  onRegistrationRequired: (provider: SignInProvider) => void;
+  onSignedIn?: () => void;
+  onRegistered?: () => void;
 }
 
-export function useGoogleAuth({
-  onUserExistsChange,
-  onSuccessfulRegistration,
-  onSuccessfulLogin,
-}: useGoogleAuthProps) {
-  GoogleSignin.configure({
-    webClientId: webGoogleClientId,
-    offlineAccess: true,
-    scopes: ["profile", "email"],
-  });
+/**
+ * Google (native sign-in, ID token checked by the backend), Facebook and Reddit (in-app browser; the backend builds
+ * the sign-in URL and holds the state, nonce and PKCE verifier). All three end in the backend's shared answer:
+ * signed in, or registration required. Tokens are never logged.
+ */
+export function useSignIn({ onRegistrationRequired, onSignedIn, onRegistered }: UseSignInProps) {
+  const { t } = useTranslation();
+  const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState<{ provider: SignInProvider; registrationId: string } | null>(null);
 
-  const [googleResponse, setGoogleResponse] = useState<SignInResponse | null>(
-    null,
-  );
-  const [tempId, setTempId] = useState<string | null>(null);
-
-  const googlePrompt = async () => {
-    try {
-      const userInfo = await GoogleSignin.signIn();
-      setGoogleResponse(userInfo);
-      return userInfo;
-    } catch (error) {
-      console.error("Google Sign-In Error:", error);
-      return null;
+  const finish = async (provider: SignInProvider, answer: SignInAnswer) => {
+    if (answer.status === "signedIn") {
+      await signInWith(answer);
+      onSignedIn?.();
+      navigate(ROUTES.ROOT);
+    } else {
+      setPending({ provider, registrationId: answer.registrationId });
+      onRegistrationRequired(provider);
     }
   };
 
-  const signOut = async () => {
+  const failed = (error: unknown) => showToast("error", t("auth:login.failed"), apiErrorText(error));
+
+  const run = async (provider: SignInProvider, work: () => Promise<void>) => {
+    if (busy) return;
+    setBusy(true);
     try {
-      await GoogleSignin.revokeAccess();
-      await GoogleSignin.signOut();
+      await work();
     } catch (error) {
-      console.error("Error signing out from Google:", error);
+      failed(error);
+    } finally {
+      setBusy(false);
     }
   };
 
-  useEffect(() => {
-    const handleGoogleResponse = async () => {
-      if (googleResponse?.data?.idToken) {
-        try {
-          const validation = await postData<
-            { idToken: string },
-            { exists: boolean; token?: string; tempId: string }
-          >(endpoints.googleValidate, { idToken: googleResponse.data.idToken });
-
-          onUserExistsChange?.(validation.exists);
-
-          if (validation.exists && validation.token) {
-            await setToken(validation.token);
-            onSuccessfulLogin?.();
-            navigate(ROUTES.ROOT);
-          } else if (!validation.exists && validation.tempId) {
-            setTempId(validation.tempId);
-          }
-        } catch (error) {
-          console.error("Google auth error:", error);
-        }
+  const google = () =>
+    run("google", async () => {
+      let idToken: string | null | undefined;
+      try {
+        await GoogleSignin.hasPlayServices();
+        const response = await GoogleSignin.signIn();
+        if (response.type !== "success") return; // cancelled
+        idToken = response.data.idToken;
+      } catch {
+        showToast("error", t("auth:login.failed"));
+        return;
       }
-    };
+      if (!idToken) return;
+      await finish("google", await postData<{ idToken: string }, SignInAnswer>(endpoints.googleValidate, { idToken }));
+    });
 
-    handleGoogleResponse();
-  }, [googleResponse, onSuccessfulLogin, onUserExistsChange]);
+  const browser = (provider: "facebook" | "reddit") =>
+    run(provider, async () => {
+      const start = await postData<Record<string, never>, OAuthStart>(BROWSER[provider].start, {});
+      const expectedState = queryParam(start.authorizeUrl, "state") ?? "";
+      const result = await WebBrowser.openAuthSessionAsync(start.authorizeUrl, start.redirectUri);
+      const redirect = parseAuthResult(result, expectedState, start.redirectUri);
+      if (redirect.kind === "cancelled") {
+        showToast("info", t("auth:login.cancelled"));
+        return;
+      }
+      if (redirect.kind === "error") {
+        showToast("error", t("auth:login.failed"));
+        return;
+      }
+      await finish(
+        provider,
+        await postData<{ transactionId: string; code: string; state: string }, SignInAnswer>(BROWSER[provider].complete, {
+          transactionId: start.transactionId,
+          code: redirect.code,
+          state: redirect.state,
+        }),
+      );
+    });
 
-  const submitRegistration = async (username: string, country: string) => {
-    if (!tempId) return;
+  const register = async (username: string, country: string) => {
+    if (!pending) return;
     try {
-      const jwtResp = await postData<
-        { tempId: string; username: string; country: string },
-        { token: string }
-      >(endpoints.googleRegister, { tempId, username, country });
-      await setToken(jwtResp.token);
-      onSuccessfulRegistration?.();
+      const tokens = await postData<{ registrationId: string; username: string; country: string }, StoredSession>(endpoints.authRegister, {
+        registrationId: pending.registrationId,
+        username,
+        country,
+      });
+      setPending(null);
+      await signInWith(tokens);
+      onRegistered?.();
       navigate(ROUTES.ROOT);
     } catch (error) {
-      console.error("Registration failed:", error);
+      failed(error);
     }
   };
 
-  return { promptAsync: googlePrompt, submitRegistration, signOut };
-}
-
-export function useGitHubAuth({
-  onUserExistsChange,
-  onSuccessfulRegistration,
-  onSuccessfulLogin,
-}: {
-  onUserExistsChange?: (exists: boolean | null) => void;
-  onSuccessfulRegistration?: () => void;
-  onSuccessfulLogin?: () => void;
-}) {
-  const [request, response, promptAsync] = AuthSession.useAuthRequest(
-    {
-      clientId: githubClientId,
-      scopes: ["read:user", "user:email"],
-      redirectUri: reidrectUri,
-      usePKCE: true,
-    },
-    { authorizationEndpoint: "https://github.com/login/oauth/authorize" },
-  );
-
-  const [tempId, setTempId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const handleGitHubResponse = async () => {
-      if (response?.type === "success") {
-        const codeFromGitHub = response.params?.code;
-        const githubCodeVerifier = request?.codeVerifier;
-        if (!codeFromGitHub || !githubCodeVerifier) return;
-
-        try {
-          const validation = await postData<
-            { code: string; codeVerifier: string },
-            { exists: boolean; token?: string; tempId?: string }
-          >(endpoints.githubValidate, {
-            code: codeFromGitHub,
-            codeVerifier: githubCodeVerifier,
-          });
-
-          onUserExistsChange?.(validation.exists);
-
-          if (validation.exists && validation.token) {
-            await setToken(validation.token);
-            onSuccessfulLogin?.();
-            navigate(ROUTES.ROOT);
-          } else if (!validation.exists && validation.tempId) {
-            setTempId(validation.tempId);
-          }
-        } catch (error) {
-          console.error("GitHub auth error:", error);
-        }
+  /** Closing the registration form drops the pending registration (and the Google session it came from). */
+  const cancelRegistration = async () => {
+    if (pending?.provider === "google") {
+      try {
+        await GoogleSignin.signOut();
+      } catch {
+        // Already signed out.
       }
-    };
-    handleGitHubResponse();
-  }, [onSuccessfulLogin, onUserExistsChange, request?.codeVerifier, response]);
-
-  const submitRegistration = async (username: string, country: string) => {
-    if (!tempId) return;
-    try {
-      const jwtResp = await postData<
-        { tempId: string; username: string; country: string },
-        { token: string }
-      >(endpoints.githubRegister, { tempId, username, country });
-      await setToken(jwtResp.token);
-      onSuccessfulRegistration?.();
-      navigate(ROUTES.ROOT);
-    } catch (error) {
-      console.error("GitHub registration failed:", error);
     }
+    setPending(null);
   };
 
-  return { promptAsync, submitRegistration };
+  return { google, facebook: () => browser("facebook"), reddit: () => browser("reddit"), register, cancelRegistration, busy };
 }

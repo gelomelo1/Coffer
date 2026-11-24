@@ -85,14 +85,46 @@ store), `data/temp` (photo checks) and `models` (AI models per item type).
 | `DEV_SEED_AI_WAIT_SECONDS` | Development only | how long the seed waits for the AI service (default 120) |
 | `DEV_LOGIN_ENABLED` | Development only | `true` = the app's sign-in screen offers a dev login as any seeded user |
 | `COFFER_API_URL` | `Coffer.Manager/.env` | backend URL the Manager talks to |
+| `COFFER_ROOT_PATH` | `src/.env` | root of every data folder (`/app` in Docker) |
+| `GOOGLE_CLIENT_IDS` | `src/.env` | Google web client id(s) accepted as the ID token audience |
+| `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`, `FACEBOOK_REDIRECT_URI`, `FACEBOOK_GRAPH_VERSION` | `src/.env` | Facebook Login (redirect `fb<APP_ID>://authorize`) |
+| `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, `REDDIT_REDIRECT_URI`, `REDDIT_USER_AGENT` | `src/.env` | Reddit "web app" (redirect `com.gelomelo.coffer://oauth/reddit`) |
+| `TRUSTED_PROXIES` | production | IPs/CIDRs of the reverse proxy (nginx) allowed to send `X-Forwarded-For` |
+| `EXPO_PUBLIC_BACKEND_URL` | `Coffer.ReactNative/.env` | the API; `https://` required outside development (dev: `http://10.0.2.2:5141`, emulator) |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | `Coffer.ReactNative/.env` | same web client id as `GOOGLE_CLIENT_IDS` |
+| `EXPO_PUBLIC_FACEBOOK_APP_ID` | `Coffer.ReactNative/.env` | same as `FACEBOOK_APP_ID` (registers the `fb<id>` redirect scheme) |
+| `EXPO_PUBLIC_AUTH_SCHEME` | `Coffer.ReactNative/.env` | the app's URL scheme, `com.gelomelo.coffer` |
+
+---
+
+## App sign-in (Google, Facebook, Reddit)
+
+* **Google** — native sign-in; the API verifies the ID token (signature, issuer, audience = `GOOGLE_CLIENT_IDS`,
+  expiry) and accepts it only within 10 minutes of issue.
+* **Facebook** — in-app browser, OpenID Connect code flow with PKCE (S256), state and nonce. The API builds the sign-in
+  URL, keeps the state, nonce and PKCE verifier, exchanges the code with the app secret and verifies the ID token
+  against Facebook's published keys. Setup: Facebook app → Facebook Login → add the redirect `fb<APP_ID>://authorize`.
+* **Reddit** — in-app browser, authorization code with state; a Reddit **web app** (so the secret stays on the API)
+  with the redirect `com.gelomelo.coffer://oauth/reddit` and the `identity` scope only. New Reddit API apps need
+  Reddit's approval (Responsible Builder Policy) before they work.
+* Accounts are matched by provider + the provider's account id only, never by e-mail. New identities get a
+  10-minute, single-use registration (username + country).
+* **Sessions**: access tokens last 15 minutes; refresh tokens rotate on every use, are stored only as hashes, expire
+  after 14 idle days and never live past 60 days. Reusing an old refresh token ends that session (token theft);
+  logging out or deleting the account ends sessions on the server.
+* **Android**: release builds talk HTTPS only; debug builds may use plain HTTP only to `10.0.2.2`, `localhost` and
+  `127.0.0.1`. After changing `Coffer.ReactNative/.env` scheme/app ids run `npx expo prebuild --clean`, then
+  `npm run android`. EAS cloud builds don't see `.env`: set the `EXPO_PUBLIC_*` values as EAS environment variables.
 
 ---
 
 ## Development environment
 
-1. Create `src/.env`: decrypt `.env.enc` (above) or copy `.env.example` and fill it in.
+1. Create `src/.env`: decrypt `.env.enc` (above) or copy `.env.example` and fill it in. Do the same for
+   `src/Coffer/Coffer.ReactNative/.env`.
 2. Apply the schema scripts once, in order (each is safe to re-run):
-   `startup/marketplace_migration.sql`, `startup/marketplace_migration_2.sql`, `startup/moderation_comments_migration.sql`
+   `startup/marketplace_migration.sql`, `startup/marketplace_migration_2.sql`, `startup/moderation_comments_migration.sql`,
+   `startup/oauth_sessions_migration.sql`
    ```
    docker compose -f docker-compose.dev.yml exec -T db sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < startup/moderation_comments_migration.sql
    ```

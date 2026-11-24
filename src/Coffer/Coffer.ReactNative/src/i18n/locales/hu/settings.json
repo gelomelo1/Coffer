@@ -70,6 +70,8 @@
     "loggedInWith": "Bejelentkezve ezzel:",
     "provider": {
       "google": "Google",
+      "facebook": "Facebook",
+      "reddit": "Reddit",
       "github": "GitHub"
     },
     "summary": "Bemutatkozás",
