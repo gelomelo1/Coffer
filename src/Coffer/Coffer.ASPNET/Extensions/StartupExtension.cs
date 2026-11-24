@@ -32,35 +32,18 @@ namespace Coffer.ASPNET.Extensions
 
             Console.WriteLine($"Current ASP.NET Core environment: {env.EnvironmentName}");
 
-            bool envLoaded = false;
-
-            try
+            // Development: src/.env when running the API directly (dotnet run in Coffer.ASPNET); in Docker the same values
+            // already arrive through env_file. Every other environment reads the process environment only (production
+            // values come from GitHub secrets). A missing value stops startup where it is read.
+            if (env.IsDevelopment() && File.Exists("../../.env"))
             {
-                if (env.IsProduction())
-                {
-                    Env.Load("/var/www/coffer/.env.production");
-                    envLoaded = true;
-                }
-                else if (env.IsDevelopment() && File.Exists("../../.env.development"))
-                {
-                    // Local development configuration (copy of .env + dev seed / admin settings); never committed.
-                    Env.Load("../../.env.development");
-                    envLoaded = true;
-                }
-                else
-                {
-                    Env.Load("../../.env");
-                    envLoaded = true;
-                }
+                Env.Load("../../.env");
+                Console.WriteLine("Environment file src/.env loaded.");
             }
-            catch (Exception ex)
+            else
             {
-                Console.WriteLine($"Failed to load environment file: {ex.Message}");
+                Console.WriteLine("No environment file loaded; using the process environment.");
             }
-
-            Console.WriteLine(envLoaded
-                ? "Environment file loaded successfully."
-                : "Environment file was not loaded.");
 
             builder.Services.AddInfrastructure();
 
@@ -76,6 +59,8 @@ namespace Coffer.ASPNET.Extensions
 
         public static WebApplication SetupMiddleware(this WebApplication app)
         {
+            // First, so the rate limits and logs see the real client IP behind nginx (and only behind trusted proxies).
+            app.UseForwardedHeaders(ForwardedHeadersSetup.Options(Environment.GetEnvironmentVariable(ForwardedHeadersSetup.Variable)));
             app.UseDefaultFiles();
             app.UseStaticFiles();
 
@@ -119,7 +104,7 @@ namespace Coffer.ASPNET.Extensions
         }
     
         /// <summary>
-        /// Development database reset + seed from .env.development (DEV_RESET_DATABASE_ON_STARTUP, DEV_SEED_ENABLED).
+        /// Development database reset + seed from src/.env (DEV_RESET_DATABASE_ON_STARTUP, DEV_SEED_ENABLED).
         /// Runs before the API accepts requests; throws (and stops startup) when switched on outside Development.
         /// </summary>
         public static WebApplication RunDevelopmentSeed(this WebApplication app)

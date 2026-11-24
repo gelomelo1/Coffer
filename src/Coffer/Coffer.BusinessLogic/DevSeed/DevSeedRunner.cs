@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Coffer.BusinessLogic.DevSeed
 {
-    /// <summary>Development-only switches from .env.development.</summary>
+    /// <summary>Development-only switches from src/.env.</summary>
     public sealed record DevSeedOptions(bool Enabled, bool ResetOnStartup, string? DataJson, string? ImageDir, int AiWaitSeconds)
     {
         public static DevSeedOptions FromEnvironment() => new(

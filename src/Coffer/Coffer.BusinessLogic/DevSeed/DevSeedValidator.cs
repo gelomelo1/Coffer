@@ -30,7 +30,7 @@ namespace Coffer.BusinessLogic.DevSeed
         public static DevSeedData Parse(string? json)
         {
             if (string.IsNullOrWhiteSpace(json))
-                throw new DevSeedConfigException(new[] { "DEV_SEED_DATA_JSON is empty. Put the seed data (users, collections, items, …) into .env.development." });
+                throw new DevSeedConfigException(new[] { "DEV_SEED_DATA_JSON is empty. Put the seed data (users, collections, items, …) into src/.env." });
             try
             {
                 return JsonSerializer.Deserialize<DevSeedData>(json.Trim(), DevSeedData.Json)

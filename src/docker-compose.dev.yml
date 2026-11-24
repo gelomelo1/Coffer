@@ -8,7 +8,7 @@ services:
     ports:
       - "5141:80"
     env_file:
-      - .env.development
+      - .env
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     depends_on:
@@ -30,7 +30,7 @@ services:
       - E:\Homework\Programming\AI\szakdolgozat\data\vectors:/app/data/vectors
       - E:\Homework\Programming\AI\szakdolgozat\data\temp:/app/data/temp
       - E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.PythonService\models:/app/models
-      # Item type icons uploaded from Coffer.Manager (ICONSTORE_PATH).
+      # Item type icons uploaded from Coffer.Manager (COFFER_ROOT_PATH/data/icons).
       - E:\Homework\Programming\AI\szakdolgozat\data\icons:/app/data/icons
       # Raw example photos for the development seed (DEV_SEED_IMAGE_DIR), read-only.
       - E:\app\data\examples:/app/data/examples:ro
@@ -42,7 +42,7 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
     env_file:
-      - .env.development
+      - .env
     volumes:
       - ./Coffer/Coffer.PythonService:/app
       - E:\Homework\Programming\AI\szakdolgozat\data\images:/app/data/images
@@ -53,7 +53,7 @@ services:
   db:
     image: postgres:15
     env_file:
-      - .env.development
+      - .env
     ports:
       - "127.0.0.1:5432:5432"
     volumes:

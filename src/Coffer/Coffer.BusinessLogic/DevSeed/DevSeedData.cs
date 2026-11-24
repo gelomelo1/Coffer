@@ -5,7 +5,7 @@ using Coffer.Domain.Marketplace;
 namespace Coffer.BusinessLogic.DevSeed
 {
     /// <summary>
-    /// Shape of DEV_SEED_DATA_JSON (.env.development). Ids are fixed GUIDs so references are readable and resets
+    /// Shape of DEV_SEED_DATA_JSON (src/.env). Ids are fixed GUIDs so references are readable and resets
     /// are repeatable; times are offsets from "now" so the data always looks fresh. Enum values are snake_case
     /// strings exactly as the API uses them.
     /// </summary>

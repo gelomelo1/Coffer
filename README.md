@@ -19,19 +19,25 @@ accounts in **Coffer.Manager**.
 
 ## Environment configuration
 
-All environment files live in `src/` (next to the compose files).
+Three places have their own env files, each with the same three files:
+
+| Folder | What it configures |
+|---|---|
+| `src/` | backend API, AI service, PostgreSQL (development) |
+| `src/Coffer/Coffer.ReactNative/` | the mobile app (backend URL, sign-in ids, URL scheme) |
+| `src/Coffer/Coffer.Manager/` | the admin tool (backend URL) |
 
 | File | In Git? | Purpose |
 |---|---|---|
-| `.env` | **no** | decrypted runtime configuration (production-style values) |
-| `.env.enc` | **yes** | the encrypted copy of `.env` — the only form that is committed |
-| `.env.development` | **no** | local development configuration: every key of `.env` plus the development settings below |
-| `.env.development.enc` | **yes** | the encrypted copy of `.env.development` (same commands, file names swapped) |
-| `.env.development.example` | yes | the same keys with safe placeholders — copy it to `.env.development` and fill it in |
+| `.env` | **no** | the real values, used for development |
+| `.env.enc` | **yes** | the encrypted copy of `.env` — the only form of the real values that is committed |
+| `.env.example` | yes | the same keys with safe placeholders — copy it to `.env` and fill it in |
+
+Every key is required. A missing value stops the API (or the app) at startup with the name of the variable.
 
 ### Encrypted `.env` workflow
 
-Decrypt the environment configuration (run in `src/`):
+Decrypt (run in the folder of the file):
 
 ```
 openssl enc -aes-256-cbc -d -salt -pbkdf2 -in .env.enc -out .env
@@ -44,19 +50,27 @@ openssl enc -aes-256-cbc -salt -pbkdf2 -in .env -out .env.enc
 ```
 
 * The decrypted `.env` file must **never** be committed (`.gitignore` excludes `.env` and `.env.*`, and explicitly
-  allows `.env.enc` and `.env.development.example`).
-* Only the newly encrypted `.env.enc` is committed. The same workflow applies to `.env.development` → `.env.development.enc`
-  and to `src/Coffer/Coffer.Manager/.env` → `.env.enc` there.
+  allows `.env.enc` and `.env.example`).
 * OpenSSL asks for the encryption password on both commands.
 * Anyone who needs to run the project gets the password through the team's established secure channel — never through
   the repository, an issue or a chat log.
 
 ### Which file is loaded
 
-* `docker compose -f docker-compose.dev.yml up` — every service reads `src/.env.development`.
-* Running the API directly (`dotnet run` in `Coffer.ASPNET`) in the Development environment — `../../.env.development`
-  when it exists, otherwise `../../.env`.
-* Production — `/var/www/coffer/.env.production` (unchanged).
+* `docker compose -f docker-compose.dev.yml up` — every service reads `src/.env`.
+* Running the API directly (`dotnet run` in `Coffer.ASPNET`) in the Development environment — `../../.env`.
+* Production — no file: every value comes from the process environment (GitHub secrets). Production needs
+  `JWT_SECRET` (32+ bytes), `COFFER_CONNECTIONSTRING`, `COFFER_ROOT_PATH`, `FASTAPI_URL`, `POSTGRES_DB`, `POSTGRES_USER`,
+  `POSTGRES_PASSWORD`, `GOOGLE_CLIENT_IDS`, `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`, `FACEBOOK_REDIRECT_URI`,
+  `FACEBOOK_GRAPH_VERSION`, `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, `REDDIT_REDIRECT_URI`, `REDDIT_USER_AGENT`,
+  `TRUSTED_PROXIES` (the network nginx connects from, e.g. the Docker bridge `172.18.0.0/16`),
+  `COFFER_MANAGER_ADMIN_GITHUB_PROVIDER_IDS`, optionally `COFFER_MANAGER_GITHUB_CLIENT_ID` and `INTERNAL_API_KEY`.
+
+### Data folders
+
+`COFFER_ROOT_PATH` (`/app` in Docker) is the only path setting. The API and the AI service both derive:
+`data/images` (item, cover, listing, news and pending images), `data/icons` (item type icons), `data/vectors` (vector
+store), `data/temp` (photo checks) and `models` (AI models per item type).
 
 ### Settings added for this version
 
@@ -76,7 +90,7 @@ openssl enc -aes-256-cbc -salt -pbkdf2 -in .env -out .env.enc
 
 ## Development environment
 
-1. Create `src/.env.development` (copy `.env.development.example`, or copy `.env` and add the keys above).
+1. Create `src/.env`: decrypt `.env.enc` (above) or copy `.env.example` and fill it in.
 2. Apply the schema scripts once, in order (each is safe to re-run):
    `startup/marketplace_migration.sql`, `startup/marketplace_migration_2.sql`, `startup/moderation_comments_migration.sql`
    ```
@@ -188,8 +202,8 @@ authorization.
 
 ### Administrator provisioning
 
-* Development: set the ids in `.env.development`.
-* Production: set `COFFER_MANAGER_ADMIN_GITHUB_PROVIDER_IDS` in `.env.production` before the first start; the first
+* Development: set the ids in `src/.env`.
+* Production: set `COFFER_MANAGER_ADMIN_GITHUB_PROVIDER_IDS` in the production environment (GitHub secrets) before the first start; the first
   administrator can sign in right away (no seed data is involved). There is no fallback admin account, and the first
   person who signs in does **not** become an admin.
 * No (or an invalid) list = nobody gets in; the API logs "administrator provisioning required" at startup and the sign-in
