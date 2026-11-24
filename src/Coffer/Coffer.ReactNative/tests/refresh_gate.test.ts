@@ -27,18 +27,24 @@ test("next_call_after_settle_refreshes_again", async () => {
 
 test("refresh_failure_signs_out_once: every waiter fails, sign-out runs once", async () => {
   let failures = 0;
+  let seen: unknown;
   let reject!: (e: Error) => void;
   const gate = createRefreshGate(
     () => new Promise<string>((_, r) => (reject = r)),
-    () => failures++,
+    (error) => {
+      failures++;
+      seen = error;
+    },
   );
 
   const waiters = Array.from({ length: 5 }, () => gate());
-  reject(new Error("session ended"));
+  const cause = new Error("session ended");
+  reject(cause);
 
   const results = await Promise.allSettled(waiters);
   assert.ok(results.every((r) => r.status === "rejected"));
   assert.equal(failures, 1);
+  assert.equal(seen, cause);
 });
 
 test("a failed refresh does not block the next attempt", async () => {

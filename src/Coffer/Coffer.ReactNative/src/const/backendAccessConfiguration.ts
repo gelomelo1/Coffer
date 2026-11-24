@@ -10,6 +10,7 @@ import { ACCOUNT_DELETED_CODE, signOutDeletedAccount } from "../utils/account_de
 import { createRefreshGate } from "../utils/refresh_gate";
 import { refreshSession } from "../utils/session";
 import { endExpiredSession } from "../utils/session_end";
+import { errorToReport, isSessionOver } from "../utils/session_over";
 
 // EXPO_PUBLIC_BACKEND_URL from Coffer.ReactNative/.env (required; https:// outside development).
 export const backendAxios = axios.create({
@@ -82,5 +83,8 @@ function isAuthRequest(url: string | undefined): boolean {
   return !!url && /api\/auth\/(refresh|logout|register|dev\/|\w+\/(validate|start|complete))/.test(url);
 }
 
-/** One refresh for any number of simultaneous 401s; when it fails, the person is signed out once. */
-const refreshGate = createRefreshGate(refreshSession, () => void endExpiredSession());
+/** One refresh for any number of simultaneous 401s; when the server ended the session, the person is signed out once. */
+// Only a definitive "session over" signs out; offline, timeouts, 5xx and 429 keep the tokens for the next try.
+const refreshGate = createRefreshGate(refreshSession, (error) => {
+  if (isSessionOver(error)) void endExpiredSession();
+});
