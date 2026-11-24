@@ -99,6 +99,8 @@ store), `data/temp` (photo checks) and `models` (AI models per item type).
 
 ## App sign-in (Google, Facebook, Reddit)
 
+Security audit of sign-in and sessions: [docs/security/2026-11-24-oauth-audit.md](docs/security/2026-11-24-oauth-audit.md).
+
 * **Google** — native sign-in; the API verifies the ID token (signature, issuer, audience = `GOOGLE_CLIENT_IDS`,
   expiry) and accepts it only within 10 minutes of issue.
 * **Facebook** — in-app browser, OpenID Connect code flow with PKCE (S256), state and nonce. The API builds the sign-in

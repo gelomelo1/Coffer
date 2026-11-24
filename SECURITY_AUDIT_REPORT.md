@@ -1,5 +1,7 @@
 # Coffer – Security Audit Report
 
+> Sign-in (Google, Facebook, Reddit), sessions and tokens were audited again on 2026-11-24: see [docs/security/2026-11-24-oauth-audit.md](docs/security/2026-11-24-oauth-audit.md). The GitHub app sign-in described below no longer exists.
+
 Date: 2026-11-12 · Branch: `development` (uncommitted working-tree changes)
 Scope: `Coffer.ASPNET`, `Coffer.BusinessLogic`, `Coffer.DataAccess`, `Coffer.Domain`, `Coffer.Infrastructure`, `Coffer.PythonService`, `Coffer.ReactNative`, Docker / CI setup. `Coffer.Manager` was skipped as requested.
 
