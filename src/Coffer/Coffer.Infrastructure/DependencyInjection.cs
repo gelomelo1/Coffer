@@ -73,10 +73,11 @@ namespace Coffer.Infrastructure
             services.AddSingleton<Coffer.BusinessLogic.Auth.Sessions.AccessTokenIssuer>();
             services.AddSingleton<Coffer.BusinessLogic.Auth.Sessions.SessionGuardCache>();
             services.AddScoped<Coffer.BusinessLogic.Auth.Sessions.ISessionService, Coffer.BusinessLogic.Auth.Sessions.SessionService>();
-            services.AddScoped<IGithubService, GithubService>();
+            services.AddSingleton<Coffer.BusinessLogic.Auth.OAuth.PendingRegistrationStore>();
+            services.AddSingleton<Coffer.BusinessLogic.Auth.OAuth.IGoogleIdTokenValidator, Coffer.BusinessLogic.Auth.OAuth.GoogleIdTokenValidator>();
+            services.AddScoped<Coffer.BusinessLogic.Auth.OAuth.ISignInService, Coffer.BusinessLogic.Auth.OAuth.SignInService>();
             services.AddScoped<IImageService, ImageService>();
             services.AddMemoryCache();
-            services.AddSingleton<ITempTokenService, TempTokenService>();
             services.AddHttpClient();
             services.AddMarketplace();
             services.AddScoped<IPermissionService<Guid, CollectionRequired>, CollectionPermissionService>();

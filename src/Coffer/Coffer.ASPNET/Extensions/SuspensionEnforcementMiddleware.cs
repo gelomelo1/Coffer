@@ -26,6 +26,14 @@ namespace Coffer.ASPNET.Extensions
                 ? context.User.FindFirstValue(ClaimTypes.NameIdentifier)
                 : null;
 
+            // A deleted account's tokens are useless everywhere (the app signs out on this answer).
+            if (Guid.TryParse(userId, out var deletedId) && await deletedAccounts.IsDeletedAsync(deletedId))
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                await context.Response.WriteAsJsonAsync(new { message = "This account was deleted.", code = AccountDeletedCode });
+                return;
+            }
+
             // Every user token belongs to a live session: logout, account deletion and refresh-token reuse end it.
             if (userId != null)
             {
@@ -36,14 +44,6 @@ namespace Coffer.ASPNET.Extensions
                     await context.Response.WriteAsJsonAsync(new { message = "Your session has ended. Sign in again.", code = SessionRevokedCode });
                     return;
                 }
-            }
-
-            // A deleted account's tokens are useless everywhere (the app signs out on this answer).
-            if (Guid.TryParse(userId, out var deletedId) && await deletedAccounts.IsDeletedAsync(deletedId))
-            {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                await context.Response.WriteAsJsonAsync(new { message = "This account was deleted.", code = AccountDeletedCode });
-                return;
             }
 
             if (Guid.TryParse(userId, out var id) && !IsExempt(context.Request))
@@ -62,8 +62,10 @@ namespace Coffer.ASPNET.Extensions
         public const string AccountDeletedCode = "accountDeleted";
         public const string SessionRevokedCode = "sessionRevoked";
 
+        // A suspended user can still read why (the suspension status) and sign out (so the session really ends).
         private static bool IsExempt(HttpRequest request) =>
-            HttpMethods.IsGet(request.Method) && request.Path.Equals("/api/Account/Suspension", StringComparison.OrdinalIgnoreCase);
+            (HttpMethods.IsGet(request.Method) && request.Path.Equals("/api/Account/Suspension", StringComparison.OrdinalIgnoreCase))
+            || (HttpMethods.IsPost(request.Method) && request.Path.Equals("/api/auth/logout", StringComparison.OrdinalIgnoreCase));
 
         public static Task WriteSuspendedAsync(HttpResponse response, ActiveSuspensionDto active)
         {

@@ -1,192 +1,99 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using Coffer.ASPNET.Extensions;
-using Coffer.BusinessLogic.Services.Interfaces;
-using Coffer.DataAccess.Repositories;
+﻿using Coffer.ASPNET.Extensions;
+using Coffer.BusinessLogic.Auth.OAuth;
+using Coffer.BusinessLogic.Auth.Sessions;
 using Coffer.DataAccess.Repositories.Interfaces;
 using Coffer.Domain.Entities;
-using Google.Apis.Auth;
-using Google.Apis.Auth.OAuth2.Requests;
-using Google.Apis.Auth.OAuth2.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Npgsql.TypeMapping;
-using Coffer.Domain.Constants;
+using Microsoft.AspNetCore.RateLimiting;
+using SignInResult = Coffer.BusinessLogic.Auth.OAuth.SignInResult;
 
 namespace Coffer.ASPNET.Controllers
 {
+    /// <summary>
+    /// App sign-in. Every provider ends in the same answer: signed in (tokens) or registration required (an id for
+    /// api/auth/register). Facebook and Reddit start with api/auth/{provider}/start and finish with .../complete.
+    /// Responses are never cached.
+    /// </summary>
     [ApiController]
     [Route("api/auth")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public class AuthController : BaseController
     {
         private readonly IUsersRepository _usersRepository;
-        private readonly Coffer.BusinessLogic.Auth.Sessions.ISessionService _sessions;
-        private readonly IGithubService _githubService;
-        private readonly ITempTokenService _tempTokenService;
-        private readonly Coffer.BusinessLogic.Moderation.ISuspensionService _suspensions;
+        private readonly ISessionService _sessions;
+        private readonly ISignInService _signIn;
+        private readonly IGoogleIdTokenValidator _google;
+        private readonly ILogger<AuthController> _log;
 
-        public AuthController(IUsersRepository usersRepository, Coffer.BusinessLogic.Auth.Sessions.ISessionService sessions, IGithubService githubService, ITempTokenService tempTokenService,
-            Coffer.BusinessLogic.Moderation.ISuspensionService suspensions)
+        public AuthController(IUsersRepository usersRepository, ISessionService sessions, ISignInService signIn,
+            IGoogleIdTokenValidator google, ILogger<AuthController> log)
         {
-            _suspensions = suspensions;
             _usersRepository = usersRepository;
             _sessions = sessions;
-            _githubService = githubService;
-            _tempTokenService = tempTokenService;
+            _signIn = signIn;
+            _google = google;
+            _log = log;
         }
 
-        public record TokenRequest(string IdToken);
+        public record GoogleValidateRequest(string? IdToken);
+
         [HttpPost("google/validate")]
-        public async Task<IActionResult> GoogleValidate([FromBody] TokenRequest req)
+        [AllowAnonymous]
+        [EnableRateLimiting(AuthRateLimits.SignIn)]
+        public async Task<IActionResult> GoogleValidate([FromBody] GoogleValidateRequest? req)
         {
+            ProviderIdentity identity;
             try
             {
-                var payload = await GoogleJsonWebSignature.ValidateAsync(req.IdToken, GoogleValidationSettings());
-
-                var user = await _usersRepository.GetUserByLogin("google", payload.Subject);
-
-                if (user != null)
-                {
-                    var suspended = await SuspendedAsync(user.Id);
-                    if (suspended != null) return suspended;
-                    var jwt = (await _sessions.IssueAsync(user.Id)).AccessToken;
-                    return Ok(new { exists = true, token = jwt });
-                }
-
-                var tempId = _tempTokenService.StoreToken(req.IdToken);
-                return Ok(new { exists = false, tempId = tempId });
+                identity = await _google.ValidateAsync(req?.IdToken ?? "");
             }
-            catch(Exception)
+            catch (ProviderSignInException e)
             {
-                return this.ApiError(StatusCodes.Status400BadRequest, "invalidGoogleToken", "Invalid Google token");
+                return SignInFailed(Providers.Google, e);
             }
+            return SignInAnswer(await _signIn.CompleteAsync(identity));
         }
 
-        private GoogleJsonWebSignature.ValidationSettings GoogleValidationSettings() => new()
+        public record RegisterRequest(string? RegistrationId, string? Username, string? Country);
+
+        /// <summary>Creates the account of a pending registration (any provider) and signs it in.</summary>
+        [HttpPost("register")]
+        [AllowAnonymous]
+        [EnableRateLimiting(AuthRateLimits.SignIn)]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest? req) =>
+            Ok(Tokens(await _signIn.RegisterAsync(req?.RegistrationId, req?.Username, req?.Country)));
+
+        public record RefreshRequest(string? RefreshToken);
+
+        /// <summary>Trades a refresh token for a new pair (the old one stops working).</summary>
+        [HttpPost("refresh")]
+        [AllowAnonymous]
+        [EnableRateLimiting(AuthRateLimits.Refresh)]
+        public async Task<IActionResult> Refresh([FromBody] RefreshRequest? req) =>
+            Ok(Tokens(await _sessions.RefreshAsync(req?.RefreshToken ?? "")));
+
+        public record LogoutRequest(string? RefreshToken);
+
+        /// <summary>Ends the session of the refresh token and/or of the calling access token. Always 204.</summary>
+        [HttpPost("logout")]
+        [AllowAnonymous]
+        [EnableRateLimiting(AuthRateLimits.Refresh)]
+        public async Task<IActionResult> Logout([FromBody] LogoutRequest? req)
         {
-            Audience = HttpContext.RequestServices.GetRequiredService<Coffer.BusinessLogic.Auth.AuthOptions>().Google.ClientIds
-        };
-
-        public record RegisterRequest(string TempId, string Username, string Country);
-        [HttpPost("google/register")]
-        public async Task<IActionResult> GoogleRegister([FromBody] RegisterRequest req)
-        {
-            try
-            {
-
-                if (!_tempTokenService.TryGetToken(req.TempId, out var accessToken))
-                {
-                    return this.ApiError(StatusCodes.Status400BadRequest, "invalidRegistrationSession", "Invalid registration session");
-                }
-
-                var payload = await GoogleJsonWebSignature.ValidateAsync(accessToken, GoogleValidationSettings());
-
-                var existingUser = await _usersRepository.GetUserByLogin("google", payload.Subject);
-                if (existingUser != null)
-                {
-                    return this.ApiError(StatusCodes.Status400BadRequest, "userAlreadyExists", "User already exists");
-                }
-
-                var user = await _usersRepository.InsertUserAsync(new UserRequired("google", payload.Subject, req.Username, payload.Email, req.Country, payload.Picture, UserRole.User));
-
-                var jwt = (await _sessions.IssueAsync(user.Id)).AccessToken;
-
-                _tempTokenService.RemoveToken(req.TempId);
-
-                return Ok(new { token = jwt });
-            }
-            catch (Exception)
-            {
-                return this.ApiError(StatusCodes.Status400BadRequest, "registrationFailed", "Registration failed");
-            }
-        }
-
-        public record GithubCodeRequest(string Code, string CodeVerifier);
-        [HttpPost("github/validate")]
-        public async Task<IActionResult> GithubValidate([FromBody] GithubCodeRequest req)
-        {
-            try
-            {
-                var tokenResponse = await _githubService.ExchangeCodeForToken(req.Code, req.CodeVerifier);
-                var githubUser = await _githubService.GetGithubUser(tokenResponse);
-
-                var user = await _usersRepository.GetUserByLogin("github", githubUser.Id);
-
-                if(user != null)
-                {
-                    var suspended = await SuspendedAsync(user.Id);
-                    if (suspended != null) return suspended;
-                    var jwt = (await _sessions.IssueAsync(user.Id)).AccessToken;
-                    return Ok(new { exists = true, token = jwt });
-                }
-
-                var tempId = _tempTokenService.StoreToken(tokenResponse);
-                return Ok(new { exists = false, tempId = tempId });
-            }
-            catch(Exception e)
-            {
-                Console.WriteLine($"GitHub login failed: {e.GetType().Name}");
-                return Unauthorized();
-            }
-        }
-
-        public record RegisterRequestGithub(string TempId, string Username, string Country);
-        [HttpPost("github/register")]
-        public async Task<IActionResult> GithubRegister([FromBody] RegisterRequestGithub req)
-        {
-            try
-            {
-                if(!_tempTokenService.TryGetToken(req.TempId, out var accessToken))
-                {
-                    return this.ApiError(StatusCodes.Status400BadRequest, "invalidRegistrationSession", "Invalid registration session");
-                }
-
-                var githubUser = await _githubService.GetGithubUser(accessToken);
-
-                var existingUser = await _usersRepository.GetUserByLogin("github", githubUser.Id);
-                if (existingUser != null) return this.ApiError(StatusCodes.Status400BadRequest, "userAlreadyExists", "User already exists");
-
-                var user = await _usersRepository.InsertUserAsync(
-                    new UserRequired("github", githubUser.Id, req.Username, githubUser.Email, req.Country, githubUser.AvatarUrl, UserRole.User)
-                );
-
-                var jwt = (await _sessions.IssueAsync(user.Id)).AccessToken;
-
-                _tempTokenService.RemoveToken(req.TempId);
-
-                return Ok(new { token = jwt });
-            }
-            catch(Exception)
-            {
-                return this.ApiError(StatusCodes.Status400BadRequest, "registrationFailed", "Registration failed");
-            }
-        }
-
-        /// <summary>A suspended user gets no new token; the 403 body says why and until when.</summary>
-        private async Task<IActionResult?> SuspendedAsync(Guid userId)
-        {
-            var active = await _suspensions.GetActiveAsync(userId);
-            if (active == null) return null;
-            return StatusCode(StatusCodes.Status403Forbidden, new
-            {
-                message = $"Your account is suspended until {active.EndsAt:yyyy-MM-dd HH:mm} UTC.",
-                code = Coffer.BusinessLogic.Moderation.SuspensionService.SuspendedCode,
-                reason = active.Reason,
-                startsAt = active.StartsAt,
-                endsAt = active.EndsAt,
-            });
+            if (!string.IsNullOrWhiteSpace(req?.RefreshToken))
+                await _sessions.RevokeByRefreshTokenAsync(req.RefreshToken, SessionService.ReasonLogout);
+            if (UserId != null && AccessTokenIssuer.SessionId(User) is { } sessionId)
+                await _sessions.RevokeAsync(sessionId, SessionService.ReasonLogout);
+            return NoContent();
         }
 
         [HttpGet("currentUser")]
         [Authorize]
         public async Task<ActionResult<User>> GetCurrentUser()
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (userIdClaim == null)
+            if (UserId is not { } userId)
                 return Unauthorized();
-
-            var userId = Guid.Parse(userIdClaim);
 
             var user = await _usersRepository.GetItemByIdAsync(userId);
 
@@ -195,5 +102,39 @@ namespace Coffer.ASPNET.Controllers
 
             return Ok(user);
         }
+
+        /// <summary>The shared answer of every provider's sign-in step.</summary>
+        internal IActionResult SignInAnswer(SignInResult result)
+        {
+            switch (result.Status)
+            {
+                case SignInResult.Suspended:
+                    // Same body as every blocked request, so the app shows its "account suspended" screen.
+                    var active = result.Suspension!;
+                    return StatusCode(StatusCodes.Status403Forbidden, new
+                    {
+                        message = $"Your account is suspended until {active.EndsAt:yyyy-MM-dd HH:mm} UTC.",
+                        code = Coffer.BusinessLogic.Moderation.SuspensionService.SuspendedCode,
+                        reason = active.Reason,
+                        startsAt = active.StartsAt,
+                        endsAt = active.EndsAt,
+                    });
+                case SignInResult.RegistrationRequired:
+                    return Ok(new { status = result.Status, registrationId = result.RegistrationId });
+                default:
+                    var t = result.Tokens!;
+                    return Ok(new { status = result.Status, accessToken = t.AccessToken, accessTokenExpiresAt = t.AccessTokenExpiresAt, refreshToken = t.RefreshToken });
+            }
+        }
+
+        /// <summary>Logs why (never the token or code itself) and answers with one generic error.</summary>
+        internal IActionResult SignInFailed(string provider, Exception e)
+        {
+            _log.LogWarning("{Provider} sign-in failed: {Reason}", provider, e.Message);
+            return this.ApiError(StatusCodes.Status400BadRequest, "providerSignInFailed", "Sign-in failed. Try again.");
+        }
+
+        private static object Tokens(SessionTokens t) =>
+            new { accessToken = t.AccessToken, accessTokenExpiresAt = t.AccessTokenExpiresAt, refreshToken = t.RefreshToken };
     }
 }

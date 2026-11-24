@@ -41,10 +41,12 @@ namespace Coffer.BusinessLogic.Account
         private readonly MarketplaceStorage _storage;
         private readonly ISuspensionService _suspensions;
         private readonly IDeletedAccounts _deleted;
+        private readonly Coffer.BusinessLogic.Auth.Sessions.ISessionService _sessions;
 
         public AccountDeletionService(CofferDbContext db, IContentTombstoneService tombstones, IImageService images, MarketplaceStorage storage,
-            ISuspensionService suspensions, IDeletedAccounts deleted)
+            ISuspensionService suspensions, IDeletedAccounts deleted, Coffer.BusinessLogic.Auth.Sessions.ISessionService sessions)
         {
+            _sessions = sessions;
             _db = db;
             _tombstones = tombstones;
             _images = images;
@@ -91,7 +93,7 @@ namespace Coffer.BusinessLogic.Account
                 var tag = $"deleted-{userId:N}";
 
                 // Personal data. The placeholders are unique and never shown (the app shows "Deleted user"); a new
-                // sign-in with the same Google / GitHub account creates a fresh user.
+                // sign-in with the same provider account creates a fresh user.
                 user.Name = tag;
                 user.Email = $"{tag}@deleted.invalid";
                 user.ProviderUserId = tag;
@@ -138,6 +140,9 @@ namespace Coffer.BusinessLogic.Account
                 _db.Reactions.RemoveRange(await _db.Reactions.Where(r => r.UserId == userId).ToListAsync());
                 // Their activity log is their personal data; nobody else's things point at it.
                 _db.ActivityEvents.RemoveRange(await _db.ActivityEvents.Where(e => e.UserId == userId).ToListAsync());
+
+                // Every signed-in device of the account is signed out, in the same transaction.
+                await _sessions.RevokeAllForUserAsync(userId, Coffer.BusinessLogic.Auth.Sessions.SessionService.ReasonAccountDeleted);
 
                 await _db.SaveChangesAsync();
                 await tx.CommitAsync();

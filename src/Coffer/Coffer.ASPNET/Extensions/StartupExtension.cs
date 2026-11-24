@@ -46,6 +46,7 @@ namespace Coffer.ASPNET.Extensions
             }
 
             builder.Services.AddInfrastructure();
+            builder.Services.AddAuthRateLimits();
 
             // Optional shared secret for backend -> Python service calls (set INTERNAL_API_KEY in the .env
             // file of both services to enable it). Only added to requests that go to FASTAPI_URL.
@@ -85,6 +86,8 @@ namespace Coffer.ASPNET.Extensions
                 SupportedUICultures = System.Globalization.CultureInfo.GetCultures(System.Globalization.CultureTypes.NeutralCultures)
                     .Where(c => !string.IsNullOrEmpty(c.Name)).ToList(),
             });
+
+            app.UseRateLimiter();
 
             app.UseAuthentication();
             // Suspended users are blocked server-side right after their token is read.

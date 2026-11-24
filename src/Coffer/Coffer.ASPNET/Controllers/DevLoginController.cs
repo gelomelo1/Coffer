@@ -30,7 +30,7 @@ namespace Coffer.ASPNET.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<DevLoginResultDto>> Login([FromBody] DevLoginInput input)
+        public async Task<ActionResult<Coffer.BusinessLogic.Auth.Sessions.SessionTokens>> Login([FromBody] DevLoginInput input)
         {
             if (!DevLoginService.IsEnabled(_env.EnvironmentName)) return NotFound();
             return Ok(await _devLogin.LoginAsync(input));

@@ -91,7 +91,7 @@ namespace Coffer.Tests.DevSeed
 
             var login = await client.PostAsJsonAsync("api/auth/dev/login", new { userId = _seedUser.Id });
             Assert.Equal(HttpStatusCode.OK, login.StatusCode);
-            var token = (await login.Content.ReadFromJsonAsync<DevLoginResultDto>())!.Token;
+            var token = (await login.Content.ReadFromJsonAsync<Coffer.BusinessLogic.Auth.Sessions.SessionTokens>())!.AccessToken;
             var authed = _api.CreateClient();
             authed.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             Assert.Contains("SeedAnna", await authed.GetStringAsync("api/auth/currentUser"));

@@ -10,10 +10,8 @@ namespace Coffer.BusinessLogic.DevSeed
 
     public sealed record DevLoginInput(Guid UserId);
 
-    public sealed record DevLoginResultDto(string Token);
-
     /// <summary>
-    /// Development-only sign-in as one of the seeded test users (DEV_SEED_DATA_JSON), without Google/GitHub.
+    /// Development-only sign-in as one of the seeded test users (DEV_SEED_DATA_JSON), without a sign-in provider.
     /// Enabled only when DEV_LOGIN_ENABLED=true AND the environment is Development; anywhere else the API refuses to
     /// start with the flag set (see <see cref="DevSeedGuard"/>). Users not in the seed list can never be impersonated.
     /// </summary>
@@ -59,7 +57,7 @@ namespace Coffer.BusinessLogic.DevSeed
             return result;
         }
 
-        public async Task<DevLoginResultDto> LoginAsync(DevLoginInput input)
+        public async Task<Coffer.BusinessLogic.Auth.Sessions.SessionTokens> LoginAsync(DevLoginInput input)
         {
             if (input == null || !SeedUserIds().Contains(input.UserId))
                 throw MarketplaceException.Forbidden("onlySeededDevelopmentUsersCanUseThe", "Only seeded development users can use the dev login.");
@@ -68,7 +66,7 @@ namespace Coffer.BusinessLogic.DevSeed
             // Same rule as the real sign-in: a suspended account gets no token.
             if (await _suspensions.GetActiveAsync(user.Id) is { } active)
                 throw new MarketplaceException(MarketplaceError.Forbidden, SuspensionService.SuspendedCode, $"Your account is suspended until {active.EndsAt:yyyy-MM-dd HH:mm} UTC.", ErrorArgs.Of($"{active.EndsAt:yyyy-MM-dd HH:mm}"));
-            return new DevLoginResultDto((await _sessions.IssueAsync(user.Id)).AccessToken);
+            return await _sessions.IssueAsync(user.Id);
         }
     }
 }
