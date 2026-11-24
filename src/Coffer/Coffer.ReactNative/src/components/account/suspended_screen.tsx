@@ -2,12 +2,10 @@ import CustomButton from "@/src/components/custom_ui/custom_button";
 import { ROUTES } from "@/src/const/navigation_params";
 import { useResetNavigation } from "@/src/hooks/navigation";
 import { useSuspensionStore } from "@/src/hooks/suspension_store";
-import { useUserStore } from "@/src/hooks/user_store";
 import { borders, colors, spacing, typography } from "@/src/theme/theme";
 import { formatDateTime, marketApi } from "@/src/utils/market_api";
-import { removeToken } from "@/src/utils/token_store";
+import { signOut as endSession } from "@/src/utils/session";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, Text, View } from "react-native";
@@ -22,7 +20,6 @@ function SuspendedScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { suspension, setSuspension } = useSuspensionStore();
-  const { user } = useUserStore();
   const resetNavigate = useResetNavigation();
   const [checking, setChecking] = useState(false);
 
@@ -40,10 +37,7 @@ function SuspendedScreen() {
   };
 
   const signOut = async () => {
-    try {
-      if (user?.provider === "google") await GoogleSignin.signOut();
-      await removeToken();
-    } catch {}
+    await endSession({ callServer: true });
     setSuspension(null);
     resetNavigate(ROUTES.ROOT);
   };

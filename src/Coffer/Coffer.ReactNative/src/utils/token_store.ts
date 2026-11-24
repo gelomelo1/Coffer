@@ -1,66 +1,45 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 import { asyncstoragekeys } from "../const/async_storage_keys";
 
-// The JWT is stored with expo-secure-store (Android Keystore / iOS Keychain) instead of plain
-// AsyncStorage, which is unencrypted and included in Android backups.
-// If the native module is not available (e.g. an old development build), AsyncStorage is used as before.
-type SecureStoreModule = typeof import("expo-secure-store");
+/** What a sign-in or refresh returns. The refresh token is the long-lived secret: it never leaves SecureStore. */
+export type StoredSession = { accessToken: string; refreshToken: string; accessTokenExpiresAt: string };
 
-let secureStore: SecureStoreModule | null = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  secureStore = require("expo-secure-store");
-} catch {
-  secureStore = null;
+// Android Keystore / iOS Keychain only. There is deliberately no plain-storage fallback: without secure storage the
+// person simply signs in again next time.
+const KEYS = {
+  access: "coffer_access_token",
+  refresh: "coffer_refresh_token",
+  expires: "coffer_access_expires",
+};
+/** The one-year token of older app versions: no longer accepted by the backend, only deleted. */
+const LEGACY_SECURE_KEY = "coffer_jwt";
+
+async function dropLegacyToken(): Promise<void> {
+  await Promise.allSettled([SecureStore.deleteItemAsync(LEGACY_SECURE_KEY), AsyncStorage.removeItem(asyncstoragekeys.jwt)]);
 }
 
-const SECURE_JWT_KEY = "coffer_jwt";
-
-export async function getToken(): Promise<string | null> {
-  if (secureStore) {
-    try {
-      const token = await secureStore.getItemAsync(SECURE_JWT_KEY);
-      if (token) {
-        return token;
-      }
-
-      // One-time migration of a token saved by an older app version.
-      const legacyToken = await AsyncStorage.getItem(asyncstoragekeys.jwt);
-      if (legacyToken) {
-        await secureStore.setItemAsync(SECURE_JWT_KEY, legacyToken);
-        await AsyncStorage.removeItem(asyncstoragekeys.jwt);
-      }
-      return legacyToken;
-    } catch (error) {
-      console.error("Secure token storage unavailable:", error);
-    }
-  }
-
-  return AsyncStorage.getItem(asyncstoragekeys.jwt);
+export async function getAccessToken(): Promise<string | null> {
+  const token = await SecureStore.getItemAsync(KEYS.access);
+  if (!token) await dropLegacyToken();
+  return token;
 }
 
-export async function setToken(token: string): Promise<void> {
-  if (secureStore) {
-    try {
-      await secureStore.setItemAsync(SECURE_JWT_KEY, token);
-      await AsyncStorage.removeItem(asyncstoragekeys.jwt);
-      return;
-    } catch (error) {
-      console.error("Secure token storage unavailable:", error);
-    }
-  }
-
-  await AsyncStorage.setItem(asyncstoragekeys.jwt, token);
+export async function getRefreshToken(): Promise<string | null> {
+  return SecureStore.getItemAsync(KEYS.refresh);
 }
 
-export async function removeToken(): Promise<void> {
-  if (secureStore) {
-    try {
-      await secureStore.deleteItemAsync(SECURE_JWT_KEY);
-    } catch (error) {
-      console.error("Secure token storage unavailable:", error);
-    }
-  }
+export async function saveSession(session: StoredSession): Promise<void> {
+  await SecureStore.setItemAsync(KEYS.refresh, session.refreshToken);
+  await SecureStore.setItemAsync(KEYS.access, session.accessToken);
+  await SecureStore.setItemAsync(KEYS.expires, session.accessTokenExpiresAt);
+}
 
-  await AsyncStorage.removeItem(asyncstoragekeys.jwt);
+export async function clearSession(): Promise<void> {
+  await Promise.allSettled([
+    SecureStore.deleteItemAsync(KEYS.access),
+    SecureStore.deleteItemAsync(KEYS.refresh),
+    SecureStore.deleteItemAsync(KEYS.expires),
+  ]);
+  await dropLegacyToken();
 }

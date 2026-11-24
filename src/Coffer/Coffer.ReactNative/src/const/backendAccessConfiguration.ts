@@ -1,12 +1,15 @@
 import NetInfo from "@react-native-community/netinfo";
-import axios from "axios";
+import axios, { InternalAxiosRequestConfig } from "axios";
 import { env } from "./env";
 import { useConnectionStore } from "../hooks/connection_store";
 import i18n from "../i18n";
 import { useSuspensionStore } from "../hooks/suspension_store";
 import { classifyFailure, isDeviceOffline } from "../utils/connectivity";
-import { getToken } from "../utils/token_store";
+import { getAccessToken } from "../utils/token_store";
 import { ACCOUNT_DELETED_CODE, signOutDeletedAccount } from "../utils/account_deleted";
+import { createRefreshGate } from "../utils/refresh_gate";
+import { refreshSession } from "../utils/session";
+import { endExpiredSession } from "../utils/session_end";
 
 // EXPO_PUBLIC_BACKEND_URL from Coffer.ReactNative/.env (required; https:// outside development).
 export const backendAxios = axios.create({
@@ -18,7 +21,7 @@ export const backendAxios = axios.create({
 
 backendAxios.interceptors.request.use(
   async (config) => {
-    const token = await getToken();
+    const token = await getAccessToken();
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -58,6 +61,26 @@ backendAxios.interceptors.response.use(
     if (error?.response?.status === 403 && data?.code === "account_suspended") {
       useSuspensionStore.getState().setSuspension({ message: data.message, reason: data.reason, startsAt: data.startsAt, endsAt: data.endsAt });
     }
+
+    // The access token expired (15 minutes) or its session ended: refresh once, then repeat the request once.
+    const config = error?.config as (InternalAxiosRequestConfig & { _retried?: boolean }) | undefined;
+    if (error?.response?.status === 401 && data?.code !== ACCOUNT_DELETED_CODE && config && !config._retried && !isAuthRequest(config.url)) {
+      config._retried = true;
+      try {
+        await refreshGate();
+      } catch {
+        return Promise.reject(error);
+      }
+      return backendAxios(config);
+    }
     return Promise.reject(error);
   },
 );
+
+/** Sign-in steps answer 401 for their own reasons; refreshing would be pointless there. */
+function isAuthRequest(url: string | undefined): boolean {
+  return !!url && /api\/auth\/(refresh|logout|register|dev\/|\w+\/(validate|start|complete))/.test(url);
+}
+
+/** One refresh for any number of simultaneous 401s; when it fails, the person is signed out once. */
+const refreshGate = createRefreshGate(refreshSession, () => void endExpiredSession());

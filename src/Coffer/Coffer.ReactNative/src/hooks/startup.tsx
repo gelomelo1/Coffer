@@ -1,4 +1,3 @@
-import { QueryClient } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { SplashScreen } from "expo-router";
 import { useEffect, useState } from "react";
@@ -7,10 +6,10 @@ import { applyLanguagePreference, loadLanguagePreference } from "../i18n/languag
 import { useNavigationMode } from "react-native-navigation-mode";
 import { initNavigationModeStore } from "./navigation_mode_store";
 import useTokenStorage from "./token_storage";
+import { queryClient } from "../utils/query_client";
 import { useUserStore } from "./user_store";
 
 function useStartup() {
-  const queryClient = new QueryClient();
 
   const {
     isLoaded: isTokenLoaded,
@@ -36,7 +35,7 @@ function useStartup() {
     const refetch = () => queryClient.invalidateQueries();
     i18n.on("languageChanged", refetch);
     return () => i18n.off("languageChanged", refetch);
-  }, [queryClient]);
+  }, []);
 
   // The saved language must be applied before the splash screen hides, so nothing flashes in English first.
   const [isLanguageLoaded, setIsLanguageLoaded] = useState(false);

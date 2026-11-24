@@ -2,9 +2,13 @@ import { backendAxios } from "./backendAccessConfiguration";
 
 export const endpoints = {
   googleValidate: "api/auth/google/validate",
-  googleRegister: "api/auth/google/register",
-  githubValidate: "api/auth/github/validate",
-  githubRegister: "api/auth/github/register",
+  authRegister: "api/auth/register",
+  authRefresh: "api/auth/refresh",
+  authLogout: "api/auth/logout",
+  facebookStart: "api/auth/facebook/start",
+  facebookComplete: "api/auth/facebook/complete",
+  redditStart: "api/auth/reddit/start",
+  redditComplete: "api/auth/reddit/complete",
   currentUser: "api/auth/currentUser",
   health: "api/Health",
   marketBadges: "api/Market/Badges",

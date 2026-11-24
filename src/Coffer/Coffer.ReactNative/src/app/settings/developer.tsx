@@ -3,7 +3,7 @@ import CustomButton from "@/src/components/custom_ui/custom_button";
 import { Screen } from "@/src/components/custom_ui/screen";
 import showToast from "@/src/components/custom_ui/toast";
 import { colors, typography } from "@/src/theme/theme";
-import { removeToken } from "@/src/utils/token_store";
+import { signOut } from "@/src/utils/session";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -15,8 +15,9 @@ function Developer() {
   const [confirm, setConfirm] = useState(false);
 
   const handleClearStorage = async () => {
+    // Signs out properly first (server session ended, tokens forgotten), then wipes the rest.
+    await signOut({ callServer: true });
     await AsyncStorage.clear();
-    await removeToken();
     setConfirm(false);
     showToast("success", t("settings:developer.cleared"));
   };

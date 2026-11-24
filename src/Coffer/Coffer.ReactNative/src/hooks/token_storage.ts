@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getToken } from "../utils/token_store";
+import { getAccessToken } from "../utils/token_store";
 
 function useTokenStorage() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -10,12 +10,12 @@ function useTokenStorage() {
   useEffect(() => {
     const loadToken = async () => {
       try {
-        const storedToken = await getToken();
+        const storedToken = await getAccessToken();
         setToken(storedToken);
         setIsLoaded(true);
-      } catch (error) {
+      } catch {
         setIsError(true);
-        console.error("Error loading token from AsyncStorage:", error);
+        console.error("Secure token storage unavailable");
       }
     };
     loadToken();

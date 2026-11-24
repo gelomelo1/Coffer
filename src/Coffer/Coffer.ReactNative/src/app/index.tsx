@@ -17,7 +17,7 @@ import { useUserStore } from "../hooks/user_store";
 import CollectionType from "../types/entities/collectiontype";
 import User from "../types/entities/user";
 import { getData, getSingleData } from "../utils/backend_access";
-import { getToken } from "../utils/token_store";
+import { getAccessToken } from "../utils/token_store";
 
 export default function Index() {
   const resetNavigate = useResetNavigation();
@@ -35,7 +35,7 @@ export default function Index() {
   useEffect(() => {
     if (suspension || connectionProblem) return;
     const checkAuth = async () => {
-      const token = await getToken();
+      const token = await getAccessToken();
       if (!token) {
         navigate(ROUTES.LOGIN);
       } else {

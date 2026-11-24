@@ -4,16 +4,14 @@ import { ConfirmDialog } from "@/src/components/custom_ui/confirm_dialog";
 import { ListRow } from "@/src/components/custom_ui/list_row";
 import { Screen } from "@/src/components/custom_ui/screen";
 import { Tag } from "@/src/components/custom_ui/tag";
-import { webGoogleClientId } from "@/src/const/authAccessConfiguration";
 import { pageParams, ROUTES } from "@/src/const/navigation_params";
 import { useAgainstMeUnseen } from "@/src/hooks/market_api";
 import { usePendingSummary } from "@/src/hooks/pending";
 import { useResetNavigation } from "@/src/hooks/navigation";
 import { useUserStore } from "@/src/hooks/user_store";
 import { borders, colors, sizes } from "@/src/theme/theme";
-import { removeToken } from "@/src/utils/token_store";
+import { signOut } from "@/src/utils/session";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { navigate } from "expo-router/build/global-state/routing";
 import { useState } from "react";
 import { LANGUAGE_NAMES } from "@/src/i18n/language";
@@ -28,11 +26,6 @@ function Group({ children }: { children: React.ReactNode }) {
 /** Settings hub: profile shortcut, account rows, developer tools and a separated logout (confirmed first). */
 function Settings() {
   const { t, i18n } = useTranslation();
-  GoogleSignin.configure({
-    webClientId: webGoogleClientId,
-    offlineAccess: true,
-    scopes: ["profile", "email"],
-  });
 
   const resetNavigate = useResetNavigation();
   const { user } = useUserStore();
@@ -42,19 +35,8 @@ function Settings() {
   const [confirmLogout, setConfirmLogout] = useState(false);
 
   const handleLogout = async () => {
-    try {
-      if (user?.provider === "google") {
-        try {
-          await GoogleSignin.revokeAccess();
-          await GoogleSignin.signOut();
-        } catch (error) {
-          console.error("Error signing out from Google:", error);
-        }
-      }
-      await removeToken();
-    } catch (e) {
-      console.log(e);
-    }
+    // Ends the session on the server too, so a copy of the tokens stops working.
+    await signOut({ callServer: true });
     setConfirmLogout(false);
     resetNavigate(ROUTES.ROOT);
   };

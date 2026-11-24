@@ -4,8 +4,9 @@ import { backendAxios } from "@/src/const/backendAccessConfiguration";
 import { ROUTES } from "@/src/const/navigation_params";
 import { borders, colors, spacing, typography } from "@/src/theme/theme";
 import { apiErrorMessage, countryFlag } from "@/src/utils/market_api";
-import { setToken } from "@/src/utils/token_store";
+import { signInWith } from "@/src/utils/session";
 import { navigate } from "expo-router/build/global-state/routing";
+import type { StoredSession } from "@/src/utils/token_store";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
@@ -19,7 +20,7 @@ interface DevLoginUser {
 }
 
 /**
- * DEVELOPMENT ONLY: sign in as one of the seeded test users without Google/GitHub.
+ * DEVELOPMENT ONLY: sign in as one of the seeded test users without a sign-in provider.
  * Rendered only in dev builds (__DEV__) and only when the backend exposes the dev login (Development environment +
  * DEV_LOGIN_ENABLED=true); otherwise the endpoint answers 404 and nothing is shown.
  */
@@ -41,8 +42,8 @@ function DevLogin() {
   const signIn = async (user: DevLoginUser) => {
     setBusy(user.id);
     try {
-      const { data } = await backendAxios.post<{ token: string }>("api/auth/dev/login", { userId: user.id });
-      await setToken(data.token);
+      const { data } = await backendAxios.post<StoredSession>("api/auth/dev/login", { userId: user.id });
+      await signInWith(data);
       showToast("success", t("auth:dev.signedInAs", { name: user.name }));
       navigate(ROUTES.ROOT);
     } catch (error) {
