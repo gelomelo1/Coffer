@@ -62,9 +62,9 @@ namespace Coffer.ASPNET.Controllers
             }
         }
 
-        private static GoogleJsonWebSignature.ValidationSettings GoogleValidationSettings() => new()
+        private GoogleJsonWebSignature.ValidationSettings GoogleValidationSettings() => new()
         {
-            Audience = AuthSettings.GoogleAudiences()
+            Audience = HttpContext.RequestServices.GetRequiredService<Coffer.BusinessLogic.Auth.AuthOptions>().Google.ClientIds
         };
 
         public record RegisterRequest(string TempId, string Username, string Country);

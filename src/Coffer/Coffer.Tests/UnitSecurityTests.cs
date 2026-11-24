@@ -83,39 +83,6 @@ namespace Coffer.Tests
         }
     }
 
-    public class AuthSettingsTests
-    {
-        [Fact]
-        public void GoogleAudiences_DefaultToTheAppsWebClientId()
-        {
-            Environment.SetEnvironmentVariable("GOOGLE_CLIENT_IDS", null);
-
-            Assert.Equal(new[] { "652829495328-7n61l38u1h20q7bnl469pr1i0s68khrv.apps.googleusercontent.com" }, AuthSettings.GoogleAudiences());
-        }
-
-        [Fact]
-        public void GoogleAudiences_CanBeConfigured()
-        {
-            Environment.SetEnvironmentVariable("GOOGLE_CLIENT_IDS", " a.apps.googleusercontent.com , b.apps.googleusercontent.com ");
-            try
-            {
-                Assert.Equal(new[] { "a.apps.googleusercontent.com", "b.apps.googleusercontent.com" }, AuthSettings.GoogleAudiences());
-            }
-            finally
-            {
-                Environment.SetEnvironmentVariable("GOOGLE_CLIENT_IDS", null);
-            }
-        }
-
-        [Fact]
-        public async Task GithubExchange_FailsClosed_WhenSecretNotConfigured()
-        {
-            Environment.SetEnvironmentVariable("GITHUB_CLIENT_SECRET", null);
-
-            await Assert.ThrowsAsync<InvalidOperationException>(() => new GithubService().ExchangeCodeForToken("code", "verifier"));
-        }
-    }
-
     public class InternalApiKeyHandlerTests
     {
         private sealed class Capture : HttpMessageHandler

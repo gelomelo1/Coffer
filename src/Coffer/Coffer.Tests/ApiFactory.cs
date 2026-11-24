@@ -27,6 +27,8 @@ namespace Coffer.Tests
         public static string Models => Path.Combine(Root, "models");
         public static string Icons => Path.Combine(Root, "data", "icons");
         public const string PythonUrl = "http://python.test";
+        public const string GoogleClientId = "test-web.apps.googleusercontent.com";
+        public const string FacebookAppId = "123456";
 
         static TestEnvironment()
         {
@@ -40,6 +42,16 @@ namespace Coffer.Tests
             Environment.SetEnvironmentVariable("COFFER_CONNECTIONSTRING", "Host=unused");
             Environment.SetEnvironmentVariable("COFFER_ROOT_PATH", Root);
             Environment.SetEnvironmentVariable("FASTAPI_URL", PythonUrl);
+            // Sign-in settings are all required (AuthOptions); fake but well-formed values.
+            Environment.SetEnvironmentVariable("GOOGLE_CLIENT_IDS", GoogleClientId);
+            Environment.SetEnvironmentVariable("FACEBOOK_APP_ID", FacebookAppId);
+            Environment.SetEnvironmentVariable("FACEBOOK_APP_SECRET", "test-facebook-secret");
+            Environment.SetEnvironmentVariable("FACEBOOK_REDIRECT_URI", $"fb{FacebookAppId}://authorize");
+            Environment.SetEnvironmentVariable("FACEBOOK_GRAPH_VERSION", "v21.0");
+            Environment.SetEnvironmentVariable("REDDIT_CLIENT_ID", "test-reddit-id");
+            Environment.SetEnvironmentVariable("REDDIT_CLIENT_SECRET", "test-reddit-secret");
+            Environment.SetEnvironmentVariable("REDDIT_REDIRECT_URI", "com.gelomelo.coffer://oauth/reddit");
+            Environment.SetEnvironmentVariable("REDDIT_USER_AGENT", "test:com.gelomelo.coffer:1.0.0 (by /u/test)");
         }
 
         public static void Ensure() { _ = Root; }

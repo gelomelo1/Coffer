@@ -75,6 +75,8 @@ namespace Coffer.Infrastructure
             #endregion
 
             #region AddServices
+            // Every sign-in setting is required; resolved once at startup (SetupMiddleware) so a missing one stops the API.
+            services.AddSingleton(_ => Coffer.BusinessLogic.Auth.AuthOptions.FromEnvironment(Environment.GetEnvironmentVariable));
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IGithubService, GithubService>();
             services.AddScoped<IImageService, ImageService>();
