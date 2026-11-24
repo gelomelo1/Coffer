@@ -6,7 +6,7 @@ import uuid
 from fastapi import FastAPI, File, Request, UploadFile, Body
 from fastapi.responses import JSONResponse
 import os
-from dotenv import load_dotenv
+import service_env
 from fastapi.concurrency import asynccontextmanager
 from build_image_check_response import build_image_check_response
 from config import DOTENV_PATH, LEGACY_THRESHOLDS, TEST_UPLOAD_DIR, VECTOR_COLLECTION_NAME, VECTOR_DIMENSION
@@ -29,7 +29,8 @@ import chromadb
 from vector_store import open_cosine_collection
 
 
-load_dotenv()
+# Local runs: only this service's keys from src/.env (see service_env).
+service_env.load(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".env"))
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
