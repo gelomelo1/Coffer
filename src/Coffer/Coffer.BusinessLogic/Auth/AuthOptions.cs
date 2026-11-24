@@ -39,6 +39,10 @@ namespace Coffer.BusinessLogic.Auth
             if (missing.Count > 0)
                 throw new InvalidOperationException($"Missing auth settings: {string.Join(", ", missing)}. Set them in src/.env (development) or the production environment.");
 
+            // The value from .env.example is public: anyone could sign tokens with it.
+            if (secret.StartsWith("change-me", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("JWT_SECRET is still the placeholder from .env.example. Set a long random secret.");
+
             var key = Encoding.UTF8.GetBytes(secret);
             if (key.Length < MinJwtKeyBytes)
                 throw new InvalidOperationException($"JWT_SECRET must be at least {MinJwtKeyBytes} bytes.");

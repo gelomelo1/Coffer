@@ -59,6 +59,19 @@ namespace Coffer.Tests.Auth
             Assert.Contains("JWT_SECRET must be at least 32 bytes", e.Message);
         }
 
+        [Theory]
+        [InlineData("change-me-to-a-long-random-secret-at-least-32-characters")]
+        [InlineData("CHANGE-ME and some more characters to pass the length")]
+        public void Placeholder_jwt_secret_is_rejected(string placeholder)
+        {
+            var values = Complete();
+            values["JWT_SECRET"] = placeholder;
+
+            var e = Assert.Throws<InvalidOperationException>(() => Load(values));
+
+            Assert.Contains("JWT_SECRET is still the placeholder", e.Message);
+        }
+
         [Fact]
         public void Google_ids_are_split_and_trimmed()
         {
