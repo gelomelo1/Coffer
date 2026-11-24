@@ -19,12 +19,17 @@ namespace Coffer.Tests.Auth
     /// <summary>Rotating, hashed, single-use refresh tokens bound to a server-side session.</summary>
     public class SessionServiceTests : IDisposable
     {
-        static SessionServiceTests() => TestEnvironment.Ensure();
-
         private readonly TestDb _db = new();
         private readonly FakeClock _clock = new() { UtcNow = DateTime.UtcNow };
         private readonly SessionGuardCache _cache = new(new MemoryCache(new MemoryCacheOptions()));
-        private static readonly AuthOptions Options = AuthOptions.FromEnvironment(Environment.GetEnvironmentVariable);
+        private static readonly AuthOptions Options = LoadOptions();
+
+        // Field initialisers run before a static constructor body, so the test environment is set up here.
+        private static AuthOptions LoadOptions()
+        {
+            TestEnvironment.Ensure();
+            return AuthOptions.FromEnvironment(Environment.GetEnvironmentVariable);
+        }
 
         private SessionService Sut(Coffer.DataAccess.CofferDbContext? db = null) =>
             new(db ?? _db.Context, new AccessTokenIssuer(Options, _clock), _cache, _clock, NullLogger<SessionService>.Instance);
