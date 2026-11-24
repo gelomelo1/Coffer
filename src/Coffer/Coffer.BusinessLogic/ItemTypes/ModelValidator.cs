@@ -5,10 +5,10 @@ namespace Coffer.BusinessLogic.ItemTypes
 {
     public sealed record ModelValidation(bool Ok, string? Message);
 
-    /// <summary>Asks the AI service whether it can load a model file that is waiting in MODELS_PATH.</summary>
+    /// <summary>Asks the AI service whether it can load a model file that is waiting in AppPaths.Models.</summary>
     public interface IModelValidator
     {
-        /// <param name="fileName">A file name in MODELS_PATH (e.g. "3_detection.pt.candidate").</param>
+        /// <param name="fileName">A file name in AppPaths.Models (e.g. "3_detection.pt.candidate").</param>
         /// <param name="kind">"detection" or "embedding".</param>
         Task<ModelValidation> ValidateAsync(string fileName, string kind, CancellationToken ct = default);
     }

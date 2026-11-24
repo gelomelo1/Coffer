@@ -32,11 +32,12 @@ class FakeCollection:
 class ReembedTests(unittest.TestCase):
     def setUp(self):
         os.environ.pop("INTERNAL_API_KEY", None)
-        self.store = tempfile.mkdtemp()
-        self.models = tempfile.mkdtemp()
-        self.saved = {k: os.environ.get(k) for k in ("IMAGESTORE_PATH", "MODELS_PATH")}
-        os.environ["IMAGESTORE_PATH"] = self.store
-        os.environ["MODELS_PATH"] = self.models
+        self.root = tempfile.mkdtemp()
+        self.store = os.path.join(self.root, "data", "images")
+        self.models = os.path.join(self.root, "models")
+        os.makedirs(self.models)
+        self.saved = {"COFFER_ROOT_PATH": os.environ.get("COFFER_ROOT_PATH")}
+        os.environ["COFFER_ROOT_PATH"] = self.root
         os.makedirs(os.path.join(self.store, "items"))
         os.makedirs(os.path.join(self.store, "pending"))
         self.path = os.path.join(self.models, "5_similarity_2.pt")
@@ -52,8 +53,7 @@ class ReembedTests(unittest.TestCase):
                 os.environ.pop(k, None)
             else:
                 os.environ[k] = v
-        shutil.rmtree(self.store, ignore_errors=True)
-        shutil.rmtree(self.models, ignore_errors=True)
+        shutil.rmtree(self.root, ignore_errors=True)
 
     def image(self, folder, name, seed):
         rng = np.random.RandomState(seed)

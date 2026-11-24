@@ -20,8 +20,8 @@ namespace Coffer.ASPNET.Controllers
         private readonly IUsersRepository _usersRepositry;
         private readonly IImageService _imageService;
         private readonly string imageFolder =
-            Path.Combine(Env.GetString("IMAGESTORE_PATH") ?? throw new InvalidOperationException("IMAGESTORE_PATH envionmental variable is not set"), "items");
-        private readonly string tempFolder = Env.GetString("IMAGECHECK_TEMP_PATH") ?? throw new InvalidOperationException("IMAGECHECK_TEMP_PATH envionmental variable is not set");
+            Path.Combine(Coffer.BusinessLogic.AppConfig.AppPaths.Images, "items");
+        private readonly string tempFolder = Coffer.BusinessLogic.AppConfig.AppPaths.Temp;
         private readonly string pythonServiceUrl = Env.GetString("FASTAPI_URL") ?? throw new InvalidOperationException("FASTAPI_URL envionmental variable is not set");
         private readonly HttpClient _httpClient;
         private readonly Coffer.BusinessLogic.Account.IContentTombstoneService _tombstones;

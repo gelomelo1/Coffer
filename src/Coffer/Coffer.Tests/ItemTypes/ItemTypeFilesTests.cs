@@ -7,10 +7,10 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Coffer.Tests.ItemTypes
 {
-    /// <summary>Icons (ICONSTORE_PATH) and AI models (MODELS_PATH) of an item type: names come from the type id only.</summary>
+    /// <summary>Icons (AppPaths.Icons) and AI models (AppPaths.Models) of an item type: names come from the type id only.</summary>
     public class ItemTypeFilesTests
     {
-        /// <summary>Sets MODELS_PATH / ICONSTORE_PATH even when no API test has run yet.</summary>
+        /// <summary>Sets AppPaths.Models / AppPaths.Icons even when no API test has run yet.</summary>
         static ItemTypeFilesTests() => TestEnvironment.Ensure();
 
         private static readonly byte[] PngMagic = { 0x89, 0x50, 0x4E, 0x47 };

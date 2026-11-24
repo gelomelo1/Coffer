@@ -63,7 +63,7 @@ namespace Coffer.BusinessLogic.Account
             _log = log;
         }
 
-        private static string ImageStore => Env.GetString("IMAGESTORE_PATH") ?? throw new InvalidOperationException("IMAGESTORE_PATH envionmental variable is not set");
+        private static string ImageStore => Coffer.BusinessLogic.AppConfig.AppPaths.Images;
         public static string ItemFolder => Path.Combine(ImageStore, "items");
         public static string CollectionFolder => Path.Combine(ImageStore, "collectioncovers");
         private static string PythonUrl => Env.GetString("FASTAPI_URL") ?? throw new InvalidOperationException("FASTAPI_URL envionmental variable is not set");

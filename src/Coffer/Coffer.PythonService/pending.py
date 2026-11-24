@@ -1,4 +1,4 @@
-"""Waiting-for-review list: matching and saving from a fingerprint the backend stored under IMAGESTORE_PATH/pending.
+"""Waiting-for-review list: matching and saving from a fingerprint the backend stored under the image store (paths.images())/pending.
 
 A detected cap may wait for days before its owner reviews it, so its matches are computed again, against the
 collection as it is when the cap is opened (a duplicate added a minute ago is then offered as a match).
@@ -8,12 +8,14 @@ from typing import Dict, List
 
 import numpy as np
 
+import paths
+
 from vector_db_utils import query_vectordb, save_item_to_vectordb
 from vector_store import similarity_from_distance
 
 
 def pending_folder() -> str:
-    return os.path.join(os.getenv("IMAGESTORE_PATH", ""), "pending")
+    return os.path.join(paths.images(), "pending")
 
 
 def pending_similars(collection, collection_id: str, base_path: str, ids: List[str], thresholds: Dict[str, float]) -> List[Dict]:

@@ -145,19 +145,21 @@ class CofferModelTests(unittest.TestCase):
 class ValidateEndpointTests(unittest.TestCase):
     def setUp(self):
         os.environ.pop("INTERNAL_API_KEY", None)
-        self.dir = tempfile.mkdtemp()
-        self.old = os.environ.get("MODELS_PATH")
-        os.environ["MODELS_PATH"] = self.dir
+        self.root = tempfile.mkdtemp()
+        self.dir = os.path.join(self.root, "models")
+        os.makedirs(self.dir)
+        self.old = os.environ.get("COFFER_ROOT_PATH")
+        os.environ["COFFER_ROOT_PATH"] = self.root
         from fastapi.testclient import TestClient
         import app as app_module
         self.client = TestClient(app_module.app)
 
     def tearDown(self):
         if self.old is None:
-            os.environ.pop("MODELS_PATH", None)
+            os.environ.pop("COFFER_ROOT_PATH", None)
         else:
-            os.environ["MODELS_PATH"] = self.old
-        shutil.rmtree(self.dir, ignore_errors=True)
+            os.environ["COFFER_ROOT_PATH"] = self.old
+        shutil.rmtree(self.root, ignore_errors=True)
 
     def test_validate_accepts_good_and_rejects_bad(self):
         net = cm.EmbeddingNet("resnet18", 256, pretrained=False)

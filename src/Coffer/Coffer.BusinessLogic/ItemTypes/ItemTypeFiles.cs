@@ -11,15 +11,15 @@ using SixLabors.ImageSharp.Formats.Webp;
 
 namespace Coffer.BusinessLogic.ItemTypes
 {
-    /// <summary>An AI model file of an item type, as found in MODELS_PATH.</summary>
+    /// <summary>An AI model file of an item type, as found in AppPaths.Models.</summary>
     public sealed record ModelFileDto(string FileName, long Bytes, DateTime UploadedAt, int? ClassCount);
 
     /// <summary>What a model upload stored, with the SHA-256 of each file (for the audit log).</summary>
     public sealed record SavedModels(ModelFileDto? Detection, ModelFileDto? Embedding, string? DetectionSha256, string? EmbeddingSha256);
 
     /// <summary>
-    /// The files that belong to an item type. Icons live in ICONSTORE_PATH ("{id}_{yyyyMMddHHmmss}.png", or the two
-    /// legacy names "cap.png" / "stamp.png"); the two AI models in MODELS_PATH, read by the AI service on every photo
+    /// The files that belong to an item type. Icons live in AppPaths.Icons ("{id}_{yyyyMMddHHmmss}.png", or the two
+    /// legacy names "cap.png" / "stamp.png"); the two AI models in AppPaths.Models, read by the AI service on every photo
     /// check: "{id}_detection.pt" and "{id}_similarity_{classCount}.pt". File names are always built here from the type
     /// id — nothing the client sends ever becomes a path.
     /// </summary>
@@ -60,8 +60,8 @@ namespace Coffer.BusinessLogic.ItemTypes
 
         private static MarketplaceException InvalidModel() => MarketplaceException.Validation("invalidModel", "A model file must be a PyTorch .pt file of at most 300 MB.");
 
-        public static string ModelsFolder => Env.GetString("MODELS_PATH") ?? throw new InvalidOperationException("MODELS_PATH environmental variable is not set");
-        public static string IconsFolder => Env.GetString("ICONSTORE_PATH") ?? throw new InvalidOperationException("ICONSTORE_PATH environmental variable is not set");
+        public static string ModelsFolder => Coffer.BusinessLogic.AppConfig.AppPaths.Models;
+        public static string IconsFolder => Coffer.BusinessLogic.AppConfig.AppPaths.Icons;
 
         // ------------------------------------------------------------------ models
 

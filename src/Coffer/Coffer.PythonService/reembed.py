@@ -1,6 +1,6 @@
 """Rebuilding fingerprints when an item type's embedding model changes: vectors of different models live in different
-spaces and must never be compared. Items are re-embedded from their photo (IMAGESTORE_PATH/items — the same crop the
-original fingerprint came from), waiting caps from their crop (IMAGESTORE_PATH/pending, stored as {id}.npy)."""
+spaces and must never be compared. Items are re-embedded from their photo (paths.images()/items — the same crop the
+original fingerprint came from), waiting caps from their crop (paths.images()/pending, stored as {id}.npy)."""
 import os
 import re
 from typing import Dict, List

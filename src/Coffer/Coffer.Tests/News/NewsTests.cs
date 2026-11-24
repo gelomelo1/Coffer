@@ -55,7 +55,7 @@ namespace Coffer.Tests.News
             return (await Json(response)).GetProperty("fileName").GetString()!;
         }
 
-        private static string StoreFile(string name) => Path.Combine(TestEnvironment.Root, "images", "news", name);
+        private static string StoreFile(string name) => Path.Combine(TestEnvironment.Root, "data", "images", "news", name);
 
         [Fact]
         public async Task CreateStartsAsDraft()

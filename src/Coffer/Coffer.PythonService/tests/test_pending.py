@@ -42,18 +42,19 @@ class FakeCollection:
 class PendingTests(unittest.TestCase):
     def setUp(self):
         os.environ.pop("INTERNAL_API_KEY", None)
-        self.store = tempfile.mkdtemp()
+        self.root = tempfile.mkdtemp()
+        self.store = os.path.join(self.root, "data", "images")
         os.makedirs(os.path.join(self.store, "pending"))
-        self.old_store = os.environ.get("IMAGESTORE_PATH")
-        os.environ["IMAGESTORE_PATH"] = self.store
+        self.old_store = os.environ.get("COFFER_ROOT_PATH")
+        os.environ["COFFER_ROOT_PATH"] = self.root
         self.collection_id = str(uuid.uuid4())
 
     def tearDown(self):
         if self.old_store is None:
-            os.environ.pop("IMAGESTORE_PATH", None)
+            os.environ.pop("COFFER_ROOT_PATH", None)
         else:
-            os.environ["IMAGESTORE_PATH"] = self.old_store
-        shutil.rmtree(self.store, ignore_errors=True)
+            os.environ["COFFER_ROOT_PATH"] = self.old_store
+        shutil.rmtree(self.root, ignore_errors=True)
 
     def client(self, collection):
         app_module.app.state.collection = collection

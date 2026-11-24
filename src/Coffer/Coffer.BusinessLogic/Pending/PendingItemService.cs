@@ -263,8 +263,8 @@ namespace Coffer.BusinessLogic.Pending
             }
         }
 
-        private static string ImageStore => Env.GetString("IMAGESTORE_PATH") ?? throw new InvalidOperationException("IMAGESTORE_PATH envionmental variable is not set");
-        private static string TempFolder => Env.GetString("IMAGECHECK_TEMP_PATH") ?? throw new InvalidOperationException("IMAGECHECK_TEMP_PATH envionmental variable is not set");
+        private static string ImageStore => Coffer.BusinessLogic.AppConfig.AppPaths.Images;
+        private static string TempFolder => Coffer.BusinessLogic.AppConfig.AppPaths.Temp;
         private static string PythonUrl => Env.GetString("FASTAPI_URL") ?? throw new InvalidOperationException("FASTAPI_URL envionmental variable is not set");
 
         /// <summary>Crops (.jpg) and fingerprints (.npy) of waiting caps, shared with the AI service.</summary>

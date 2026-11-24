@@ -24,6 +24,7 @@ from uuid import UUID
 from typing import List, Optional
 from save_embeddings_to_vectordb import save_embeddings_to_vectordb
 from pending import pending_folder, pending_similars, save_pending_embedding
+import paths
 import chromadb
 from vector_store import open_cosine_collection
 
@@ -33,7 +34,7 @@ load_dotenv()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.vector_db = chromadb.PersistentClient(
-        os.getenv("VECTORSTORE_PATH")
+        paths.vectors()
     )
     print("vector_db initialized:", app.state.vector_db)
 
@@ -54,7 +55,7 @@ MODEL_FILE = re.compile(r"^[0-9]+_(detection|similarity_[0-9]+)\.pt(\.candidate)
 
 def type_models(collection_type_id: int):
     """The item type's detection and embedding models (loaded once, reloaded when a file changes)."""
-    folder = os.getenv("MODELS_PATH")
+    folder = paths.models()
     detection_path = os.path.join(folder, f"{int(collection_type_id)}_detection.pt")
     embedding_name = similarity_model_file(folder, collection_type_id)
     if embedding_name is None or not os.path.exists(detection_path):
@@ -64,7 +65,7 @@ def type_models(collection_type_id: int):
 
 def type_thresholds(collection_type_id: Optional[int]) -> dict:
     """The embedding thresholds of the item type's model; the legacy ones without a type or model."""
-    folder = os.getenv("MODELS_PATH")
+    folder = paths.models()
     if collection_type_id is None or not folder or not os.path.isdir(folder):
         return dict(LEGACY_THRESHOLDS)
     name = similarity_model_file(folder, collection_type_id)
@@ -126,7 +127,7 @@ async def image_check(
             results,
             vector_db_collection=app.state.collection,
             thresholds=embedding.thresholds,
-            save_path=os.getenv("IMAGECHECK_TEMP_PATH"),
+            save_path=paths.temp(),
             metadata_filters=[("collection_id", collection_id)]
         )
 
@@ -146,7 +147,7 @@ async def save_embeddings(
         save_embeddings_to_vectordb(
             app.state.collection,
             collection_id,
-            os.getenv("IMAGECHECK_TEMP_PATH"),
+            paths.temp(),
             items
         )
 
@@ -223,7 +224,7 @@ async def validate_model(body: ValidateModel):
     expected = None if match is None else ("detection" if match.group(1) == "detection" else "embedding")
     if expected is None or body.kind != expected:
         return JSONResponse(status_code=422, content={"status": "error", "message": "not a model file of that kind"})
-    path = os.path.join(os.getenv("MODELS_PATH", ""), body.fileName)
+    path = os.path.join(paths.models(), body.fileName)
     probe = np.zeros((64, 64, 3), dtype=np.uint8)
     try:
         if expected == "embedding":
@@ -259,12 +260,12 @@ class ReembedBody(BaseModel):
 async def reembed_route(collection_type_id: int, body: ReembedBody):
     """The item type has a new embedding model: rebuild every fingerprint of its items and waiting caps with it."""
     try:
-        folder = os.getenv("MODELS_PATH")
+        folder = paths.models()
         name = similarity_model_file(folder, collection_type_id) if folder and os.path.isdir(folder) else None
         if name is None:
             raise FileNotFoundError(f"Item type {collection_type_id} has no embedding model")
         model = MODELS.embedding(os.path.join(folder, name))
-        counts = reembed(app.state.collection, model, os.getenv("IMAGESTORE_PATH", ""),
+        counts = reembed(app.state.collection, model, paths.images(),
                          [{"id": str(i.id), "collectionId": str(i.collectionId), "image": i.image} for i in body.items],
                          [{"id": str(p.id), "image": p.image} for p in body.pending])
         return {"status": "ok", **counts}

@@ -20,7 +20,7 @@ namespace Coffer.Infrastructure
             services.AddSingleton<IClock, SystemClock>();
             services.AddSingleton(_ =>
             {
-                var root = Env.GetString("IMAGESTORE_PATH") ?? throw new InvalidOperationException("IMAGESTORE_PATH envionmental variable is not set");
+                var root = Coffer.BusinessLogic.AppConfig.AppPaths.Images;
                 return new MarketplaceStorage(Path.Combine(root, "listings"), Path.Combine(root, "deals"));
             });
             services.AddHttpClient<ICityService, CityService>();

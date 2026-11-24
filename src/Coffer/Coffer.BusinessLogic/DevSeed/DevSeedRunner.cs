@@ -182,7 +182,7 @@ namespace Coffer.BusinessLogic.DevSeed
 
         private async Task ResetAsync()
         {
-            var root = Env.GetString("IMAGESTORE_PATH") ?? throw new InvalidOperationException("IMAGESTORE_PATH envionmental variable is not set");
+            var root = Coffer.BusinessLogic.AppConfig.AppPaths.Images;
             _log.LogWarning("Dev reset: DEV_RESET_DATABASE_ON_STARTUP=true — deleting all user data from the development database.");
             var result = await _resetter.ResetAsync(root, _storage.ListingImages, _storage.DealImages);
 

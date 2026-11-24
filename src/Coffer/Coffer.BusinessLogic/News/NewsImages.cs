@@ -13,7 +13,7 @@ using SixLabors.ImageSharp.Processing;
 namespace Coffer.BusinessLogic.News
 {
     /// <summary>
-    /// Banner and content images of news posts, in IMAGESTORE_PATH/news. Every upload is re-encoded (metadata and
+    /// Banner and content images of news posts, in AppPaths.Images/news. Every upload is re-encoded (metadata and
     /// anything hidden in the file dropped), at most 1600 px on its longest side, named by a fresh guid.
     /// </summary>
     public static class NewsImages
@@ -30,7 +30,7 @@ namespace Coffer.BusinessLogic.News
         };
 
         public static string Folder => Path.Combine(
-            Env.GetString("IMAGESTORE_PATH") ?? throw new InvalidOperationException("IMAGESTORE_PATH environmental variable is not set"), "news");
+            Coffer.BusinessLogic.AppConfig.AppPaths.Images, "news");
 
         public static async Task<string> SaveAsync(IFormFile? file)
         {

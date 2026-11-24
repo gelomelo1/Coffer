@@ -392,8 +392,8 @@ namespace Coffer.BusinessLogic.DevSeed
         {
             var crops = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             if (data.Items.Count == 0) return crops;
-            var itemFolder = Path.Combine(Env.GetString("IMAGESTORE_PATH") ?? throw new InvalidOperationException("IMAGESTORE_PATH envionmental variable is not set"), "items");
-            var tempFolder = Env.GetString("IMAGECHECK_TEMP_PATH") ?? throw new InvalidOperationException("IMAGECHECK_TEMP_PATH envionmental variable is not set");
+            var itemFolder = Path.Combine(Coffer.BusinessLogic.AppConfig.AppPaths.Images, "items");
+            var tempFolder = Coffer.BusinessLogic.AppConfig.AppPaths.Temp;
 
             if (string.IsNullOrWhiteSpace(options.ImageDir) || !Directory.Exists(options.ImageDir))
             {

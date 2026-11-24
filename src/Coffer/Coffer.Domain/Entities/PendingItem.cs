@@ -3,7 +3,7 @@ namespace Coffer.Domain.Entities
     /// <summary>
     /// A cap the AI found on an uploaded photo that its owner hasn't decided about yet: it waits on the collection's
     /// "waiting for review" list until it is added (new item or more of an existing one) or skipped and deleted.
-    /// Its crop and fingerprint live as {Id}.jpg / {Id}.npy in IMAGESTORE_PATH/pending.
+    /// Its crop and fingerprint live as {Id}.jpg / {Id}.npy in AppPaths.Images/pending.
     /// </summary>
     public class PendingItem
     {

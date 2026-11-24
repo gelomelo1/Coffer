@@ -18,14 +18,14 @@ namespace Coffer.Tests
     public static class TestEnvironment
     {
         public static readonly string Root = Path.Combine(Path.GetTempPath(), "coffer-tests-" + Guid.NewGuid().ToString("N"));
-        public static string ItemImages => Path.Combine(Root, "images", "items");
-        public static string CollectionImages => Path.Combine(Root, "images", "collectioncovers");
-        public static string Temp => Path.Combine(Root, "temp");
-        /// <summary>Crops and fingerprints of caps waiting for review (IMAGESTORE_PATH/pending).</summary>
-        public static string Pending => Path.Combine(Root, "images", "pending");
-        /// <summary>AI models per item type (MODELS_PATH) and item type icons (ICONSTORE_PATH).</summary>
+        public static string ItemImages => Path.Combine(Root, "data", "images", "items");
+        public static string CollectionImages => Path.Combine(Root, "data", "images", "collectioncovers");
+        public static string Temp => Path.Combine(Root, "data", "temp");
+        /// <summary>Crops and fingerprints of caps waiting for review (AppPaths.Images/pending).</summary>
+        public static string Pending => Path.Combine(Root, "data", "images", "pending");
+        /// <summary>AI models per item type (AppPaths.Models) and item type icons (AppPaths.Icons).</summary>
         public static string Models => Path.Combine(Root, "models");
-        public static string Icons => Path.Combine(Root, "icons");
+        public static string Icons => Path.Combine(Root, "data", "icons");
         public const string PythonUrl = "http://python.test";
 
         static TestEnvironment()
@@ -38,11 +38,8 @@ namespace Coffer.Tests
             Directory.CreateDirectory(Icons);
             Environment.SetEnvironmentVariable("JWT_SECRET", "test-secret-test-secret-test-secret-1234");
             Environment.SetEnvironmentVariable("COFFER_CONNECTIONSTRING", "Host=unused");
-            Environment.SetEnvironmentVariable("IMAGESTORE_PATH", Path.Combine(Root, "images"));
-            Environment.SetEnvironmentVariable("IMAGECHECK_TEMP_PATH", Temp);
+            Environment.SetEnvironmentVariable("COFFER_ROOT_PATH", Root);
             Environment.SetEnvironmentVariable("FASTAPI_URL", PythonUrl);
-            Environment.SetEnvironmentVariable("MODELS_PATH", Models);
-            Environment.SetEnvironmentVariable("ICONSTORE_PATH", Icons);
         }
 
         public static void Ensure() { _ = Root; }

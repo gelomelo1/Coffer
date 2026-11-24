@@ -5,7 +5,7 @@ namespace Coffer.Tests.Pending
 {
     /// <summary>
     /// POST api/Collections/ImageCheck/{id}: every cap the AI finds becomes a pending item, and its crop and
-    /// fingerprint are moved at once out of the 10-minute temp folder into IMAGESTORE_PATH/pending.
+    /// fingerprint are moved at once out of the 10-minute temp folder into AppPaths.Images/pending.
     /// </summary>
     [Collection("api")]
     public class PendingImageCheckTests : IDisposable

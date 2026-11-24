@@ -144,7 +144,7 @@ namespace Coffer.ASPNET.Extensions
         /// Fills My activity from existing dated data, once (after the dev seed, so seeded data is included). A failure
         /// (e.g. the activity_log migration not applied yet) is logged and retried on the next start, never fatal.
         /// </summary>
-        /// <summary>Copies the icons that shipped in wwwroot/icons into the icon store (ICONSTORE_PATH) when missing.</summary>
+        /// <summary>Copies the icons that shipped in wwwroot/icons into the icon store (AppPaths.Icons) when missing.</summary>
         public static WebApplication SeedItemTypeIcons(this WebApplication app)
         {
             try

@@ -11,7 +11,7 @@ namespace Coffer.Tests.Marketplace
     {
         private readonly ApiFactory _api = new();
         private TestDb Db => _api.Db;
-        private static string ListingFolder => Path.Combine(TestEnvironment.Root, "images", "listings");
+        private static string ListingFolder => Path.Combine(TestEnvironment.Root, "data", "images", "listings");
 
         private (int typeId, int cityId) Seed()
         {
