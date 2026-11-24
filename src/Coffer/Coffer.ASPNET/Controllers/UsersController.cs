@@ -25,6 +25,13 @@ namespace Coffer.ASPNET.Controllers
         }
 
         /// <summary>
+        /// No generic user create: accounts are made only by signing in (api/auth/register), so an account is always
+        /// bound to an identity its owner proved. A create here could bind someone else's provider identity in advance.
+        /// </summary>
+        [NonAction]
+        public override Task<ActionResult<UserProvided>> Create(UserRequired required) => throw new NotSupportedException();
+
+        /// <summary>
         /// No generic user delete: it would hard-delete the row and cascade away other users' data. Accounts are
         /// deleted with DELETE api/Account, which keeps everything other users rely on.
         /// </summary>

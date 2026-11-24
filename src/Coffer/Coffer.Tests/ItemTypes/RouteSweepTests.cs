@@ -156,7 +156,7 @@ namespace Coffer.Tests.ItemTypes
             "GET api/Health", "GET api/Cities/Search", "GET api/Market/Terms", "POST api/Market/Terms/Accept",
             "GET api/News", "GET api/News/{id:guid}",
             "GET api/Comments/Mentionable",
-            "GET api/Users", "GET api/Users/{id}", "GET api/Users/Page", "GET api/Users/UserExists/{username}", "POST api/Users",
+            "GET api/Users", "GET api/Users/{id}", "GET api/Users/Page", "GET api/Users/UserExists/{username}",
             "PUT api/Users/{id}", "PUT api/Users/UserFrontend", "GET api/Feed/Search/Users",
             "GET api/auth/currentUser", "GET api/auth/dev/users", "POST api/auth/dev/login", "POST api/auth/logout",
             "POST api/auth/refresh", "POST api/auth/register", "POST api/auth/google/validate", "POST api/auth/facebook/start",

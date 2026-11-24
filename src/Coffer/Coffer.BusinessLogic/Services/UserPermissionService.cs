@@ -87,6 +87,13 @@ namespace Coffer.BusinessLogic.Services
                 return false;
             }
 
+            // The sign-in identity is set by the sign-in alone; nobody (not even an Admin) can move an account to
+            // another provider identity, which would hand the account to whoever controls that identity.
+            if (data.Provider != otherUser.Provider || data.ProviderUserId != otherUser.ProviderUserId)
+            {
+                return false;
+            }
+
             if (user.Role == UserRole.Admin)
             {
                 return true;
