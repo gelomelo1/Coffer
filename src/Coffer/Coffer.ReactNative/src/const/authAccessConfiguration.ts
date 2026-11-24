@@ -1,12 +1,12 @@
-export const androidGoogleClientId =
-  "652829495328-n2938rr6u1mruojo5p31nd1dl4susfa0.apps.googleusercontent.com";
+import { env } from "./env";
 
-export const androidBuildGoogleClientId =
-  "652829495328-1vdeva5hb2so5vj2t6hdt77nop3h9msb.apps.googleusercontent.com";
+// Public identifiers only (no secrets): they appear in sign-in URLs anyway. Client secrets live on the backend.
 
-export const webGoogleClientId =
-  "652829495328-7n61l38u1h20q7bnl469pr1i0s68khrv.apps.googleusercontent.com";
+/** The Google web client id the native sign-in requests ID tokens for (the backend checks it as the token's audience). */
+export const webGoogleClientId = env.googleWebClientId;
 
-export const githubClientId = "Ov23liTJaxWIA5j85V7M";
+/** Facebook app id; Facebook redirects back to fb{id}://authorize (registered in app.config.ts). */
+export const facebookAppId = env.facebookAppId;
 
-export const redirectUriScheme = "com.gelomelo.coffer";
+/** The app's URL scheme (deep links and the Reddit redirect). */
+export const authScheme = env.authScheme;

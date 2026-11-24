@@ -1,5 +1,6 @@
 import NetInfo from "@react-native-community/netinfo";
 import axios from "axios";
+import { env } from "./env";
 import { useConnectionStore } from "../hooks/connection_store";
 import i18n from "../i18n";
 import { useSuspensionStore } from "../hooks/suspension_store";
@@ -7,9 +8,9 @@ import { classifyFailure, isDeviceOffline } from "../utils/connectivity";
 import { getToken } from "../utils/token_store";
 import { ACCOUNT_DELETED_CODE, signOutDeletedAccount } from "../utils/account_deleted";
 
-// EXPO_PUBLIC_BACKEND_URL overrides the default at bundle time, e.g. http://10.0.2.2:5141 for the Android emulator.
+// EXPO_PUBLIC_BACKEND_URL from Coffer.ReactNative/.env (required; https:// outside development).
 export const backendAxios = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_BACKEND_URL || "http://192.168.1.10:5141",
+  baseURL: env.backendUrl,
   // Without a timeout an unreachable server leaves requests (and spinners) pending forever; 30 s leaves room for
   // image uploads on slow connections. Timeouts surface as errors:timeout (see utils/api_error).
   timeout: 30000,
