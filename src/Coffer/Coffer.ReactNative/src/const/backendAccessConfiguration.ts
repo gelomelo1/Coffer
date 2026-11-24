@@ -69,8 +69,9 @@ backendAxios.interceptors.response.use(
       config._retried = true;
       try {
         await refreshGate();
-      } catch {
-        return Promise.reject(error);
+      } catch (refreshError) {
+        // Session over: this request's 401 (sign-in follows). Offline/server trouble: the refresh's own error (retry).
+        return Promise.reject(errorToReport(error, refreshError));
       }
       return backendAxios(config);
     }
