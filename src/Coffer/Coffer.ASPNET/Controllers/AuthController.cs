@@ -26,12 +26,13 @@ namespace Coffer.ASPNET.Controllers
         private readonly IGoogleIdTokenValidator _google;
         private readonly OAuthTransactionStore _transactions;
         private readonly IFacebookOAuthClient _facebook;
+        private readonly IRedditOAuthClient _reddit;
         private readonly Coffer.BusinessLogic.Auth.AuthOptions _options;
         private readonly ILogger<AuthController> _log;
 
         public AuthController(IUsersRepository usersRepository, ISessionService sessions, ISignInService signIn,
             IGoogleIdTokenValidator google, OAuthTransactionStore transactions, IFacebookOAuthClient facebook,
-            Coffer.BusinessLogic.Auth.AuthOptions options, ILogger<AuthController> log)
+            IRedditOAuthClient reddit, Coffer.BusinessLogic.Auth.AuthOptions options, ILogger<AuthController> log)
         {
             _usersRepository = usersRepository;
             _sessions = sessions;
@@ -39,6 +40,7 @@ namespace Coffer.ASPNET.Controllers
             _google = google;
             _transactions = transactions;
             _facebook = facebook;
+            _reddit = reddit;
             _options = options;
             _log = log;
         }
@@ -79,6 +81,22 @@ namespace Coffer.ASPNET.Controllers
         [EnableRateLimiting(AuthRateLimits.SignIn)]
         public Task<IActionResult> FacebookComplete([FromBody] CompleteRequest? req) =>
             CompleteBrowserSignIn(Providers.Facebook, req, transaction => _facebook.CompleteAsync(transaction, req?.Code ?? ""));
+
+        /// <summary>Starts a Reddit sign-in: the app opens authorizeUrl in the browser and waits for redirectUri.</summary>
+        [HttpPost("reddit/start")]
+        [AllowAnonymous]
+        [EnableRateLimiting(AuthRateLimits.SignIn)]
+        public IActionResult RedditStart()
+        {
+            var transaction = _transactions.Create(Providers.Reddit, withNonceAndPkce: false);
+            return Ok(new OAuthStart(transaction.Id, _reddit.AuthorizeUrl(transaction), _options.Reddit.RedirectUri));
+        }
+
+        [HttpPost("reddit/complete")]
+        [AllowAnonymous]
+        [EnableRateLimiting(AuthRateLimits.SignIn)]
+        public Task<IActionResult> RedditComplete([FromBody] CompleteRequest? req) =>
+            CompleteBrowserSignIn(Providers.Reddit, req, _ => _reddit.CompleteAsync(req?.Code ?? ""));
 
         /// <summary>
         /// The browser came back: the transaction is used up whatever happens next (a callback can't be replayed), must
