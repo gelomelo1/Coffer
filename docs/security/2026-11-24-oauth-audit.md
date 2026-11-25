@@ -1,6 +1,6 @@
 # Coffer – OAuth 2.0 / OIDC and session security audit
 
-Date: 2026-11-24 · Branch: `development` · Scope: app sign-in (Google, Facebook, Reddit), registration, sessions and
+Date: 2026-11-24 · Branch: `development` · Scope: app sign-in (Google, Facebook, Discord, GitHub), registration, sessions and
 tokens, in the backend (`Coffer.ASPNET`, `Coffer.BusinessLogic`, `Coffer.DataAccess`, `Coffer.Infrastructure`) and the
 mobile app (`Coffer.ReactNative`). Coffer.Manager's GitHub device-flow sign-in for administrators was kept unchanged by
 decision and is only mentioned where it shares code (JWT secret, middleware).
@@ -13,9 +13,9 @@ Final verification (all green):
 
 | Suite | Result |
 |---|---|
-| `dotnet test src/Coffer/Coffer.Tests` | 633 passed, 0 failed |
+| `dotnet test src/Coffer/Coffer.Tests` | 647 passed, 0 failed |
 | `python -m unittest discover -s tests` (Coffer.PythonService) | 43 passed |
-| `npm run test:unit` (Coffer.ReactNative) | 164 passed |
+| `npm run test:unit` (Coffer.ReactNative) | 166 passed |
 | `npx tsc --noEmit` | no errors |
 | `npx eslint src` | 0 errors (47 warnings, all pre-existing) |
 | `npm run check:i18n`, `npm run check:errors` | passed / up to date |
@@ -27,12 +27,12 @@ Final verification (all green):
 | # | Action | Why |
 |---|---|---|
 | A1 | **Facebook**: create the Facebook app, enable Facebook Login, add the redirect `fb<APP_ID>://authorize`, then put `FACEBOOK_APP_ID` / `FACEBOOK_APP_SECRET` / `FACEBOOK_REDIRECT_URI` into `src/.env` and `EXPO_PUBLIC_FACEBOOK_APP_ID` into `Coffer.ReactNative/.env`. | Placeholders (`change-me`) are in the files; Facebook sign-in answers "Sign-in failed" until then. |
-| A2 | **Reddit**: apply for API access (Responsible Builder Policy, required for new apps since Nov 2025), then create a **web app** with the redirect `com.gelomelo.coffer://oauth/reddit`; set `REDDIT_CLIENT_ID` / `REDDIT_CLIENT_SECRET` and your username in `REDDIT_USER_AGENT`. | Reddit sign-in can't work before approval. |
+| A2 | **Discord**: create an application in the Discord developer portal, add the OAuth2 redirect `discord-<APPLICATION_ID>:/authorize/callback`, set `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` / `DISCORD_REDIRECT_URI` in `src/.env` and `EXPO_PUBLIC_DISCORD_APP_ID` in `Coffer.ReactNative/.env`. **GitHub**: in the Coffer OAuth app (also used by the Manager) set the callback URL to exactly `com.gelomelo.coffer://oauth/github` (GitHub allows several redirect URIs), generate a client secret and set `GITHUB_CLIENT_SECRET`. | Placeholders until then; that provider's sign-in answers "Sign-in failed". Reddit was dropped: it stopped accepting new API access on 31 Oct 2026. |
 | A3 | **Encrypt both env files**: `openssl enc -aes-256-cbc -salt -pbkdf2 -in .env -out .env.enc` in `src/` and in `src/Coffer/Coffer.ReactNative/`, then commit the two `.env.enc`. | The encryption password is yours; the old `src/.env.enc` was removed with the old files. |
-| A4 | **Run** `src/startup/oauth_sessions_migration.sql` on the development database, and on production before the next deploy. | New tables `auth_sessions`, `auth_refresh_tokens`; provider check now allows `facebook`/`reddit`. |
-| A5 | **Production (GitHub secrets)**: add `COFFER_ROOT_PATH=/app`, `GOOGLE_CLIENT_IDS`, the four `FACEBOOK_*` and four `REDDIT_*` values, `TRUSTED_PROXIES` (the network nginx connects from, e.g. `172.18.0.0/16`); remove `IMAGESTORE_PATH`, `ICONSTORE_PATH`, `VECTORSTORE_PATH`, `MODELS_PATH`, `IMAGECHECK_TEMP_PATH` and `GITHUB_CLIENT_SECRET` (the Manager keeps `GITHUB_CLIENT_ID` / `COFFER_MANAGER_*`). Production no longer reads `/var/www/coffer/.env.production`; `deploy.yml` still downloads `.env.production.zip` — switch it to the secrets. | Every auth value is required: the API refuses to start without them. |
-| A6 | **New app build**: `npx expo prebuild --clean`, then `npm run android`. The dev backend URL is `http://10.0.2.2:5141` (emulator only). EAS cloud builds need the `EXPO_PUBLIC_*` values as EAS environment variables. | New intent filter (`fb<id>`), HTTPS-only network policy; the hand-edited `usesCleartextTraffic="true"` in the git-ignored `android/` folder disappears. |
-| A7 | Tell users: everyone signs in again once; accounts registered with GitHub can no longer sign in to the app (their data stays; GitHub users can still come from the dev seed). | Old one-year tokens have no session and are rejected; GitHub app sign-in was removed. |
+| A4 | **Run** `src/startup/oauth_sessions_migration.sql` on the development database, and on production before the next deploy. | New tables `auth_sessions`, `auth_refresh_tokens`; provider check now allows `google`, `facebook`, `discord`, `github`. |
+| A5 | **Production (GitHub secrets)**: add `COFFER_ROOT_PATH=/app`, `GOOGLE_CLIENT_IDS`, the four `FACEBOOK_*`, three `DISCORD_*` and three `GITHUB_*` values (`GITHUB_CLIENT_SECRET` is needed again), `TRUSTED_PROXIES` (the network nginx connects from, e.g. `172.18.0.0/16`); remove `IMAGESTORE_PATH`, `ICONSTORE_PATH`, `VECTORSTORE_PATH`, `MODELS_PATH`, `IMAGECHECK_TEMP_PATH` (the Manager keeps using `GITHUB_CLIENT_ID` / `COFFER_MANAGER_*`). Production no longer reads `/var/www/coffer/.env.production`; `deploy.yml` still downloads `.env.production.zip` — switch it to the secrets. | Every auth value is required: the API refuses to start without them. |
+| A6 | **New app build**: `npx expo prebuild --clean`, then `npm run android`. The dev backend URL is `http://10.0.2.2:5141` (emulator only). EAS cloud builds need the `EXPO_PUBLIC_*` values as EAS environment variables. | New intent filters (`fb<id>`, `discord-<id>`), HTTPS-only network policy; the hand-edited `usesCleartextTraffic="true"` in the git-ignored `android/` folder disappears. |
+| A7 | Tell users: everyone signs in again once. Accounts registered with GitHub keep working (same numeric GitHub id). | Old one-year tokens have no session and are rejected. |
 | A8 | Move or delete the local backup of the old env files (its location was given with this report; it is outside the repository). | It holds the previous `src/.env`, `src/.env.development` and `src/.env.enc` (secrets), in a temporary folder that may be cleared. |
 
 ---
@@ -45,7 +45,7 @@ Severity: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low
 |---|---|---|---|
 | 🔴 | App JWTs lived **one year**, carried e-mail and provider, and could not be revoked: logout only deleted the token on the phone; a copied token worked for a year. | 15-minute HS256 access token with a session id (`sid`); server-side `auth_sessions` checked on every request; rotating, hashed, single-use refresh tokens (14 days idle, 60 days absolute); reuse of a consumed refresh token revokes the session; logout and account deletion revoke on the server. | `SessionServiceTests.*`, `SessionGuardApiTests.*`, `SessionApiTests.Logout_*`, `SessionApiTests.Account_deletion_revokes_sessions` |
 | 🔴 | `POST api/Users` let an in-app `Admin` create an account bound to **any** provider identity (pre-hijacking: the victim's next sign-in lands in it); `PUT api/Users/{id}` let an `Admin` move any account to another identity (takeover). | Generic user create removed (accounts are created only by signing in); provider and provider id can't change through the API for anyone. | `AccountIdentityTests.*` |
-| 🟠 | GitHub flow: the backend never checked `state` (only the client did) and accepted any client-supplied `code` + `code_verifier` → login CSRF / code injection possible; GitHub sign-in is removed now. Facebook/Reddit got a backend-held transaction instead. | `api/auth/{provider}/start` creates a transaction (256-bit id, state, nonce, PKCE verifier) kept on the server; `complete` takes it atomically (single use), checks provider and state (constant time). The id never appears in a URL. | `FacebookSignInTests.State_mismatch_*`, `Replayed_transaction_fails`, `Transaction_from_other_provider_fails`, `RedditSignInTests.*` |
+| 🟠 | Old GitHub flow: the backend never checked `state` (only the client did) and accepted any client-supplied `code` + `code_verifier` → login CSRF / code injection possible. GitHub, Facebook and Discord now all use a backend-held transaction. | `api/auth/{provider}/start` creates a transaction (256-bit id, state, nonce, PKCE verifier) kept on the server; `complete` takes it atomically (single use), checks provider and state (constant time). The id never appears in a URL. | `FacebookSignInTests.State_mismatch_*`, `Replayed_transaction_fails`, `Transaction_from_other_provider_fails`, `DiscordSignInTests.*`, `GithubSignInTests.*` |
 | 🟠 | Pending registration kept the **raw provider token** (Google ID token / GitHub access token) under a GUID for 10 minutes; the handle was removed only after success (double submit raced). | Only the verified identity is kept, under a 256-bit single-use id, taken atomically. | `GoogleSignInTests.Register_handle_is_single_use`, `Unknown_registration_id_fails` |
 | 🟠 | Registration had **no server-side validation** of username or country (only the app checked). | Username `^[a-zA-Z0-9._-]{1,40}$` and unique, country two capital letters; checked before the registration is used up. | `GoogleSignInTests.Invalid_input_is_rejected_without_consuming_the_handle`, `Taken_username_is_rejected` |
 | 🟠 | No rate limiting on any sign-in endpoint. | Per-IP fixed windows: 20/min for sign-in steps, 60/min for refresh/logout → 429 `tooManyAuthRequests`. Behind nginx the real IP comes from `X-Forwarded-For`, trusted only from `TRUSTED_PROXIES`. | `SessionApiTests.Auth_endpoints_are_rate_limited`, `Refresh_has_its_own_larger_limit`, `ForwardedHeadersTests.*` |
@@ -56,12 +56,12 @@ Severity: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low
 | 🟡 | Auth responses had no cache headers. | `Cache-Control: no-store` on every `api/auth/*` response. | `SessionApiTests.Auth_responses_are_not_cached` |
 | 🟡 | A suspended user's request to log out would have been blocked with 403 (server session not ended). | `POST api/auth/logout` is exempt from the suspension block, like the suspension status. | `SessionApiTests.Suspended_user_can_still_log_out` |
 | 🟠 | (Found in the final review.) A failed token refresh signed the person out whatever the cause — offline, timeout, 5xx, 429 — and left the server session orphaned. | Only a definitive 401/400 from the refresh signs out; otherwise the tokens stay and the request reports the refresh's own failure (retry page). | `session_over.test.ts`, `refresh_gate.test.ts` |
-| 🟡 | (Found in the final review.) The Facebook/Reddit redirect deep links had no route: cancel/deny could leave the person on an "unmatched route" screen. | `+native-intent.tsx` keeps `oauth/reddit` and `authorize` links on the sign-in screen. Check once on a device. | `native_intent.test.ts` |
+| 🟡 | (Found in the final review.) The browser sign-in redirect deep links had no route: cancel/deny could leave the person on an "unmatched route" screen. | `+native-intent.tsx` keeps `authorize`, `authorize/callback` and `oauth/github` links on the sign-in screen. Check once on a device. | `native_intent.test.ts` |
 | 🟡 | (Found in the final review.) `JWT_SECRET` from `.env.example` (public) passed the 32-byte check. | A secret starting with `change-me` stops startup. | `AuthOptionsTests.Placeholder_jwt_secret_is_rejected` |
 | 🔵 | Google sign-in requested `offlineAccess` (a server auth code nobody used). | Removed; only `profile` and `email`. | code review (`src/utils/google_signin.ts`) |
 | 🔵 | App logged whole provider error/response objects with `console.error`. | Short fixed messages only; tokens never logged. Backend logs provider failures by reason only. | `FacebookSignInTests.Logs_never_contain_code_or_tokens` |
 | 🔵 | React Query cache was re-created on every render of the root and never cleared on logout (data of the previous account could be shown). | One cache; cleared on every sign-out. | code review (`src/utils/session.ts`) |
-| 🔵 | GitHub client secret was env-only but the GitHub flow logged nothing useful and fell back to a built-in client id. | GitHub app sign-in removed entirely (Manager untouched). | `SessionApiTests.Removed_endpoints_are_gone` |
+| 🔵 | GitHub sign-in fell back to a built-in client id, took the e-mail without a usable verification check in one branch, and kept the GitHub token. | Rebuilt: configured client only, numeric id as identity, primary *verified* e-mail only, token deleted after use. Old `github/validate` and `github/register` endpoints are gone. | `GithubSignInTests.*`, `SessionApiTests.Removed_endpoints_are_gone` |
 
 ---
 
@@ -71,8 +71,8 @@ Severity: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low
 - **N1 (native app):** Coffer is an Android app that talks to the API with bearer tokens; there are no cookies, no
   browser session, no tabs and no browser history. Cookie, CSRF, SameSite, tab and back-button items don't apply;
   provider pages open in the system's in-app browser (Custom Tabs).
-- **N2 (backend transaction):** Facebook/Reddit `start` creates a server-side transaction (id, state, nonce, PKCE
-  verifier; 256-bit CSPRNG values; 10 minutes; single use). The app gets the id and the authorize URL; `complete`
+- **N2 (backend transaction):** Facebook/Discord/GitHub `start` creates a server-side transaction (id, state, PKCE
+  verifier, and a nonce for Facebook; 256-bit CSPRNG values; 10 minutes; single use). The app gets the id and the authorize URL; `complete`
   takes the transaction atomically and checks provider and state.
 - **N3 (Google):** native SDK; the backend verifies the ID token. The SDK's free API can't send a nonce.
 
@@ -84,12 +84,12 @@ Severity: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low
 | Is state validated on the backend? | Yes, constant-time, against the transaction's state (the app checks it too). | `AuthController.CompleteBrowserSignIn`; `State_mismatch_*` tests |
 | Is state bound to the browser session that initiated authentication? | Bound to the server transaction whose id only the initiating app instance holds (N1: no browser session). | N2 |
 | Is state single-use? | Yes: the transaction is removed on the first `complete`, success or not. | `State_mismatch_fails_and_consumes_transaction` |
-| Can an attacker replay an OAuth callback? | No: second `complete` → `providerSignInFailed`, no second code exchange. | `Replayed_transaction_fails` (Facebook, Reddit) |
+| Can an attacker replay an OAuth callback? | No: second `complete` → `providerSignInFailed`, no second code exchange. | `Replayed_transaction_fails` (Facebook, Discord, GitHub) |
 | Can an OAuth callback initiated in one browser be completed in another? | No: completing needs the transaction id, which is never in a URL; an intercepted code + state is useless. | N2 |
-| Is PKCE implemented using the S256 challenge method where supported? | Facebook: yes, S256, verifier server-side. Reddit: not supported by Reddit — confidential client instead. Google: native SDK. | `FacebookOAuthClient.AuthorizeUrl`; `Token_request_carries_verifier_and_configured_redirect` |
+| Is PKCE implemented using the S256 challenge method where supported? | Yes for Facebook, Discord and GitHub: S256, verifier only on the server (plus the client secret). Google: native SDK. | `Token_request_carries_verifier_and_configured_redirect`, `Token_request_carries_verifier_redirect_and_client_auth`, `Token_request_carries_secret_verifier_and_redirect` |
 | Is the code_verifier securely associated with the original authorization transaction? | Yes: generated and stored in the transaction, never sent to the app. | N2 |
-| Are authorization codes exchanged exclusively through the intended backend flow? | Yes: only the backend has the client secrets; the app never exchanges codes. | `FacebookOAuthClient`, `RedditOAuthClient` |
-| Are authorization codes rejected when expired or already consumed? | By the providers (one-time codes); our side refuses a consumed transaction before any exchange. | `Replayed_transaction_fails`; `Facebook_error_response_fails_cleanly`, `Reddit_error_response_fails_cleanly` |
+| Are authorization codes exchanged exclusively through the intended backend flow? | Yes: only the backend has the client secrets; the app never exchanges codes. | `FacebookOAuthClient`, `DiscordOAuthClient`, `GithubOAuthClient` |
+| Are authorization codes rejected when expired or already consumed? | By the providers (one-time codes); our side refuses a consumed transaction before any exchange. | `Replayed_transaction_fails`; `Facebook_error_response_fails_cleanly`, `Discord_error_response_fails_cleanly`, `Github_error_in_200_body_fails_cleanly` |
 | Is the redirect URI validated against an exact allowlist? | Yes: one exact redirect per provider from config, registered with the provider. | `AuthOptions`; `Start_builds_url_from_server_config` |
 | Can the redirect URI be manipulated through query parameters or frontend input? | No: built only from server config; the app sends no redirect. | `Start_builds_url_from_server_config`, `Token_request_*` |
 | Can the post-login redirect be manipulated to create an open redirect? | No: there is no post-login redirect parameter; the app always goes to its start screen. The app also rejects answers not on its redirect URI. | `auth_redirect.test.ts` `redirect_mismatch` |
@@ -101,7 +101,7 @@ Severity: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low
 
 | Item | Answer | Evidence |
 |---|---|---|
-| ID token signatures are cryptographically validated. | Yes: Google (library, Google's keys), Facebook (RS256, Facebook JWKS). Reddit has no ID token. | `GoogleIdTokenValidator`, `FacebookOAuthClient.ValidateAsync` |
+| ID token signatures are cryptographically validated. | Yes: Google (library, Google's keys), Facebook (RS256, Facebook JWKS). Discord and GitHub issue no ID token; their account is read with the token from the backend's own code exchange. | `GoogleIdTokenValidator`, `FacebookOAuthClient.ValidateAsync` |
 | Only explicitly trusted signing algorithms are accepted. | Facebook RS256 only; Google per library (RS256). | `Hs256_token_signed_with_public_key_bytes_fails` |
 | The issuer (iss) is validated. | Yes. | `Wrong_issuer_fails` |
 | The audience (aud) is validated. | Yes (Google: `GOOGLE_CLIENT_IDS`; Facebook: app id). | `Wrong_audience_fails` |
@@ -113,8 +113,8 @@ Severity: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low
 | Key rotation is handled securely. | Unknown `kid` triggers one refetch, at most every 5 minutes; keys refresh every 24 h. | `Rotated_key_is_picked_up_after_refetch`, `Unknown_kid_does_not_hammer_the_key_endpoint` |
 | Unknown or unexpected signing keys are rejected. | Yes. | `Unknown_kid_does_not_hammer_the_key_endpoint` |
 | Tokens from another provider or application cannot be accepted. | Yes: audience and issuer per provider; transactions can't cross providers. | `Wrong_audience_fails`, `Transaction_from_other_provider_fails` |
-| User identity is based on the provider's stable subject identifier (sub) and issuer, not email alone. | Yes: `(provider, sub)` (Reddit: account id, not username). | `Registration_never_matches_by_email`, `Same_subject_from_another_provider_is_another_account`, `Happy_path_existing_user_signed_in_by_account_id` |
-| Email verification claims are validated before relying on email ownership. | E-mail is never relied on; Google's is stored only when verified, Facebook's for display only, Reddit gives none. | `Unverified_email_is_not_kept` |
+| User identity is based on the provider's stable subject identifier (sub) and issuer, not email alone. | Yes: `(provider, sub)` (Discord user id / numeric GitHub id, never usernames). | `Registration_never_matches_by_email`, `Same_subject_from_another_provider_is_another_account`, `Existing_user_signed_in_by_id_not_username`, `New_user_registers_with_numeric_id_and_primary_verified_email` |
+| Email verification claims are validated before relying on email ownership. | E-mail is never relied on; Google's and Discord's are stored only when verified, GitHub's only when primary and verified, Facebook's for display only. | `Unverified_email_is_not_kept`, `Unverified_primary_email_is_not_kept` |
 | Untrusted user profile claims cannot override local account data. | Yes: profile claims are used only at registration; later sign-ins change nothing. | `SignInService.CompleteAsync` |
 | Attempt to identify whether the backend merely decodes JWTs instead of verifying their signatures. | It verifies. Forged/unsigned/other-key tokens are rejected. | `Unsigned_token_is_rejected`, `Invalid_token_is_providerSignInFailed` |
 
@@ -248,7 +248,7 @@ Severity: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low
 | Are database errors prevented from exposing authentication implementation details? | Unique violations are mapped to `userAlreadyExists`/`usernameTaken`. | `SignInService.RegisterAsync` |
 | Are failed authentication attempts logged safely? | Yes, reason only. | `AuthController.SignInFailed` |
 | Can malformed OAuth responses cause unhandled exceptions? | No: malformed JSON, missing fields and error statuses become `providerSignInFailed`. | `Malformed_token_response_fails_cleanly`, `Malformed_json_fails_cleanly`, `Missing_id_fails` |
-| Are provider outages handled without leaving partial authentication state? | Yes: 15 s timeouts; nothing is stored before the identity is verified. | `Reddit_me_failure_fails_cleanly` |
+| Are provider outages handled without leaving partial authentication state? | Yes: 15 s timeouts; nothing is stored before the identity is verified. | `Outage_fails_cleanly` (Discord, GitHub), `Malformed_token_response_fails_cleanly` |
 
 ### 11. Concurrency and race conditions
 
@@ -296,10 +296,10 @@ Severity: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low
 |---|---|---|
 | R1 | Google sign-in has no nonce. | The native SDK's free API can't carry one. Mitigation: ID tokens accepted only within 10 minutes of issue, audience-bound, signature-checked. |
 | R2 | OAuth transactions and pending registrations live in API memory. | Fine for one API instance; a restart drops in-progress sign-ins (users retry). More instances would need a shared store (Redis/DB). |
-| R3 | Reddit offers no PKCE. | Confidential client (secret only on the API), state checked server-side, transaction id never in a URL, Reddit token revoked right after use, `identity` scope only. |
+| R3 | Discord and GitHub have no ID token to verify. | The account is read only with the token from the backend's own code exchange (PKCE + client secret + state), never with a token the app sends; that token is revoked right after use. |
 | R4 | A refresh response lost on the network makes the next refresh look like reuse → that session ends. | Deliberate: favours theft detection; the person signs in again. |
 | R5 | Suspended users keep their session (refresh allowed) until they log out or the session ends. | So the "Your account is suspended" screen and logout keep working; every other request is blocked server-side. |
-| R6 | Android Custom Tabs keep the Facebook/Reddit browser login after Coffer sign-out. | Provider cookies are outside the app's control; Coffer's own session is ended. |
+| R6 | Android Custom Tabs keep the Facebook/Discord/GitHub browser login after Coffer sign-out. | Provider cookies are outside the app's control; Coffer's own session is ended. |
 | R7 | The legacy in-app `Admin` role can still edit other users' profile fields and role through `PUT api/Users/{id}`. | Not an OAuth path (the identity is now locked). Moderation moved to Coffer.Manager; consider removing the role's write access. |
 | R8 | Coffer.Manager tokens (8 h) are not session-revocable; app and Manager tokens share `JWT_SECRET` (different audience and scheme). | Manager sign-in was kept unchanged by decision; removing an admin id takes effect on the next request. |
 | R9 | Session revocation is cached ≤ 10 s per API process. | Usually immediate in the process that revoked (the cache entry is evicted), but a request that read "active" just before the revoke can keep the token working for up to 10 s; other instances catch up within 10 s. |

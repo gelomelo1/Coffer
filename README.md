@@ -62,7 +62,8 @@ openssl enc -aes-256-cbc -salt -pbkdf2 -in .env -out .env.enc
 * Production — no file: every value comes from the process environment (GitHub secrets). Production needs
   `JWT_SECRET` (32+ bytes), `COFFER_CONNECTIONSTRING`, `COFFER_ROOT_PATH`, `FASTAPI_URL`, `POSTGRES_DB`, `POSTGRES_USER`,
   `POSTGRES_PASSWORD`, `GOOGLE_CLIENT_IDS`, `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`, `FACEBOOK_REDIRECT_URI`,
-  `FACEBOOK_GRAPH_VERSION`, `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, `REDDIT_REDIRECT_URI`, `REDDIT_USER_AGENT`,
+  `FACEBOOK_GRAPH_VERSION`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URI`, `GITHUB_CLIENT_ID`,
+  `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI`,
   `TRUSTED_PROXIES` (the network nginx connects from, e.g. the Docker bridge `172.18.0.0/16`),
   `COFFER_MANAGER_ADMIN_GITHUB_PROVIDER_IDS`, optionally `COFFER_MANAGER_GITHUB_CLIENT_ID` and `INTERNAL_API_KEY`.
 
@@ -88,16 +89,18 @@ store), `data/temp` (photo checks) and `models` (AI models per item type).
 | `COFFER_ROOT_PATH` | `src/.env` | root of every data folder (`/app` in Docker) |
 | `GOOGLE_CLIENT_IDS` | `src/.env` | Google web client id(s) accepted as the ID token audience |
 | `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`, `FACEBOOK_REDIRECT_URI`, `FACEBOOK_GRAPH_VERSION` | `src/.env` | Facebook Login (redirect `fb<APP_ID>://authorize`) |
-| `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, `REDDIT_REDIRECT_URI`, `REDDIT_USER_AGENT` | `src/.env` | Reddit "web app" (redirect `com.gelomelo.coffer://oauth/reddit`) |
+| `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URI` | `src/.env` | Discord application (redirect `discord-<APP_ID>:/authorize/callback`) |
+| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI` | `src/.env` | GitHub OAuth app for the app sign-in (callback `com.gelomelo.coffer://oauth/github`); the Manager's device flow uses the same client id |
 | `TRUSTED_PROXIES` | production | IPs/CIDRs of the reverse proxy (nginx) allowed to send `X-Forwarded-For` |
 | `EXPO_PUBLIC_BACKEND_URL` | `Coffer.ReactNative/.env` | the API; `https://` required outside development (dev: `http://10.0.2.2:5141`, emulator) |
 | `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | `Coffer.ReactNative/.env` | same web client id as `GOOGLE_CLIENT_IDS` |
 | `EXPO_PUBLIC_FACEBOOK_APP_ID` | `Coffer.ReactNative/.env` | same as `FACEBOOK_APP_ID` (registers the `fb<id>` redirect scheme) |
+| `EXPO_PUBLIC_DISCORD_APP_ID` | `Coffer.ReactNative/.env` | same as `DISCORD_CLIENT_ID` (registers the `discord-<id>` redirect scheme) |
 | `EXPO_PUBLIC_AUTH_SCHEME` | `Coffer.ReactNative/.env` | the app's URL scheme, `com.gelomelo.coffer` |
 
 ---
 
-## App sign-in (Google, Facebook, Reddit)
+## App sign-in (Google, Facebook, Discord, GitHub)
 
 Security audit of sign-in and sessions: [docs/security/2026-11-24-oauth-audit.md](docs/security/2026-11-24-oauth-audit.md).
 
@@ -106,9 +109,14 @@ Security audit of sign-in and sessions: [docs/security/2026-11-24-oauth-audit.md
 * **Facebook** — in-app browser, OpenID Connect code flow with PKCE (S256), state and nonce. The API builds the sign-in
   URL, keeps the state, nonce and PKCE verifier, exchanges the code with the app secret and verifies the ID token
   against Facebook's published keys. Setup: Facebook app → Facebook Login → add the redirect `fb<APP_ID>://authorize`.
-* **Reddit** — in-app browser, authorization code with state; a Reddit **web app** (so the secret stays on the API)
-  with the redirect `com.gelomelo.coffer://oauth/reddit` and the `identity` scope only. New Reddit API apps need
-  Reddit's approval (Responsible Builder Policy) before they work.
+* **Discord** — in-app browser, authorization code with PKCE (S256) and state; the secret stays on the API. Scopes
+  `identify email`; identity is the Discord user id; the e-mail is kept only when Discord marks it verified. Setup:
+  Discord developer portal → OAuth2 → add the redirect `discord-<APP_ID>:/authorize/callback`.
+* **GitHub** — in-app browser, authorization code with PKCE (S256) and state; the secret stays on the API. Scopes
+  `read:user user:email`; identity is the numeric GitHub id; the e-mail is kept only when it is the primary verified
+  address; only this sign-in's token is deleted afterwards. Setup: the Coffer OAuth app's callback URL must be exactly
+  `com.gelomelo.coffer://oauth/github`. (Coffer.Manager keeps its own GitHub device flow.)
+* Reddit is not offered: it stopped accepting new API access on 31 Oct 2026.
 * Accounts are matched by provider + the provider's account id only, never by e-mail. New identities get a
   10-minute, single-use registration (username + country).
 * **Sessions**: access tokens last 15 minutes; refresh tokens rotate on every use, are stored only as hashes, expire
@@ -164,11 +172,10 @@ with the users of `DEV_SEED_DATA_JSON`; one tap signs you in as that user — no
 get no token, the endpoints answer 404 unless the API runs in Development with the flag on, and the API refuses to start
 when the flag is set in any other environment.
 
-**Your own account:** put yourself in `users` with `"provider"` set to `google`, `facebook` or `reddit` and your
-provider id as `providerUserId` (Google/Facebook: the ID token's `sub`; Reddit: your account id) — you can then sign in
-to the app as that seeded user. `github` is still accepted here (the seed is the only place a GitHub user can be
-created); such users sign in through the dev login. If a seed user would duplicate an existing login while reset is
-off, startup stops and says so.
+**Your own account:** put yourself in `users` with `"provider"` set to `google`, `facebook`, `discord` or `github`
+and your provider id as `providerUserId` (Google/Facebook: the ID token's `sub`; Discord: your user id; GitHub: your
+numeric id from `https://api.github.com/users/<login>`) — you can then sign in to the app as that seeded user. If a
+seed user would duplicate an existing login while reset is off, startup stops and says so.
 
 ### Database reset on startup
 
