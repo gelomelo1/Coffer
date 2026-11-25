@@ -18,6 +18,9 @@ namespace Coffer.BusinessLogic.Auth.OAuth
     /// </summary>
     public sealed class DiscordOAuthClient : IDiscordOAuthClient
     {
+        // Pinned API version (the unversioned path serves the deprecated v6). Discord requires a User-Agent.
+        private const string Api = "https://discord.com/api/v10";
+        private const string UserAgent = "Coffer (https://github.com/gelomelo1/Coffer, 1.0)";
         private readonly HttpClient _http;
         private readonly DiscordAuthOptions _options;
 
@@ -65,7 +68,7 @@ namespace Coffer.BusinessLogic.Auth.OAuth
 
         private async Task<string> ExchangeAsync(OAuthTransaction t, string code)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, "https://discord.com/api/oauth2/token")
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{Api}/oauth2/token")
             {
                 Content = new FormUrlEncodedContent(new Dictionary<string, string>
                 {
@@ -76,6 +79,7 @@ namespace Coffer.BusinessLogic.Auth.OAuth
                 }),
             };
             request.Headers.Authorization = ClientCredentials();
+            request.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
             using var response = await _http.SendAsync(request);
             if (!response.IsSuccessStatusCode) throw new ProviderSignInException($"Discord token endpoint answered {(int)response.StatusCode}");
             using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
@@ -88,8 +92,9 @@ namespace Coffer.BusinessLogic.Auth.OAuth
 
         private async Task<ProviderIdentity> MeAsync(string accessToken)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, "https://discord.com/api/users/@me");
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"{Api}/users/@me");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            request.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
             using var response = await _http.SendAsync(request);
             if (!response.IsSuccessStatusCode) throw new ProviderSignInException($"Discord account endpoint answered {(int)response.StatusCode}");
             using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
@@ -117,7 +122,7 @@ namespace Coffer.BusinessLogic.Auth.OAuth
         {
             try
             {
-                using var request = new HttpRequestMessage(HttpMethod.Post, "https://discord.com/api/oauth2/token/revoke")
+                using var request = new HttpRequestMessage(HttpMethod.Post, $"{Api}/oauth2/token/revoke")
                 {
                     Content = new FormUrlEncodedContent(new Dictionary<string, string>
                     {
@@ -126,6 +131,7 @@ namespace Coffer.BusinessLogic.Auth.OAuth
                     }),
                 };
                 request.Headers.Authorization = ClientCredentials();
+                request.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
                 using var _ = await _http.SendAsync(request);
             }
             catch (Exception e) when (e is HttpRequestException or TaskCanceledException)

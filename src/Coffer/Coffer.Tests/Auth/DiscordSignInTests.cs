@@ -10,9 +10,9 @@ namespace Coffer.Tests.Auth
     /// <summary>Discord: authorization code + PKCE S256 + state, confidential client, identity = Discord user id.</summary>
     public class DiscordSignInTests : BrowserSignInTestBase
     {
-        private const string TokenEndpoint = "https://discord.com/api/oauth2/token";
-        private const string RevokeEndpoint = "https://discord.com/api/oauth2/token/revoke";
-        private const string Me = "https://discord.com/api/users/@me";
+        private const string TokenEndpoint = "https://discord.com/api/v10/oauth2/token";
+        private const string RevokeEndpoint = "https://discord.com/api/v10/oauth2/token/revoke";
+        private const string Me = "https://discord.com/api/v10/users/@me";
         private static readonly string Redirect = $"discord-{TestEnvironment.DiscordClientId}:/authorize/callback";
 
         protected override string Provider => "discord";
@@ -65,6 +65,8 @@ namespace Coffer.Tests.Auth
             Assert.Equal(Redirect, form["redirect_uri"]);
             Assert.Equal(s.Query["code_challenge"], S256(form["code_verifier"]));
             Assert.Equal("Bearer discord-access-token", Assert.Single(Http.Calls, c => c.Url.ToString() == Me).Authorization);
+            // Discord requires a User-Agent on every API call.
+            Assert.All(Http.Calls, c => Assert.StartsWith("Coffer", c.UserAgent));
         }
 
         [Fact]
