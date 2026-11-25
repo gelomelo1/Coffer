@@ -43,8 +43,11 @@ export function parseAuthResult(result: { type: string; url?: string }, expected
   return { kind: "code", code: p.code, state: p.state };
 }
 
-/** Google comes back through the API: only the state (the API holds the verified result), or an error. */
-export type RelayRedirect = { kind: "ready"; state: string } | { kind: "cancelled" } | { kind: "error"; error: string };
+/**
+ * Google comes back through the API: the state plus a one-time handle that only this browser received (the API holds
+ * the verified result and gives it only to whoever has the handle), or an error.
+ */
+export type RelayRedirect = { kind: "ready"; state: string; handle: string } | { kind: "cancelled" } | { kind: "error"; error: string };
 
 export function parseRelayResult(result: { type: string; url?: string }, expectedState: string, redirectUri: string): RelayRedirect {
   if (result.type !== "success" || !result.url) return { kind: "cancelled" };
@@ -56,5 +59,6 @@ export function parseRelayResult(result: { type: string; url?: string }, expecte
   const p = params(result.url);
   if (p.error) return p.error === "access_denied" ? { kind: "cancelled" } : { kind: "error", error: p.error };
   if (!p.state || p.state !== expectedState) return { kind: "error", error: "state_mismatch" };
-  return { kind: "ready", state: p.state };
+  if (!p.handle) return { kind: "error", error: "missing_handle" };
+  return { kind: "ready", state: p.state, handle: p.handle };
 }

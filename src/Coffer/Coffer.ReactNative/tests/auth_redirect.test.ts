@@ -59,8 +59,12 @@ test("discord's single-slash redirect (discord-<id>:/authorize/callback) is reco
 // Google returns to the app through the API: only the state comes back (plus error=access_denied|failed).
 const google = "com.gelomelo.coffer://oauth/google";
 
-test("relay: state only means the API has the result", () => {
-  assert.deepEqual(parseRelayResult({ type: "success", url: `${google}?state=s1` }, "s1", google), { kind: "ready", state: "s1" });
+test("relay: state and handle mean the API has the result for this browser", () => {
+  assert.deepEqual(parseRelayResult({ type: "success", url: `${google}?state=s1&handle=h1` }, "s1", google), { kind: "ready", state: "s1", handle: "h1" });
+});
+
+test("relay: a success without the handle is refused", () => {
+  assert.deepEqual(parseRelayResult({ type: "success", url: `${google}?state=s1` }, "s1", google), { kind: "error", error: "missing_handle" });
 });
 
 test("relay: denial and cancel are cancelled, failures are errors", () => {
@@ -71,6 +75,6 @@ test("relay: denial and cancel are cancelled, failures are errors", () => {
 });
 
 test("relay: a foreign state or redirect is refused", () => {
-  assert.deepEqual(parseRelayResult({ type: "success", url: `${google}?state=forged` }, "s1", google), { kind: "error", error: "state_mismatch" });
-  assert.deepEqual(parseRelayResult({ type: "success", url: "https://evil.example/?state=s1" }, "s1", google), { kind: "error", error: "redirect_mismatch" });
+  assert.deepEqual(parseRelayResult({ type: "success", url: `${google}?state=forged&handle=h1` }, "s1", google), { kind: "error", error: "state_mismatch" });
+  assert.deepEqual(parseRelayResult({ type: "success", url: "https://evil.example/?state=s1&handle=h1" }, "s1", google), { kind: "error", error: "redirect_mismatch" });
 });

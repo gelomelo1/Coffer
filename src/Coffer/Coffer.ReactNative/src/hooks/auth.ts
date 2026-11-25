@@ -37,7 +37,7 @@ interface UseSignInProps {
 
 /**
  * Google, Facebook, Discord and GitHub, all in the in-app browser (the backend builds
- * the sign-in URL and holds the state, nonce and PKCE verifier). All three end in the backend's shared answer:
+ * the sign-in URL and holds the state, nonce and PKCE verifier). All four end in the backend's shared answer:
  * signed in, or registration required. Tokens are never logged.
  */
 export function useSignIn({ onRegistrationRequired, onSignedIn, onRegistered }: UseSignInProps) {
@@ -77,8 +77,8 @@ export function useSignIn({ onRegistrationRequired, onSignedIn, onRegistered }: 
     }
   };
 
-  // Google sends the browser to the API, which verifies the sign-in and then returns to the app with only the state;
-  // the app then collects the result with its transaction id.
+  // Google sends the browser to the API, which verifies the sign-in and returns to the app with the state and a one-time
+  // handle; the app then collects the result with its transaction id and that handle.
   const google = () =>
     run("google", async () => {
       const start = await postData<Record<string, never>, OAuthStart>(endpoints.googleStart, {});
@@ -95,9 +95,10 @@ export function useSignIn({ onRegistrationRequired, onSignedIn, onRegistered }: 
       }
       await finish(
         "google",
-        await postData<{ transactionId: string; state: string }, SignInAnswer>(endpoints.googleComplete, {
+        await postData<{ transactionId: string; state: string; handle: string }, SignInAnswer>(endpoints.googleComplete, {
           transactionId: start.transactionId,
           state: back.state,
+          handle: back.handle,
         }),
       );
     });
