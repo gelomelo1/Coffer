@@ -13,9 +13,9 @@ Final verification (all green):
 
 | Suite | Result |
 |---|---|
-| `dotnet test src/Coffer/Coffer.Tests` | 684 passed, 0 failed |
+| `dotnet test src/Coffer/Coffer.Tests` | 703 passed, 0 failed |
 | `python -m unittest discover -s tests` (Coffer.PythonService) | 43 passed |
-| `npm run test:unit` (Coffer.ReactNative) | 169 passed |
+| `npm run test:unit` (Coffer.ReactNative) | 171 passed |
 | `npx tsc --noEmit` | no errors |
 | `npx eslint src` | 0 errors (47 warnings, all pre-existing) |
 | `npm run check:i18n`, `npm run check:errors` | passed / up to date |
@@ -30,7 +30,7 @@ Final verification (all green):
 | A2 | **Discord**: create an application in the Discord developer portal, add the OAuth2 redirect `discord-<APPLICATION_ID>:/authorize/callback`, set `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` / `DISCORD_REDIRECT_URI` in `src/.env` and `EXPO_PUBLIC_DISCORD_APP_ID` in `Coffer.ReactNative/.env`. **GitHub**: in the Coffer OAuth app (also used by the Manager) set the callback URL to exactly `com.gelomelo.coffer://oauth/github` (GitHub OAuth apps accept several callback URLs since August 2026 — check the app's settings; the Manager's device flow doesn't use a callback), generate a client secret and set `GITHUB_CLIENT_SECRET`. | Placeholders until then; that provider's sign-in answers "Sign-in failed". Reddit was dropped: it stopped accepting new API access on 31 Oct 2026. |
 | A3 | **Encrypt both env files**: `openssl enc -aes-256-cbc -salt -pbkdf2 -in .env -out .env.enc` in `src/` and in `src/Coffer/Coffer.ReactNative/`, then commit the two `.env.enc`. | The encryption password is yours; the old `src/.env.enc` was removed with the old files. |
 | A4 | **Run** `src/startup/oauth_sessions_migration.sql` on the development database, and on production before the next deploy. | New tables `auth_sessions`, `auth_refresh_tokens`; provider check now allows `google`, `facebook`, `discord`, `github`. |
-| A5 | **Production (GitHub secrets)**: add `COFFER_ROOT_PATH=/app`, `GOOGLE_CLIENT_IDS`, the four `FACEBOOK_*`, three `DISCORD_*` and three `GITHUB_*` values (`GITHUB_CLIENT_SECRET` is needed again), `TRUSTED_PROXIES` (the network nginx connects from, e.g. `172.18.0.0/16`); remove `IMAGESTORE_PATH`, `ICONSTORE_PATH`, `VECTORSTORE_PATH`, `MODELS_PATH`, `IMAGECHECK_TEMP_PATH` (the Manager keeps using `GITHUB_CLIENT_ID` / `COFFER_MANAGER_*`). Production no longer reads `/var/www/coffer/.env.production`; `deploy.yml` still downloads `.env.production.zip` — switch it to the secrets. | Every auth value is required: the API refuses to start without them. |
+| A5 | **Production (GitHub secrets)**: add `COFFER_ROOT_PATH=/app`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` (`https://<api-domain>/api/auth/google/callback`), `GOOGLE_APP_REDIRECT_URI`, the four `FACEBOOK_*`, three `DISCORD_*` and three `GITHUB_*` values (`GITHUB_CLIENT_SECRET` is needed again), `TRUSTED_PROXIES` (the network nginx connects from, e.g. `172.18.0.0/16`); remove `IMAGESTORE_PATH`, `ICONSTORE_PATH`, `VECTORSTORE_PATH`, `MODELS_PATH`, `IMAGECHECK_TEMP_PATH` (the Manager keeps using `GITHUB_CLIENT_ID` / `COFFER_MANAGER_*`). Production no longer reads `/var/www/coffer/.env.production`; `deploy.yml` still downloads `.env.production.zip` — switch it to the secrets. | Every auth value is required: the API refuses to start without them. |
 | A6 | **New app build**: `npx expo prebuild --clean`, then `npm run android`. The dev backend URL is `http://10.0.2.2:5141` (emulator only). EAS cloud builds need the `EXPO_PUBLIC_*` values as EAS environment variables. | New intent filters (`fb<id>`, `discord-<id>`), HTTPS-only network policy; the hand-edited `usesCleartextTraffic="true"` in the git-ignored `android/` folder disappears. |
 | A7 | Tell users: everyone signs in again once. Accounts registered with GitHub keep working (same numeric GitHub id). | Old one-year tokens have no session and are rejected. |
 | A8 | Move or delete the local backup of the old env files (its location was given with this report; it is outside the repository). | It holds the previous `src/.env`, `src/.env.development` and `src/.env.enc` (secrets), in a temporary folder that may be cleared. |
@@ -49,7 +49,7 @@ Severity: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low
 | 🟠 | Pending registration kept the **raw provider token** (Google ID token / GitHub access token) under a GUID for 10 minutes; the handle was removed only after success (double submit raced). | Only the verified identity is kept, under a 256-bit single-use id, taken atomically. | `GoogleSignInTests.Register_handle_is_single_use`, `Unknown_registration_id_fails` |
 | 🟠 | Registration had **no server-side validation** of username or country (only the app checked). | Username `^[a-zA-Z0-9._-]{1,40}$` and unique, country two capital letters; checked before the registration is used up. | `GoogleSignInTests.Invalid_input_is_rejected_without_consuming_the_handle`, `Taken_username_is_rejected` |
 | 🟠 | No rate limiting on any sign-in endpoint. | Per-IP fixed windows: 20/min for sign-in steps, 60/min for refresh/logout → 429 `tooManyAuthRequests`. Behind nginx the real IP comes from `X-Forwarded-For`, trusted only from `TRUSTED_PROXIES`. | `SessionApiTests.Auth_endpoints_are_rate_limited`, `Refresh_has_its_own_larger_limit`, `ForwardedHeadersTests.*` |
-| 🟡 | Google ID tokens: e-mail stored without checking `email_verified`; no bound on token age; audience fell back to a hard-coded client id when unset. | Signature/issuer/audience/expiry by Google's library, plus: `iat` within the last 10 minutes, e-mail kept only when verified, audience strictly from `GOOGLE_CLIENT_IDS` (required). | `GoogleIdTokenRulesTests.*`, `AuthOptionsTests.*` |
+| 🟡 | Google ID tokens: e-mail stored without checking `email_verified`; no bound on token age; audience fell back to a hard-coded client id when unset. | Google ID tokens now come only from the API's own code exchange (PKCE + client secret) and are checked for signature, issuer, audience = `GOOGLE_CLIENT_ID`, expiry and nonce; e-mail kept only when verified. | `GoogleSignInTests.*` |
 | 🟡 | User-token validation did not restrict algorithms; default 5-minute clock skew. | `ValidAlgorithms = [HS256]`, signed tokens and expiry required, 30 s skew, key ≥ 32 bytes enforced at startup. | `SessionGuardApiTests.Unsigned_token_is_rejected`, `Token_signed_with_other_algorithm_is_rejected`, `Expired_access_token_is_rejected`, `AuthOptionsTests.Short_jwt_secret_is_rejected` |
 | 🟡 | App: backend URL silently fell back to a hard-coded LAN address; OAuth ids hard-coded; Android allowed plain HTTP everywhere, release builds included. | Required `.env` values (the app and the build stop with the variable's name); `https://` required outside development; release builds allow no cleartext, debug builds only to `10.0.2.2`/`localhost`/`127.0.0.1`. | `env_check.test.ts`; prebuild output checked (main: cleartext false; debug: three hosts only) |
 | 🟡 | Tokens could fall back to **AsyncStorage** (unencrypted, included in Android backups). | SecureStore only; legacy keys deleted. | code review (`src/utils/token_store.ts`) |
@@ -60,7 +60,7 @@ Severity: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low
 | 🟡 | (Found in the final review.) `JWT_SECRET` from `.env.example` (public) passed the 32-byte check. | A secret starting with `change-me` stops startup. | `AuthOptionsTests.Placeholder_jwt_secret_is_rejected` |
 | 🔵 | (Follow-up review.) Provider token revocation used the normal 15 s timeout, so a slow provider could hold up a successful sign-in by up to a minute; Discord calls used the deprecated unversioned API without a User-Agent; a redirect URI that doesn't match its app id failed only on a phone; GitHub asked for `read:user`. | Revoke capped at 3 s; Discord API v10 with a User-Agent; the API refuses to start on a mismatched Facebook/Discord redirect; GitHub asks only for `user:email`. Every provider now asks only for name, e-mail and avatar. | `A_slow_revoke_does_not_hold_up_the_sign_in`, `A_failing_revoke_does_not_fail_the_sign_in`, `Token_is_revoked_even_when_reading_the_account_fails`, `Facebook_redirect_must_match_the_app_id`, `Discord_redirect_must_match_the_client_id`, `GithubSignInTests.Start_builds_url_from_server_config` |
 | — | (Change requested 2026-11-25.) Strict sign-in settings everywhere blocked development before every provider app existed. | Production and release app builds still refuse to start on a missing, placeholder or inconsistent value. Development switches only that provider off (startup warning, `providerNotConfigured` / "isn't set up" in the app); `JWT_SECRET`, backend URL and scheme stay required. | `AuthOptionsTests.Development_*`, `Production_refuses_placeholders`, `ProviderNotConfiguredTests.*`, `env_check.test.ts` |
-| 🔵 | Google sign-in requested `offlineAccess` (a server auth code nobody used). | Removed; only `profile` and `email`. | code review (`src/utils/google_signin.ts`) |
+| 🔵 | Google sign-in used Google's deprecated Android Sign-In SDK and requested `offlineAccess` (a server auth code nobody used). | Replaced by the OIDC code flow through the API callback (scope `openid email profile`); SDK removed. | `GoogleSignInTests.*` |
 | 🔵 | App logged whole provider error/response objects with `console.error`. | Short fixed messages only; tokens never logged. Backend logs provider failures by reason only. | `FacebookSignInTests.Logs_never_contain_code_or_tokens` |
 | 🔵 | React Query cache was re-created on every render of the root and never cleared on logout (data of the previous account could be shown). | One cache; cleared on every sign-out. | code review (`src/utils/session.ts`) |
 | 🔵 | GitHub sign-in fell back to a built-in client id, took the e-mail without a usable verification check in one branch, and kept the GitHub token. | Rebuilt: configured client only, numeric id as identity, primary *verified* e-mail only, token deleted after use. Old `github/validate` and `github/register` endpoints are gone. | `GithubSignInTests.*`, `SessionApiTests.Removed_endpoints_are_gone` |
@@ -76,7 +76,9 @@ Severity: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low
 - **N2 (backend transaction):** Facebook/Discord/GitHub `start` creates a server-side transaction (id, state, PKCE
   verifier, and a nonce for Facebook; 256-bit CSPRNG values; 10 minutes; single use). The app gets the id and the authorize URL; `complete`
   takes the transaction atomically and checks provider and state.
-- **N3 (Google):** native SDK; the backend verifies the ID token. The SDK's free API can't send a nonce.
+- **N3 (Google):** the same transaction, but Google redirects to the API's callback (Google disables app-scheme
+  redirects for Android clients); the API exchanges the code, verifies the ID token and keeps only the verified
+  identity until the app collects it with its transaction id. No code or token reaches the app.
 
 ### 2. OAuth authorization flow
 
@@ -103,14 +105,14 @@ Severity: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low
 
 | Item | Answer | Evidence |
 |---|---|---|
-| ID token signatures are cryptographically validated. | Yes: Google (library, Google's keys), Facebook (RS256, Facebook JWKS). Discord and GitHub issue no ID token; their account is read with the token from the backend's own code exchange. | `GoogleIdTokenValidator`, `FacebookOAuthClient.ValidateAsync` |
+| ID token signatures are cryptographically validated. | Yes: Google and Facebook through the same helper (RS256, provider JWKS). Discord and GitHub issue no ID token; their account is read with the token from the backend's own code exchange. | `OidcIdTokens.ValidateAsync`; `Hs256_token_signed_with_public_key_bytes_fails` (Google, Facebook) |
 | Only explicitly trusted signing algorithms are accepted. | Facebook RS256 only; Google per library (RS256). | `Hs256_token_signed_with_public_key_bytes_fails` |
 | The issuer (iss) is validated. | Yes. | `Wrong_issuer_fails` |
-| The audience (aud) is validated. | Yes (Google: `GOOGLE_CLIENT_IDS`; Facebook: app id). | `Wrong_audience_fails` |
+| The audience (aud) is validated. | Yes (Google: client id; Facebook: app id). | `Wrong_audience_fails` (Google, Facebook) |
 | The authorized party (azp) is validated when applicable. | Not applicable: single audience values; Google's `aud` is our web client. | — |
 | Token expiration (exp) is validated. | Yes (Facebook: 2 min skew). | `Expired_token_fails` |
-| Issued-at (iat) is checked where appropriate. | Google: must be within the last 10 minutes (no nonce possible). | `GoogleIdTokenRulesTests` |
-| The nonce is generated, stored, and validated correctly. | Facebook: yes (server-side, constant-time). Google: not possible with the free SDK — accepted risk (R1). | `Wrong_nonce_fails` |
+| Issued-at (iat) is checked where appropriate. | Not needed: replay is prevented by the single-use nonce bound to a server transaction; lifetime (exp) is checked. | `Wrong_nonce_fails` |
+| The nonce is generated, stored, and validated correctly. | Yes for Google and Facebook: generated server-side, kept in the transaction, compared in constant time. | `Wrong_nonce_fails` (Google, Facebook) |
 | JWKS keys are retrieved from trusted provider metadata. | Facebook's fixed HTTPS JWKS URL; Google via its library. | `FacebookSigningKeys` |
 | Key rotation is handled securely. | Unknown `kid` triggers one refetch, at most every 5 minutes; keys refresh every 24 h. | `Rotated_key_is_picked_up_after_refetch`, `Unknown_kid_does_not_hammer_the_key_endpoint` |
 | Unknown or unexpected signing keys are rejected. | Yes. | `Unknown_kid_does_not_hammer_the_key_endpoint` |
@@ -296,7 +298,7 @@ Severity: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low
 
 | # | Risk | Why it stays / mitigation |
 |---|---|---|
-| R1 | Google sign-in has no nonce. | The native SDK's free API can't carry one. Mitigation: ID tokens accepted only within 10 minutes of issue, audience-bound, signature-checked. |
+| R1 | (Closed 2026-11-25.) Google sign-in had no nonce with the native SDK. | Google now runs through the API callback with a nonce; the deprecated Google Sign-In SDK was removed from the app. |
 | R2 | OAuth transactions and pending registrations live in API memory. | Fine for one API instance; a restart drops in-progress sign-ins (users retry). More instances would need a shared store (Redis/DB). |
 | R3 | Discord and GitHub have no ID token to verify. | The account is read only with the token from the backend's own code exchange (PKCE + client secret + state), never with a token the app sends; that token is revoked right after use. |
 | R4 | A refresh response lost on the network makes the next refresh look like reuse → that session ends. | Deliberate: favours theft detection; the person signs in again. |

@@ -65,7 +65,7 @@ openssl enc -aes-256-cbc -salt -pbkdf2 -in .env -out .env.enc
 * Running the API directly (`dotnet run` in `Coffer.ASPNET`) in the Development environment — `../../.env`.
 * Production — no file: every value comes from the process environment (GitHub secrets). Production needs
   `JWT_SECRET` (32+ bytes), `COFFER_CONNECTIONSTRING`, `COFFER_ROOT_PATH`, `FASTAPI_URL`, `POSTGRES_DB`, `POSTGRES_USER`,
-  `POSTGRES_PASSWORD`, `GOOGLE_CLIENT_IDS`, `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`, `FACEBOOK_REDIRECT_URI`,
+  `POSTGRES_PASSWORD`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `GOOGLE_APP_REDIRECT_URI`, `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`, `FACEBOOK_REDIRECT_URI`,
   `FACEBOOK_GRAPH_VERSION`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URI`, `GITHUB_CLIENT_ID`,
   `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI`,
   `TRUSTED_PROXIES` (the network nginx connects from, e.g. the Docker bridge `172.18.0.0/16`),
@@ -91,13 +91,14 @@ store), `data/temp` (photo checks) and `models` (AI models per item type).
 | `DEV_LOGIN_ENABLED` | Development only | `true` = the app's sign-in screen offers a dev login as any seeded user |
 | `COFFER_API_URL` | `Coffer.Manager/.env` | backend URL the Manager talks to |
 | `COFFER_ROOT_PATH` | `src/.env` | root of every data folder (`/app` in Docker) |
-| `GOOGLE_CLIENT_IDS` | `src/.env` | Google web client id(s) accepted as the ID token audience |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | `src/.env` | Google "Web application" OAuth client |
+| `GOOGLE_REDIRECT_URI` | `src/.env` | the API's `/api/auth/google/callback` (https; http only on localhost) |
+| `GOOGLE_APP_REDIRECT_URI` | `src/.env` | where the API sends the browser back to the app (`com.gelomelo.coffer://oauth/google`) |
 | `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`, `FACEBOOK_REDIRECT_URI`, `FACEBOOK_GRAPH_VERSION` | `src/.env` | Facebook Login (redirect `fb<APP_ID>://authorize`) |
 | `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URI` | `src/.env` | Discord application (redirect `discord-<APP_ID>:/authorize/callback`) |
 | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI` | `src/.env` | GitHub OAuth app for the app sign-in (callback `com.gelomelo.coffer://oauth/github`); the Manager's device flow uses the same client id |
 | `TRUSTED_PROXIES` | production | IPs/CIDRs of the reverse proxy (nginx) allowed to send `X-Forwarded-For` |
 | `EXPO_PUBLIC_BACKEND_URL` | `Coffer.ReactNative/.env` | the API; `https://` required outside development (dev: `http://10.0.2.2:5141`, emulator) |
-| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | `Coffer.ReactNative/.env` | same web client id as `GOOGLE_CLIENT_IDS` |
 | `EXPO_PUBLIC_FACEBOOK_APP_ID` | `Coffer.ReactNative/.env` | same as `FACEBOOK_APP_ID` (registers the `fb<id>` redirect scheme) |
 | `EXPO_PUBLIC_DISCORD_APP_ID` | `Coffer.ReactNative/.env` | same as `DISCORD_CLIENT_ID` (registers the `discord-<id>` redirect scheme) |
 | `EXPO_PUBLIC_AUTH_SCHEME` | `Coffer.ReactNative/.env` | the app's URL scheme, `com.gelomelo.coffer` |
@@ -108,8 +109,14 @@ store), `data/temp` (photo checks) and `models` (AI models per item type).
 
 Security audit of sign-in and sessions: [docs/security/2026-11-24-oauth-audit.md](docs/security/2026-11-24-oauth-audit.md).
 
-* **Google** — native sign-in; the API verifies the ID token (signature, issuer, audience = `GOOGLE_CLIENT_IDS`,
-  expiry) and accepts it only within 10 minutes of issue.
+* **Google** — in-app browser, OpenID Connect code flow with PKCE (S256), state and nonce, through Google's web
+  endpoints (no Google SDK in the app). Google redirects to the **API** (`/api/auth/google/callback`): the API
+  exchanges the code with the client secret, verifies the ID token against Google's keys (issuer, audience, expiry,
+  nonce) and sends the browser back to the app with only the state; the app then collects the result once
+  (`google/complete`). Setup: a Google Cloud "Web application" client with the redirect URIs
+  `http://localhost:5141/api/auth/google/callback` (development) and `https://<api-domain>/api/auth/google/callback`.
+  On the emulator run `adb reverse tcp:5141 tcp:5141` so that `localhost:5141` reaches the API. (Google switched off
+  app-scheme redirects for Android clients in 2023, hence the API callback.)
 * **Facebook** — in-app browser, OpenID Connect code flow with PKCE (S256), state and nonce. The API builds the sign-in
   URL, keeps the state, nonce and PKCE verifier, exchanges the code with the app secret and verifies the ID token
   against Facebook's published keys. Setup: Facebook app → Facebook Login → add the redirect `fb<APP_ID>://authorize`.
@@ -120,7 +127,7 @@ Security audit of sign-in and sessions: [docs/security/2026-11-24-oauth-audit.md
   `user:email` (the public profile needs none); identity is the numeric GitHub id; the e-mail is kept only when it is the primary verified
   address; only this sign-in's token is deleted afterwards. Setup: the Coffer OAuth app's callback URL must be exactly
   `com.gelomelo.coffer://oauth/github`. (Coffer.Manager keeps its own GitHub device flow.)
-* Every provider is asked only for a name, the e-mail address and the avatar (Google `profile email`; Facebook
+* Every provider is asked only for a name, the e-mail address and the avatar (Google `openid email profile`; Facebook
   `openid public_profile email`, `openid` only enables the signed ID token; Discord `identify email`; GitHub
   `user:email`). Provider tokens are revoked after sign-in (at most 3 s, never holding up the sign-in).
 * `FACEBOOK_REDIRECT_URI` must be `fb<FACEBOOK_APP_ID>://authorize` and `DISCORD_REDIRECT_URI`
