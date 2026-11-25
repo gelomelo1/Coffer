@@ -49,3 +49,9 @@ test("queryParam reads the state the backend put in the authorize URL", () => {
   assert.equal(queryParam("https://www.facebook.com/v21.0/dialog/oauth?client_id=1&state=a%2Fb&nonce=n", "state"), "a/b");
   assert.equal(queryParam("https://x.example/?a=1", "state"), undefined);
 });
+
+test("discord's single-slash redirect (discord-<id>:/authorize/callback) is recognised", () => {
+  const discord = "discord-998877:/authorize/callback";
+  assert.deepEqual(parseAuthResult({ type: "success", url: `${discord}?code=abc&state=s1` }, "s1", discord), { kind: "code", code: "abc", state: "s1" });
+  assert.deepEqual(parseAuthResult({ type: "success", url: `${discord}x?code=abc&state=s1` }, "s1", discord), { kind: "error", error: "redirect_mismatch" });
+});

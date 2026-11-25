@@ -8,5 +8,8 @@ export const webGoogleClientId = env.googleWebClientId;
 /** Facebook app id; Facebook redirects back to fb{id}://authorize (registered in app.config.ts). */
 export const facebookAppId = env.facebookAppId;
 
-/** The app's URL scheme (deep links and the Reddit redirect). */
+/** Discord application id; Discord redirects back to discord-{id}:/authorize/callback (registered in app.config.ts). */
+export const discordAppId = env.discordAppId;
+
+/** The app's URL scheme (deep links and the GitHub redirect). */
 export const authScheme = env.authScheme;

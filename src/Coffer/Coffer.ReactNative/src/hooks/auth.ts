@@ -12,7 +12,8 @@ import { GoogleSignin } from "../utils/google_signin";
 import { signInWith } from "../utils/session";
 import type { StoredSession } from "../utils/token_store";
 
-export type SignInProvider = "google" | "facebook" | "reddit";
+export type SignInProvider = "google" | "facebook" | "discord" | "github";
+type BrowserProvider = Exclude<SignInProvider, "google">;
 
 /** The backend's answer to every provider's sign-in step. */
 type SignInAnswer =
@@ -21,9 +22,10 @@ type SignInAnswer =
 
 type OAuthStart = { transactionId: string; authorizeUrl: string; redirectUri: string };
 
-const BROWSER: Record<"facebook" | "reddit", { start: string; complete: string }> = {
+const BROWSER: Record<BrowserProvider, { start: string; complete: string }> = {
   facebook: { start: endpoints.facebookStart, complete: endpoints.facebookComplete },
-  reddit: { start: endpoints.redditStart, complete: endpoints.redditComplete },
+  discord: { start: endpoints.discordStart, complete: endpoints.discordComplete },
+  github: { start: endpoints.githubStart, complete: endpoints.githubComplete },
 };
 
 interface UseSignInProps {
@@ -34,7 +36,7 @@ interface UseSignInProps {
 }
 
 /**
- * Google (native sign-in, ID token checked by the backend), Facebook and Reddit (in-app browser; the backend builds
+ * Google (native sign-in, ID token checked by the backend), Facebook, Discord and GitHub (in-app browser; the backend builds
  * the sign-in URL and holds the state, nonce and PKCE verifier). All three end in the backend's shared answer:
  * signed in, or registration required. Tokens are never logged.
  */
@@ -84,7 +86,7 @@ export function useSignIn({ onRegistrationRequired, onSignedIn, onRegistered }: 
       await finish("google", await postData<{ idToken: string }, SignInAnswer>(endpoints.googleValidate, { idToken }));
     });
 
-  const browser = (provider: "facebook" | "reddit") =>
+  const browser = (provider: BrowserProvider) =>
     run(provider, async () => {
       const start = await postData<Record<string, never>, OAuthStart>(BROWSER[provider].start, {});
       const expectedState = queryParam(start.authorizeUrl, "state") ?? "";
@@ -137,5 +139,13 @@ export function useSignIn({ onRegistrationRequired, onSignedIn, onRegistered }: 
     setPending(null);
   };
 
-  return { google, facebook: () => browser("facebook"), reddit: () => browser("reddit"), register, cancelRegistration, busy };
+  return {
+    google,
+    facebook: () => browser("facebook"),
+    discord: () => browser("discord"),
+    github: () => browser("github"),
+    register,
+    cancelRegistration,
+    busy,
+  };
 }

@@ -1,7 +1,7 @@
 import type { ConfigContext, ExpoConfig } from "expo/config";
 
 // Read from Coffer.ReactNative/.env (Expo loads it before this file runs). A build without them must not happen.
-function required(name: "EXPO_PUBLIC_AUTH_SCHEME" | "EXPO_PUBLIC_FACEBOOK_APP_ID"): string {
+function required(name: "EXPO_PUBLIC_AUTH_SCHEME" | "EXPO_PUBLIC_FACEBOOK_APP_ID" | "EXPO_PUBLIC_DISCORD_APP_ID"): string {
   const value = process.env[name]?.trim();
   if (!value) throw new Error(`Missing ${name} in Coffer.ReactNative/.env`);
   return value;
@@ -11,6 +11,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   const scheme = required("EXPO_PUBLIC_AUTH_SCHEME");
   // Facebook Login sends the browser back to fb{app id}://authorize.
   const facebookScheme = `fb${required("EXPO_PUBLIC_FACEBOOK_APP_ID")}`;
+  // Discord sends it back to discord-{application id}:/authorize/callback.
+  const discordScheme = `discord-${required("EXPO_PUBLIC_DISCORD_APP_ID")}`;
 
   return {
     ...config,
@@ -30,7 +32,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       intentFilters: [
         {
           action: "VIEW",
-          data: [{ scheme }, { scheme: facebookScheme }],
+          data: [{ scheme }, { scheme: facebookScheme }, { scheme: discordScheme }],
           category: ["BROWSABLE", "DEFAULT"],
         },
       ],

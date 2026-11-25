@@ -4,6 +4,7 @@ export type AppEnv = {
   backendUrl: string;
   googleWebClientId: string;
   facebookAppId: string;
+  discordAppId: string;
   authScheme: string;
 };
 
@@ -11,6 +12,7 @@ export type RawAppEnv = {
   EXPO_PUBLIC_BACKEND_URL: string | undefined;
   EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: string | undefined;
   EXPO_PUBLIC_FACEBOOK_APP_ID: string | undefined;
+  EXPO_PUBLIC_DISCORD_APP_ID: string | undefined;
   EXPO_PUBLIC_AUTH_SCHEME: string | undefined;
 };
 
@@ -18,6 +20,7 @@ const ORDER: (keyof RawAppEnv)[] = [
   "EXPO_PUBLIC_BACKEND_URL",
   "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID",
   "EXPO_PUBLIC_FACEBOOK_APP_ID",
+  "EXPO_PUBLIC_DISCORD_APP_ID",
   "EXPO_PUBLIC_AUTH_SCHEME",
 ];
 
@@ -37,6 +40,7 @@ export function checkEnv(raw: RawAppEnv, isDev: boolean): AppEnv {
     backendUrl: backendUrl.replace(/\/+$/, ""),
     googleWebClientId: raw.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID!.trim(),
     facebookAppId: raw.EXPO_PUBLIC_FACEBOOK_APP_ID!.trim(),
+    discordAppId: raw.EXPO_PUBLIC_DISCORD_APP_ID!.trim(),
     authScheme: raw.EXPO_PUBLIC_AUTH_SCHEME!.trim(),
   };
 }

@@ -6,6 +6,7 @@ const complete = {
   EXPO_PUBLIC_BACKEND_URL: "https://api.coffer.example",
   EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: "web.apps.googleusercontent.com",
   EXPO_PUBLIC_FACEBOOK_APP_ID: "123456",
+  EXPO_PUBLIC_DISCORD_APP_ID: "998877",
   EXPO_PUBLIC_AUTH_SCHEME: "com.gelomelo.coffer",
 };
 
@@ -14,6 +15,7 @@ test("all values present: normalised config", () => {
     backendUrl: "https://api.coffer.example",
     googleWebClientId: "web.apps.googleusercontent.com",
     facebookAppId: "123456",
+    discordAppId: "998877",
     authScheme: "com.gelomelo.coffer",
   });
 });

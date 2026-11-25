@@ -1,4 +1,5 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { none } from "@/src/const/emptyIdUpdate";
 import { endpoints } from "@/src/const/endpoints";
 import { useUpdateData } from "@/src/hooks/data_hooks";
@@ -39,12 +40,12 @@ function Meta({ icon, label, value }: { icon: React.ReactNode; label: string; va
   );
 }
 
-/** The sign-in provider's logo (GitHub only for users from the development seed or made before it was removed). */
+/** The sign-in provider's logo. */
 function ProviderIcon({ provider }: { provider: string }) {
   if (provider === "google")
     return <Image source={require("../../../assets/images/googlesignin.png")} style={{ width: 18, height: 18 }} />;
   if (provider === "facebook") return <FontAwesome name="facebook-official" size={18} color="#1877F2" />;
-  if (provider === "reddit") return <FontAwesome name="reddit" size={18} color="#FF4500" />;
+  if (provider === "discord") return <FontAwesome5 name="discord" size={16} color="#5865F2" />;
   return <Image source={require("../../../assets/images/githubsignin.png")} style={{ width: 18, height: 18, tintColor: colors.text }} />;
 }
 

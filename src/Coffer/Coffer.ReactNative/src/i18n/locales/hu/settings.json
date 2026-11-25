@@ -71,7 +71,7 @@
     "provider": {
       "google": "Google",
       "facebook": "Facebook",
-      "reddit": "Reddit",
+      "discord": "Discord",
       "github": "GitHub"
     },
     "summary": "Bemutatkozás",

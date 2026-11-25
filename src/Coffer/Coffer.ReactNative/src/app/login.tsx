@@ -1,4 +1,5 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Image, Modal, ScrollView, Text, View } from "react-native";
@@ -66,10 +67,17 @@ function Login() {
             />
             <CustomButton
               variant="outline"
-              onPress={signIn.reddit}
+              onPress={signIn.discord}
               disabled={signIn.busy}
-              title={t("auth:login.reddit")}
-              icon={<FontAwesome name="reddit" size={26} color="#FF4500" />}
+              title={t("auth:login.discord")}
+              icon={<FontAwesome5 name="discord" size={24} color="#5865F2" />}
+            />
+            <CustomButton
+              variant="outline"
+              onPress={signIn.github}
+              disabled={signIn.busy}
+              title={t("auth:login.github")}
+              icon={<FontAwesome name="github" size={26} color={colors.text} />}
             />
           </View>
           <DevLogin />
