@@ -65,13 +65,15 @@ namespace Coffer.BusinessLogic.Auth.OAuth
         public const string Issuer = "https://www.facebook.com";
 
         private readonly HttpClient _http;
-        private readonly FacebookAuthOptions _options;
+        private readonly FacebookAuthOptions? _settings;
+        /// <summary>The provider's settings; it is switched off when they are missing (development only).</summary>
+        private FacebookAuthOptions _options => _settings ?? throw new ProviderNotConfiguredException(Providers.Facebook);
         private readonly FacebookSigningKeys _keys;
 
         public FacebookOAuthClient(HttpClient http, AuthOptions options, FacebookSigningKeys keys)
         {
             _http = http;
-            _options = options.Facebook;
+            _settings = options.Facebook;
             _keys = keys;
         }
 

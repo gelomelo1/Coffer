@@ -68,8 +68,10 @@ namespace Coffer.Infrastructure
             #endregion
 
             #region AddServices
-            // Every sign-in setting is required; resolved once at startup (SetupMiddleware) so a missing one stops the API.
-            services.AddSingleton(_ => Coffer.BusinessLogic.Auth.AuthOptions.FromEnvironment(Environment.GetEnvironmentVariable));
+            // Sign-in settings: required outside Development (a missing one stops the API); in Development a provider
+            // without settings is switched off with a startup warning. Resolved once at startup (SetupMiddleware).
+            services.AddSingleton(sp => Coffer.BusinessLogic.Auth.AuthOptions.FromEnvironment(Environment.GetEnvironmentVariable,
+                strict: !(sp.GetService<Microsoft.Extensions.Hosting.IHostEnvironment>()?.EnvironmentName == "Development")));
             services.AddSingleton<Coffer.BusinessLogic.Auth.Sessions.AccessTokenIssuer>();
             services.AddSingleton<Coffer.BusinessLogic.Auth.Sessions.SessionGuardCache>();
             services.AddScoped<Coffer.BusinessLogic.Auth.Sessions.ISessionService, Coffer.BusinessLogic.Auth.Sessions.SessionService>();

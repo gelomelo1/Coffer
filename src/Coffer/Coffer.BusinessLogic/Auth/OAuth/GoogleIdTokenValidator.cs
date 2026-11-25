@@ -36,7 +36,7 @@ namespace Coffer.BusinessLogic.Auth.OAuth
             {
                 payload = await GoogleJsonWebSignature.ValidateAsync(idToken, new GoogleJsonWebSignature.ValidationSettings
                 {
-                    Audience = _options.Google.ClientIds,
+                    Audience = (_options.Google ?? throw new ProviderNotConfiguredException(Providers.Google)).ClientIds,
                 });
             }
             catch (Exception e) when (e is InvalidJwtException or FormatException or ArgumentException)

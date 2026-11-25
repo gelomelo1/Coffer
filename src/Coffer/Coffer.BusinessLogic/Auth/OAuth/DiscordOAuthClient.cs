@@ -22,12 +22,14 @@ namespace Coffer.BusinessLogic.Auth.OAuth
         private const string Api = "https://discord.com/api/v10";
         private const string UserAgent = "Coffer (https://github.com/gelomelo1/Coffer, 1.0)";
         private readonly HttpClient _http;
-        private readonly DiscordAuthOptions _options;
+        private readonly DiscordAuthOptions? _settings;
+        /// <summary>The provider's settings; it is switched off when they are missing (development only).</summary>
+        private DiscordAuthOptions _options => _settings ?? throw new ProviderNotConfiguredException(Providers.Discord);
 
         public DiscordOAuthClient(HttpClient http, AuthOptions options)
         {
             _http = http;
-            _options = options.Discord;
+            _settings = options.Discord;
         }
 
         public string AuthorizeUrl(OAuthTransaction t) =>

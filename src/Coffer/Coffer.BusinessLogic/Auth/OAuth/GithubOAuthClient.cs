@@ -22,12 +22,14 @@ namespace Coffer.BusinessLogic.Auth.OAuth
     {
         private const string UserAgent = "Coffer";
         private readonly HttpClient _http;
-        private readonly GithubAuthOptions _options;
+        private readonly GithubAuthOptions? _settings;
+        /// <summary>The provider's settings; it is switched off when they are missing (development only).</summary>
+        private GithubAuthOptions _options => _settings ?? throw new ProviderNotConfiguredException(Providers.Github);
 
         public GithubOAuthClient(HttpClient http, AuthOptions options)
         {
             _http = http;
-            _options = options.Github;
+            _settings = options.Github;
         }
 
         public string AuthorizeUrl(OAuthTransaction t) =>

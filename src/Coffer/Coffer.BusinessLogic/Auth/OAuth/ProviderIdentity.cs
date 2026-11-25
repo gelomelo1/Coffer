@@ -13,6 +13,12 @@ namespace Coffer.BusinessLogic.Auth.OAuth
         public ProviderSignInException(string message, Exception? inner = null) : base(message, inner) { }
     }
 
+    /// <summary>The provider is switched off (development without its settings); clients get providerNotConfigured.</summary>
+    public sealed class ProviderNotConfiguredException : Exception
+    {
+        public ProviderNotConfiguredException(string provider) : base($"{provider} sign-in is not configured") { }
+    }
+
     public static class Providers
     {
         public const string Google = "google";

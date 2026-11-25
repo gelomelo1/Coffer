@@ -61,8 +61,10 @@ namespace Coffer.ASPNET.Extensions
         public static WebApplication SetupMiddleware(this WebApplication app)
         {
             // First, so the rate limits and logs see the real client IP behind nginx (and only behind trusted proxies).
-            // Fail fast on missing sign-in settings (the exception names every missing variable).
-            _ = app.Services.GetRequiredService<Coffer.BusinessLogic.Auth.AuthOptions>();
+            // Production: fail fast on missing sign-in settings (the exception names them). Development: warn per provider.
+            var authOptions = app.Services.GetRequiredService<Coffer.BusinessLogic.Auth.AuthOptions>();
+            foreach (var warning in authOptions.Warnings)
+                app.Logger.LogWarning("{Warning}", warning);
             app.UseForwardedHeaders(ForwardedHeadersSetup.Options(Environment.GetEnvironmentVariable(ForwardedHeadersSetup.Variable)));
             app.UseDefaultFiles();
             app.UseStaticFiles();

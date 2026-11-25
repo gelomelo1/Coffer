@@ -137,6 +137,7 @@
     "pickAMeetupTime": "Pick a meetup time.",
     "pickAReasonForA12": "Pick a reason for a 1–2 star rating.",
     "priceOffersAreOnlyPossibleWhileThe": "Price offers are only possible while the listing is active.",
+    "providerNotConfigured": "This sign-in method isn't set up on this server.",
     "providerSignInFailed": "Sign-in failed. Try again.",
     "pythonApiError": "Python API error: {{p0}}",
     "quantityMustBeAtLeast1": "Quantity must be at least 1.",

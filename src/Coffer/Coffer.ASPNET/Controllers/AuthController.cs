@@ -54,6 +54,7 @@ namespace Coffer.ASPNET.Controllers
         [EnableRateLimiting(AuthRateLimits.SignIn)]
         public async Task<IActionResult> GoogleValidate([FromBody] GoogleValidateRequest? req)
         {
+            if (_options.Google == null) return NotConfigured(Providers.Google);
             ProviderIdentity identity;
             try
             {
@@ -74,6 +75,7 @@ namespace Coffer.ASPNET.Controllers
         [EnableRateLimiting(AuthRateLimits.SignIn)]
         public IActionResult FacebookStart()
         {
+            if (_options.Facebook == null) return NotConfigured(Providers.Facebook);
             var transaction = _transactions.Create(Providers.Facebook, withNonce: true, withPkce: true);
             return Ok(new OAuthStart(transaction.Id, _facebook.AuthorizeUrl(transaction), _options.Facebook.RedirectUri));
         }
@@ -82,7 +84,7 @@ namespace Coffer.ASPNET.Controllers
         [AllowAnonymous]
         [EnableRateLimiting(AuthRateLimits.SignIn)]
         public Task<IActionResult> FacebookComplete([FromBody] CompleteRequest? req) =>
-            CompleteBrowserSignIn(Providers.Facebook, req, transaction => _facebook.CompleteAsync(transaction, req?.Code ?? ""));
+            _options.Facebook == null ? Task.FromResult(NotConfigured(Providers.Facebook)) : CompleteBrowserSignIn(Providers.Facebook, req, transaction => _facebook.CompleteAsync(transaction, req?.Code ?? ""));
 
         /// <summary>Starts a Discord sign-in: the app opens authorizeUrl in the browser and waits for redirectUri.</summary>
         [HttpPost("discord/start")]
@@ -90,6 +92,7 @@ namespace Coffer.ASPNET.Controllers
         [EnableRateLimiting(AuthRateLimits.SignIn)]
         public IActionResult DiscordStart()
         {
+            if (_options.Discord == null) return NotConfigured(Providers.Discord);
             var transaction = _transactions.Create(Providers.Discord, withNonce: false, withPkce: true);
             return Ok(new OAuthStart(transaction.Id, _discord.AuthorizeUrl(transaction), _options.Discord.RedirectUri));
         }
@@ -98,7 +101,7 @@ namespace Coffer.ASPNET.Controllers
         [AllowAnonymous]
         [EnableRateLimiting(AuthRateLimits.SignIn)]
         public Task<IActionResult> DiscordComplete([FromBody] CompleteRequest? req) =>
-            CompleteBrowserSignIn(Providers.Discord, req, transaction => _discord.CompleteAsync(transaction, req?.Code ?? ""));
+            _options.Discord == null ? Task.FromResult(NotConfigured(Providers.Discord)) : CompleteBrowserSignIn(Providers.Discord, req, transaction => _discord.CompleteAsync(transaction, req?.Code ?? ""));
 
         /// <summary>Starts a GitHub sign-in: the app opens authorizeUrl in the browser and waits for redirectUri.</summary>
         [HttpPost("github/start")]
@@ -106,6 +109,7 @@ namespace Coffer.ASPNET.Controllers
         [EnableRateLimiting(AuthRateLimits.SignIn)]
         public IActionResult GithubStart()
         {
+            if (_options.Github == null) return NotConfigured(Providers.Github);
             var transaction = _transactions.Create(Providers.Github, withNonce: false, withPkce: true);
             return Ok(new OAuthStart(transaction.Id, _github.AuthorizeUrl(transaction), _options.Github.RedirectUri));
         }
@@ -114,7 +118,7 @@ namespace Coffer.ASPNET.Controllers
         [AllowAnonymous]
         [EnableRateLimiting(AuthRateLimits.SignIn)]
         public Task<IActionResult> GithubComplete([FromBody] CompleteRequest? req) =>
-            CompleteBrowserSignIn(Providers.Github, req, transaction => _github.CompleteAsync(transaction, req?.Code ?? ""));
+            _options.Github == null ? Task.FromResult(NotConfigured(Providers.Github)) : CompleteBrowserSignIn(Providers.Github, req, transaction => _github.CompleteAsync(transaction, req?.Code ?? ""));
 
         /// <summary>
         /// The browser came back: the transaction is used up whatever happens next (a callback can't be replayed), must
@@ -207,6 +211,13 @@ namespace Coffer.ASPNET.Controllers
                     var t = result.Tokens!;
                     return Ok(new { status = result.Status, accessToken = t.AccessToken, accessTokenExpiresAt = t.AccessTokenExpiresAt, refreshToken = t.RefreshToken });
             }
+        }
+
+        /// <summary>The provider is switched off (development without its settings, see the startup warnings).</summary>
+        internal IActionResult NotConfigured(string provider)
+        {
+            _log.LogWarning("{Provider} sign-in was tried but is not configured.", provider);
+            return this.ApiError(StatusCodes.Status503ServiceUnavailable, "providerNotConfigured", "This sign-in method isn't set up on this server.");
         }
 
         /// <summary>Logs why (never the token or code itself) and answers with one generic error.</summary>

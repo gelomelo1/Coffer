@@ -137,6 +137,7 @@
     "pickAMeetupTime": "Válassz időpontot a találkozóhoz.",
     "pickAReasonForA12": "Válassz indokot az 1–2 csillagos értékeléshez.",
     "priceOffersAreOnlyPossibleWhileThe": "Árajánlatot csak aktív hirdetésre lehet tenni.",
+    "providerNotConfigured": "Ez a bejelentkezési mód nincs beállítva ezen a szerveren.",
     "providerSignInFailed": "A bejelentkezés nem sikerült. Próbáld újra.",
     "pythonApiError": "Python API hiba: {{p0}}",
     "quantityMustBeAtLeast1": "A darabszám legalább 1 legyen.",

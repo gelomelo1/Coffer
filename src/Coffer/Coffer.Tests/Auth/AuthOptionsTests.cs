@@ -115,5 +115,73 @@ namespace Coffer.Tests.Auth
 
             Assert.Contains("DISCORD_REDIRECT_URI must be discord-discord-id:/authorize/callback", e.Message);
         }
+
+        private static AuthOptions LoadDev(Dictionary<string, string?> values) =>
+            AuthOptions.FromEnvironment(name => values.TryGetValue(name, out var v) ? v : null, strict: false);
+
+        [Fact]
+        public void Development_starts_without_oauth_values_and_warns()
+        {
+            var values = new Dictionary<string, string?> { ["JWT_SECRET"] = "0123456789abcdef0123456789abcdef" };
+
+            var o = LoadDev(values);
+
+            Assert.Null(o.Google);
+            Assert.Null(o.Facebook);
+            Assert.Null(o.Discord);
+            Assert.Null(o.Github);
+            Assert.Contains(o.Warnings, w => w.Contains("Google") && w.Contains("GOOGLE_CLIENT_IDS"));
+            Assert.Contains(o.Warnings, w => w.Contains("Facebook") && w.Contains("FACEBOOK_APP_ID"));
+            Assert.Contains(o.Warnings, w => w.Contains("Discord") && w.Contains("DISCORD_CLIENT_SECRET"));
+            Assert.Contains(o.Warnings, w => w.Contains("GitHub") && w.Contains("GITHUB_CLIENT_ID"));
+        }
+
+        [Fact]
+        public void Development_switches_off_only_the_broken_provider()
+        {
+            var values = Complete();
+            values["DISCORD_REDIRECT_URI"] = "discord-someone-else:/authorize/callback";
+            values["FACEBOOK_APP_SECRET"] = "change-me";
+
+            var o = LoadDev(values);
+
+            Assert.Null(o.Discord);
+            Assert.Null(o.Facebook);
+            Assert.NotNull(o.Google);
+            Assert.NotNull(o.Github);
+            Assert.Contains(o.Warnings, w => w.Contains("DISCORD_REDIRECT_URI must be discord-discord-id:/authorize/callback"));
+            Assert.Contains(o.Warnings, w => w.Contains("FACEBOOK_APP_SECRET"));
+        }
+
+        [Fact]
+        public void Development_still_needs_the_jwt_secret()
+        {
+            var values = Complete();
+            values.Remove("JWT_SECRET");
+
+            var e = Assert.Throws<InvalidOperationException>(() => LoadDev(values));
+
+            Assert.Contains("JWT_SECRET", e.Message);
+        }
+
+        [Fact]
+        public void Complete_values_give_no_warnings()
+        {
+            Assert.Empty(LoadDev(Complete()).Warnings);
+            Assert.Empty(Load(Complete()).Warnings);
+        }
+
+        [Theory]
+        [InlineData("change-me")]
+        [InlineData("your-discord-client-id")]
+        public void Production_refuses_placeholders(string placeholder)
+        {
+            var values = Complete();
+            values["DISCORD_CLIENT_SECRET"] = placeholder;
+
+            var e = Assert.Throws<InvalidOperationException>(() => Load(values));
+
+            Assert.Contains("DISCORD_CLIENT_SECRET", e.Message);
+        }
 }
 }
