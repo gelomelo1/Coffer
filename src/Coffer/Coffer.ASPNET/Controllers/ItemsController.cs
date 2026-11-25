@@ -9,7 +9,6 @@ using Coffer.Domain.Entities;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 
 namespace Coffer.ASPNET.Controllers
 {

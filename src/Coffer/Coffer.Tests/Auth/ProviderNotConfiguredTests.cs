@@ -35,6 +35,7 @@ namespace Coffer.Tests.Auth
         }
 
         [Theory]
+        [InlineData("api/auth/google/complete")]
         [InlineData("api/auth/facebook/complete")]
         [InlineData("api/auth/discord/complete")]
         [InlineData("api/auth/github/complete")]
@@ -48,7 +49,7 @@ namespace Coffer.Tests.Auth
         [Fact]
         public async Task Google_says_not_configured()
         {
-            var response = await _client.PostAsJsonAsync("api/auth/google/validate", new { idToken = "x" });
+            var response = await _client.PostAsync("api/auth/google/start", null);
 
             Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
             Assert.Equal("providerNotConfigured", (await SignInApi.Json(response)).Str("code"));

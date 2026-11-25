@@ -2,8 +2,11 @@ using System.Text;
 
 namespace Coffer.BusinessLogic.Auth
 {
-    /// <summary>Google ID tokens are only accepted when their "aud" is one of these client ids.</summary>
-    public sealed record GoogleAuthOptions(IReadOnlyList<string> ClientIds);
+    /// <summary>
+    /// Google "Web application" client. Google redirects to the API's callback (RedirectUri); the API then sends the
+    /// browser back to the app at AppRedirectUri (config only, never taken from a request).
+    /// </summary>
+    public sealed record GoogleAuthOptions(string ClientId, string ClientSecret, string RedirectUri, string AppRedirectUri);
 
     /// <summary>Facebook Login (OIDC code flow). RedirectUri must match the app's fb{AppId}://authorize exactly.</summary>
     public sealed record FacebookAuthOptions(string AppId, string AppSecret, string RedirectUri, string GraphVersion);
@@ -46,11 +49,11 @@ namespace Coffer.BusinessLogic.Auth
 
             var google = Provider("Google", own =>
             {
-                var ids = (read("GOOGLE_CLIENT_IDS") ?? "")
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                    .Where(id => !IsPlaceholder(id)).ToArray();
-                if (ids.Length == 0) own.Add("GOOGLE_CLIENT_IDS is missing");
-                return new GoogleAuthOptions(ids);
+                var o = new GoogleAuthOptions(Get(read, own, "GOOGLE_CLIENT_ID"), Get(read, own, "GOOGLE_CLIENT_SECRET"),
+                    Get(read, own, "GOOGLE_REDIRECT_URI"), Get(read, own, "GOOGLE_APP_REDIRECT_URI"));
+                if (own.Count == 0 && !IsApiCallback(o.RedirectUri))
+                    own.Add($"GOOGLE_REDIRECT_URI must be the API's /api/auth/google/callback over https (http only on localhost), not {o.RedirectUri}");
+                return o;
             });
             var facebook = Provider("Facebook", own =>
             {
@@ -87,6 +90,13 @@ namespace Coffer.BusinessLogic.Auth
         /// <summary>The placeholders of the .env.example files (change-me…, your-…), also inside a derived redirect.</summary>
         private static bool IsPlaceholder(string value) =>
             value.Contains("change-me", StringComparison.OrdinalIgnoreCase) || value.StartsWith("your-", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>Google allows plain http only for localhost (development, with adb reverse on the emulator).</summary>
+        private static bool IsApiCallback(string uri) =>
+            Uri.TryCreate(uri, UriKind.Absolute, out var u)
+            && u.AbsolutePath.Equals("/api/auth/google/callback", StringComparison.Ordinal)
+            && string.IsNullOrEmpty(u.Query) && string.IsNullOrEmpty(u.Fragment)
+            && (u.Scheme == Uri.UriSchemeHttps || (u.Scheme == Uri.UriSchemeHttp && (u.Host == "localhost" || u.Host == "127.0.0.1")));
 
         /// <summary>Each redirect is derived from its app id (the mobile app registers that scheme).</summary>
         private static void RequireRedirect(List<string> problems, string name, string actual, string expected)

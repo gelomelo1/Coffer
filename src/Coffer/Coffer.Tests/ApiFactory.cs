@@ -28,6 +28,7 @@ namespace Coffer.Tests
         public static string Icons => Path.Combine(Root, "data", "icons");
         public const string PythonUrl = "http://python.test";
         public const string GoogleClientId = "test-web.apps.googleusercontent.com";
+        public const string GoogleCallback = "http://localhost/api/auth/google/callback";
         public const string FacebookAppId = "123456";
         public const string DiscordClientId = "998877";
 
@@ -44,7 +45,10 @@ namespace Coffer.Tests
             Environment.SetEnvironmentVariable("COFFER_ROOT_PATH", Root);
             Environment.SetEnvironmentVariable("FASTAPI_URL", PythonUrl);
             // Sign-in settings are all required (AuthOptions); fake but well-formed values.
-            Environment.SetEnvironmentVariable("GOOGLE_CLIENT_IDS", GoogleClientId);
+            Environment.SetEnvironmentVariable("GOOGLE_CLIENT_ID", GoogleClientId);
+            Environment.SetEnvironmentVariable("GOOGLE_CLIENT_SECRET", "test-google-secret");
+            Environment.SetEnvironmentVariable("GOOGLE_REDIRECT_URI", GoogleCallback);
+            Environment.SetEnvironmentVariable("GOOGLE_APP_REDIRECT_URI", "com.gelomelo.coffer://oauth/google");
             Environment.SetEnvironmentVariable("FACEBOOK_APP_ID", FacebookAppId);
             Environment.SetEnvironmentVariable("FACEBOOK_APP_SECRET", "test-facebook-secret");
             Environment.SetEnvironmentVariable("FACEBOOK_REDIRECT_URI", $"fb{FacebookAppId}://authorize");

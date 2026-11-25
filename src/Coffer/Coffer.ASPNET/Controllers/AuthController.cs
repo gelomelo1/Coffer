@@ -23,7 +23,8 @@ namespace Coffer.ASPNET.Controllers
         private readonly IUsersRepository _usersRepository;
         private readonly ISessionService _sessions;
         private readonly ISignInService _signIn;
-        private readonly IGoogleIdTokenValidator _google;
+        private readonly IGoogleOAuthClient _google;
+        private readonly PendingCallbackStore _callbacks;
         private readonly OAuthTransactionStore _transactions;
         private readonly IFacebookOAuthClient _facebook;
         private readonly IDiscordOAuthClient _discord;
@@ -32,13 +33,14 @@ namespace Coffer.ASPNET.Controllers
         private readonly ILogger<AuthController> _log;
 
         public AuthController(IUsersRepository usersRepository, ISessionService sessions, ISignInService signIn,
-            IGoogleIdTokenValidator google, OAuthTransactionStore transactions, IFacebookOAuthClient facebook,
+            IGoogleOAuthClient google, PendingCallbackStore callbacks, OAuthTransactionStore transactions, IFacebookOAuthClient facebook,
             IDiscordOAuthClient discord, IGithubOAuthClient github, Coffer.BusinessLogic.Auth.AuthOptions options, ILogger<AuthController> log)
         {
             _usersRepository = usersRepository;
             _sessions = sessions;
             _signIn = signIn;
             _google = google;
+            _callbacks = callbacks;
             _transactions = transactions;
             _facebook = facebook;
             _discord = discord;
@@ -47,27 +49,78 @@ namespace Coffer.ASPNET.Controllers
             _log = log;
         }
 
-        public record GoogleValidateRequest(string? IdToken);
+        public record CompleteRequest(string? TransactionId, string? Code, string? State);
 
-        [HttpPost("google/validate")]
+        /// <summary>
+        /// Starts a Google sign-in. Google sends the browser to the API's callback (not to the app); the app waits for
+        /// redirectUri (GOOGLE_APP_REDIRECT_URI), which the callback opens afterwards with only the state.
+        /// </summary>
+        [HttpPost("google/start")]
         [AllowAnonymous]
         [EnableRateLimiting(AuthRateLimits.SignIn)]
-        public async Task<IActionResult> GoogleValidate([FromBody] GoogleValidateRequest? req)
+        public IActionResult GoogleStart()
         {
             if (_options.Google == null) return NotConfigured(Providers.Google);
-            ProviderIdentity identity;
+            var transaction = _transactions.Create(Providers.Google, withNonce: true, withPkce: true);
+            return Ok(new OAuthStart(transaction.Id, _google.AuthorizeUrl(transaction), _options.Google.AppRedirectUri));
+        }
+
+        /// <summary>
+        /// Google's redirect. Takes the transaction by state (single use, Google's only), exchanges the code, verifies the
+        /// ID token and keeps only the verified identity for the app to collect. The browser always goes back to the app
+        /// at the configured address with the state, plus error=access_denied|failed — never a code or a token.
+        /// </summary>
+        [HttpGet("google/callback")]
+        [AllowAnonymous]
+        [EnableRateLimiting(AuthRateLimits.SignIn)]
+        public async Task<IActionResult> GoogleCallback([FromQuery] string? state, [FromQuery] string? code, [FromQuery] string? error)
+        {
+            if (_options.Google == null) return NotConfigured(Providers.Google);
+            var back = _options.Google.AppRedirectUri;
+            var transaction = _transactions.TakeByState(Providers.Google, state);
+            if (transaction == null)
+            {
+                _log.LogWarning("Google callback with an unknown, used or foreign state.");
+                return Redirect($"{back}?error=failed");
+            }
+
+            var answer = $"{back}?state={Uri.EscapeDataString(transaction.State)}";
+            if (!string.IsNullOrEmpty(error))
+            {
+                _callbacks.Put(transaction.Id, new PendingCallback(transaction.State, null));
+                return Redirect($"{answer}&error={(error == "access_denied" ? "access_denied" : "failed")}");
+            }
+
             try
             {
-                identity = await _google.ValidateAsync(req?.IdToken ?? "");
+                var identity = await _google.CompleteAsync(transaction, code ?? "");
+                _callbacks.Put(transaction.Id, new PendingCallback(transaction.State, identity));
+                return Redirect(answer);
             }
             catch (ProviderSignInException e)
             {
-                return SignInFailed(Providers.Google, e);
+                _log.LogWarning("google sign-in failed: {Reason}", e.Message);
+                _callbacks.Put(transaction.Id, new PendingCallback(transaction.State, null));
+                return Redirect($"{answer}&error=failed");
             }
-            return SignInAnswer(await _signIn.CompleteAsync(identity));
         }
 
-        public record CompleteRequest(string? TransactionId, string? Code, string? State);
+        public record GoogleCompleteRequest(string? TransactionId, string? State);
+
+        /// <summary>The app collects what the callback verified (single use, state compared); sessions start only here.</summary>
+        [HttpPost("google/complete")]
+        [AllowAnonymous]
+        [EnableRateLimiting(AuthRateLimits.SignIn)]
+        public async Task<IActionResult> GoogleComplete([FromBody] GoogleCompleteRequest? req)
+        {
+            if (_options.Google == null) return NotConfigured(Providers.Google);
+            var result = _callbacks.Take(req?.TransactionId);
+            if (result == null) return SignInFailed(Providers.Google, new ProviderSignInException("no callback result for this transaction"));
+            if (!SecureRandom.Same(req?.State, result.State)) return SignInFailed(Providers.Google, new ProviderSignInException("state mismatch"));
+            if (result.Identity == null) return SignInFailed(Providers.Google, new ProviderSignInException("the callback did not verify a sign-in"));
+            return SignInAnswer(await _signIn.CompleteAsync(result.Identity));
+        }
+
 
         /// <summary>Starts a Facebook sign-in: the app opens authorizeUrl in the browser and waits for redirectUri.</summary>
         [HttpPost("facebook/start")]

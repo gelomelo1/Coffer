@@ -13,11 +13,9 @@ namespace Coffer.Tests.Auth
     {
         private readonly ApiFactory _api = new();
         private readonly HttpClient _client;
-        private readonly FakeGoogleValidator _google = new();
 
         public SessionApiTests()
         {
-            _api.Overrides = s => s.AddSingleton<IGoogleIdTokenValidator>(_google);
             _client = _api.CreateClient();
         }
 
@@ -141,7 +139,7 @@ namespace Coffer.Tests.Auth
         {
             HttpResponseMessage last = null!;
             for (var i = 0; i < 21; i++)
-                last = await _client.PostAsJsonAsync("api/auth/google/validate", new { idToken = "forged" });
+                last = await _client.PostAsJsonAsync("api/auth/register", new { registrationId = "forged", username = "x", country = "HU" });
 
             Assert.Equal(HttpStatusCode.TooManyRequests, last.StatusCode);
             Assert.Equal("tooManyAuthRequests", (await SignInApi.Json(last)).Str("code"));
@@ -151,7 +149,7 @@ namespace Coffer.Tests.Auth
         public async Task Refresh_has_its_own_larger_limit()
         {
             for (var i = 0; i < 20; i++)
-                await _client.PostAsJsonAsync("api/auth/google/validate", new { idToken = "forged" });
+                await _client.PostAsJsonAsync("api/auth/register", new { registrationId = "forged", username = "x", country = "HU" });
 
             // The sign-in window is used up, refreshing still works.
             var tokens = await SignIn();

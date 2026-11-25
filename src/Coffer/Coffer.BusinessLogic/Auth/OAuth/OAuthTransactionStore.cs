@@ -22,6 +22,7 @@ namespace Coffer.BusinessLogic.Auth.OAuth
         public OAuthTransactionStore(IMemoryCache cache) => _cache = cache;
 
         private static string Key(string id) => $"oauth-transaction:{id}";
+        private static string StateKey(string state) => $"oauth-transaction-state:{state}";
 
         /// <param name="withNonce">OIDC providers (Facebook): a nonce the ID token must echo.</param>
         /// <param name="withPkce">A PKCE verifier kept here; only its S256 challenge goes to the provider.</param>
@@ -33,6 +34,7 @@ namespace Coffer.BusinessLogic.Auth.OAuth
                 withPkce ? SecureRandom.Token() : null,
                 DateTime.UtcNow);
             _cache.Set(Key(transaction.Id), transaction, Lifetime);
+            _cache.Set(StateKey(transaction.State), transaction.Id, Lifetime);
             return transaction;
         }
 
@@ -44,8 +46,26 @@ namespace Coffer.BusinessLogic.Auth.OAuth
             {
                 if (!_cache.TryGetValue(Key(id), out OAuthTransaction? transaction)) return null;
                 _cache.Remove(Key(id));
+                _cache.Remove(StateKey(transaction!.State));
                 return transaction;
             }
         }
-    }
+    
+        /// <summary>
+        /// For a provider that redirects to the API (Google): the transaction whose state came back, taken in one step,
+        /// and only if it belongs to that provider. An unknown, used or foreign state gives null.
+        /// </summary>
+        public OAuthTransaction? TakeByState(string provider, string? state)
+        {
+            if (string.IsNullOrEmpty(state)) return null;
+            lock (_gate)
+            {
+                if (!_cache.TryGetValue(StateKey(state), out string? id) || id == null) return null;
+                if (!_cache.TryGetValue(Key(id), out OAuthTransaction? transaction) || transaction!.Provider != provider) return null;
+                _cache.Remove(Key(id));
+                _cache.Remove(StateKey(state));
+                return transaction;
+            }
+        }
+}
 }

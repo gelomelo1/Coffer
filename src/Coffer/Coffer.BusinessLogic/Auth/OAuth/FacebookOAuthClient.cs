@@ -15,47 +15,6 @@ namespace Coffer.BusinessLogic.Auth.OAuth
     }
 
     /// <summary>
-    /// Facebook's signing keys (JWKS), kept for 24 hours. A token signed with a key we don't know triggers one refetch,
-    /// at most every 5 minutes, so Facebook's key rotation is picked up and forged key ids can't flood Facebook.
-    /// </summary>
-    public sealed class FacebookSigningKeys
-    {
-        public const string JwksUrl = "https://www.facebook.com/.well-known/oauth/openid/jwks/";
-        private static readonly TimeSpan MaxAge = TimeSpan.FromHours(24);
-        private static readonly TimeSpan MinRefetchInterval = TimeSpan.FromMinutes(5);
-
-        private readonly IClock _clock;
-        private readonly SemaphoreSlim _gate = new(1, 1);
-        private JsonWebKeySet? _keys;
-        private DateTime _fetchedAt;
-
-        public FacebookSigningKeys(IClock clock) => _clock = clock;
-
-        public async Task<JsonWebKeySet> GetAsync(HttpClient http, string? kid)
-        {
-            await _gate.WaitAsync();
-            try
-            {
-                var now = _clock.UtcNow;
-                var stale = _keys == null || now - _fetchedAt > MaxAge;
-                var unknownKid = _keys != null && kid != null && _keys.Keys.All(k => k.Kid != kid) && now - _fetchedAt >= MinRefetchInterval;
-                if (stale || unknownKid)
-                {
-                    using var response = await http.GetAsync(JwksUrl);
-                    if (!response.IsSuccessStatusCode) throw new ProviderSignInException($"Facebook JWKS answered {(int)response.StatusCode}");
-                    _keys = new JsonWebKeySet(await response.Content.ReadAsStringAsync());
-                    _fetchedAt = now;
-                }
-                return _keys!;
-            }
-            finally
-            {
-                _gate.Release();
-            }
-        }
-    }
-
-    /// <summary>
     /// Facebook Login as an OIDC authorization code flow with PKCE S256 and a nonce. The code is exchanged with the app
     /// secret and the server-held verifier; identity is the ID token's "sub" (app-scoped Facebook user id) after the
     /// signature (RS256, Facebook's keys), issuer, audience, lifetime and nonce were checked.
@@ -63,14 +22,15 @@ namespace Coffer.BusinessLogic.Auth.OAuth
     public sealed class FacebookOAuthClient : IFacebookOAuthClient
     {
         public const string Issuer = "https://www.facebook.com";
+        public const string JwksUrl = "https://www.facebook.com/.well-known/oauth/openid/jwks/";
 
         private readonly HttpClient _http;
         private readonly FacebookAuthOptions? _settings;
         /// <summary>The provider's settings; it is switched off when they are missing (development only).</summary>
         private FacebookAuthOptions _options => _settings ?? throw new ProviderNotConfiguredException(Providers.Facebook);
-        private readonly FacebookSigningKeys _keys;
+        private readonly JwksCache _keys;
 
-        public FacebookOAuthClient(HttpClient http, AuthOptions options, FacebookSigningKeys keys)
+        public FacebookOAuthClient(HttpClient http, AuthOptions options, JwksCache keys)
         {
             _http = http;
             _settings = options.Facebook;
@@ -96,10 +56,7 @@ namespace Coffer.BusinessLogic.Auth.OAuth
             if (string.IsNullOrWhiteSpace(code)) throw new ProviderSignInException("Facebook callback without code");
 
             var idToken = await ExchangeAsync(t, code);
-            var claims = await ValidateAsync(idToken);
-
-            if (!SecureRandom.Same(claims.TryGetValue("nonce", out var nonce) ? nonce?.ToString() : null, t.Nonce))
-                throw new ProviderSignInException("Facebook ID token nonce mismatch");
+            var claims = await OidcIdTokens.ValidateAsync(_http, _keys, "Facebook", JwksUrl, idToken, new[] { Issuer }, _options.AppId, t.Nonce);
             var sub = claims.TryGetValue("sub", out var s) ? s?.ToString() : null;
             if (string.IsNullOrWhiteSpace(sub)) throw new ProviderSignInException("Facebook ID token without sub");
 
@@ -131,48 +88,6 @@ namespace Coffer.BusinessLogic.Auth.OAuth
             {
                 throw new ProviderSignInException($"Facebook token exchange failed: {e.GetType().Name}");
             }
-        }
-
-        private async Task<IDictionary<string, object>> ValidateAsync(string idToken)
-        {
-            var handler = new JsonWebTokenHandler();
-            string? kid;
-            try
-            {
-                kid = handler.ReadJsonWebToken(idToken).Kid;
-            }
-            catch (Exception e) when (e is ArgumentException or SecurityTokenMalformedException)
-            {
-                throw new ProviderSignInException("Facebook ID token is malformed");
-            }
-
-            JsonWebKeySet keys;
-            try
-            {
-                keys = await _keys.GetAsync(_http, kid);
-            }
-            catch (Exception e) when (e is HttpRequestException or TaskCanceledException or ArgumentException)
-            {
-                throw new ProviderSignInException($"Facebook signing keys unavailable: {e.GetType().Name}");
-            }
-
-            var result = await handler.ValidateTokenAsync(idToken, new TokenValidationParameters
-            {
-                ValidIssuer = Issuer,
-                ValidAudience = _options.AppId,
-                IssuerSigningKeys = keys.GetSigningKeys(),
-                ValidAlgorithms = new[] { SecurityAlgorithms.RsaSha256 },
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                RequireExpirationTime = true,
-                RequireSignedTokens = true,
-                ClockSkew = TimeSpan.FromMinutes(2),
-            });
-            if (!result.IsValid)
-                throw new ProviderSignInException($"Facebook ID token rejected: {result.Exception?.GetType().Name ?? "invalid"}");
-            return result.Claims;
         }
 
         private static string? Text(IDictionary<string, object> claims, string name) =>

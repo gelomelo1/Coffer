@@ -76,10 +76,11 @@ namespace Coffer.Infrastructure
             services.AddSingleton<Coffer.BusinessLogic.Auth.Sessions.SessionGuardCache>();
             services.AddScoped<Coffer.BusinessLogic.Auth.Sessions.ISessionService, Coffer.BusinessLogic.Auth.Sessions.SessionService>();
             services.AddSingleton<Coffer.BusinessLogic.Auth.OAuth.PendingRegistrationStore>();
-            services.AddSingleton<Coffer.BusinessLogic.Auth.OAuth.IGoogleIdTokenValidator, Coffer.BusinessLogic.Auth.OAuth.GoogleIdTokenValidator>();
             services.AddScoped<Coffer.BusinessLogic.Auth.OAuth.ISignInService, Coffer.BusinessLogic.Auth.OAuth.SignInService>();
             services.AddSingleton<Coffer.BusinessLogic.Auth.OAuth.OAuthTransactionStore>();
-            services.AddSingleton<Coffer.BusinessLogic.Auth.OAuth.FacebookSigningKeys>();
+            services.AddSingleton<Coffer.BusinessLogic.Auth.OAuth.JwksCache>();
+            services.AddSingleton<Coffer.BusinessLogic.Auth.OAuth.PendingCallbackStore>();
+            services.AddHttpClient<Coffer.BusinessLogic.Auth.OAuth.IGoogleOAuthClient, Coffer.BusinessLogic.Auth.OAuth.GoogleOAuthClient>(c => c.Timeout = TimeSpan.FromSeconds(15));
             services.AddHttpClient<Coffer.BusinessLogic.Auth.OAuth.IFacebookOAuthClient, Coffer.BusinessLogic.Auth.OAuth.FacebookOAuthClient>(c => c.Timeout = TimeSpan.FromSeconds(15));
             services.AddHttpClient<Coffer.BusinessLogic.Auth.OAuth.IDiscordOAuthClient, Coffer.BusinessLogic.Auth.OAuth.DiscordOAuthClient>(c => c.Timeout = TimeSpan.FromSeconds(15));
             services.AddHttpClient<Coffer.BusinessLogic.Auth.OAuth.IGithubOAuthClient, Coffer.BusinessLogic.Auth.OAuth.GithubOAuthClient>(c => c.Timeout = TimeSpan.FromSeconds(15));
