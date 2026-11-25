@@ -13,9 +13,9 @@ Final verification (all green):
 
 | Suite | Result |
 |---|---|
-| `dotnet test src/Coffer/Coffer.Tests` | 670 passed, 0 failed |
+| `dotnet test src/Coffer/Coffer.Tests` | 684 passed, 0 failed |
 | `python -m unittest discover -s tests` (Coffer.PythonService) | 43 passed |
-| `npm run test:unit` (Coffer.ReactNative) | 166 passed |
+| `npm run test:unit` (Coffer.ReactNative) | 169 passed |
 | `npx tsc --noEmit` | no errors |
 | `npx eslint src` | 0 errors (47 warnings, all pre-existing) |
 | `npm run check:i18n`, `npm run check:errors` | passed / up to date |
@@ -59,6 +59,7 @@ Severity: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low
 | 🟡 | (Found in the final review.) The browser sign-in redirect deep links had no route: cancel/deny could leave the person on an "unmatched route" screen. | `+native-intent.tsx` keeps `authorize`, `authorize/callback` and `oauth/github` links on the sign-in screen. Check once on a device. | `native_intent.test.ts` |
 | 🟡 | (Found in the final review.) `JWT_SECRET` from `.env.example` (public) passed the 32-byte check. | A secret starting with `change-me` stops startup. | `AuthOptionsTests.Placeholder_jwt_secret_is_rejected` |
 | 🔵 | (Follow-up review.) Provider token revocation used the normal 15 s timeout, so a slow provider could hold up a successful sign-in by up to a minute; Discord calls used the deprecated unversioned API without a User-Agent; a redirect URI that doesn't match its app id failed only on a phone; GitHub asked for `read:user`. | Revoke capped at 3 s; Discord API v10 with a User-Agent; the API refuses to start on a mismatched Facebook/Discord redirect; GitHub asks only for `user:email`. Every provider now asks only for name, e-mail and avatar. | `A_slow_revoke_does_not_hold_up_the_sign_in`, `A_failing_revoke_does_not_fail_the_sign_in`, `Token_is_revoked_even_when_reading_the_account_fails`, `Facebook_redirect_must_match_the_app_id`, `Discord_redirect_must_match_the_client_id`, `GithubSignInTests.Start_builds_url_from_server_config` |
+| — | (Change requested 2026-11-25.) Strict sign-in settings everywhere blocked development before every provider app existed. | Production and release app builds still refuse to start on a missing, placeholder or inconsistent value. Development switches only that provider off (startup warning, `providerNotConfigured` / "isn't set up" in the app); `JWT_SECRET`, backend URL and scheme stay required. | `AuthOptionsTests.Development_*`, `Production_refuses_placeholders`, `ProviderNotConfiguredTests.*`, `env_check.test.ts` |
 | 🔵 | Google sign-in requested `offlineAccess` (a server auth code nobody used). | Removed; only `profile` and `email`. | code review (`src/utils/google_signin.ts`) |
 | 🔵 | App logged whole provider error/response objects with `console.error`. | Short fixed messages only; tokens never logged. Backend logs provider failures by reason only. | `FacebookSignInTests.Logs_never_contain_code_or_tokens` |
 | 🔵 | React Query cache was re-created on every render of the root and never cleared on logout (data of the previous account could be shown). | One cache; cleared on every sign-out. | code review (`src/utils/session.ts`) |

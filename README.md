@@ -33,7 +33,11 @@ Three places have their own env files, each with the same three files:
 | `.env.enc` | **yes** | the encrypted copy of `.env` — the only form of the real values that is committed |
 | `.env.example` | yes | the same keys with safe placeholders — copy it to `.env` and fill it in |
 
-Every key is required. A missing value stops the API (or the app) at startup with the name of the variable.
+Production (and release app builds) need every key: a missing value or a leftover placeholder (`change-me`, `your-…`)
+stops the API, the app or the build with the name of the variable. Development is more forgiving with the sign-in
+providers: a provider whose settings are missing, placeholders or inconsistent is switched off with a startup warning
+(its button then says the sign-in isn't set up), so you can work before every provider app exists. `JWT_SECRET`,
+the database, the backend URL and the app scheme are always required.
 
 ### Encrypted `.env` workflow
 
@@ -120,7 +124,8 @@ Security audit of sign-in and sessions: [docs/security/2026-11-24-oauth-audit.md
   `openid public_profile email`, `openid` only enables the signed ID token; Discord `identify email`; GitHub
   `user:email`). Provider tokens are revoked after sign-in (at most 3 s, never holding up the sign-in).
 * `FACEBOOK_REDIRECT_URI` must be `fb<FACEBOOK_APP_ID>://authorize` and `DISCORD_REDIRECT_URI`
-  `discord-<DISCORD_CLIENT_ID>:/authorize/callback`; the API refuses to start otherwise.
+  `discord-<DISCORD_CLIENT_ID>:/authorize/callback`; otherwise production refuses to start (development switches that
+  provider off with a warning).
 * Reddit is not offered: it stopped accepting new API access on 31 Oct 2026.
 * Accounts are matched by provider + the provider's account id only, never by e-mail. New identities get a
   10-minute, single-use registration (username + country).

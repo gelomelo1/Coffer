@@ -1,18 +1,32 @@
 import type { ConfigContext, ExpoConfig } from "expo/config";
 
-// Read from Coffer.ReactNative/.env (Expo loads it before this file runs). A build without them must not happen.
-function required(name: "EXPO_PUBLIC_AUTH_SCHEME" | "EXPO_PUBLIC_FACEBOOK_APP_ID" | "EXPO_PUBLIC_DISCORD_APP_ID"): string {
+// Read from Coffer.ReactNative/.env (Expo loads it before this file runs).
+// Release builds (NODE_ENV=production while bundling, or an EAS "production" profile) need every value. Development may
+// leave a sign-in id out (or as a placeholder): its redirect scheme is then left out and that sign-in is off.
+const release = process.env.NODE_ENV === "production" || process.env.EAS_BUILD_PROFILE === "production";
+const placeholder = (value: string) => /change-me/i.test(value) || /^your-/i.test(value);
+
+function required(name: "EXPO_PUBLIC_AUTH_SCHEME"): string {
   const value = process.env[name]?.trim();
   if (!value) throw new Error(`Missing ${name} in Coffer.ReactNative/.env`);
   return value;
 }
 
+/** The redirect scheme of a browser sign-in, or null (with a warning) when its id isn't set up in development. */
+function signInScheme(name: "EXPO_PUBLIC_FACEBOOK_APP_ID" | "EXPO_PUBLIC_DISCORD_APP_ID", scheme: (id: string) => string): string | null {
+  const value = process.env[name]?.trim();
+  if (value && !placeholder(value)) return scheme(value);
+  if (release) throw new Error(`${value ? `${name} is still a placeholder` : `Missing ${name}`} in Coffer.ReactNative/.env`);
+  console.warn(`${name} is not set (or still a placeholder): that sign-in is off in this development build.`);
+  return null;
+}
+
 export default ({ config }: ConfigContext): ExpoConfig => {
   const scheme = required("EXPO_PUBLIC_AUTH_SCHEME");
-  // Facebook Login sends the browser back to fb{app id}://authorize.
-  const facebookScheme = `fb${required("EXPO_PUBLIC_FACEBOOK_APP_ID")}`;
-  // Discord sends it back to discord-{application id}:/authorize/callback.
-  const discordScheme = `discord-${required("EXPO_PUBLIC_DISCORD_APP_ID")}`;
+  // Facebook Login sends the browser back to fb{app id}://authorize, Discord to discord-{application id}:/authorize/callback.
+  const facebookScheme = signInScheme("EXPO_PUBLIC_FACEBOOK_APP_ID", (id) => `fb${id}`);
+  const discordScheme = signInScheme("EXPO_PUBLIC_DISCORD_APP_ID", (id) => `discord-${id}`);
+  const schemes = [scheme, facebookScheme, discordScheme].filter((s): s is string => s !== null);
 
   return {
     ...config,
@@ -32,7 +46,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       intentFilters: [
         {
           action: "VIEW",
-          data: [{ scheme }, { scheme: facebookScheme }, { scheme: discordScheme }],
+          data: schemes.map((s) => ({ scheme: s })),
           category: ["BROWSABLE", "DEFAULT"],
         },
       ],

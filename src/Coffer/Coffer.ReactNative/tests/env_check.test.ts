@@ -21,13 +21,35 @@ test("all values present: normalised config", () => {
 });
 
 for (const key of Object.keys(complete) as (keyof typeof complete)[]) {
-  test(`missing ${key} names the variable`, () => {
-    assert.throws(() => checkEnv({ ...complete, [key]: undefined }, true), new Error(`Missing ${key} in Coffer.ReactNative/.env`));
+  test(`release build: missing ${key} names the variable`, () => {
+    assert.throws(() => checkEnv({ ...complete, [key]: undefined }, false), new Error(`Missing ${key} in Coffer.ReactNative/.env`));
   });
 }
 
 test("whitespace counts as missing", () => {
-  assert.throws(() => checkEnv({ ...complete, EXPO_PUBLIC_FACEBOOK_APP_ID: "  " }, true), /Missing EXPO_PUBLIC_FACEBOOK_APP_ID/);
+  assert.throws(() => checkEnv({ ...complete, EXPO_PUBLIC_FACEBOOK_APP_ID: "  " }, false), /Missing EXPO_PUBLIC_FACEBOOK_APP_ID/);
+});
+
+test("release build: a placeholder is refused", () => {
+  assert.throws(
+    () => checkEnv({ ...complete, EXPO_PUBLIC_DISCORD_APP_ID: "change-me" }, false),
+    new Error("EXPO_PUBLIC_DISCORD_APP_ID in Coffer.ReactNative/.env is still a placeholder"),
+  );
+});
+
+test("debug build: missing or placeholder sign-in ids switch that sign-in off", () => {
+  const env = checkEnv(
+    { ...complete, EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: undefined, EXPO_PUBLIC_FACEBOOK_APP_ID: "change-me", EXPO_PUBLIC_DISCORD_APP_ID: "your-discord-application-id" },
+    true,
+  );
+  assert.equal(env.googleWebClientId, null);
+  assert.equal(env.facebookAppId, null);
+  assert.equal(env.discordAppId, null);
+});
+
+test("debug build: the backend URL and the scheme are still required", () => {
+  assert.throws(() => checkEnv({ ...complete, EXPO_PUBLIC_BACKEND_URL: undefined }, true), /Missing EXPO_PUBLIC_BACKEND_URL/);
+  assert.throws(() => checkEnv({ ...complete, EXPO_PUBLIC_AUTH_SCHEME: " " }, true), /Missing EXPO_PUBLIC_AUTH_SCHEME/);
 });
 
 test("http backend allowed in development", () => {

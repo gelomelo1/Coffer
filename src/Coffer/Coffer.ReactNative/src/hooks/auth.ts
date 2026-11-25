@@ -8,7 +8,8 @@ import { ROUTES } from "../const/navigation_params";
 import { apiErrorText } from "../utils/api_error_text";
 import { parseAuthResult, queryParam } from "../utils/auth_redirect";
 import { postData } from "../utils/backend_access";
-import { GoogleSignin } from "../utils/google_signin";
+import { env } from "../const/env";
+import { GoogleSignin, googleSignInEnabled } from "../utils/google_signin";
 import { signInWith } from "../utils/session";
 import type { StoredSession } from "../utils/token_store";
 
@@ -57,6 +58,13 @@ export function useSignIn({ onRegistrationRequired, onSignedIn, onRegistered }: 
   };
 
   const failed = (error: unknown) => showToast("error", t("auth:login.failed"), apiErrorText(error));
+  // Debug builds may leave a sign-in id out of .env: that sign-in is off (release builds require every id).
+  const notConfigured = () => showToast("info", t("auth:login.notConfigured"));
+  const appIdSet: Record<BrowserProvider, boolean> = {
+    facebook: env.facebookAppId !== null,
+    discord: env.discordAppId !== null,
+    github: true, // nothing app-side: the backend says when it isn't set up
+  };
 
   const run = async (provider: SignInProvider, work: () => Promise<void>) => {
     if (busy) return;
@@ -72,6 +80,7 @@ export function useSignIn({ onRegistrationRequired, onSignedIn, onRegistered }: 
 
   const google = () =>
     run("google", async () => {
+      if (!googleSignInEnabled) return notConfigured();
       let idToken: string | null | undefined;
       try {
         await GoogleSignin.hasPlayServices();
@@ -88,6 +97,7 @@ export function useSignIn({ onRegistrationRequired, onSignedIn, onRegistered }: 
 
   const browser = (provider: BrowserProvider) =>
     run(provider, async () => {
+      if (!appIdSet[provider]) return notConfigured();
       const start = await postData<Record<string, never>, OAuthStart>(BROWSER[provider].start, {});
       const expectedState = queryParam(start.authorizeUrl, "state") ?? "";
       const result = await WebBrowser.openAuthSessionAsync(start.authorizeUrl, start.redirectUri);
