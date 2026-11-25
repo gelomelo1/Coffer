@@ -13,9 +13,9 @@ Final verification (all green):
 
 | Suite | Result |
 |---|---|
-| `dotnet test src/Coffer/Coffer.Tests` | 703 passed, 0 failed |
+| `dotnet test src/Coffer/Coffer.Tests` | 717 passed, 0 failed |
 | `python -m unittest discover -s tests` (Coffer.PythonService) | 43 passed |
-| `npm run test:unit` (Coffer.ReactNative) | 171 passed |
+| `npm run test:unit` (Coffer.ReactNative) | 172 passed |
 | `npx tsc --noEmit` | no errors |
 | `npx eslint src` | 0 errors (47 warnings, all pre-existing) |
 | `npm run check:i18n`, `npm run check:errors` | passed / up to date |
@@ -43,6 +43,7 @@ Severity: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low
 
 | Sev | Finding (before) | Fix (after) | Proving tests |
 |---|---|---|---|
+| 🔴 | (Found in the review of the Google callback, before release.) Whoever started a Google sign-in knew the transaction id and the state; forwarding the Google link to a victim let the attacker collect the victim's sign-in (account takeover). | The callback creates a one-time 256-bit handle and sends it only to the browser that finished the sign-in (`…?state=…&handle=…`); `google/complete` needs it (constant-time compare, single use). Also: `GOOGLE_APP_REDIRECT_URI` must be an app scheme without `?`/`#`; the callback never leaves the browser on an error page; callback answers carry `no-store` and `no-referrer`; Google's error code is logged. | `Whoever_started_the_sign_in_cannot_collect_someone_elses_finish`, `A_wrong_handle_fails_and_uses_up_the_result`, `Google_app_redirect_must_be_an_app_scheme_without_query`, `An_unexpected_error_still_returns_to_the_app`, `Callback_answers_are_not_cached_and_send_no_referrer`, `auth_redirect.test.ts` |
 | 🔴 | App JWTs lived **one year**, carried e-mail and provider, and could not be revoked: logout only deleted the token on the phone; a copied token worked for a year. | 15-minute HS256 access token with a session id (`sid`); server-side `auth_sessions` checked on every request; rotating, hashed, single-use refresh tokens (14 days idle, 60 days absolute); reuse of a consumed refresh token revokes the session; logout and account deletion revoke on the server. | `SessionServiceTests.*`, `SessionGuardApiTests.*`, `SessionApiTests.Logout_*`, `SessionApiTests.Account_deletion_revokes_sessions` |
 | 🔴 | `POST api/Users` let an in-app `Admin` create an account bound to **any** provider identity (pre-hijacking: the victim's next sign-in lands in it); `PUT api/Users/{id}` let an `Admin` move any account to another identity (takeover). | Generic user create removed (accounts are created only by signing in); provider and provider id can't change through the API for anyone. | `AccountIdentityTests.*` |
 | 🟠 | Old GitHub flow: the backend never checked `state` (only the client did) and accepted any client-supplied `code` + `code_verifier` → login CSRF / code injection possible. GitHub, Facebook and Discord now all use a backend-held transaction. | `api/auth/{provider}/start` creates a transaction (256-bit id, state, nonce, PKCE verifier) kept on the server; `complete` takes it atomically (single use), checks provider and state (constant time). The id never appears in a URL. | `FacebookSignInTests.State_mismatch_*`, `Replayed_transaction_fails`, `Transaction_from_other_provider_fails`, `DiscordSignInTests.*`, `GithubSignInTests.*` |
@@ -308,3 +309,6 @@ Severity: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low
 | R8 | Coffer.Manager tokens (8 h) are not session-revocable; app and Manager tokens share `JWT_SECRET` (different audience and scheme). | Manager sign-in was kept unchanged by decision; removing an admin id takes effect on the next request. |
 | R9 | Session revocation is cached ≤ 10 s per API process. | Usually immediate in the process that revoked (the cache entry is evicted), but a request that read "active" just before the revoke can keep the token working for up to 10 s; other instances catch up within 10 s. |
 | R10 | Facebook e-mail addresses are not marked verified by Facebook. | Stored for display only, never used to match or merge accounts. |
+| R11 | One lock guards every provider's signing-key cache, and a failed 24-hour key refresh fails sign-ins although the cached keys may still be valid. | A slow Google key fetch (≤ 15 s) can delay Facebook sign-ins. Lock per URL and fall back to the cached keys when this matters. |
+| R12 | The Google callback shares the per-IP sign-in rate limit; a 429 leaves the in-app browser on a JSON page (users behind carrier NAT share the budget). | Consider a looser policy for the callback. |
+| R13 | The app trusts the redirect address the API returns from `start`. | The API builds it from config only; checking the app's own scheme too would only add robustness. |
