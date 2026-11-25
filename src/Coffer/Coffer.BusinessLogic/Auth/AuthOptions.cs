@@ -53,6 +53,8 @@ namespace Coffer.BusinessLogic.Auth
                     Get(read, own, "GOOGLE_REDIRECT_URI"), Get(read, own, "GOOGLE_APP_REDIRECT_URI"));
                 if (own.Count == 0 && !IsApiCallback(o.RedirectUri))
                     own.Add($"GOOGLE_REDIRECT_URI must be the API's /api/auth/google/callback over https (http only on localhost), not {o.RedirectUri}");
+                if (own.Count == 0 && !IsAppRedirect(o.AppRedirectUri))
+                    own.Add($"GOOGLE_APP_REDIRECT_URI must be the app's own scheme (e.g. com.gelomelo.coffer://oauth/google) without ? or #, not {o.AppRedirectUri}");
                 return o;
             });
             var facebook = Provider("Facebook", own =>
@@ -97,6 +99,12 @@ namespace Coffer.BusinessLogic.Auth
             && u.AbsolutePath.Equals("/api/auth/google/callback", StringComparison.Ordinal)
             && string.IsNullOrEmpty(u.Query) && string.IsNullOrEmpty(u.Fragment)
             && (u.Scheme == Uri.UriSchemeHttps || (u.Scheme == Uri.UriSchemeHttp && (u.Host == "localhost" || u.Host == "127.0.0.1")));
+
+        /// <summary>The state and the one-time handle go there: an app scheme only, never a web address.</summary>
+        private static bool IsAppRedirect(string uri) =>
+            Uri.TryCreate(uri, UriKind.Absolute, out var u)
+            && u.Scheme != Uri.UriSchemeHttp && u.Scheme != Uri.UriSchemeHttps
+            && !uri.Contains('?') && !uri.Contains('#');
 
         /// <summary>Each redirect is derived from its app id (the mobile app registers that scheme).</summary>
         private static void RequireRedirect(List<string> problems, string name, string actual, string expected)

@@ -184,5 +184,23 @@ namespace Coffer.Tests.Auth
 
             Assert.Contains("DISCORD_CLIENT_SECRET", e.Message);
         }
+
+        [Theory]
+        [InlineData("com.gelomelo.coffer://oauth/google", true)]
+        [InlineData("https://evil.example/oauth/google", false)]
+        [InlineData("http://localhost/oauth/google", false)]
+        [InlineData("com.gelomelo.coffer://oauth/google?x=1", false)]
+        [InlineData("com.gelomelo.coffer://oauth/google#x", false)]
+        [InlineData("not a uri", false)]
+        public void Google_app_redirect_must_be_an_app_scheme_without_query(string appRedirect, bool accepted)
+        {
+            var values = Complete();
+            values["GOOGLE_APP_REDIRECT_URI"] = appRedirect;
+
+            var error = Record.Exception(() => Load(values));
+
+            if (accepted) Assert.Null(error);
+            else Assert.Contains("GOOGLE_APP_REDIRECT_URI", Assert.IsType<InvalidOperationException>(error).Message);
+        }
 }
 }

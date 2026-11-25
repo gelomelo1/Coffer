@@ -62,15 +62,19 @@ namespace Coffer.Tests.Auth
             return await _browser.GetAsync($"api/auth/google/callback?state={Uri.EscapeDataString(state ?? s.State)}&{query}");
         }
 
+        /// <summary>The one-time handle the callback sent only to the browser that finished the sign-in.</summary>
+        private static string? HandleOf(HttpResponseMessage callback) =>
+            callback.Headers.Location == null ? null : FakeHttp.Form(callback.Headers.Location.Query.TrimStart('?')).GetValueOrDefault("handle");
+
         /// <summary>The app collects the result after the browser came back.</summary>
-        private Task<HttpResponseMessage> Collect(Started s, string? state = null, string? transactionId = null) =>
-            Client.PostAsJsonAsync("api/auth/google/complete", new { transactionId = transactionId ?? s.Id, state = state ?? s.State });
+        private Task<HttpResponseMessage> Collect(Started s, string? handle, string? state = null, string? transactionId = null) =>
+            Client.PostAsJsonAsync("api/auth/google/complete", new { transactionId = transactionId ?? s.Id, state = state ?? s.State, handle });
 
         private async Task<HttpResponseMessage> SignIn()
         {
             var s = await Start();
-            await Callback(s);
-            return await Collect(s);
+            var callback = await Callback(s);
+            return await Collect(s, HandleOf(callback));
         }
 
         private int TokenCalls => Http.Calls.Count(c => c.Url.ToString() == TokenEndpoint);
@@ -100,7 +104,10 @@ namespace Coffer.Tests.Auth
             var response = await Callback(s, code: "google-code");
 
             Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
-            Assert.Equal($"{AppRedirect}?state={s.State}", response.Headers.Location!.ToString());
+            var handle = HandleOf(response);
+            Assert.Equal(43, handle!.Length);
+            Assert.Equal($"{AppRedirect}?state={s.State}&handle={handle}", response.Headers.Location!.ToString());
+            Assert.DoesNotContain("code", response.Headers.Location!.Query);
             var form = FakeHttp.Form(Assert.Single(Http.Calls, c => c.Url.ToString() == TokenEndpoint).Body);
             Assert.Equal("authorization_code", form["grant_type"]);
             Assert.Equal("google-code", form["code"]);
@@ -131,9 +138,9 @@ namespace Coffer.Tests.Auth
             Api.Db.Context.SaveChanges();
             var s = await Start();
 
-            await Callback(s);
+            var callback = await Callback(s);
             Assert.Empty(Api.Db.NewContext().AuthSessions); // an abandoned sign-in leaves nothing behind
-            var body = await SignInApi.Json(await Collect(s));
+            var body = await SignInApi.Json(await Collect(s, HandleOf(callback)));
 
             Assert.Equal("signedIn", body.Str("status"));
             Assert.Equal(HttpStatusCode.OK, await SignInApi.CurrentUserStatus(Api, body.Str("accessToken")!));
@@ -181,7 +188,7 @@ namespace Coffer.Tests.Auth
             var response = await Callback(s);
 
             Assert.Equal($"{AppRedirect}?state={s.State}&error=failed", response.Headers.Location!.ToString());
-            await AssertFailed(await Collect(s));
+            await AssertFailed(await Collect(s, null));
         }
 
         [Fact]
@@ -193,7 +200,7 @@ namespace Coffer.Tests.Auth
 
             Assert.Equal($"{AppRedirect}?state={s.State}&error=access_denied", response.Headers.Location!.ToString());
             Assert.Equal(0, TokenCalls);
-            await AssertFailed(await Collect(s));
+            await AssertFailed(await Collect(s, null));
         }
 
         [Fact]
@@ -223,24 +230,24 @@ namespace Coffer.Tests.Auth
         public async Task Result_can_be_collected_only_once()
         {
             var s = await Start();
-            await Callback(s);
-            Assert.Equal(HttpStatusCode.OK, (await Collect(s)).StatusCode);
+            var handle = HandleOf(await Callback(s));
+            Assert.Equal(HttpStatusCode.OK, (await Collect(s, handle)).StatusCode);
 
-            await AssertFailedNoSessionCheck(await Collect(s));
+            await AssertFailedNoSessionCheck(await Collect(s, handle));
         }
 
         [Fact]
         public async Task Collecting_needs_the_matching_state()
         {
             var s = await Start();
-            await Callback(s);
+            var handle = HandleOf(await Callback(s));
 
-            await AssertFailed(await Collect(s, state: "forged"));
-            await AssertFailed(await Collect(s)); // the wrong attempt used it up
+            await AssertFailed(await Collect(s, handle, state: "forged"));
+            await AssertFailed(await Collect(s, handle)); // the wrong attempt used it up
         }
 
         [Fact]
-        public async Task Collecting_before_the_callback_fails() { var s = await Start(); await AssertFailed(await Collect(s)); }
+        public async Task Collecting_before_the_callback_fails() { var s = await Start(); await AssertFailed(await Collect(s, null)); }
 
         [Fact]
         public async Task A_facebook_transaction_is_not_accepted_at_the_google_callback()
@@ -281,5 +288,76 @@ namespace Coffer.Tests.Auth
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             Assert.Equal("providerSignInFailed", (await SignInApi.Json(response)).Str("code"));
         }
-    }
+    
+        [Fact]
+        public async Task Whoever_started_the_sign_in_cannot_collect_someone_elses_finish()
+        {
+            // The attacker starts, forwards the Google link; the victim's browser finishes it. The attacker knows the
+            // transaction id and the state, but not the handle, which went only to the victim's browser.
+            var attacker = await Start();
+            var victimsBrowser = await Callback(attacker);
+            Assert.NotNull(HandleOf(victimsBrowser));
+
+            await AssertFailed(await Collect(attacker, handle: null));
+        }
+
+        [Fact]
+        public async Task A_wrong_handle_fails_and_uses_up_the_result()
+        {
+            var s = await Start();
+            var handle = HandleOf(await Callback(s));
+
+            await AssertFailed(await Collect(s, "guessed-handle"));
+            await AssertFailed(await Collect(s, handle));
+        }
+
+        [Fact]
+        public async Task Callback_answers_are_not_cached_and_send_no_referrer()
+        {
+            var response = await Callback(await Start());
+
+            Assert.Contains("no-store", response.Headers.CacheControl?.ToString() ?? "");
+            Assert.Equal("no-referrer", response.Headers.GetValues("Referrer-Policy").Single());
+        }
+
+        [Fact]
+        public async Task Callback_without_code_or_error_fails()
+        {
+            var s = await Start();
+
+            var response = await _browser.GetAsync($"api/auth/google/callback?state={Uri.EscapeDataString(s.State)}");
+
+            Assert.Equal($"{AppRedirect}?state={s.State}&error=failed", response.Headers.Location!.ToString());
+            Assert.Equal(0, TokenCalls);
+        }
+
+        [Fact]
+        public async Task Unusual_google_error_values_come_out_as_failed()
+        {
+            var s = await Start();
+
+            var response = await Callback(s, error: "invalid_request%0d%0aSet-Cookie:x");
+
+            Assert.Equal($"{AppRedirect}?state={s.State}&error=failed", response.Headers.Location!.ToString());
+        }
+
+        [Fact]
+        public async Task Issuer_without_scheme_is_accepted()
+        {
+            _idToken = n => { var c = Claims(n); c["iss"] = "accounts.google.com"; return _key.Sign(c); };
+
+            Assert.Equal("registrationRequired", (await SignInApi.Json(await SignIn())).Str("status"));
+        }
+
+        [Fact]
+        public async Task Email_verified_as_text_true_keeps_the_email()
+        {
+            _idToken = n => { var c = Claims(n); c["email_verified"] = "true"; return _key.Sign(c); };
+
+            var body = await SignInApi.Json(await SignIn());
+            await Client.PostAsJsonAsync("api/auth/register", new { registrationId = body.Str("registrationId"), username = "textverified", country = "HU" });
+
+            Assert.Equal("anna@gmail.example", (await Api.Db.NewContext().Users.SingleAsync(u => u.Name == "textverified")).Email);
+        }
+}
 }

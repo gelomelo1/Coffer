@@ -68,7 +68,8 @@ namespace Coffer.ASPNET.Controllers
         /// <summary>
         /// Google's redirect. Takes the transaction by state (single use, Google's only), exchanges the code, verifies the
         /// ID token and keeps only the verified identity for the app to collect. The browser always goes back to the app
-        /// at the configured address with the state, plus error=access_denied|failed — never a code or a token.
+        /// at the configured address with the state and a one-time handle (or error=access_denied|failed) — never a code
+        /// or a token.
         /// </summary>
         [HttpGet("google/callback")]
         [AllowAnonymous]
@@ -76,6 +77,9 @@ namespace Coffer.ASPNET.Controllers
         public async Task<IActionResult> GoogleCallback([FromQuery] string? state, [FromQuery] string? code, [FromQuery] string? error)
         {
             if (_options.Google == null) return NotConfigured(Providers.Google);
+            // Single-use answer: never cached, and the page we leave sends no referrer.
+            Response.Headers.CacheControl = "no-store";
+            Response.Headers["Referrer-Policy"] = "no-referrer";
             var back = _options.Google.AppRedirectUri;
             var transaction = _transactions.TakeByState(Providers.Google, state);
             if (transaction == null)
@@ -87,27 +91,41 @@ namespace Coffer.ASPNET.Controllers
             var answer = $"{back}?state={Uri.EscapeDataString(transaction.State)}";
             if (!string.IsNullOrEmpty(error))
             {
-                _callbacks.Put(transaction.Id, new PendingCallback(transaction.State, null));
+                // Google's own error code, kept short and plain for the log (it helps find setup mistakes).
+                var reason = new string(error.Take(40).Where(c => char.IsAsciiLetterOrDigit(c) || c == '_').ToArray());
+                _log.LogWarning("google sign-in returned an error: {Error}", reason);
+                _callbacks.Put(transaction.Id, new PendingCallback(transaction.State, null, null));
                 return Redirect($"{answer}&error={(error == "access_denied" ? "access_denied" : "failed")}");
             }
 
             try
             {
                 var identity = await _google.CompleteAsync(transaction, code ?? "");
-                _callbacks.Put(transaction.Id, new PendingCallback(transaction.State, identity));
-                return Redirect(answer);
+                var handle = SecureRandom.Token();
+                _callbacks.Put(transaction.Id, new PendingCallback(transaction.State, handle, identity));
+                return Redirect($"{answer}&handle={Uri.EscapeDataString(handle)}");
             }
             catch (ProviderSignInException e)
             {
                 _log.LogWarning("google sign-in failed: {Reason}", e.Message);
-                _callbacks.Put(transaction.Id, new PendingCallback(transaction.State, null));
+                _callbacks.Put(transaction.Id, new PendingCallback(transaction.State, null, null));
+                return Redirect($"{answer}&error=failed");
+            }
+            catch (Exception e)
+            {
+                // Whatever went wrong, the in-app browser goes back to the app instead of staying on an error page.
+                _log.LogError("google sign-in failed unexpectedly: {Type}", e.GetType().Name);
+                _callbacks.Put(transaction.Id, new PendingCallback(transaction.State, null, null));
                 return Redirect($"{answer}&error=failed");
             }
         }
 
-        public record GoogleCompleteRequest(string? TransactionId, string? State);
+        public record GoogleCompleteRequest(string? TransactionId, string? State, string? Handle);
 
-        /// <summary>The app collects what the callback verified (single use, state compared); sessions start only here.</summary>
+        /// <summary>
+        /// The app collects what the callback verified: single use; the state and the one-time handle (sent only to the
+        /// browser that finished the sign-in) must both match. Sessions start only here.
+        /// </summary>
         [HttpPost("google/complete")]
         [AllowAnonymous]
         [EnableRateLimiting(AuthRateLimits.SignIn)]
@@ -117,7 +135,8 @@ namespace Coffer.ASPNET.Controllers
             var result = _callbacks.Take(req?.TransactionId);
             if (result == null) return SignInFailed(Providers.Google, new ProviderSignInException("no callback result for this transaction"));
             if (!SecureRandom.Same(req?.State, result.State)) return SignInFailed(Providers.Google, new ProviderSignInException("state mismatch"));
-            if (result.Identity == null) return SignInFailed(Providers.Google, new ProviderSignInException("the callback did not verify a sign-in"));
+            if (result.Identity == null || result.Handle == null) return SignInFailed(Providers.Google, new ProviderSignInException("the callback did not verify a sign-in"));
+            if (!SecureRandom.Same(req?.Handle, result.Handle)) return SignInFailed(Providers.Google, new ProviderSignInException("handle mismatch"));
             return SignInAnswer(await _signIn.CompleteAsync(result.Identity));
         }
 
