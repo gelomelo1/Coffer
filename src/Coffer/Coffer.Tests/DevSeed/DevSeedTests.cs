@@ -326,11 +326,11 @@ namespace Coffer.Tests.DevSeed
         [Theory]
         [InlineData("google", true)]
         [InlineData("facebook", true)]
-        [InlineData("reddit", true)]
+        [InlineData("discord", true)]
         [InlineData("github", true)]
         [InlineData("twitter", false)]
         [InlineData("", false)]
-        public void Seed_accepts_google_facebook_reddit_github_and_rejects_others(string provider, bool accepted)
+        public void Seed_accepts_google_facebook_discord_github_and_rejects_others(string provider, bool accepted)
         {
             var data = Data();
             data.Users[0].Provider = provider;
@@ -339,7 +339,7 @@ namespace Coffer.Tests.DevSeed
             var problems = Record.Exception(() => DevSeedValidator.Validate(data, reference)) is DevSeedConfigException e ? e.Problems : new List<string>();
 
             if (accepted) Assert.DoesNotContain(problems, p => p.StartsWith("users[0].provider"));
-            else Assert.Contains("users[0].provider must be one of \"google\", \"facebook\", \"reddit\", \"github\".", problems);
+            else Assert.Contains("users[0].provider must be one of \"google\", \"facebook\", \"discord\", \"github\".", problems);
         }
 
         [Fact]

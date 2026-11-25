@@ -29,6 +29,7 @@ namespace Coffer.Tests
         public const string PythonUrl = "http://python.test";
         public const string GoogleClientId = "test-web.apps.googleusercontent.com";
         public const string FacebookAppId = "123456";
+        public const string DiscordClientId = "998877";
 
         static TestEnvironment()
         {
@@ -48,10 +49,12 @@ namespace Coffer.Tests
             Environment.SetEnvironmentVariable("FACEBOOK_APP_SECRET", "test-facebook-secret");
             Environment.SetEnvironmentVariable("FACEBOOK_REDIRECT_URI", $"fb{FacebookAppId}://authorize");
             Environment.SetEnvironmentVariable("FACEBOOK_GRAPH_VERSION", "v21.0");
-            Environment.SetEnvironmentVariable("REDDIT_CLIENT_ID", "test-reddit-id");
-            Environment.SetEnvironmentVariable("REDDIT_CLIENT_SECRET", "test-reddit-secret");
-            Environment.SetEnvironmentVariable("REDDIT_REDIRECT_URI", "com.gelomelo.coffer://oauth/reddit");
-            Environment.SetEnvironmentVariable("REDDIT_USER_AGENT", "test:com.gelomelo.coffer:1.0.0 (by /u/test)");
+            Environment.SetEnvironmentVariable("DISCORD_CLIENT_ID", DiscordClientId);
+            Environment.SetEnvironmentVariable("DISCORD_CLIENT_SECRET", "test-discord-secret");
+            Environment.SetEnvironmentVariable("DISCORD_REDIRECT_URI", $"discord-{DiscordClientId}:/authorize/callback");
+            Environment.SetEnvironmentVariable("GITHUB_CLIENT_ID", "test-github-id");
+            Environment.SetEnvironmentVariable("GITHUB_CLIENT_SECRET", "test-github-secret");
+            Environment.SetEnvironmentVariable("GITHUB_REDIRECT_URI", "com.gelomelo.coffer://oauth/github");
         }
 
         public static void Ensure() { _ = Root; }

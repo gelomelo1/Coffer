@@ -266,11 +266,11 @@ namespace Coffer.Tests.Auth
         public async Task Transaction_from_other_provider_fails()
         {
             var s = await Start();
-            OAuthTransaction reddit;
+            OAuthTransaction discord;
             using (var scope = _api.Services.CreateScope())
-                reddit = scope.ServiceProvider.GetRequiredService<OAuthTransactionStore>().Create(Providers.Reddit, withNonceAndPkce: false);
+                discord = scope.ServiceProvider.GetRequiredService<OAuthTransactionStore>().Create(Providers.Discord, withNonce: false, withPkce: true);
 
-            await AssertFailed(await Complete(s, state: reddit.State, transactionId: reddit.Id));
+            await AssertFailed(await Complete(s, state: discord.State, transactionId: discord.Id));
         }
 
         [Fact]

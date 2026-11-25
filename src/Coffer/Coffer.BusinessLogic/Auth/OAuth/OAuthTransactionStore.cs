@@ -3,7 +3,7 @@ using Microsoft.Extensions.Caching.Memory;
 namespace Coffer.BusinessLogic.Auth.OAuth
 {
     /// <summary>
-    /// One browser sign-in in progress (Facebook, Reddit). Everything that proves the answer belongs to this attempt
+    /// One browser sign-in in progress (Facebook, Discord, GitHub). Everything that proves the answer belongs to this attempt
     /// stays on the server: the state, the nonce and the PKCE verifier. The app holds only the id, which never appears
     /// in a URL, so an app that intercepts the redirect gets the code and the state but cannot finish the sign-in.
     /// </summary>
@@ -23,12 +23,14 @@ namespace Coffer.BusinessLogic.Auth.OAuth
 
         private static string Key(string id) => $"oauth-transaction:{id}";
 
-        public OAuthTransaction Create(string provider, bool withNonceAndPkce)
+        /// <param name="withNonce">OIDC providers (Facebook): a nonce the ID token must echo.</param>
+        /// <param name="withPkce">A PKCE verifier kept here; only its S256 challenge goes to the provider.</param>
+        public OAuthTransaction Create(string provider, bool withNonce, bool withPkce)
         {
             var transaction = new OAuthTransaction(
                 SecureRandom.Token(), provider, SecureRandom.Token(),
-                withNonceAndPkce ? SecureRandom.Token() : null,
-                withNonceAndPkce ? SecureRandom.Token() : null,
+                withNonce ? SecureRandom.Token() : null,
+                withPkce ? SecureRandom.Token() : null,
                 DateTime.UtcNow);
             _cache.Set(Key(transaction.Id), transaction, Lifetime);
             return transaction;

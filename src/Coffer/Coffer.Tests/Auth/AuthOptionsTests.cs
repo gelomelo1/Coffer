@@ -13,10 +13,12 @@ namespace Coffer.Tests.Auth
             ["FACEBOOK_APP_SECRET"] = "fb-secret",
             ["FACEBOOK_REDIRECT_URI"] = "fb123://authorize",
             ["FACEBOOK_GRAPH_VERSION"] = "v21.0",
-            ["REDDIT_CLIENT_ID"] = "reddit-id",
-            ["REDDIT_CLIENT_SECRET"] = "reddit-secret",
-            ["REDDIT_REDIRECT_URI"] = "com.gelomelo.coffer://oauth/reddit",
-            ["REDDIT_USER_AGENT"] = "android:com.gelomelo.coffer:1.0.0 (by /u/test)",
+            ["DISCORD_CLIENT_ID"] = "discord-id",
+            ["DISCORD_CLIENT_SECRET"] = "discord-secret",
+            ["DISCORD_REDIRECT_URI"] = "discord-discord-id:/authorize/callback",
+            ["GITHUB_CLIENT_ID"] = "github-id",
+            ["GITHUB_CLIENT_SECRET"] = "github-secret",
+            ["GITHUB_REDIRECT_URI"] = "com.gelomelo.coffer://oauth/github",
         };
 
         private static AuthOptions Load(Dictionary<string, string?> values) =>
@@ -30,8 +32,8 @@ namespace Coffer.Tests.Auth
             Assert.Equal("0123456789abcdef0123456789abcdef"u8.ToArray(), o.JwtKey);
             Assert.Equal(new[] { "web.apps.googleusercontent.com" }, o.Google.ClientIds);
             Assert.Equal(new FacebookAuthOptions("123", "fb-secret", "fb123://authorize", "v21.0"), o.Facebook);
-            Assert.Equal(new RedditAuthOptions("reddit-id", "reddit-secret", "com.gelomelo.coffer://oauth/reddit",
-                "android:com.gelomelo.coffer:1.0.0 (by /u/test)"), o.Reddit);
+            Assert.Equal(new DiscordAuthOptions("discord-id", "discord-secret", "discord-discord-id:/authorize/callback"), o.Discord);
+            Assert.Equal(new GithubAuthOptions("github-id", "github-secret", "com.gelomelo.coffer://oauth/github"), o.Github);
         }
 
         [Fact]
@@ -39,12 +41,12 @@ namespace Coffer.Tests.Auth
         {
             var values = Complete();
             values.Remove("FACEBOOK_APP_ID");
-            values["REDDIT_CLIENT_SECRET"] = "   ";
+            values["GITHUB_CLIENT_SECRET"] = "   ";
 
             var e = Assert.Throws<InvalidOperationException>(() => Load(values));
 
             Assert.Contains("FACEBOOK_APP_ID", e.Message);
-            Assert.Contains("REDDIT_CLIENT_SECRET", e.Message);
+            Assert.Contains("GITHUB_CLIENT_SECRET", e.Message);
             Assert.DoesNotContain("GOOGLE_CLIENT_IDS", e.Message);
         }
 

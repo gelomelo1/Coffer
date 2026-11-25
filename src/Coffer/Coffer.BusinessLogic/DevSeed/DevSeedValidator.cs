@@ -57,7 +57,7 @@ namespace Coffer.BusinessLogic.DevSeed
                 var at = $"users[{i}]";
                 if (string.IsNullOrWhiteSpace(u.Name) || u.Name.Length > 50) p.Add($"{at}.name is required (max 50 characters).");
                 else if (!names.Add(u.Name)) p.Add($"{at}.name '{u.Name}' is used twice.");
-                if (u.Provider is not ("google" or "facebook" or "reddit" or "github")) p.Add($"{at}.provider must be one of \"google\", \"facebook\", \"reddit\", \"github\".");
+                if (u.Provider is not ("google" or "facebook" or "discord" or "github")) p.Add($"{at}.provider must be one of \"google\", \"facebook\", \"discord\", \"github\".");
                 if (string.IsNullOrWhiteSpace(u.ProviderUserId)) p.Add($"{at}.providerUserId is required.");
                 else if (!logins.Add($"{u.Provider}:{u.ProviderUserId}")) p.Add($"{at}.providerUserId is used by two users.");
                 if (string.IsNullOrWhiteSpace(u.Country) || u.Country.Length > 56) p.Add($"{at}.country is required.");

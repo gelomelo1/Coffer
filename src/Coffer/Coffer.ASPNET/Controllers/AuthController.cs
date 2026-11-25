@@ -12,7 +12,7 @@ namespace Coffer.ASPNET.Controllers
 {
     /// <summary>
     /// App sign-in. Every provider ends in the same answer: signed in (tokens) or registration required (an id for
-    /// api/auth/register). Facebook and Reddit start with api/auth/{provider}/start and finish with .../complete.
+    /// api/auth/register). Facebook, Discord and GitHub start with api/auth/{provider}/start and finish with .../complete.
     /// Responses are never cached.
     /// </summary>
     [ApiController]
@@ -26,13 +26,14 @@ namespace Coffer.ASPNET.Controllers
         private readonly IGoogleIdTokenValidator _google;
         private readonly OAuthTransactionStore _transactions;
         private readonly IFacebookOAuthClient _facebook;
-        private readonly IRedditOAuthClient _reddit;
+        private readonly IDiscordOAuthClient _discord;
+        private readonly IGithubOAuthClient _github;
         private readonly Coffer.BusinessLogic.Auth.AuthOptions _options;
         private readonly ILogger<AuthController> _log;
 
         public AuthController(IUsersRepository usersRepository, ISessionService sessions, ISignInService signIn,
             IGoogleIdTokenValidator google, OAuthTransactionStore transactions, IFacebookOAuthClient facebook,
-            IRedditOAuthClient reddit, Coffer.BusinessLogic.Auth.AuthOptions options, ILogger<AuthController> log)
+            IDiscordOAuthClient discord, IGithubOAuthClient github, Coffer.BusinessLogic.Auth.AuthOptions options, ILogger<AuthController> log)
         {
             _usersRepository = usersRepository;
             _sessions = sessions;
@@ -40,7 +41,8 @@ namespace Coffer.ASPNET.Controllers
             _google = google;
             _transactions = transactions;
             _facebook = facebook;
-            _reddit = reddit;
+            _discord = discord;
+            _github = github;
             _options = options;
             _log = log;
         }
@@ -72,7 +74,7 @@ namespace Coffer.ASPNET.Controllers
         [EnableRateLimiting(AuthRateLimits.SignIn)]
         public IActionResult FacebookStart()
         {
-            var transaction = _transactions.Create(Providers.Facebook, withNonceAndPkce: true);
+            var transaction = _transactions.Create(Providers.Facebook, withNonce: true, withPkce: true);
             return Ok(new OAuthStart(transaction.Id, _facebook.AuthorizeUrl(transaction), _options.Facebook.RedirectUri));
         }
 
@@ -82,21 +84,37 @@ namespace Coffer.ASPNET.Controllers
         public Task<IActionResult> FacebookComplete([FromBody] CompleteRequest? req) =>
             CompleteBrowserSignIn(Providers.Facebook, req, transaction => _facebook.CompleteAsync(transaction, req?.Code ?? ""));
 
-        /// <summary>Starts a Reddit sign-in: the app opens authorizeUrl in the browser and waits for redirectUri.</summary>
-        [HttpPost("reddit/start")]
+        /// <summary>Starts a Discord sign-in: the app opens authorizeUrl in the browser and waits for redirectUri.</summary>
+        [HttpPost("discord/start")]
         [AllowAnonymous]
         [EnableRateLimiting(AuthRateLimits.SignIn)]
-        public IActionResult RedditStart()
+        public IActionResult DiscordStart()
         {
-            var transaction = _transactions.Create(Providers.Reddit, withNonceAndPkce: false);
-            return Ok(new OAuthStart(transaction.Id, _reddit.AuthorizeUrl(transaction), _options.Reddit.RedirectUri));
+            var transaction = _transactions.Create(Providers.Discord, withNonce: false, withPkce: true);
+            return Ok(new OAuthStart(transaction.Id, _discord.AuthorizeUrl(transaction), _options.Discord.RedirectUri));
         }
 
-        [HttpPost("reddit/complete")]
+        [HttpPost("discord/complete")]
         [AllowAnonymous]
         [EnableRateLimiting(AuthRateLimits.SignIn)]
-        public Task<IActionResult> RedditComplete([FromBody] CompleteRequest? req) =>
-            CompleteBrowserSignIn(Providers.Reddit, req, _ => _reddit.CompleteAsync(req?.Code ?? ""));
+        public Task<IActionResult> DiscordComplete([FromBody] CompleteRequest? req) =>
+            CompleteBrowserSignIn(Providers.Discord, req, transaction => _discord.CompleteAsync(transaction, req?.Code ?? ""));
+
+        /// <summary>Starts a GitHub sign-in: the app opens authorizeUrl in the browser and waits for redirectUri.</summary>
+        [HttpPost("github/start")]
+        [AllowAnonymous]
+        [EnableRateLimiting(AuthRateLimits.SignIn)]
+        public IActionResult GithubStart()
+        {
+            var transaction = _transactions.Create(Providers.Github, withNonce: false, withPkce: true);
+            return Ok(new OAuthStart(transaction.Id, _github.AuthorizeUrl(transaction), _options.Github.RedirectUri));
+        }
+
+        [HttpPost("github/complete")]
+        [AllowAnonymous]
+        [EnableRateLimiting(AuthRateLimits.SignIn)]
+        public Task<IActionResult> GithubComplete([FromBody] CompleteRequest? req) =>
+            CompleteBrowserSignIn(Providers.Github, req, transaction => _github.CompleteAsync(transaction, req?.Code ?? ""));
 
         /// <summary>
         /// The browser came back: the transaction is used up whatever happens next (a callback can't be replayed), must

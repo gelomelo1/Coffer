@@ -160,7 +160,8 @@ namespace Coffer.Tests.ItemTypes
             "PUT api/Users/{id}", "PUT api/Users/UserFrontend", "GET api/Feed/Search/Users",
             "GET api/auth/currentUser", "GET api/auth/dev/users", "POST api/auth/dev/login", "POST api/auth/logout",
             "POST api/auth/refresh", "POST api/auth/register", "POST api/auth/google/validate", "POST api/auth/facebook/start",
-            "POST api/auth/facebook/complete", "POST api/auth/reddit/start", "POST api/auth/reddit/complete",
+            "POST api/auth/facebook/complete", "POST api/auth/discord/start", "POST api/auth/discord/complete", "POST api/auth/github/start",
+            "POST api/auth/github/complete",
         };
 
         /// <summary>Manager / admin routes see everything (Manager token + administrator re-check).</summary>

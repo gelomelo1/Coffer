@@ -39,9 +39,8 @@ namespace Coffer.BusinessLogic.DevSeed
         public string Name { get; set; } = "";
         public string? Email { get; set; }
         /// <summary>
-        /// "google", "facebook", "reddit" or "github". With the real provider id (Google/Facebook "sub", Reddit account
-        /// id) the person can sign in to the app as this user; GitHub users (no longer an app sign-in) use the dev login.
-        /// The seed is the only place a GitHub user may still be created.
+        /// "google", "facebook", "discord" or "github". With the real provider id (Google/Facebook "sub", Discord or
+        /// numeric GitHub id) the person can sign in to the app as this user.
         /// </summary>
         public string Provider { get; set; } = "google";
         public string ProviderUserId { get; set; } = "";

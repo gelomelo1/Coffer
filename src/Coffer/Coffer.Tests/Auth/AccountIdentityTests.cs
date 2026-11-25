@@ -56,7 +56,7 @@ namespace Coffer.Tests.Auth
             var victim = _api.Db.AddUser("victim");
 
             var response = await _api.ClientFor(admin).PutAsJsonAsync($"api/Users/{victim.Id}",
-                UserBody("victim", "reddit", "sub-victim", victim.Email));
+                UserBody("victim", "discord", "sub-victim", victim.Email));
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }

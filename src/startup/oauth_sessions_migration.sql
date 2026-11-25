@@ -1,12 +1,11 @@
--- Sign-in with Google, Facebook or Reddit (GitHub stays allowed only for rows created by the dev seed and earlier
--- sign-ins) and server-side sessions: every access token belongs to a session, refresh tokens are stored hashed and
+-- Sign-in with Google, Facebook, Discord or GitHub and server-side sessions: every access token belongs to a session, refresh tokens are stored hashed and
 -- rotate on every use. Safe to re-run.
 -- Run with:  docker compose -f docker-compose.dev.yml exec -T db sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < startup/oauth_sessions_migration.sql
 BEGIN;
 
 ALTER TABLE users DROP CONSTRAINT IF EXISTS users_provider_check;
 ALTER TABLE users ADD CONSTRAINT users_provider_check
-    CHECK (provider = ANY (ARRAY['google'::text, 'facebook'::text, 'reddit'::text, 'github'::text]));
+    CHECK (provider = ANY (ARRAY['google'::text, 'facebook'::text, 'discord'::text, 'github'::text]));
 
 CREATE TABLE IF NOT EXISTS auth_sessions (
     id uuid NOT NULL,

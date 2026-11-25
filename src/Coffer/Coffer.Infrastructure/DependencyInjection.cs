@@ -79,7 +79,8 @@ namespace Coffer.Infrastructure
             services.AddSingleton<Coffer.BusinessLogic.Auth.OAuth.OAuthTransactionStore>();
             services.AddSingleton<Coffer.BusinessLogic.Auth.OAuth.FacebookSigningKeys>();
             services.AddHttpClient<Coffer.BusinessLogic.Auth.OAuth.IFacebookOAuthClient, Coffer.BusinessLogic.Auth.OAuth.FacebookOAuthClient>(c => c.Timeout = TimeSpan.FromSeconds(15));
-            services.AddHttpClient<Coffer.BusinessLogic.Auth.OAuth.IRedditOAuthClient, Coffer.BusinessLogic.Auth.OAuth.RedditOAuthClient>(c => c.Timeout = TimeSpan.FromSeconds(15));
+            services.AddHttpClient<Coffer.BusinessLogic.Auth.OAuth.IDiscordOAuthClient, Coffer.BusinessLogic.Auth.OAuth.DiscordOAuthClient>(c => c.Timeout = TimeSpan.FromSeconds(15));
+            services.AddHttpClient<Coffer.BusinessLogic.Auth.OAuth.IGithubOAuthClient, Coffer.BusinessLogic.Auth.OAuth.GithubOAuthClient>(c => c.Timeout = TimeSpan.FromSeconds(15));
             services.AddScoped<IImageService, ImageService>();
             services.AddMemoryCache();
             services.AddHttpClient();
