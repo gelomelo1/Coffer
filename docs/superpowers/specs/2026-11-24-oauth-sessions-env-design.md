@@ -333,3 +333,27 @@ Discord instead, and GitHub sign-in back for every user (not only Coffer.Manager
 - **Env**: backend `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URI`, `GITHUB_CLIENT_ID`,
   `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI` (all required); app `EXPO_PUBLIC_DISCORD_APP_ID` (intent filter scheme
   `discord-<id>`). The audit report, README and redirect deep-link handling are updated.
+
+## Addendum (2026-11-25, 2): Google through a backend callback
+
+**Why.** The native SDK the app used (`@react-native-google-signin`, free "Original" module) wraps Google's deprecated
+legacy Android Sign-In and can't send a nonce. Your human partner chose Google through the same backend-held browser
+flow as the other providers. Google disables custom-URI-scheme redirects for Android OAuth clients by default (Oct 2023),
+so Google redirects to the **backend**, not the app.
+
+**Design (approved).**
+- Google Cloud "Web application" client. `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` (the API's
+  `/api/auth/google/callback`; https, or http only on localhost — dev uses `adb reverse tcp:5141 tcp:5141`),
+  `GOOGLE_APP_REDIRECT_URI` (e.g. `com.gelomelo.coffer://oauth/google`). `GOOGLE_CLIENT_IDS` goes.
+- `POST google/start` → transaction (state, nonce, PKCE verifier); authorize URL
+  `https://accounts.google.com/o/oauth2/v2/auth` (scope `openid email profile`, S256, `prompt=select_account`).
+- `GET google/callback?state&code|error` → takes the transaction by state (single use), exchanges the code at
+  `https://oauth2.googleapis.com/token` (client secret + verifier), verifies the ID token (RS256, Google JWKS
+  `https://www.googleapis.com/oauth2/v3/certs`, iss `https://accounts.google.com`/`accounts.google.com`, aud, exp,
+  nonce), keeps only the verified identity (e-mail only if `email_verified`) for 10 minutes, then 302 to
+  `GOOGLE_APP_REDIRECT_URI?state=…` (`&error=…` on denial or failure). No code or token reaches the app.
+- `POST google/complete {transactionId, state}` → takes the stored identity (single use, state compared) →
+  `SignInService.CompleteAsync`. Sessions are created only here.
+- Removed: `google/validate`, `GoogleIdTokenValidator` (and the 10-minute `iat` rule, replaced by the nonce), the app's
+  `@react-native-google-signin` package and `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`. Same Google Cloud project = same `sub`,
+  so existing Google users keep their accounts. Development switches Google off with a warning when unset, like the rest.
