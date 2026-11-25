@@ -16,10 +16,13 @@ namespace Coffer.Tests.Auth
         public List<Call> Calls { get; } = new();
         public Func<HttpRequestMessage, string, (HttpStatusCode Status, string Body)> Responder { get; set; } =
             (_, _) => (HttpStatusCode.NotFound, "{}");
+        /// <summary>Optional per-request delay (honours cancellation), to simulate a slow provider.</summary>
+        public Func<HttpRequestMessage, TimeSpan?> Delay { get; set; } = _ => null;
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var body = request.Content == null ? "" : await request.Content.ReadAsStringAsync(cancellationToken);
+            if (Delay(request) is { } delay) await Task.Delay(delay, cancellationToken);
             Calls.Add(new Call(request.Method, request.RequestUri!, body, request.Headers.Authorization?.ToString(),
                 request.Headers.UserAgent.ToString()));
             var (status, text) = Responder(request, body);

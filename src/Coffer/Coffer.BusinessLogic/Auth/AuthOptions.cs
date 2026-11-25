@@ -43,6 +43,11 @@ namespace Coffer.BusinessLogic.Auth
             if (missing.Count > 0)
                 throw new InvalidOperationException($"Missing auth settings: {string.Join(", ", missing)}. Set them in src/.env (development) or the production environment.");
 
+            // Each redirect is derived from its app id (the mobile app registers that scheme): a mismatch would only
+            // show up as "Sign-in failed" on a phone, so it stops startup instead.
+            RequireRedirect("FACEBOOK_REDIRECT_URI", facebook.RedirectUri, $"fb{facebook.AppId}://authorize");
+            RequireRedirect("DISCORD_REDIRECT_URI", discord.RedirectUri, $"discord-{discord.ClientId}:/authorize/callback");
+
             // The value from .env.example is public: anyone could sign tokens with it.
             if (secret.StartsWith("change-me", StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException("JWT_SECRET is still the placeholder from .env.example. Set a long random secret.");
@@ -52,6 +57,12 @@ namespace Coffer.BusinessLogic.Auth
                 throw new InvalidOperationException($"JWT_SECRET must be at least {MinJwtKeyBytes} bytes.");
 
             return new AuthOptions(key, new GoogleAuthOptions(googleIds), facebook, discord, github);
+        }
+
+        private static void RequireRedirect(string name, string actual, string expected)
+        {
+            if (!string.Equals(actual, expected, StringComparison.Ordinal))
+                throw new InvalidOperationException($"{name} must be {expected} (derived from its app id), not {actual}.");
         }
     }
 }

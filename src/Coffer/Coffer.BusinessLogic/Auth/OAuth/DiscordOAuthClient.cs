@@ -132,9 +132,11 @@ namespace Coffer.BusinessLogic.Auth.OAuth
                 };
                 request.Headers.Authorization = ClientCredentials();
                 request.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
-                using var _ = await _http.SendAsync(request);
+                // A slow provider must not hold up a sign-in that already succeeded.
+                using var timeout = new CancellationTokenSource(OAuthTimeouts.Revoke);
+                using var _ = await _http.SendAsync(request, timeout.Token);
             }
-            catch (Exception e) when (e is HttpRequestException or TaskCanceledException)
+            catch (Exception e) when (e is HttpRequestException or OperationCanceledException)
             {
                 // Best effort: the token only has the identify/email scopes.
             }

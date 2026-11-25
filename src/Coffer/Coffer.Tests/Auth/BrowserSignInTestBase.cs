@@ -12,6 +12,7 @@ namespace Coffer.Tests.Auth
     {
         protected readonly ApiFactory Api = new();
         protected readonly FakeHttp Http = new();
+        protected readonly CapturingLoggerProvider Logs = new();
         protected HttpClient Client = null!;
 
         /// <summary>"discord" or "github" (the api/auth/{provider}/… path).</summary>
@@ -20,7 +21,11 @@ namespace Coffer.Tests.Auth
         /// <summary>Called by the subclass constructor after it set up its fakes.</summary>
         protected void Init(Action<IServiceCollection> overrides)
         {
-            Api.Overrides = overrides;
+            Api.Overrides = services =>
+            {
+                overrides(services);
+                services.AddSingleton<Microsoft.Extensions.Logging.ILoggerProvider>(Logs);
+            };
             Client = Api.CreateClient();
         }
 
@@ -50,6 +55,14 @@ namespace Coffer.Tests.Auth
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             Assert.Equal("providerSignInFailed", (await SignInApi.Json(response)).Str("code"));
             Assert.Empty(Api.Db.NewContext().AuthSessions);
+        }
+
+        /// <summary>Nothing secret may reach the log, whatever went wrong.</summary>
+        protected void AssertLogHasNo(params string[] secrets)
+        {
+            var log = string.Join("\n", Logs.Lines);
+            Assert.Contains($"{Provider} sign-in failed", log, StringComparison.OrdinalIgnoreCase);
+            foreach (var secret in secrets) Assert.DoesNotContain(secret, log);
         }
 
         protected static string S256(string verifier) => Base64UrlEncoder.Encode(SHA256.HashData(Encoding.ASCII.GetBytes(verifier)));

@@ -14,7 +14,7 @@ namespace Coffer.BusinessLogic.Auth.OAuth
 
     /// <summary>
     /// GitHub app sign-in: authorization code with PKCE S256 and state, confidential client (the secret stays on the
-    /// backend). Identity is the immutable numeric GitHub id (never the login, which can be renamed and reused). The
+    /// backend), scope user:email only. Identity is the immutable numeric GitHub id (never the login, which can be renamed and reused). The
     /// e-mail is kept only when it is the primary verified address. Only this sign-in's token is deleted afterwards; the
     /// authorization stays, so the next sign-in doesn't ask for consent again. (Coffer.Manager's device flow is separate.)
     /// </summary>
@@ -34,7 +34,8 @@ namespace Coffer.BusinessLogic.Auth.OAuth
             "https://github.com/login/oauth/authorize" +
             $"?client_id={Uri.EscapeDataString(_options.ClientId)}" +
             $"&redirect_uri={Uri.EscapeDataString(_options.RedirectUri)}" +
-            $"&scope={Uri.EscapeDataString("read:user user:email")}" +
+            // Only the e-mail needs a scope; id, login and avatar are the public profile.
+            $"&scope={Uri.EscapeDataString("user:email")}" +
             $"&state={Uri.EscapeDataString(t.State)}" +
             $"&code_challenge={Uri.EscapeDataString(FacebookOAuthClient.CodeChallenge(t.CodeVerifier!))}" +
             "&code_challenge_method=S256" +
@@ -145,9 +146,11 @@ namespace Coffer.BusinessLogic.Auth.OAuth
                     Convert.ToBase64String(Encoding.UTF8.GetBytes($"{_options.ClientId}:{_options.ClientSecret}")));
                 request.Headers.UserAgent.ParseAdd(UserAgent);
                 request.Headers.Accept.ParseAdd("application/vnd.github+json");
-                using var _ = await _http.SendAsync(request);
+                // A slow provider must not hold up a sign-in that already succeeded.
+                using var timeout = new CancellationTokenSource(OAuthTimeouts.Revoke);
+                using var _ = await _http.SendAsync(request, timeout.Token);
             }
-            catch (Exception e) when (e is HttpRequestException or TaskCanceledException)
+            catch (Exception e) when (e is HttpRequestException or OperationCanceledException)
             {
                 // Best effort: the token is only used for these two reads.
             }

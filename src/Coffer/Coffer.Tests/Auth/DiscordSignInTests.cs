@@ -82,7 +82,7 @@ namespace Coffer.Tests.Auth
         }
 
         [Fact]
-        public async Task Existing_user_signed_in_by_id_not_username()
+        public async Task Existing_user_is_signed_in_by_discord_id()
         {
             var user = Api.Db.AddUser("anna");
             user.Provider = "discord";
@@ -172,5 +172,94 @@ namespace Coffer.Tests.Auth
 
             await AssertFailed(await StartAndComplete());
         }
-    }
+    
+        [Fact]
+        public async Task Revoke_uses_client_auth()
+        {
+            await StartAndComplete();
+
+            var call = Assert.Single(Http.Calls, c => c.Url.ToString() == RevokeEndpoint);
+            Assert.Equal("Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes($"{TestEnvironment.DiscordClientId}:test-discord-secret")), call.Authorization);
+        }
+
+        [Fact]
+        public async Task Token_is_revoked_even_when_reading_the_account_fails()
+        {
+            _me = (HttpStatusCode.InternalServerError, "oops");
+
+            await AssertFailed(await StartAndComplete());
+
+            Assert.Single(Http.Calls, c => c.Url.ToString() == RevokeEndpoint);
+        }
+
+        [Fact]
+        public async Task A_failing_revoke_does_not_fail_the_sign_in()
+        {
+            var inner = Http.Responder;
+            Http.Responder = (request, body) => request.RequestUri!.ToString() == RevokeEndpoint
+                ? throw new HttpRequestException("revoke endpoint down")
+                : inner(request, body);
+
+            var result = await SignInApi.Json(await StartAndComplete());
+
+            Assert.Equal("registrationRequired", result.Str("status"));
+        }
+
+        [Fact]
+        public async Task A_slow_revoke_does_not_hold_up_the_sign_in()
+        {
+            Http.Delay = request => request.RequestUri!.ToString() == RevokeEndpoint ? TimeSpan.FromSeconds(30) : null;
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
+            var response = await StartAndComplete();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.True(watch.Elapsed < TimeSpan.FromSeconds(10), $"took {watch.Elapsed}");
+        }
+
+        [Theory]
+        [InlineData("{\"id\":80351110224678912,\"username\":\"x\"}")]
+        [InlineData("{\"id\":\"abc\",\"username\":\"x\"}")]
+        [InlineData("{\"id\":\"\",\"username\":\"x\"}")]
+        public async Task Invalid_id_fails(string me)
+        {
+            _me = (HttpStatusCode.OK, me);
+
+            await AssertFailed(await StartAndComplete());
+        }
+
+        [Fact]
+        public async Task Unsafe_avatar_hash_is_dropped()
+        {
+            _me = (HttpStatusCode.OK, "{\"id\":\"42\",\"username\":\"x\",\"avatar\":\"../../evil\"}");
+
+            var result = await SignInApi.Json(await StartAndComplete());
+            await Client.PostAsJsonAsync("api/auth/register", new { registrationId = result.Str("registrationId"), username = "noavatar", country = "HU" });
+
+            Assert.Null((await Api.Db.NewContext().Users.SingleAsync(u => u.Name == "noavatar")).Avatar);
+        }
+
+        [Fact]
+        public async Task An_account_stored_under_the_discord_username_is_not_matched()
+        {
+            var user = Api.Db.AddUser("someone");
+            user.Provider = "discord";
+            user.ProviderUserId = "anna_dc"; // the Discord username of the signing-in account, not its id
+            Api.Db.Context.SaveChanges();
+
+            var result = await SignInApi.Json(await StartAndComplete());
+
+            Assert.Equal("registrationRequired", result.Str("status"));
+        }
+
+        [Fact]
+        public async Task Logs_never_contain_code_tokens_or_secret()
+        {
+            _me = (HttpStatusCode.InternalServerError, "oops");
+
+            await Complete(await Start(), code: "SECRET-DISCORD-CODE");
+
+            AssertLogHasNo("SECRET-DISCORD-CODE", "discord-access-token", "test-discord-secret");
+        }
+}
 }

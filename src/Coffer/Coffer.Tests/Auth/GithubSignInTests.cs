@@ -46,7 +46,8 @@ namespace Coffer.Tests.Auth
             Assert.Equal("test-github-id", s.Query["client_id"]);
             Assert.Equal(Redirect, s.Query["redirect_uri"]);
             Assert.Equal(Redirect, s.RedirectUri);
-            Assert.Equal("read:user user:email", s.Query["scope"]);
+            // Only what Coffer uses: the public profile (id, login, avatar) needs no scope; user:email adds the e-mails.
+            Assert.Equal("user:email", s.Query["scope"]);
             Assert.Equal("S256", s.Query["code_challenge_method"]);
             Assert.Equal(43, s.State.Length);
             Assert.DoesNotContain(s.Id, s.Url.ToString());
@@ -174,5 +175,104 @@ namespace Coffer.Tests.Auth
 
             await AssertFailed(await StartAndComplete());
         }
-    }
+    
+        [Fact]
+        public async Task Token_is_revoked_even_when_reading_the_account_fails()
+        {
+            _user = (HttpStatusCode.InternalServerError, "oops");
+
+            await AssertFailed(await StartAndComplete());
+
+            Assert.Single(Http.Calls, c => c.Url.ToString() == Revoke);
+        }
+
+        [Fact]
+        public async Task A_failing_revoke_does_not_fail_the_sign_in()
+        {
+            var inner = Http.Responder;
+            Http.Responder = (request, body) => request.RequestUri!.ToString() == Revoke
+                ? throw new HttpRequestException("revoke endpoint down")
+                : inner(request, body);
+
+            var result = await SignInApi.Json(await StartAndComplete());
+
+            Assert.Equal("registrationRequired", result.Str("status"));
+        }
+
+        [Fact]
+        public async Task A_slow_revoke_does_not_hold_up_the_sign_in()
+        {
+            Http.Delay = request => request.RequestUri!.ToString() == Revoke ? TimeSpan.FromSeconds(30) : null;
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
+            var response = await StartAndComplete();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.True(watch.Elapsed < TimeSpan.FromSeconds(10), $"took {watch.Elapsed}");
+        }
+
+        [Theory]
+        [InlineData("{\"id\":\"12345\",\"login\":\"anna-gh\"}")]
+        [InlineData("{\"id\":0,\"login\":\"anna-gh\"}")]
+        [InlineData("{\"id\":-5,\"login\":\"anna-gh\"}")]
+        public async Task Invalid_id_fails(string user)
+        {
+            _user = (HttpStatusCode.OK, user);
+
+            await AssertFailed(await StartAndComplete());
+        }
+
+        [Fact]
+        public async Task Non_https_avatar_is_dropped()
+        {
+            _user = (HttpStatusCode.OK, "{\"id\":777,\"login\":\"x\",\"avatar_url\":\"http://evil.example/a.png\"}");
+
+            var result = await SignInApi.Json(await StartAndComplete());
+            await Client.PostAsJsonAsync("api/auth/register", new { registrationId = result.Str("registrationId"), username = "plainavatar", country = "HU" });
+
+            Assert.Null((await Api.Db.NewContext().Users.SingleAsync(u => u.Name == "plainavatar")).Avatar);
+        }
+
+        [Fact]
+        public async Task Emails_endpoint_failure_fails_cleanly()
+        {
+            _emails = (HttpStatusCode.Forbidden, "{\"message\":\"Resource not accessible\"}");
+
+            await AssertFailed(await StartAndComplete());
+        }
+
+        [Fact]
+        public async Task Only_a_verified_non_primary_address_means_no_email()
+        {
+            _emails = (HttpStatusCode.OK, "[{\"email\":\"other@example.com\",\"primary\":false,\"verified\":true},{\"email\":\"main@example.com\",\"primary\":true,\"verified\":false}]");
+
+            var result = await SignInApi.Json(await StartAndComplete());
+            await Client.PostAsJsonAsync("api/auth/register", new { registrationId = result.Str("registrationId"), username = "noprimary", country = "HU" });
+
+            Assert.Equal("", (await Api.Db.NewContext().Users.SingleAsync(u => u.Name == "noprimary")).Email);
+        }
+
+        [Fact]
+        public async Task An_account_stored_under_the_github_login_is_not_matched()
+        {
+            var user = Api.Db.AddUser("someone");
+            user.Provider = "github";
+            user.ProviderUserId = "anna-gh"; // the GitHub login of the signing-in account, not its id
+            Api.Db.Context.SaveChanges();
+
+            var result = await SignInApi.Json(await StartAndComplete());
+
+            Assert.Equal("registrationRequired", result.Str("status"));
+        }
+
+        [Fact]
+        public async Task Logs_never_contain_code_tokens_or_secret()
+        {
+            _user = (HttpStatusCode.InternalServerError, "oops");
+
+            await Complete(await Start(), code: "SECRET-GITHUB-CODE");
+
+            AssertLogHasNo("SECRET-GITHUB-CODE", "gho_access", "test-github-secret");
+        }
+}
 }

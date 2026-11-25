@@ -324,7 +324,7 @@ Discord instead, and GitHub sign-in back for every user (not only Coffer.Manager
 - **Discord**: authorization code + PKCE S256 + state, confidential client (secret on the backend), scopes
   `identify email`. Identity = Discord user id (never the username); e-mail kept only when Discord says `verified`.
   Redirect `discord-<APP_ID>:/authorize/callback` (Discord's mobile guide). The Discord token is revoked after use.
-- **GitHub**: authorization code + PKCE S256 + state, confidential client, scopes `read:user user:email`. Identity =
+- **GitHub**: authorization code + PKCE S256 + state, confidential client, scope `user:email` only (narrowed on 2026-11-25: every provider asks only for name, e-mail and avatar). Identity =
   numeric GitHub id (never the login); e-mail kept only when it is the primary verified address. Redirect
   `com.gelomelo.coffer://oauth/github`. Only that token is deleted after use (the grant stays, so no new consent each
   time). The Manager's device flow is unchanged and may use the same OAuth app. Existing GitHub users sign in again.

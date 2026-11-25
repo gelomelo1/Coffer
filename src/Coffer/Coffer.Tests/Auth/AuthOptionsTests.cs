@@ -93,5 +93,27 @@ namespace Coffer.Tests.Auth
 
             Assert.Contains("GOOGLE_CLIENT_IDS", e.Message);
         }
-    }
+    
+        [Fact]
+        public void Facebook_redirect_must_match_the_app_id()
+        {
+            var values = Complete();
+            values["FACEBOOK_REDIRECT_URI"] = "fb999://authorize";
+
+            var e = Assert.Throws<InvalidOperationException>(() => Load(values));
+
+            Assert.Contains("FACEBOOK_REDIRECT_URI must be fb123://authorize", e.Message);
+        }
+
+        [Fact]
+        public void Discord_redirect_must_match_the_client_id()
+        {
+            var values = Complete();
+            values["DISCORD_REDIRECT_URI"] = "discord-someone-else:/authorize/callback";
+
+            var e = Assert.Throws<InvalidOperationException>(() => Load(values));
+
+            Assert.Contains("DISCORD_REDIRECT_URI must be discord-discord-id:/authorize/callback", e.Message);
+        }
+}
 }

@@ -113,9 +113,14 @@ Security audit of sign-in and sessions: [docs/security/2026-11-24-oauth-audit.md
   `identify email`; identity is the Discord user id; the e-mail is kept only when Discord marks it verified. Setup:
   Discord developer portal → OAuth2 → add the redirect `discord-<APP_ID>:/authorize/callback`.
 * **GitHub** — in-app browser, authorization code with PKCE (S256) and state; the secret stays on the API. Scopes
-  `read:user user:email`; identity is the numeric GitHub id; the e-mail is kept only when it is the primary verified
+  `user:email` (the public profile needs none); identity is the numeric GitHub id; the e-mail is kept only when it is the primary verified
   address; only this sign-in's token is deleted afterwards. Setup: the Coffer OAuth app's callback URL must be exactly
   `com.gelomelo.coffer://oauth/github`. (Coffer.Manager keeps its own GitHub device flow.)
+* Every provider is asked only for a name, the e-mail address and the avatar (Google `profile email`; Facebook
+  `openid public_profile email`, `openid` only enables the signed ID token; Discord `identify email`; GitHub
+  `user:email`). Provider tokens are revoked after sign-in (at most 3 s, never holding up the sign-in).
+* `FACEBOOK_REDIRECT_URI` must be `fb<FACEBOOK_APP_ID>://authorize` and `DISCORD_REDIRECT_URI`
+  `discord-<DISCORD_CLIENT_ID>:/authorize/callback`; the API refuses to start otherwise.
 * Reddit is not offered: it stopped accepting new API access on 31 Oct 2026.
 * Accounts are matched by provider + the provider's account id only, never by e-mail. New identities get a
   10-minute, single-use registration (username + country).
