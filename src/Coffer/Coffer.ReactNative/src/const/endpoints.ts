@@ -1,7 +1,8 @@
 import { backendAxios } from "./backendAccessConfiguration";
 
 export const endpoints = {
-  googleValidate: "api/auth/google/validate",
+  googleStart: "api/auth/google/start",
+  googleComplete: "api/auth/google/complete",
   authRegister: "api/auth/register",
   authRefresh: "api/auth/refresh",
   authLogout: "api/auth/logout",

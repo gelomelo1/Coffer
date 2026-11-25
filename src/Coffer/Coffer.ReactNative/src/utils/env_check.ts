@@ -3,7 +3,6 @@ export type AppEnv = {
   /** Never ends with "/" (endpoints append "/api/..."). */
   backendUrl: string;
   /** Sign-in ids: null = that sign-in is off (debug builds only; release builds require them). */
-  googleWebClientId: string | null;
   facebookAppId: string | null;
   discordAppId: string | null;
   authScheme: string;
@@ -11,7 +10,6 @@ export type AppEnv = {
 
 export type RawAppEnv = {
   EXPO_PUBLIC_BACKEND_URL: string | undefined;
-  EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: string | undefined;
   EXPO_PUBLIC_FACEBOOK_APP_ID: string | undefined;
   EXPO_PUBLIC_DISCORD_APP_ID: string | undefined;
   EXPO_PUBLIC_AUTH_SCHEME: string | undefined;
@@ -20,7 +18,8 @@ export type RawAppEnv = {
 /** Always required, in every build. */
 const ALWAYS: (keyof RawAppEnv)[] = ["EXPO_PUBLIC_BACKEND_URL", "EXPO_PUBLIC_AUTH_SCHEME"];
 /** Required in release builds; in debug builds a missing one only switches that sign-in off. */
-const SIGN_IN: (keyof RawAppEnv)[] = ["EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID", "EXPO_PUBLIC_FACEBOOK_APP_ID", "EXPO_PUBLIC_DISCORD_APP_ID"];
+// (Google needs nothing app-side: the API builds its sign-in URL and receives its redirect.)
+const SIGN_IN: (keyof RawAppEnv)[] = ["EXPO_PUBLIC_FACEBOOK_APP_ID", "EXPO_PUBLIC_DISCORD_APP_ID"];
 
 /** The placeholders of .env.example (change-me…, your-…). */
 export function isPlaceholder(value: string): boolean {
@@ -29,7 +28,7 @@ export function isPlaceholder(value: string): boolean {
 
 /**
  * Fails loudly instead of falling back to a default. Release builds need every value and an https:// backend; debug
- * builds may leave sign-in ids out (or as placeholders) while the apps are being set up — those sign-ins are off.
+ * builds may leave the Facebook/Discord ids out (or as placeholders) while the apps are being set up — those sign-ins are off.
  */
 export function checkEnv(raw: RawAppEnv, isDev: boolean): AppEnv {
   for (const key of [...ALWAYS.slice(0, 1), ...SIGN_IN, ...ALWAYS.slice(1)]) {
@@ -53,7 +52,6 @@ export function checkEnv(raw: RawAppEnv, isDev: boolean): AppEnv {
   };
   return {
     backendUrl: backendUrl.replace(/\/+$/, ""),
-    googleWebClientId: signIn("EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID"),
     facebookAppId: signIn("EXPO_PUBLIC_FACEBOOK_APP_ID"),
     discordAppId: signIn("EXPO_PUBLIC_DISCORD_APP_ID"),
     authScheme: raw.EXPO_PUBLIC_AUTH_SCHEME!.trim(),

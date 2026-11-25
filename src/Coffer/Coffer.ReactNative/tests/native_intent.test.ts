@@ -8,6 +8,7 @@ test("OAuth redirects stay on the sign-in screen (the in-app browser hands them 
   assert.equal(systemPathFor("/oauth/github?error=access_denied&state=s"), "/login");
   assert.equal(systemPathFor("authorize?error=access_denied"), "/login");
   assert.equal(systemPathFor("com.gelomelo.coffer://oauth/github?code=abc&state=s"), "/login");
+  assert.equal(systemPathFor("com.gelomelo.coffer://oauth/google?state=s"), "/login");
   assert.equal(systemPathFor("discord-998877:/authorize/callback?code=abc&state=s"), "/login");
   assert.equal(systemPathFor("/authorize/callback?error=access_denied"), "/login");
 });

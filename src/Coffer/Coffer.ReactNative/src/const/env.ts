@@ -7,7 +7,6 @@ import { checkEnv } from "../utils/env_check";
 export const env = checkEnv(
   {
     EXPO_PUBLIC_BACKEND_URL: process.env.EXPO_PUBLIC_BACKEND_URL,
-    EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
     EXPO_PUBLIC_FACEBOOK_APP_ID: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID,
     EXPO_PUBLIC_DISCORD_APP_ID: process.env.EXPO_PUBLIC_DISCORD_APP_ID,
     EXPO_PUBLIC_AUTH_SCHEME: process.env.EXPO_PUBLIC_AUTH_SCHEME,

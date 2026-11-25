@@ -6,10 +6,9 @@ import showToast from "../components/custom_ui/toast";
 import { endpoints } from "../const/endpoints";
 import { ROUTES } from "../const/navigation_params";
 import { apiErrorText } from "../utils/api_error_text";
-import { parseAuthResult, queryParam } from "../utils/auth_redirect";
+import { parseAuthResult, parseRelayResult, queryParam } from "../utils/auth_redirect";
 import { postData } from "../utils/backend_access";
 import { env } from "../const/env";
-import { GoogleSignin, googleSignInEnabled } from "../utils/google_signin";
 import { signInWith } from "../utils/session";
 import type { StoredSession } from "../utils/token_store";
 
@@ -37,7 +36,7 @@ interface UseSignInProps {
 }
 
 /**
- * Google (native sign-in, ID token checked by the backend), Facebook, Discord and GitHub (in-app browser; the backend builds
+ * Google, Facebook, Discord and GitHub, all in the in-app browser (the backend builds
  * the sign-in URL and holds the state, nonce and PKCE verifier). All three end in the backend's shared answer:
  * signed in, or registration required. Tokens are never logged.
  */
@@ -78,21 +77,29 @@ export function useSignIn({ onRegistrationRequired, onSignedIn, onRegistered }: 
     }
   };
 
+  // Google sends the browser to the API, which verifies the sign-in and then returns to the app with only the state;
+  // the app then collects the result with its transaction id.
   const google = () =>
     run("google", async () => {
-      if (!googleSignInEnabled) return notConfigured();
-      let idToken: string | null | undefined;
-      try {
-        await GoogleSignin.hasPlayServices();
-        const response = await GoogleSignin.signIn();
-        if (response.type !== "success") return; // cancelled
-        idToken = response.data.idToken;
-      } catch {
+      const start = await postData<Record<string, never>, OAuthStart>(endpoints.googleStart, {});
+      const expectedState = queryParam(start.authorizeUrl, "state") ?? "";
+      const result = await WebBrowser.openAuthSessionAsync(start.authorizeUrl, start.redirectUri);
+      const back = parseRelayResult(result, expectedState, start.redirectUri);
+      if (back.kind === "cancelled") {
+        showToast("info", t("auth:login.cancelled"));
+        return;
+      }
+      if (back.kind === "error") {
         showToast("error", t("auth:login.failed"));
         return;
       }
-      if (!idToken) return;
-      await finish("google", await postData<{ idToken: string }, SignInAnswer>(endpoints.googleValidate, { idToken }));
+      await finish(
+        "google",
+        await postData<{ transactionId: string; state: string }, SignInAnswer>(endpoints.googleComplete, {
+          transactionId: start.transactionId,
+          state: back.state,
+        }),
+      );
     });
 
   const browser = (provider: BrowserProvider) =>
@@ -137,15 +144,8 @@ export function useSignIn({ onRegistrationRequired, onSignedIn, onRegistered }: 
     }
   };
 
-  /** Closing the registration form drops the pending registration (and the Google session it came from). */
+  /** Closing the registration form drops the pending registration. */
   const cancelRegistration = async () => {
-    if (pending?.provider === "google") {
-      try {
-        await GoogleSignin.signOut();
-      } catch {
-        // Already signed out.
-      }
-    }
     setPending(null);
   };
 

@@ -1,7 +1,6 @@
 import axios from "axios";
 import { env } from "../const/env";
 import { useUserStore } from "../hooks/user_store";
-import { GoogleSignin } from "./google_signin";
 import { queryClient } from "./query_client";
 import { clearSession, getAccessToken, getRefreshToken, saveSession, StoredSession } from "./token_store";
 
@@ -29,7 +28,7 @@ let signingOut = false;
 
 /**
  * Signs out on this device: ends the server session (best effort), forgets the tokens, empties the cached API data
- * and ends the Google session. Many failing requests can trigger it at once; only the first call does anything.
+ * Many failing requests can trigger it at once; only the first call does anything.
  */
 export async function signOut({ callServer }: { callServer: boolean }): Promise<void> {
   if (signingOut) return;
@@ -47,12 +46,6 @@ export async function signOut({ callServer }: { callServer: boolean }): Promise<
     await clearSession();
     queryClient.clear();
     useUserStore.getState().setToken(null);
-    try {
-      await GoogleSignin.revokeAccess();
-      await GoogleSignin.signOut();
-    } catch {
-      // Not signed in with Google, or already signed out.
-    }
   } finally {
     signingOut = false;
   }

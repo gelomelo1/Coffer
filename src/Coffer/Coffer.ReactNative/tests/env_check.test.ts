@@ -4,7 +4,6 @@ import { checkEnv } from "../src/utils/env_check.ts";
 
 const complete = {
   EXPO_PUBLIC_BACKEND_URL: "https://api.coffer.example",
-  EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: "web.apps.googleusercontent.com",
   EXPO_PUBLIC_FACEBOOK_APP_ID: "123456",
   EXPO_PUBLIC_DISCORD_APP_ID: "998877",
   EXPO_PUBLIC_AUTH_SCHEME: "com.gelomelo.coffer",
@@ -13,7 +12,6 @@ const complete = {
 test("all values present: normalised config", () => {
   assert.deepEqual(checkEnv(complete, false), {
     backendUrl: "https://api.coffer.example",
-    googleWebClientId: "web.apps.googleusercontent.com",
     facebookAppId: "123456",
     discordAppId: "998877",
     authScheme: "com.gelomelo.coffer",
@@ -39,10 +37,9 @@ test("release build: a placeholder is refused", () => {
 
 test("debug build: missing or placeholder sign-in ids switch that sign-in off", () => {
   const env = checkEnv(
-    { ...complete, EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: undefined, EXPO_PUBLIC_FACEBOOK_APP_ID: "change-me", EXPO_PUBLIC_DISCORD_APP_ID: "your-discord-application-id" },
+    { ...complete, EXPO_PUBLIC_FACEBOOK_APP_ID: "change-me", EXPO_PUBLIC_DISCORD_APP_ID: "your-discord-application-id" },
     true,
   );
-  assert.equal(env.googleWebClientId, null);
   assert.equal(env.facebookAppId, null);
   assert.equal(env.discordAppId, null);
 });

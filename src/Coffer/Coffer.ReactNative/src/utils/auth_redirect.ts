@@ -42,3 +42,19 @@ export function parseAuthResult(result: { type: string; url?: string }, expected
   if (!p.code) return { kind: "error", error: "missing_code" };
   return { kind: "code", code: p.code, state: p.state };
 }
+
+/** Google comes back through the API: only the state (the API holds the verified result), or an error. */
+export type RelayRedirect = { kind: "ready"; state: string } | { kind: "cancelled" } | { kind: "error"; error: string };
+
+export function parseRelayResult(result: { type: string; url?: string }, expectedState: string, redirectUri: string): RelayRedirect {
+  if (result.type !== "success" || !result.url) return { kind: "cancelled" };
+
+  const rest = result.url.slice(redirectUri.length);
+  if (!result.url.startsWith(redirectUri) || !(rest === "" || rest.startsWith("?") || rest.startsWith("#") || rest.startsWith("/")))
+    return { kind: "error", error: "redirect_mismatch" };
+
+  const p = params(result.url);
+  if (p.error) return p.error === "access_denied" ? { kind: "cancelled" } : { kind: "error", error: p.error };
+  if (!p.state || p.state !== expectedState) return { kind: "error", error: "state_mismatch" };
+  return { kind: "ready", state: p.state };
+}
