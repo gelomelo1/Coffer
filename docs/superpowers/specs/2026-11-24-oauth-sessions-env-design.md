@@ -312,3 +312,24 @@ scope that turns up is listed, not fixed.
 
 Class/file names, exact rate-limit numbers, cache implementation, test layout, and whether pending transactions and
 registrations share one in-memory store (single API instance assumed — noted in the audit as a scaling limit).
+
+## Addendum (2026-11-25): Discord replaces Reddit, GitHub returns for every user
+
+**Why.** Reddit stopped accepting new Data API access requests on 31 Oct 2026 and ends public API access in March 2027
+(secondary sources; Reddit's own post not found), so Reddit sign-in can never work for Coffer. Your human partner chose
+Discord instead, and GitHub sign-in back for every user (not only Coffer.Manager administrators).
+
+**Design (approved).** Both use the existing backend-held browser flow (start → in-app browser → complete):
+
+- **Discord**: authorization code + PKCE S256 + state, confidential client (secret on the backend), scopes
+  `identify email`. Identity = Discord user id (never the username); e-mail kept only when Discord says `verified`.
+  Redirect `discord-<APP_ID>:/authorize/callback` (Discord's mobile guide). The Discord token is revoked after use.
+- **GitHub**: authorization code + PKCE S256 + state, confidential client, scopes `read:user user:email`. Identity =
+  numeric GitHub id (never the login); e-mail kept only when it is the primary verified address. Redirect
+  `com.gelomelo.coffer://oauth/github`. Only that token is deleted after use (the grant stays, so no new consent each
+  time). The Manager's device flow is unchanged and may use the same OAuth app. Existing GitHub users sign in again.
+- **Reddit removed everywhere** (client, endpoints, button, env keys, tests). DB provider check:
+  `google`, `facebook`, `discord`, `github` (the not-yet-run migration is edited in place). Seed providers likewise.
+- **Env**: backend `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URI`, `GITHUB_CLIENT_ID`,
+  `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI` (all required); app `EXPO_PUBLIC_DISCORD_APP_ID` (intent filter scheme
+  `discord-<id>`). The audit report, README and redirect deep-link handling are updated.
