@@ -357,3 +357,8 @@ so Google redirects to the **backend**, not the app.
 - Removed: `google/validate`, `GoogleIdTokenValidator` (and the 10-minute `iat` rule, replaced by the nonce), the app's
   `@react-native-google-signin` package and `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`. Same Google Cloud project = same `sub`,
   so existing Google users keep their accounts. Development switches Google off with a warning when unset, like the rest.
+
+**Amendment (review, 2026-11-25).** The callback also creates a one-time handle and redirects with `?state=…&handle=…`;
+`google/complete` requires it. Without it, whoever started a sign-in (and so knew the transaction id and the state)
+could collect the sign-in of anyone who finished the forwarded Google link. `GOOGLE_APP_REDIRECT_URI` must be an app
+scheme without `?`/`#`.
