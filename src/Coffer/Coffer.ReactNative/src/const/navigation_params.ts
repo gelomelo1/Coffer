@@ -34,6 +34,8 @@ export const ROUTES = {
     NEWS_POST: "community/news-post" as any,
     STATS: "community/stats" as any,
     SHAPE: "community/shape" as any,
+    SHAPE_DETECTION: "community/shape-detection" as any,
+    SHAPE_CLASSIFICATION: "community/shape-classification" as any,
   },
 } as const;
 
