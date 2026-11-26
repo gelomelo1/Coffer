@@ -9,7 +9,9 @@ import { conditionLabels, listingKindLabels, MAX_LISTING_IMAGES, MAX_LISTING_LIN
 import { useMarketMutation } from "@/src/hooks/market_api";
 import { borders, colors, hitSlopFor, sizes, spacing, typography } from "@/src/theme/theme";
 import { City, ListingCondition, ListingDetail, ListingImage, ListingInput, ListingKind } from "@/src/types/entities/market";
+import { listingImageResize } from "@/src/const/image_resize_config";
 import { pickImage } from "@/src/utils/data_access_utils";
+import { resizeForUpload } from "@/src/utils/resize_photo";
 import { formatAmountInput } from "@/src/utils/format";
 import { LocalImage, marketApi, parsePriceToCents } from "@/src/utils/market_api";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -115,13 +117,14 @@ function ListingFormOverlay({
     const remaining = MAX_LISTING_IMAGES - imageCount;
     if (remaining <= 0) return;
     const result = await pickImage(source, {
-      quality: 0.6,
       allowsMultipleSelection: source === "gallery",
       selectionLimit: remaining,
     });
     if (result.status === "success") {
+      // Resized on the phone (1600 px wide) for a fast upload; the server only resizes what arrives bigger.
+      const resized = await Promise.all(result.assets.map((a) => resizeForUpload(a, listingImageResize)));
       setNewImages((prev) =>
-        [...prev, ...result.assets.map((a) => ({ uri: a.uri, fileName: a.fileName, mimeType: a.mimeType }))].slice(0, MAX_LISTING_IMAGES - keptImages.length),
+        [...prev, ...resized.map((a) => ({ uri: a.uri, fileName: a.fileName, mimeType: a.mimeType }))].slice(0, MAX_LISTING_IMAGES - keptImages.length),
       );
     } else if (result.status === "permission_denied") {
       showToast("error", t("market:photo.permissionTitle"), t("market:photo.permissionText"));

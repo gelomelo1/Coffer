@@ -6,7 +6,9 @@ import CustomTextInput from "@/src/components/custom_ui/custom_text_input";
 import showToast from "@/src/components/custom_ui/toast";
 import { useCarriers } from "@/src/hooks/market_api";
 import { borders, colors, spacing, typography } from "@/src/theme/theme";
+import { listingImageResize } from "@/src/const/image_resize_config";
 import { pickImage } from "@/src/utils/data_access_utils";
+import { resizeForUpload } from "@/src/utils/resize_photo";
 import { LocalImage } from "@/src/utils/market_api";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useEffect, useState } from "react";
@@ -17,9 +19,10 @@ import { Chip, ChipRow, ErrorText, WarningBanner } from "../ui/retro";
 function PhotoPicker({ photo, onChange, label }: { photo: LocalImage | null; onChange: (p: LocalImage | null) => void; label: string }) {
   const { t } = useTranslation();
   const pick = async (source: "camera" | "gallery") => {
-    const result = await pickImage(source, { quality: 0.6 });
+    const result = await pickImage(source);
     if (result.status === "success" && result.assets[0]) {
-      const a = result.assets[0];
+      // Resized on the phone (1600 px wide) for a fast upload; the server only resizes what arrives bigger.
+      const a = await resizeForUpload(result.assets[0], listingImageResize);
       onChange({ uri: a.uri, fileName: a.fileName, mimeType: a.mimeType });
     } else if (result.status === "permission_denied") {
       showToast("error", t("market:photo.permissionTitle"), t("market:photo.permissionText"));
