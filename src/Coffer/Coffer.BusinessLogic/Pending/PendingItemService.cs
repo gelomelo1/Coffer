@@ -275,11 +275,12 @@ namespace Coffer.BusinessLogic.Pending
 
         public async Task<ImageCheckResultDto> CreateFromImageAsync(Guid userId, CollectionProvided collection, IFormFile file)
         {
+            // The app sends 800 px wide photos; anything bigger (or carrying metadata) is prepared here first.
+            var prepared = await Coffer.BusinessLogic.Images.UploadedImages.PrepareAsync(file, Coffer.BusinessLogic.Images.UploadWidths.Small);
             using var form = new MultipartFormDataContent();
-            await using var stream = file.OpenReadStream();
-            using var content = new StreamContent(stream);
-            content.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
-            form.Add(content, "file", file.FileName);
+            using var content = new ByteArrayContent(prepared.Bytes);
+            content.Headers.ContentType = new MediaTypeHeaderValue(prepared.ContentType);
+            form.Add(content, "file", "upload" + prepared.Extension);
 
             var response = await _http.PostAsync($"{PythonUrl}/image_check/{collection.CollectionTypeId}/{collection.Id}", form);
             response.EnsureSuccessStatusCode();

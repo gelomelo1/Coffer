@@ -28,7 +28,7 @@ namespace Coffer.Tests.Pending
         private static MultipartFormDataContent Photo()
         {
             var form = new MultipartFormDataContent();
-            var file = new ByteArrayContent(new byte[] { 0xFF, 0xD8, 0xFF });
+            var file = new ByteArrayContent(Coffer.Tests.ItemTypes.ItemTypeFilesTests.Jpeg(64, 48));
             file.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
             form.Add(file, "file", "caps.jpg");
             return form;

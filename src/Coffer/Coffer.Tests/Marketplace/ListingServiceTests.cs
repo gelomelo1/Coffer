@@ -9,7 +9,8 @@ namespace Coffer.Tests.Marketplace
 {
     public static class TestImages
     {
-        public static readonly byte[] Jpeg = { 0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46 };
+        /// <summary>A real (decodable) 8×8 JPEG: uploads are decoded on the server.</summary>
+        public static readonly byte[] Jpeg = Coffer.Tests.ItemTypes.ItemTypeFilesTests.Jpeg(8, 8);
 
         public static IFormFile File(string name = "photo.jpg", string contentType = "image/jpeg", byte[]? bytes = null)
         {

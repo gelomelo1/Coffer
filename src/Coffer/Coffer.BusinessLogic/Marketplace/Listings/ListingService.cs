@@ -400,7 +400,7 @@ namespace Coffer.BusinessLogic.Marketplace.Listings
             foreach (var file in files)
             {
                 var image = new ListingImage { Id = Guid.NewGuid(), Position = position++ };
-                image.FileName = await _images.SaveImageAsync(file, image.Id, _storage.ListingImages);
+                image.FileName = await _images.SaveImageAsync(file, image.Id, _storage.ListingImages, Coffer.BusinessLogic.Images.UploadWidths.Large);
                 saved.Add(image.FileName);
                 listing.Images.Add(image);
                 // The id is set up front (it names the file), so EF must be told explicitly that the row is new.

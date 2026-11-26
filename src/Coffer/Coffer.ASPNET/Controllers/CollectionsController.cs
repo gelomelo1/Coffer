@@ -117,7 +117,7 @@ namespace Coffer.ASPNET.Controllers
                         return Forbid();
                     }
 
-                    var fileName = await _imageService.SaveImageAsync(file, id, imageFolder);
+                    var fileName = await _imageService.SaveImageAsync(file, id, imageFolder, Coffer.BusinessLogic.Images.UploadWidths.Small);
                     collection.Image = fileName;
                 }
                 await _repository.UpdateItemAsync(id, collection);

@@ -453,7 +453,7 @@ namespace Coffer.BusinessLogic.Marketplace.Deals
         private async Task<string> SavePhotoAsync(IFormFile photo)
         {
             ImageUploadGuard.Validate(photo);
-            return await _images.SaveImageAsync(photo, Guid.NewGuid(), _storage.DealImages);
+            return await _images.SaveImageAsync(photo, Guid.NewGuid(), _storage.DealImages, Coffer.BusinessLogic.Images.UploadWidths.Large);
         }
 
         private async Task NotifyOtherConversationsAsync(Deal deal, string code, string text)

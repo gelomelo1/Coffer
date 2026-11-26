@@ -170,7 +170,8 @@ namespace Coffer.BusinessLogic.Services
             return (bytes, contentType);
         }
 
-        public async Task<string> SaveImageAsync(IFormFile file, Guid id, string destinationFolder)
+        /// <summary>Stores a user's photo; one wider than <paramref name="maxWidth"/> or carrying metadata is re-encoded first (UploadedImages).</summary>
+        public async Task<string> SaveImageAsync(IFormFile file, Guid id, string destinationFolder, int maxWidth)
         {
             if (file == null || file.Length == 0)
                 throw new ArgumentException("No file uploaded", nameof(file));
@@ -193,13 +194,11 @@ namespace Coffer.BusinessLogic.Services
                await DeleteImageAsync(Path.GetFileName(files), destinationFolder);
             }
 
-            var fileName = $"{id}_{DateTime.UtcNow:yyyyMMddHHmmss}{Path.GetExtension(file.FileName)}";
+            var prepared = await Coffer.BusinessLogic.Images.UploadedImages.PrepareAsync(file, maxWidth);
+            var fileName = $"{id}_{DateTime.UtcNow:yyyyMMddHHmmss}{prepared.Extension}";
             var filePath = Path.Combine(destinationFolder, fileName);
 
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
+            await File.WriteAllBytesAsync(filePath, prepared.Bytes);
 
             return fileName;
         }
