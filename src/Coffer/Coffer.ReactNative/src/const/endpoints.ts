@@ -63,4 +63,5 @@ export const endpoints = {
   activity: "api/Activity",
   communityStats: "api/Community/Stats",
   news: "api/News",
+  contribution: "api/Contribution",
 };

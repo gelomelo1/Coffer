@@ -27,7 +27,170 @@
     "goneText": "Lehet, hogy visszavonták vagy törölték."
   },
   "shape": {
-    "comingSoon": "Hamarosan segíthetsz új gyűjthető tárgyakat hozni a Cofferbe: küldj fotókat és adatokat, hogy az app megtanulja felismerni őket."
+    "comingSoon": "Hamarosan segíthetsz új gyűjthető tárgyakat hozni a Cofferbe: küldj fotókat és adatokat, hogy az app megtanulja felismerni őket.",
+    "off": {
+      "title": "Jelenleg nincs közös forduló",
+      "reasons": {
+        "justFinished": "Most ért véget egy közös forduló. Köszönjük, hogy részt vettél!",
+        "communityTooSmall": "A közösség még nem elég nagy — hívd meg a barátaidat!",
+        "contributionFinished": "A közös munka befejeződött.",
+        "modelsInProgress": "Az új tárgytípusok modelljei most készülnek."
+      }
+    },
+    "latest": {
+      "title": "Legutóbbi szavazás",
+      "winner": "Nyertes: {{name}}",
+      "votes_one": "{{count}} szavazat",
+      "votes_other": "{{count}} szavazat",
+      "rowA11y": "{{name}}: {{share}}, {{votes}}",
+      "winnerA11y": "{{name}}, nyertes: {{share}}, {{votes}}"
+    },
+    "countdown": {
+      "days": "n",
+      "ends": "vége: {{date}}",
+      "a11y": "Még {{days}} nap {{hours}} óra {{minutes}} perc",
+      "progressA11y": "A fordulóból eltelt idő",
+      "ended": "Ez a forduló véget ért."
+    },
+    "vote": {
+      "title": "Szavazás: mi jöjjön legközelebb?",
+      "candidatesA11y": "Jelöltek",
+      "question": "Milyen jellemzőket szeretnél látni, és miért lenne jó?",
+      "placeholder": "pl. évszám, ország, állapot — és miért fontosak neked",
+      "counter": "{{count}}/1000",
+      "tooShort": "Írj legalább 10 karaktert.",
+      "pickFirst": "Előbb válassz jelöltet.",
+      "send": "Szavazat elküldése",
+      "update": "Szavazat frissítése",
+      "edit": "Szavazat módosítása",
+      "cancel": "Mégse",
+      "yourVote": "A szavazatod: {{name}}",
+      "sent": "Köszönjük! A szavazatod beérkezett."
+    },
+    "photo": {
+      "title": "Tanítsd a Coffert: {{subject}}",
+      "intro": "A fotóid tanítják azokat a modelleket, amelyek felismerik ezt az új tárgytípust. Mindkét űrlap mindig nyitva van — küldj, amennyit szeretnél."
+    },
+    "detection": {
+      "title": "Tárgyfelismerés",
+      "description": "Fotók egy vagy több tárggyal (és hasonmásokkal) — mind egy közös gyűjteménybe kerül.",
+      "mine_one": "{{count}} fotót töltöttél fel",
+      "mine_other": "{{count}} fotót töltöttél fel",
+      "open": "Fotók feltöltése",
+      "camera": "Kamera",
+      "gallery": "Galéria",
+      "empty": "Adj hozzá fotókat a kamerával vagy a galériából (egyszerre legfeljebb {{count}} darabot).",
+      "send_one": "{{count}} fotó küldése",
+      "send_other": "{{count}} fotó küldése",
+      "sent_one": "{{count}} fotó feltöltve — köszönjük!",
+      "sent_other": "{{count}} fotó feltöltve — köszönjük!",
+      "remove": "{{index}}. fotó eltávolítása",
+      "full": "Ez {{count}} fotó — előbb küldd el ezeket."
+    },
+    "classification": {
+      "title": "Osztályozás",
+      "description": "Űrlaponként 5–10 fotó ugyanarról a tárgyról. Minden tárgyhoz kezdj új űrlapot.",
+      "mine_one": "{{count}} űrlapot töltöttél ki",
+      "mine_other": "{{count}} űrlapot töltöttél ki",
+      "open": "Új űrlap",
+      "progress": "{{count}} / 5–10 fotó",
+      "sameItem": "Minden fotón pontosan ugyanaz a tárgy legyen.",
+      "complete": "Űrlap beküldése",
+      "completed": "Űrlap beküldve — köszönjük!",
+      "full": "Az űrlap megtelt (10 fotó)."
+    },
+    "limits": {
+      "left_one": "Ma még {{count}} fotót tölthetsz fel",
+      "left_other": "Ma még {{count}} fotót tölthetsz fel",
+      "reached": "Elérted a mai keretet. Újra {{time}} után."
+    },
+    "discard": {
+      "title": "Elveted ezt az űrlapot?",
+      "text": "Az űrlaphoz adott fotók elvesznek.",
+      "keep": "Folytatom",
+      "discard": "Elvetem"
+    },
+    "examples": {
+      "open": "Példák",
+      "title": "Jó és rossz példák",
+      "close": "Bezárás",
+      "previous": "Előző példa",
+      "next": "Következő példa",
+      "imageA11y": "{{index}}. példa ennyiből: {{count}}",
+      "position": "{{index}} / {{count}}"
+    },
+    "guidelines": {
+      "open": "Útmutató",
+      "show": "Útmutató megjelenítése",
+      "hide": "Útmutató elrejtése",
+      "classification": {
+        "intro": "Hogy a modell a lehető legpontosabb legyen, kövesd ezeket a tanácsokat:",
+        "angles": {
+          "title": "Különböző szögek",
+          "text": "Forgasd a tárgyat, és fotózd különböző oldalakról és nézőpontokból."
+        },
+        "lighting": {
+          "title": "Változatos fények",
+          "text": "Próbálj ki különböző fényviszonyokat, de kerüld a túl világos vagy túl sötét képeket."
+        },
+        "background": {
+          "title": "Más-más háttér",
+          "text": "Használj különböző hátteret, hogy a modell magára a tárgyra figyeljen."
+        },
+        "consistent": {
+          "title": "Mindig ugyanaz a tárgy",
+          "text": "Minden fotón pontosan ugyanaz a fizikai tárgy legyen."
+        },
+        "distance": {
+          "title": "Változó távolság",
+          "text": "Nyugodtan kísérletezz a távolsággal, de a tárgy jól látszódjon, és ne legyen túl messze."
+        },
+        "tilts": {
+          "title": "Enyhe döntés",
+          "text": "A tárgyat néhány fokkal megdöntheted, de kerüld a szélsőséges szögeket."
+        },
+        "think": {
+          "title": "Gondolj így rá",
+          "text": "Olyan fotókat készíts, amelyekről te is könnyen felismernéd a tárgyat, akkor is, ha a szög, a háttér vagy a fény változik."
+        }
+      },
+      "detection": {
+        "intro": "Feltölthetsz fotókat különböző tárgyakkal, egy képen több tárggyal, vagy tárgyakkal és más objektumokkal vegyesen. Nem kell minden képen ugyanannak a tárgynak lennie.",
+        "intro2": "Hogy a modell pontosabb és megbízhatóbb legyen, kövesd ezeket a tanácsokat:",
+        "differentItems": {
+          "title": "Különböző tárgyak",
+          "text": "Minél több különböző mintájú, színű és stílusú tárgyat fotózz."
+        },
+        "multiple": {
+          "title": "Több tárgy egy képen",
+          "text": "Nyugodtan tegyél több tárgyat egy fotóra."
+        },
+        "distance": {
+          "title": "Változó távolság",
+          "text": "Fotózz különböző távolságból, de a tárgyak jól látszódjanak."
+        },
+        "background": {
+          "title": "Más-más háttér",
+          "text": "Használj különböző felületeket és hátteret, hogy a felismerés sokféle környezetben működjön."
+        },
+        "lighting": {
+          "title": "Változatos fények",
+          "text": "Legyenek különböző fényviszonyok, de ne csak nagyon világos vagy nagyon sötét képek."
+        },
+        "tilts": {
+          "title": "Enyhe döntés",
+          "text": "Kísérletezz kicsit a kamera és a tárgyak szögével, de kerüld a szélsőséges dőlést."
+        },
+        "negatives": {
+          "title": "Megtévesztő példák",
+          "text": "Ez különösen fontos! Tegyél fel olyan fotókat is, amelyeken a tárgyakhoz hasonló, de NEM olyan tárgyak vannak, például hasonló formájú, méretű, színű vagy mintájú objektumok. Ezekből tanulja meg a modell, mit NEM kell tárgynak felismernie."
+        },
+        "important": {
+          "title": "Fontos",
+          "text": "Nem kell minden képen minden változatnak szerepelnie. Próbálj sokszínű, valósághű fotógyűjteményt készíteni, amelyben tárgyak és hozzájuk hasonló, de nem odatartozó objektumok is vannak."
+        }
+      }
+    }
   },
   "stats": {
     "numbers": "A közösség számokban",

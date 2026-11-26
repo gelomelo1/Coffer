@@ -27,7 +27,170 @@
     "goneText": "It may have been taken down or deleted."
   },
   "shape": {
-    "comingSoon": "Soon you can help bring new kinds of collectibles to Coffer: send photos and details so the app learns to recognise them."
+    "comingSoon": "Soon you can help bring new kinds of collectibles to Coffer: send photos and details so the app learns to recognise them.",
+    "off": {
+      "title": "No contribution period right now",
+      "reasons": {
+        "justFinished": "A contribution round just finished. Thank you for taking part!",
+        "communityTooSmall": "The community isn't big enough yet — invite your friends!",
+        "contributionFinished": "The contribution is finished.",
+        "modelsInProgress": "The models for new item types are in the works right now."
+      }
+    },
+    "latest": {
+      "title": "Latest vote",
+      "winner": "Winner: {{name}}",
+      "votes_one": "{{count}} vote",
+      "votes_other": "{{count}} votes",
+      "rowA11y": "{{name}}: {{share}}, {{votes}}",
+      "winnerA11y": "{{name}}, winner: {{share}}, {{votes}}"
+    },
+    "countdown": {
+      "days": "d",
+      "ends": "ends {{date}}",
+      "a11y": "{{days}} days {{hours}} hours {{minutes}} minutes left",
+      "progressA11y": "Time passed in this round",
+      "ended": "This round has ended."
+    },
+    "vote": {
+      "title": "Vote: what should come next?",
+      "candidatesA11y": "Candidates",
+      "question": "Which attributes would you like to see, and why would it be good?",
+      "placeholder": "e.g. year, country, condition — and why they matter to you",
+      "counter": "{{count}}/1000",
+      "tooShort": "Write at least 10 characters.",
+      "pickFirst": "Choose a candidate first.",
+      "send": "Send vote",
+      "update": "Update vote",
+      "edit": "Edit vote",
+      "cancel": "Cancel",
+      "yourVote": "Your vote: {{name}}",
+      "sent": "Thanks! Your vote is in."
+    },
+    "photo": {
+      "title": "Help us teach Coffer: {{subject}}",
+      "intro": "Your photos train the models that recognise this new item type. Both forms are always open — send as many as you like."
+    },
+    "detection": {
+      "title": "Object detection",
+      "description": "Photos with one or more items (and look-alikes) — all go into one shared pool.",
+      "mine_one": "You uploaded {{count}} photo",
+      "mine_other": "You uploaded {{count}} photos",
+      "open": "Upload photos",
+      "camera": "Camera",
+      "gallery": "Gallery",
+      "empty": "Add photos from the camera or your gallery (up to {{count}} at a time).",
+      "send_one": "Send {{count}} photo",
+      "send_other": "Send {{count}} photos",
+      "sent_one": "{{count}} photo uploaded — thank you!",
+      "sent_other": "{{count}} photos uploaded — thank you!",
+      "remove": "Remove photo {{index}}",
+      "full": "That's {{count}} photos — send these first."
+    },
+    "classification": {
+      "title": "Classification",
+      "description": "5–10 photos of the same physical item per form. Start a new form for every item.",
+      "mine_one": "You completed {{count}} form",
+      "mine_other": "You completed {{count}} forms",
+      "open": "New form",
+      "progress": "{{count}} of 5–10 photos",
+      "sameItem": "Every photo must show exactly the same physical item.",
+      "complete": "Complete form",
+      "completed": "Form completed — thank you!",
+      "full": "The form is full (10 photos)."
+    },
+    "limits": {
+      "left_one": "{{count}} photo left today",
+      "left_other": "{{count}} photos left today",
+      "reached": "You reached today's limit. More from {{time}}."
+    },
+    "discard": {
+      "title": "Discard this form?",
+      "text": "The photos you added to this form will be lost.",
+      "keep": "Keep editing",
+      "discard": "Discard"
+    },
+    "examples": {
+      "open": "Examples",
+      "title": "Good and bad examples",
+      "close": "Close",
+      "previous": "Previous example",
+      "next": "Next example",
+      "imageA11y": "Example {{index}} of {{count}}",
+      "position": "{{index}} / {{count}}"
+    },
+    "guidelines": {
+      "open": "Guidelines",
+      "show": "Show guidelines",
+      "hide": "Hide guidelines",
+      "classification": {
+        "intro": "To make the model as accurate as possible, please follow these guidelines:",
+        "angles": {
+          "title": "Different angles",
+          "text": "Rotate the item and take photos from different sides and perspectives."
+        },
+        "lighting": {
+          "title": "Vary the lighting",
+          "text": "Try different lighting conditions, but avoid extremely bright or dark images."
+        },
+        "background": {
+          "title": "Change the background",
+          "text": "Use different backgrounds to help the model focus on the item itself."
+        },
+        "consistent": {
+          "title": "Keep the item consistent",
+          "text": "Every photo must show exactly the same physical item."
+        },
+        "distance": {
+          "title": "Vary the distance",
+          "text": "Feel free to experiment with camera distance, but keep the item clearly visible and avoid shots that are too far away."
+        },
+        "tilts": {
+          "title": "Slight tilts",
+          "text": "You can slightly tilt the item by a few degrees, but avoid extreme angles."
+        },
+        "think": {
+          "title": "Think of it this way",
+          "text": "Take photos that would make it easy for you to recognize the item, even if the angle, background, or lighting changes."
+        }
+      },
+      "detection": {
+        "intro": "You can upload photos containing different items, multiple items in the same image, or a combination of items and other objects. You do not need to use the same item across all images.",
+        "intro2": "To help make the model more accurate and robust, please follow these guidelines:",
+        "differentItems": {
+          "title": "Different items",
+          "text": "Include as many different item designs, colors, and styles as possible."
+        },
+        "multiple": {
+          "title": "Multiple objects",
+          "text": "Feel free to include several items in a single photo."
+        },
+        "distance": {
+          "title": "Vary the distance",
+          "text": "Take photos from different distances, but keep the objects reasonably visible."
+        },
+        "background": {
+          "title": "Change the background",
+          "text": "Use different surfaces and backgrounds to improve detection in various environments."
+        },
+        "lighting": {
+          "title": "Vary the lighting",
+          "text": "Include different lighting conditions, avoiding exclusively extremely bright or dark images."
+        },
+        "tilts": {
+          "title": "Slight tilts",
+          "text": "Experiment with small changes in camera and object angles, but avoid extreme tilts."
+        },
+        "negatives": {
+          "title": "Hard negative examples",
+          "text": "This is particularly important! Include some photos containing objects that look similar to the items but are NOT the items, such as objects with a similar shape, size, color or pattern. These help the model learn what it should NOT detect as an item."
+        },
+        "important": {
+          "title": "Important",
+          "text": "Not every image needs to contain all these variations. Try to create a diverse collection of realistic photos, including both items and visually similar objects that are not items."
+        }
+      }
+    }
   },
   "stats": {
     "numbers": "The community in numbers",
