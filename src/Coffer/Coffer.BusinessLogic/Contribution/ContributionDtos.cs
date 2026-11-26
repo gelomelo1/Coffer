@@ -32,3 +32,51 @@ namespace Coffer.BusinessLogic.Contribution
 
     public sealed record WinnerInput(Guid CandidateId);
 }
+
+namespace Coffer.BusinessLogic.Contribution
+{
+    using System.Text.Json.Serialization;
+    using Coffer.Domain.Localization;
+
+    // ------------------------------------------------------------------ app
+
+    /// <summary>A candidate (or a photo phase's subject) in the request's language, English as fallback.</summary>
+    public sealed class CandidateViewDto
+    {
+        public Guid Id { get; init; }
+        [TranslatedBy(nameof(NameTranslations))] public string Name { get; init; } = "";
+        [TranslatedBy(nameof(DescriptionTranslations))] public string Description { get; init; } = "";
+        [JsonIgnore] public Dictionary<string, string> NameTranslations { get; init; } = new();
+        [JsonIgnore] public Dictionary<string, string> DescriptionTranslations { get; init; } = new();
+    }
+
+    public sealed record MyVoteDto(Guid CandidateId, string Text);
+
+    public sealed record MineDto(int DetectionPhotos, int ClassificationForms);
+
+    public sealed record LimitsDto(int PerUpload, int FormMin, int FormMax, int DailyLeft, DateTime DailyResetsAt);
+
+    /// <summary>The running phase. Vote: candidates (never counts) and the user's vote. Photo: subject, the user's counts, limits.</summary>
+    public sealed record PhaseViewDto(Guid Id, string Kind, DateTime OpenedAt, DateTime EndsAt, List<CandidateViewDto>? Candidates, MyVoteDto? MyVote,
+        CandidateViewDto? Subject, MineDto? Mine, LimitsDto? Limits);
+
+    public sealed class ResultRowDto
+    {
+        public Guid CandidateId { get; init; }
+        [TranslatedBy(nameof(NameTranslations))] public string Name { get; init; } = "";
+        [JsonIgnore] public Dictionary<string, string> NameTranslations { get; init; } = new();
+        public int Votes { get; init; }
+        public double Share { get; init; }
+    }
+
+    /// <summary>The most recent closed voting phase with a winner, shown while no phase runs.</summary>
+    public sealed record LatestResultDto(Guid PhaseId, Guid WinnerCandidateId, List<ResultRowDto> Rows);
+
+    /// <summary>
+    /// What the Shape What's Next page shows. <c>Phase</c> is null while the switch is off (or its phase is paused);
+    /// <c>ServerNow</c> lets the phone's countdown ignore a wrong phone clock.
+    /// </summary>
+    public sealed record ContributionStateDto(DateTime ServerNow, bool Enabled, string? Reason, PhaseViewDto? Phase, LatestResultDto? LatestResult);
+
+    public sealed record VoteInput(Guid PhaseId, Guid CandidateId, string? Text);
+}

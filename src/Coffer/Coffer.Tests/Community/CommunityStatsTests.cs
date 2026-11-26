@@ -174,6 +174,20 @@ namespace Coffer.Tests.Community
         }
 
         [Fact]
+        public async Task ContributionsCountAsActiveButNotForCollectorOfTheWeek()
+        {
+            var anna = User("anna");
+            var bob = User("bob");
+            for (var i = 0; i < 5; i++) Event(anna, "contribution.photosUploaded", WeekStart.AddHours(1).AddMinutes(i), details: "{\"count\":20}");
+            Event(bob, "reaction.liked", WeekStart.AddHours(2));
+
+            var stats = await Sut().GetAsync(anna.Id);
+
+            Assert.Equal(bob.Id, stats.TopCollector!.UserId);
+            Assert.Equal(2, Milestone(stats, "activeUsers").Progress);
+        }
+
+        [Fact]
         public async Task SuspendedUserIsNotCollectorOfTheWeek()
         {
             var anna = User("anna");

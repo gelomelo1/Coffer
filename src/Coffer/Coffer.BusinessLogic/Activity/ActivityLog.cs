@@ -12,7 +12,7 @@ namespace Coffer.BusinessLogic.Activity
     /// <summary>Every kind of activity and its category (the sub-pages of My activity).</summary>
     public static class ActivityKinds
     {
-        public static readonly string[] Categories = { "likes", "comments", "collection", "follows", "marketplace", "trades", "reports" };
+        public static readonly string[] Categories = { "likes", "comments", "collection", "follows", "marketplace", "trades", "reports", "contribution" };
 
         public static readonly IReadOnlyDictionary<string, string> Category = new Dictionary<string, string>
         {
@@ -28,6 +28,9 @@ namespace Coffer.BusinessLogic.Activity
             ["deal.handoffConfirmed"] = "trades", ["deal.shipped"] = "trades", ["deal.receiptConfirmed"] = "trades", ["deal.disputed"] = "trades",
             ["review.written"] = "trades", ["review.replied"] = "trades",
             ["report.filed"] = "reports",
+            // Shape What's Next: count towards active users, not towards collector of the week.
+            ["contribution.voted"] = "contribution", ["contribution.voteChanged"] = "contribution",
+            ["contribution.photosUploaded"] = "contribution", ["contribution.formCompleted"] = "contribution",
         };
     }
 

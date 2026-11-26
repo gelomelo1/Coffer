@@ -143,7 +143,8 @@ namespace Coffer.BusinessLogic.Community.Stats
             var thisWeek = events.Where(e => e.OccurredAt >= weekStart).ToList();
             var suspended = (await _db.UserSuspensions.Where(s => s.RevokedAt == null && s.StartsAt <= now && s.EndsAt > now)
                 .Select(s => s.UserId).ToListAsync()).ToHashSet();
-            var top = thisWeek.Where(e => !suspended.Contains(e.UserId))
+            // Contributions (Shape What's Next) make a user active but don't make them collector of the week.
+            var top = thisWeek.Where(e => !suspended.Contains(e.UserId) && !e.Kind.StartsWith("contribution.", StringComparison.Ordinal))
                 .GroupBy(e => e.UserId)
                 .Select(g => new { UserId = g.Key, Count = g.Count(), Items = g.Where(e => ItemKinds.Contains(e.Kind)).Sum(ItemsOf), Latest = g.Max(e => e.OccurredAt) })
                 .OrderByDescending(x => x.Count).ThenByDescending(x => x.Items).ThenBy(x => x.Latest)

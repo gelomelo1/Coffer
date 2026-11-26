@@ -95,7 +95,7 @@ namespace Coffer.Tests.Activity
 
             var summary = (await Get(me, "api/Activity/Summary")).EnumerateArray().ToList();
 
-            Assert.Equal(new[] { "likes", "comments", "collection", "follows", "marketplace", "trades", "reports" },
+            Assert.Equal(new[] { "likes", "comments", "collection", "follows", "marketplace", "trades", "reports", "contribution" },
                 summary.Select(s => s.GetProperty("category").GetString()));
             Assert.Equal(2, summary[0].GetProperty("count").GetInt32());
             Assert.Equal(T0.AddHours(1), summary[0].GetProperty("latestAt").GetDateTime().ToUniversalTime());

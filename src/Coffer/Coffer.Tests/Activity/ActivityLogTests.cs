@@ -24,6 +24,8 @@ namespace Coffer.Tests.Activity
             ["deal.handoffConfirmed"] = "trades", ["deal.shipped"] = "trades", ["deal.receiptConfirmed"] = "trades", ["deal.disputed"] = "trades",
             ["review.written"] = "trades", ["review.replied"] = "trades",
             ["report.filed"] = "reports",
+            ["contribution.voted"] = "contribution", ["contribution.voteChanged"] = "contribution",
+            ["contribution.photosUploaded"] = "contribution", ["contribution.formCompleted"] = "contribution",
         };
 
         [Fact]
@@ -80,7 +82,7 @@ namespace Coffer.Tests.Activity
         {
             Assert.Equal(SpecKinds.OrderBy(k => k.Key), ActivityKinds.Category.OrderBy(k => k.Key));
             Assert.All(ActivityKinds.Category.Values, c => Assert.Contains(c, ActivityKinds.Categories));
-            Assert.Equal(new[] { "likes", "comments", "collection", "follows", "marketplace", "trades", "reports" }, ActivityKinds.Categories);
+            Assert.Equal(new[] { "likes", "comments", "collection", "follows", "marketplace", "trades", "reports", "contribution" }, ActivityKinds.Categories);
         }
 
         public void Dispose() => Db.Dispose();

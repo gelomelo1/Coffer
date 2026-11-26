@@ -71,6 +71,7 @@ namespace Coffer.Infrastructure
             services.AddScoped<Coffer.BusinessLogic.News.INewsService, Coffer.BusinessLogic.News.NewsService>();
             services.AddScoped<Coffer.BusinessLogic.Contribution.IContributionLifecycle, Coffer.BusinessLogic.Contribution.ContributionLifecycle>();
             services.AddScoped<Coffer.BusinessLogic.Contribution.IContributionAdminService, Coffer.BusinessLogic.Contribution.ContributionAdminService>();
+            services.AddScoped<Coffer.BusinessLogic.Contribution.IContributionService, Coffer.BusinessLogic.Contribution.ContributionService>();
             services.AddScoped<Coffer.BusinessLogic.Marketplace.IMarketplaceSweep, Coffer.BusinessLogic.Contribution.ContributionSweep>();
             services.AddScoped<Coffer.BusinessLogic.ItemTypes.IItemTypeVisibility, Coffer.BusinessLogic.ItemTypes.ItemTypeVisibility>();
             services.AddSingleton<Coffer.BusinessLogic.ItemTypes.IItemTypeFiles, Coffer.BusinessLogic.ItemTypes.ItemTypeFiles>();

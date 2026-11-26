@@ -31,7 +31,17 @@ namespace Coffer.Tests.Contribution
 
         protected HttpClient Admin() => _admin ??= Api.ManagerClientFor(AdminIdentity);
 
-        protected HttpClient UserClient(User user) => Api.ClientFor(user);
+        /// <summary>
+        /// A signed-in app client. Its token is issued at the real time (token lifetimes are checked against it), even
+        /// when a test has moved the clock on.
+        /// </summary>
+        protected HttpClient UserClient(User user)
+        {
+            var moved = Clock.UtcNow;
+            Clock.UtcNow = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
+            try { return Api.ClientFor(user); }
+            finally { Clock.UtcNow = moved; }
+        }
 
         protected User NewUser() => Db.AddUser("u" + Guid.NewGuid().ToString("N")[..8]);
 
