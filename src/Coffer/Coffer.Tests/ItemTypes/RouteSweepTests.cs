@@ -156,7 +156,7 @@ namespace Coffer.Tests.ItemTypes
             "GET api/Health", "GET api/Cities/Search", "GET api/Market/Terms", "POST api/Market/Terms/Accept",
             "GET api/News", "GET api/News/{id:guid}",
             // Shape What's Next: candidates are free text for item types that don't exist yet.
-            "GET api/Contribution", "PUT api/Contribution/Vote",
+            "GET api/Contribution", "PUT api/Contribution/Vote", "POST api/Contribution/Detection", "POST api/Contribution/Classification",
             "GET api/Comments/Mentionable",
             "GET api/Users", "GET api/Users/{id}", "GET api/Users/Page", "GET api/Users/UserExists/{username}",
             "PUT api/Users/{id}", "PUT api/Users/UserFrontend", "GET api/Feed/Search/Users",

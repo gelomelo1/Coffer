@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Coffer.BusinessLogic.Contribution
 {
-    public interface IContributionService
+    public partial interface IContributionService
     {
         Task<ContributionStateDto> GetAsync(Guid userId);
         Task<MyVoteDto> VoteAsync(Guid userId, VoteInput input);
