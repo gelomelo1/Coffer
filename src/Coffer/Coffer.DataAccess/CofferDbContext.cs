@@ -45,6 +45,12 @@ namespace Coffer.DataAccess
         public DbSet<PendingItem> PendingItems { get; set; }
         public DbSet<ActivityEvent> ActivityEvents { get; set; }
         public DbSet<NewsPost> NewsPosts { get; set; }
+        public DbSet<ContributionSettings> ContributionSettings { get; set; }
+        public DbSet<ContributionPhase> ContributionPhases { get; set; }
+        public DbSet<ContributionCandidate> ContributionCandidates { get; set; }
+        public DbSet<ContributionVote> ContributionVotes { get; set; }
+        public DbSet<ContributionForm> ContributionForms { get; set; }
+        public DbSet<ContributionUpload> ContributionUploads { get; set; }
         public DbSet<Coffer.Domain.Auth.AuthSession> AuthSessions { get; set; }
         public DbSet<Coffer.Domain.Auth.AuthRefreshToken> AuthRefreshTokens { get; set; }
 
@@ -163,6 +169,55 @@ namespace Coffer.DataAccess
                 e.Property(n => n.Status).HasMaxLength(20)
                     .HasConversion(v => v == NewsStatus.Published ? "published" : "draft", v => v == "published" ? NewsStatus.Published : NewsStatus.Draft);
                 e.HasIndex(n => new { n.Status, n.PublishedAt });
+            });
+
+            // Shape What's Next: enums stored as lowercase words.
+            modelBuilder.Entity<ContributionSettings>(e =>
+            {
+                e.ToTable("contribution_settings");
+                e.Property(s => s.Id).ValueGeneratedNever();
+                e.Property(s => s.Reason).HasMaxLength(32);
+            });
+            modelBuilder.Entity<ContributionPhase>(e =>
+            {
+                e.ToTable("contribution_phases");
+                e.Property(p => p.Kind).HasMaxLength(10).HasConversion(v => v == ContributionPhaseKind.Photo ? "photo" : "vote",
+                    v => v == "photo" ? ContributionPhaseKind.Photo : ContributionPhaseKind.Vote);
+                e.Property(p => p.State).HasMaxLength(12).HasConversion(
+                    v => v == ContributionPhaseState.Open ? "open" : v == ContributionPhaseState.Closed ? "closed" : v == ContributionPhaseState.Interrupted ? "interrupted" : "draft",
+                    v => v == "open" ? ContributionPhaseState.Open : v == "closed" ? ContributionPhaseState.Closed : v == "interrupted" ? ContributionPhaseState.Interrupted : ContributionPhaseState.Draft);
+                e.HasIndex(p => p.State);
+                // At most one phase is open at a time.
+                e.HasIndex(p => p.State, "ux_contribution_phases_one_open").HasFilter("state = 'open'").IsUnique();
+                e.HasMany(p => p.Candidates).WithOne().HasForeignKey(c => c.PhaseId).OnDelete(DeleteBehavior.Cascade);
+            });
+            modelBuilder.Entity<ContributionCandidate>(e =>
+            {
+                e.ToTable("contribution_candidates");
+                e.Property(c => c.Name).HasMaxLength(60).IsRequired();
+                e.Property(c => c.Description).HasMaxLength(300).IsRequired();
+            });
+            Translations<ContributionCandidate>(modelBuilder, c => c.NameTranslations);
+            Translations<ContributionCandidate>(modelBuilder, c => c.DescriptionTranslations);
+            modelBuilder.Entity<ContributionVote>(e =>
+            {
+                e.ToTable("contribution_votes");
+                e.HasKey(v => new { v.PhaseId, v.UserId });
+                e.Property(v => v.Text).HasMaxLength(1000).IsRequired();
+            });
+            modelBuilder.Entity<ContributionForm>(e =>
+            {
+                e.ToTable("contribution_forms");
+                e.HasIndex(f => new { f.PhaseId, f.UserId });
+            });
+            modelBuilder.Entity<ContributionUpload>(e =>
+            {
+                e.ToTable("contribution_uploads");
+                e.Property(u => u.Kind).HasMaxLength(16).HasConversion(v => v == ContributionUploadKind.Classification ? "classification" : "detection",
+                    v => v == "classification" ? ContributionUploadKind.Classification : ContributionUploadKind.Detection);
+                e.Property(u => u.FileName).HasMaxLength(80).IsRequired();
+                e.HasIndex(u => new { u.UserId, u.CreatedAt });
+                e.HasIndex(u => new { u.PhaseId, u.UserId, u.Kind });
             });
 
             //Collection

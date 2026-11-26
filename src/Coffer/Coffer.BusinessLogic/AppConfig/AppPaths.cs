@@ -27,6 +27,9 @@ namespace Coffer.BusinessLogic.AppConfig
         /// <summary>Item type icons uploaded from Coffer.Manager.</summary>
         public static string Icons => Path.Combine(Root, "data", "icons");
 
+        /// <summary>Shape What's Next: contribution photos per phase and the example galleries.</summary>
+        public static string Contributions => Path.Combine(Root, "data", "contributions");
+
         /// <summary>The AI service's vector store.</summary>
         public static string Vectors => Path.Combine(Root, "data", "vectors");
 
