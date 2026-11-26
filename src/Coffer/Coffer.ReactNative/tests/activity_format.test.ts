@@ -79,3 +79,25 @@ test("activity caches are per user (a second account on the device never sees th
   assert.notDeepEqual(activityListKey("user-a", "likes"), activityListKey("user-a", "comments"));
   assert.notDeepEqual(activitySummaryKey("user-a"), activitySummaryKey("user-b"));
 });
+
+test("contributionEntriesNameTheCandidateAndSubject", () => {
+  const contribution = (kind: string, details: Record<string, unknown>) => ({
+    kind,
+    occurredAt: new Date(2026, 10, 20, 10).toISOString(),
+    details,
+    target: { type: "contribution", title: "", available: true, otherName: null },
+  });
+
+  const voted = sentenceParams(contribution("contribution.voted", { candidate: "Stamps" }), deps);
+  assert.equal(voted.candidate, "Stamps");
+  assert.equal(voted.context, undefined, "an openable entry, not a gone one");
+
+  const changed = sentenceParams(contribution("contribution.voteChanged", { candidate: "Stamps", previousCandidate: "Coins" }), deps);
+  assert.deepEqual([changed.candidate, changed.previous], ["Stamps", "Coins"]);
+
+  const uploaded = sentenceParams(contribution("contribution.photosUploaded", { subject: "Stamps", count: 12 }), deps);
+  assert.deepEqual([uploaded.subject, uploaded.count], ["Stamps", 12]);
+
+  const form = sentenceParams(contribution("contribution.formCompleted", { subject: "Stamps", count: 7 }), deps);
+  assert.deepEqual([form.subject, form.count], ["Stamps", 7]);
+});

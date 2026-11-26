@@ -21,6 +21,7 @@ export const CATEGORY_ICONS: Record<ActivityCategory, IconName> = {
   marketplace: "storefront",
   trades: "handshake",
   reports: "flag",
+  contribution: "rocket-launch",
 };
 
 /** A more telling icon for some kinds; the rest use their category's. */
@@ -34,6 +35,7 @@ function kindIcon(entry: ActivityEntry): IconName {
   if (noun === "review") return "rate-review";
   if (verb === "shipped") return "local-shipping";
   if (verb === "disputed") return "report-problem";
+  if (noun === "contribution") return verb === "photosUploaded" || verb === "formCompleted" ? "add-a-photo" : "how-to-vote";
   return CATEGORY_ICONS[entry.category] ?? "history";
 }
 

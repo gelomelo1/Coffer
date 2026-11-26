@@ -83,6 +83,11 @@ export function sentenceParams(entry: ActivityEntryLike, deps: SentenceDeps): Re
   if (typeof details.quantity === "number") params.quantity = details.quantity;
   if (typeof details.priceCents === "number") params.price = deps.money(details.priceCents);
   if (typeof details.proposal === "string") params.what = deps.term(`proposal.${details.proposal}`);
+  // Shape What's Next: the candidate voted for (and the previous one), the item type photos were sent for.
+  if (typeof details.candidate === "string") params.candidate = details.candidate;
+  if (typeof details.previousCandidate === "string") params.previous = details.previousCandidate;
+  if (typeof details.subject === "string") params.subject = details.subject;
+  if (typeof details.count === "number") params.count = details.count;
   return params;
 }
 

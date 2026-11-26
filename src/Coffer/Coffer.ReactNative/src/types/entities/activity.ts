@@ -1,10 +1,10 @@
 /** The sub-pages of My activity, in menu order (same list as the backend's ActivityKinds.Categories). */
-export const ACTIVITY_CATEGORIES = ["likes", "comments", "collection", "follows", "marketplace", "trades", "reports"] as const;
+export const ACTIVITY_CATEGORIES = ["likes", "comments", "collection", "follows", "marketplace", "trades", "reports", "contribution"] as const;
 export type ActivityCategory = (typeof ACTIVITY_CATEGORIES)[number];
 
 /** What an entry points at, resolved by the backend when the log is read (names are never stored in the log). */
 export interface ActivityTarget {
-  type: "item" | "collection" | "comment" | "listing" | "conversation" | "deal" | "review" | "report" | "none";
+  type: "item" | "collection" | "comment" | "listing" | "conversation" | "deal" | "review" | "report" | "contribution" | "none";
   id: string | null;
   itemId: string | null;
   collectionId: string | null;

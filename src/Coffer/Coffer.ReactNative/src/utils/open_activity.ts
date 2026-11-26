@@ -58,5 +58,8 @@ export function openActivity(entry: ActivityEntry) {
     case "report":
       navigate({ pathname: ROUTES.SETTINGS.REPORTS, params: pageParams.reports });
       return;
+    case "contribution":
+      navigate({ pathname: ROUTES.COMMUNITY.SHAPE, params: pageParams.communityPage("community:tiles.shape.title") });
+      return;
   }
 }

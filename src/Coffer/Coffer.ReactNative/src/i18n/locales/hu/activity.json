@@ -10,7 +10,8 @@
     "follows": "Követések",
     "marketplace": "Piactér",
     "trades": "Üzletek és vélemények",
-    "reports": "Jelentések"
+    "reports": "Jelentések",
+    "contribution": "Alakítsd a jövőt"
   },
   "count_one": "{{count}} bejegyzés",
   "count_other": "{{count}} bejegyzés",
@@ -143,6 +144,14 @@
     "report": {
       "filed": "Jelentést tettél: {{name}}",
       "filed_gone": "Jelentést tettél"
+    },
+    "contribution": {
+      "voted": "Erre szavaztál: {{candidate}}",
+      "voteChanged": "Módosítottad a szavazatod: {{candidate}} (korábban {{previous}})",
+      "photosUploaded_one": "{{count}} fotót töltöttél fel ehhez: {{subject}}",
+      "photosUploaded_other": "{{count}} fotót töltöttél fel ehhez: {{subject}}",
+      "formCompleted_one": "Beküldtél egy {{count}} fotós űrlapot ehhez: {{subject}}",
+      "formCompleted_other": "Beküldtél egy {{count}} fotós űrlapot ehhez: {{subject}}"
     }
   }
 }

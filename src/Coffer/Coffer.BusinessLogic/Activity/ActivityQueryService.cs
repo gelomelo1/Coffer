@@ -221,6 +221,11 @@ namespace Coffer.BusinessLogic.Activity
                     (type, id, available) = ("review", e.ReviewId, review is { Gone: false });
                     (title, image) = (listing?.Title ?? "", listing?.Image);
                 }
+                else if (e.Category == "contribution")
+                {
+                    // Shape What's Next: the entry opens the page itself; what it was about is in its details.
+                    (type, id, available) = ("contribution", null, true);
+                }
                 else
                 {
                     (type, id, available) = ("none", null, false);

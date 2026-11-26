@@ -162,6 +162,22 @@ namespace Coffer.Tests.Contribution
         }
 
         [Fact]
+        public async Task VoteShowsInMyActivityAsAnOpenableEntry()
+        {
+            var (id, candidates) = await OpenVote();
+            var voter = NewUser();
+            await Ok(await Vote(voter, id, candidates[1]));
+
+            var page = await Ok(await UserClient(voter).GetAsync("api/Activity?category=contribution"));
+
+            var entry = page.GetProperty("items")[0];
+            Assert.Equal("contribution.voted", entry.GetProperty("kind").GetString());
+            Assert.Equal("contribution", entry.GetProperty("target").GetProperty("type").GetString());
+            Assert.True(entry.GetProperty("target").GetProperty("available").GetBoolean());
+            Assert.Equal("Stamps", entry.GetProperty("details").GetProperty("candidate").GetString());
+        }
+
+        [Fact]
         public async Task LatestResultShowsWinnerAndShares()
         {
             var (id, candidates) = await ClosedVote(3, 1, 0);

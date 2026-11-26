@@ -10,7 +10,8 @@
     "follows": "Follows",
     "marketplace": "Marketplace",
     "trades": "Trades and reviews",
-    "reports": "Reports"
+    "reports": "Reports",
+    "contribution": "Shape What's Next"
   },
   "count_one": "{{count}} entry",
   "count_other": "{{count}} entries",
@@ -143,6 +144,14 @@
     "report": {
       "filed": "Reported: {{name}}",
       "filed_gone": "Filed a report"
+    },
+    "contribution": {
+      "voted": "You voted for {{candidate}}",
+      "voteChanged": "You changed your vote to {{candidate}} (was {{previous}})",
+      "photosUploaded_one": "You uploaded {{count}} photo for {{subject}}",
+      "photosUploaded_other": "You uploaded {{count}} photos for {{subject}}",
+      "formCompleted_one": "You completed a {{count}}-photo form for {{subject}}",
+      "formCompleted_other": "You completed a {{count}}-photo form for {{subject}}"
     }
   }
 }
