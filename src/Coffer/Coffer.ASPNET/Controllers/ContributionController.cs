@@ -9,10 +9,26 @@ namespace Coffer.ASPNET.Controllers
     public class ContributionController : MarketplaceControllerBase
     {
         private readonly IContributionService _contribution;
+        private readonly IContributionExamples _examples;
 
-        public ContributionController(IContributionService contribution)
+        public ContributionController(IContributionService contribution, IContributionExamples examples)
         {
             _contribution = contribution;
+            _examples = examples;
+        }
+
+        /// <summary>The example galleries of the two forms: file names in display order.</summary>
+        [HttpGet("Examples")]
+        public ActionResult<ExamplesDto> Examples() => Ok(_examples.List());
+
+        [HttpGet("Examples/{form}/{fileName}")]
+        public IActionResult Example(string form, string fileName)
+        {
+            var image = _examples.Open(form, fileName);
+            if (image == null) return NotFound();
+            Response.Headers["X-Content-Type-Options"] = "nosniff";
+            Response.Headers["Cache-Control"] = "public, max-age=3600";
+            return File(image.Value.Stream, image.Value.ContentType);
         }
 
         [HttpGet]

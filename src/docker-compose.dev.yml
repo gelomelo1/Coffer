@@ -32,6 +32,8 @@ services:
       - E:\Homework\Programming\AI\Coffer\src\Coffer\Coffer.PythonService\models:/app/models
       # Item type icons uploaded from Coffer.Manager (COFFER_ROOT_PATH/data/icons).
       - E:\Homework\Programming\AI\szakdolgozat\data\icons:/app/data/icons
+      # Shape What's Next: contribution photos per phase and the example galleries (COFFER_ROOT_PATH/data/contributions).
+      - E:\Homework\Programming\AI\szakdolgozat\data\contributions:/app/data/contributions
       # Raw example photos for the development seed (DEV_SEED_IMAGE_DIR), read-only.
       - E:\app\data\examples:/app/data/examples:ro
 

@@ -74,8 +74,9 @@ openssl enc -aes-256-cbc -salt -pbkdf2 -in .env -out .env.enc
 ### Data folders
 
 `COFFER_ROOT_PATH` (`/app` in Docker) is the only path setting. The API and the AI service both derive:
-`data/images` (item, cover, listing, news and pending images), `data/icons` (item type icons), `data/vectors` (vector
-store), `data/temp` (photo checks) and `models` (AI models per item type).
+`data/images` (item, cover, listing, news and pending images), `data/icons` (item type icons), `data/contributions`
+(Shape What's Next photos and example galleries), `data/vectors` (vector store), `data/temp` (photo checks) and
+`models` (AI models per item type).
 
 ### Settings added for this version
 
@@ -292,6 +293,38 @@ One explanation field (at least 10 characters) is required for every decision; i
 shown to reporters as the outcome and to the author as the statement of reasons (never naming the reporter), and is
 the suspension reason. A removal also answers the other open reports on the same content. In a bulk decision each
 author is suspended at most once, and not again when an existing suspension already lasts as long.
+
+### Shape What's Next (contribution)
+
+The **Contribution** view runs the Community tab's third page in rounds. Run `src/startup/contribution_migration.sql`
+once.
+
+* **Switch:** *On* runs one draft or open phase (a draft opens then; its end date must be at least 5 minutes ahead).
+  *Off* needs a reason the phone shows (*one just finished*, *community not big enough yet*, *contribution finished*,
+  *new models in the works*); an open phase is then **paused** — still open, clock running — and can be switched on
+  again. Only one phase is open at a time.
+* **Voting phase:** three candidates (name, description, Hungarian in the JSON boxes). Users vote and write which
+  attributes they'd like and why (10–1000 characters) and can change both until the end. The Manager shows counts,
+  shares and every text (without names). At the end date (or *Close now*) a clear leader wins; a tie or no votes →
+  *Pick winner*. A stored winner never changes. *Interrupt* stops a phase without a winner.
+* **Photo phase:** made from a closed voting phase with a winner (the most recent is preselected; ★ in the list).
+  Users upload object-detection photos (1–20 at a time, one pool) and classification forms (5–10 photos of the same
+  item each); at most 300 photos per user per day. End dates can be extended any time.
+* **Photos** (resized on the phone to 800 px wide; the server re-encodes only bigger ones or ones carrying metadata):
+
+  ```
+  data/contributions/
+    examples/detection/          example gallery of the detection form   (filled by hand)
+    examples/classification/     example gallery of the classification form (filled by hand)
+    <photoPhaseId>/detection/                    every user's detection photos — annotate in Label Studio
+    <photoPhaseId>/classification/<formId>/      one form = one item = one class folder — the trainer's embedding input
+  ```
+
+  Example images: JPEG / PNG / WebP, shown in file name order (prefix `01_`, `02_` …), picked up within a minute.
+  Development: `E:\Homework\Programming\AI\szakdolgozat\data\contributions\examples\…`. Production (named volume
+  `contributions_data`): `docker cp <files> <api container>:/app/data/contributions/examples/detection/`; take a
+  finished phase out with `docker cp <api container>:/app/data/contributions/<photoPhaseId> .` (the phase's folder
+  path is shown in the Manager).
 
 ### Temporary suspensions
 

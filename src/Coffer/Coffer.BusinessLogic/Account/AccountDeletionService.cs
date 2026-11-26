@@ -80,6 +80,7 @@ namespace Coffer.BusinessLogic.Account
         {
             var cleanup = new TombstoneCleanup();
             var listingFiles = new List<string>();
+            var contributionPaths = new List<string>();
 
             await using (var tx = await _db.Database.BeginTransactionAsync())
             {
@@ -141,6 +142,17 @@ namespace Coffer.BusinessLogic.Account
                 // Their activity log is their personal data; nobody else's things point at it.
                 _db.ActivityEvents.RemoveRange(await _db.ActivityEvents.Where(e => e.UserId == userId).ToListAsync());
 
+                // Shape What's Next: votes with their free texts, forms and photos are personal data. A closed voting
+                // phase keeps the winner it already stored.
+                _db.ContributionVotes.RemoveRange(await _db.ContributionVotes.Where(v => v.UserId == userId).ToListAsync());
+                var uploads = await _db.ContributionUploads.Where(u => u.UserId == userId).ToListAsync();
+                var forms = await _db.ContributionForms.Where(f => f.UserId == userId).ToListAsync();
+                contributionPaths.AddRange(uploads.Where(u => u.FormId == null)
+                    .Select(u => Path.Combine(Coffer.BusinessLogic.Contribution.ContributionStorage.DetectionDir(u.PhaseId), u.FileName)));
+                contributionPaths.AddRange(forms.Select(f => Coffer.BusinessLogic.Contribution.ContributionStorage.FormDir(f.PhaseId, f.Id)));
+                _db.ContributionUploads.RemoveRange(uploads);
+                _db.ContributionForms.RemoveRange(forms);
+
                 // Every signed-in device of the account is signed out, in the same transaction.
                 await _sessions.RevokeAllForUserAsync(userId, Coffer.BusinessLogic.Auth.Sessions.SessionService.ReasonAccountDeleted);
 
@@ -155,6 +167,15 @@ namespace Coffer.BusinessLogic.Account
             {
                 try { await _images.DeleteImageAsync(file, _storage.ListingImages); }
                 catch (Exception e) { Console.WriteLine($"Failed to delete listing image '{file}': {e.GetType().Name}"); }
+            }
+            foreach (var path in contributionPaths)
+            {
+                try
+                {
+                    if (Directory.Exists(path)) Directory.Delete(path, recursive: true);
+                    else if (File.Exists(path)) File.Delete(path);
+                }
+                catch (Exception e) { Console.WriteLine($"Failed to delete contribution photos '{path}': {e.GetType().Name}"); }
             }
         }
     }
