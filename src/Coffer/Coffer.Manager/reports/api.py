@@ -227,6 +227,45 @@ class AdminApi(_Client):
     def delete_news(self, news_id):
         return self._json("DELETE", f"/api/Admin/News/{news_id}")
 
+    # ------------------------------------------------------------------ Shape What's Next (contribution)
+
+    def contribution_settings(self):
+        return self._json("GET", "/api/Admin/Contribution/Settings")
+
+    def set_contribution_settings(self, enabled, reason, active_phase_id):
+        """On: runs active_phase_id (a draft opens). Off: reason is required; an open phase is paused."""
+        return self._json("PUT", "/api/Admin/Contribution/Settings",
+                          json={"enabled": bool(enabled), "reason": reason, "activePhaseId": active_phase_id})
+
+    def contribution_phases(self, kind=None, state=None):
+        return self._json("GET", "/api/Admin/Contribution/Phases", params=_params(kind=kind, state=state))
+
+    def contribution_phase(self, phase_id):
+        return self._json("GET", f"/api/Admin/Contribution/Phases/{phase_id}")
+
+    def contribution_texts(self, phase_id, candidate_id=None, page=1):
+        return self._json("GET", f"/api/Admin/Contribution/Phases/{phase_id}/Texts", params=_params(candidateId=candidate_id, page=page))
+
+    def create_contribution_phase(self, body):
+        """body: {kind: "vote", endsAt, candidates: [3 × {name, nameTranslations, description, descriptionTranslations}]}
+        or {kind: "photo", endsAt, sourcePhaseId}."""
+        return self._json("POST", "/api/Admin/Contribution/Phases", json=body)
+
+    def update_contribution_phase(self, phase_id, body):
+        return self._json("PUT", f"/api/Admin/Contribution/Phases/{phase_id}", json=body)
+
+    def close_contribution_phase(self, phase_id, reason=None):
+        return self._json("POST", f"/api/Admin/Contribution/Phases/{phase_id}/Close", json={"reason": reason})
+
+    def interrupt_contribution_phase(self, phase_id, reason=None):
+        return self._json("POST", f"/api/Admin/Contribution/Phases/{phase_id}/Interrupt", json={"reason": reason})
+
+    def pick_contribution_winner(self, phase_id, candidate_id):
+        return self._json("POST", f"/api/Admin/Contribution/Phases/{phase_id}/Winner", json={"candidateId": candidate_id})
+
+    def delete_contribution_phase(self, phase_id):
+        return self._json("DELETE", f"/api/Admin/Contribution/Phases/{phase_id}")
+
     def upload_news_image(self, path):
         """A banner or content image; answers its stored name (re-encoded by the API)."""
         return self._upload("/api/Admin/News/Images", {"file": path})["fileName"]
