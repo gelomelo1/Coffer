@@ -4,6 +4,7 @@ from reports.session import LoginView, Session, describe_expiry
 from reports.view import ReportedContentView, ReportsView, SuspensionsView
 from itemtypes.view import ItemTypesView, OptionSetsView
 from news.view import NewsView
+from contribution.view import ContributionView
 from training.view import ModelTrainingView
 
 VIEWS = [
@@ -13,6 +14,7 @@ VIEWS = [
     ("Item types", ItemTypesView),
     ("Option sets", OptionSetsView),
     ("News", NewsView),
+    ("Contribution", ContributionView),
     ("Model training", ModelTrainingView),
 ]
 
