@@ -56,9 +56,12 @@ namespace Coffer.BusinessLogic.Contribution
 
     public sealed record LimitsDto(int PerUpload, int FormMin, int FormMax, int DailyLeft, DateTime DailyResetsAt);
 
-    /// <summary>The running phase. Vote: candidates (never counts) and the user's vote. Photo: subject, the user's counts, limits.</summary>
+    /// <summary>
+    /// The running phase. Vote: candidates, the user's vote and the live standings (<c>Results</c>). Photo: subject, the
+    /// user's counts, limits and what everyone sent so far (<c>Totals</c>).
+    /// </summary>
     public sealed record PhaseViewDto(Guid Id, string Kind, DateTime OpenedAt, DateTime EndsAt, List<CandidateViewDto>? Candidates, MyVoteDto? MyVote,
-        CandidateViewDto? Subject, MineDto? Mine, LimitsDto? Limits);
+        CandidateViewDto? Subject, MineDto? Mine, LimitsDto? Limits, List<ResultRowDto>? Results, PhotoTotalsDto? Totals);
 
     public sealed class ResultRowDto
     {

@@ -47,6 +47,25 @@ namespace Coffer.Tests.Contribution
         private static string[] Files(string dir) => Directory.Exists(dir) ? Directory.GetFiles(dir) : Array.Empty<string>();
 
         [Fact]
+        public async Task PhotoPhaseShowsCommunityTotals()
+        {
+            var phase = await RunningPhotoPhase();
+            var (anna, bence) = (NewUser(), NewUser());
+            await Ok(await Detection(anna, phase, Photos(2)));
+            await Ok(await Detection(anna, phase, Photos(1)));
+            await Ok(await Classification(bence, phase, Photos(5)));
+
+            var view = (await Ok(await UserClient(NewUser()).GetAsync("api/Contribution"))).GetProperty("phase");
+
+            var totals = view.GetProperty("totals");
+            Assert.Equal(3, totals.GetProperty("detectionPhotos").GetInt32());
+            Assert.Equal(1, totals.GetProperty("forms").GetInt32());
+            Assert.Equal(5, totals.GetProperty("formPhotos").GetInt32());
+            Assert.Equal(2, totals.GetProperty("contributors").GetInt32());
+            Assert.Equal(JsonValueKind.Null, view.GetProperty("results").ValueKind);
+        }
+
+        [Fact]
         public async Task DetectionPhotosLandInThePhasePool()
         {
             var phase = await RunningPhotoPhase();

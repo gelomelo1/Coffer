@@ -10,7 +10,10 @@ export type Mine = { detectionPhotos: number; classificationForms: number };
 
 export type Limits = { perUpload: number; formMin: number; formMax: number; dailyLeft: number; dailyResetsAt: string };
 
-/** The running phase: a vote (candidates, my vote) or a photo round (subject, my counts, limits). */
+/** What everyone sent in a photo round so far. */
+export type PhotoTotals = { detectionPhotos: number; forms: number; formPhotos: number; contributors: number };
+
+/** The running phase: a vote (candidates, my vote, live standings) or a photo round (subject, my counts, limits, totals). */
 export type PhaseView = {
   id: string;
   kind: "vote" | "photo";
@@ -21,6 +24,8 @@ export type PhaseView = {
   subject: CandidateView | null;
   mine: Mine | null;
   limits: Limits | null;
+  results: ResultRow[] | null;
+  totals: PhotoTotals | null;
 };
 
 export type ResultRow = { candidateId: string; name: string; votes: number; share: number };

@@ -36,7 +36,7 @@ export function useUploadClassification() {
   });
 }
 
-/** The example galleries (file names); they change rarely. */
+/** The example galleries (file names). The server re-reads its folders every minute; so does this. */
 export function useContributionExamples() {
-  return useQuery({ queryKey: ["contributionExamples"], queryFn: contributionApi.examples, staleTime: 10 * 60 * 1000 });
+  return useQuery({ queryKey: ["contributionExamples"], queryFn: contributionApi.examples, staleTime: 60 * 1000 });
 }

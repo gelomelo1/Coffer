@@ -333,12 +333,7 @@ namespace Coffer.BusinessLogic.Contribution
                 var source = await _db.ContributionPhases.AsNoTracking().Include(p => p.Candidates).FirstOrDefaultAsync(p => p.Id == phase.SourcePhaseId);
                 var winner = source?.Candidates.FirstOrDefault(c => c.Id == source.WinnerCandidateId);
                 if (winner != null) subject = Candidate(winner, 0, 0);
-                var uploads = _db.ContributionUploads.Where(u => u.PhaseId == phase.Id);
-                totals = new PhotoTotalsDto(
-                    await uploads.CountAsync(u => u.Kind == ContributionUploadKind.Detection),
-                    await _db.ContributionForms.CountAsync(f => f.PhaseId == phase.Id),
-                    await uploads.CountAsync(u => u.Kind == ContributionUploadKind.Classification),
-                    await uploads.Select(u => u.UserId).Distinct().CountAsync());
+                totals = await ContributionFigures.PhotoTotalsAsync(_db, phase.Id);
                 folder = ContributionStorage.PhaseDir(phase.Id);
             }
 

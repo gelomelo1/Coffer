@@ -121,13 +121,14 @@ namespace Coffer.BusinessLogic.Contribution
             {
                 var mine = await _db.ContributionVotes.AsNoTracking().FirstOrDefaultAsync(v => v.PhaseId == phase.Id && v.UserId == userId);
                 return new PhaseViewDto(phase.Id, "vote", openedAt, endsAt, phase.Candidates.OrderBy(c => c.Position).Select(View).ToList(),
-                    mine == null ? null : new MyVoteDto(mine.CandidateId, mine.Text), null, null, null);
+                    mine == null ? null : new MyVoteDto(mine.CandidateId, mine.Text), null, null, null,
+                    ContributionFigures.Rows(phase, await _lifecycle.CountsAsync(phase)), null);
             }
 
             var source = await _db.ContributionPhases.AsNoTracking().Include(p => p.Candidates).FirstOrDefaultAsync(p => p.Id == phase.SourcePhaseId);
             var winner = source?.Candidates.FirstOrDefault(c => c.Id == source.WinnerCandidateId);
             return new PhaseViewDto(phase.Id, "photo", openedAt, endsAt, null, null, winner == null ? null : View(winner),
-                await MineAsync(phase.Id, userId), await LimitsAsync(userId, now));
+                await MineAsync(phase.Id, userId), await LimitsAsync(userId, now), null, await ContributionFigures.PhotoTotalsAsync(_db, phase.Id));
         }
 
         private async Task<MineDto> MineAsync(Guid phaseId, Guid userId) => new(
@@ -155,13 +156,7 @@ namespace Coffer.BusinessLogic.Contribution
                 .Where(p => p.Kind == ContributionPhaseKind.Vote && p.State == ContributionPhaseState.Closed && p.WinnerCandidateId != null)
                 .OrderByDescending(p => p.ClosedAt).FirstOrDefaultAsync();
             if (phase == null) return null;
-            var counts = await _lifecycle.CountsAsync(phase);
-            var total = counts.Values.Sum();
-            var rows = phase.Candidates.OrderBy(c => c.Position).Select(c => new ResultRowDto
-            {
-                CandidateId = c.Id, Name = c.Name, NameTranslations = c.NameTranslations,
-                Votes = counts.GetValueOrDefault(c.Id), Share = total == 0 ? 0 : (double)counts.GetValueOrDefault(c.Id) / total,
-            }).ToList();
+            var rows = ContributionFigures.Rows(phase, await _lifecycle.CountsAsync(phase));
             return new LatestResultDto(phase.Id, phase.WinnerCandidateId!.Value, rows);
         }
 

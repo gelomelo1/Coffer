@@ -119,7 +119,8 @@ class ContributionView(_AdminView):
         self.reason_box = ttk.Combobox(row, state="readonly", width=32, values=[label for _, label in REASONS])
         self.reason_box.pack(side="left", padx=4)
         tk.Button(row, text="Save switch", command=self._save_switch).pack(side="right")
-        tk.Button(row, text="Refresh", command=self.refresh).pack(side="right", padx=6)
+        self.refresh_button = tk.Button(row, text="Refresh", command=self._refresh_clicked)
+        self.refresh_button.pack(side="right", padx=6)
         self.preview = tk.Label(box, text="", fg=GREY, anchor="w")
         self.preview.pack(fill="x", padx=6, pady=(0, 4))
         self._active_choices = []
@@ -199,6 +200,14 @@ class ContributionView(_AdminView):
             self.tree.see(keep)
         elif self.new_kind is None:
             self._clear_detail("Select a phase, or create one.")
+
+    def _refresh_clicked(self):
+        """Refresh: the switch, the list and the phase on the right (its counts, totals and texts) — unsaved edits asked first."""
+        if not self.can_leave():
+            return
+        self.refresh()
+        if self.phase:
+            self._reload()
 
     def _fill_list(self):
         self.tree.delete(*self.tree.get_children())

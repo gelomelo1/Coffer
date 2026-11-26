@@ -47,9 +47,31 @@ namespace Coffer.Tests.Contribution
             Assert.Contains("nosniff", response.Headers.GetValues("X-Content-Type-Options"));
         }
 
+        [Fact]
+        public async Task ExampleNamesWithSpacesAndAccentsAreListedAndServed()
+        {
+            ResetExamples();
+            Directory.CreateDirectory(Examples("detection"));
+            var bytes = ItemTypeFilesTests.Jpeg(40, 30);
+            const string name = "Képernyőkép 2026-11-25 214849.PNG";
+            File.WriteAllBytes(Path.Combine(Examples("detection"), name), bytes);
+            File.WriteAllBytes(Path.Combine(Examples("detection"), ".hidden.jpg"), bytes);
+
+            var client = UserClient(NewUser());
+            var examples = await Ok(await client.GetAsync("api/Contribution/Examples"));
+            var response = await client.GetAsync($"api/Contribution/Examples/detection/{Uri.EscapeDataString(name)}");
+
+            Assert.Equal(new[] { name }, examples.GetProperty("detection").EnumerateArray().Select(e => e.GetString()));
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(bytes, await response.Content.ReadAsByteArrayAsync());
+            Assert.Equal("image/png", response.Content.Headers.ContentType?.MediaType);
+        }
+
         [Theory]
         [InlineData("detection", "..%2F..%2Fsecret.jpg")]
         [InlineData("detection", "a.exe")]
+        [InlineData("detection", "..%5Csecret.jpg")]
+        [InlineData("detection", ".hidden.jpg")]
         [InlineData("other", "01_a.jpg")]
         public async Task ExampleFileNamesAreStrict(string form, string fileName)
         {

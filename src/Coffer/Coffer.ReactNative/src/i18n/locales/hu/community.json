@@ -44,6 +44,26 @@
       "rowA11y": "{{name}}: {{share}}, {{votes}}",
       "winnerA11y": "{{name}}, nyertes: {{share}}, {{votes}}"
     },
+    "live": {
+      "title": "Az eddigi állás",
+      "total_one": "Eddig {{count}} szavazat",
+      "total_other": "Eddig {{count}} szavazat",
+      "none": "Még nincs szavazat — a tiéd lehet az első.",
+      "yours": "a te szavazatod",
+      "mineA11y": "{{name}}, a te szavazatod: {{share}}, {{votes}}"
+    },
+    "totals": {
+      "title": "A közösség eddig ennyit küldött",
+      "contributors_one": "résztvevő",
+      "contributors_other": "résztvevő",
+      "detection_one": "detektálási fotó",
+      "detection_other": "detektálási fotó",
+      "forms_one": "osztályozási űrlap",
+      "forms_other": "osztályozási űrlap",
+      "formPhotos_one": "Az űrlapokban {{count}} fotó van.",
+      "formPhotos_other": "Az űrlapokban {{count}} fotó van.",
+      "a11y": "{{contributors}} résztvevő, {{detection}} detektálási fotó, {{forms}} osztályozási űrlap, bennük {{formPhotos}} fotó"
+    },
     "countdown": {
       "days": "n",
       "ends": "vége: {{date}}",

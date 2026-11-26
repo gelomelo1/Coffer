@@ -1,4 +1,5 @@
 import { CountdownCard } from "@/src/components/community/contribution/countdown_card";
+import { LiveResultsCard } from "@/src/components/community/contribution/latest_result_card";
 import { OffPanel } from "@/src/components/community/contribution/off_panel";
 import { PhotoPhasePanel } from "@/src/components/community/contribution/photo_phase_panel";
 import { VotePanel } from "@/src/components/community/contribution/vote_panel";
@@ -7,12 +8,14 @@ import { ErrorState } from "@/src/components/custom_ui/states";
 import { useContribution } from "@/src/hooks/contribution";
 import { colors, spacing } from "@/src/theme/theme";
 import { apiErrorText } from "@/src/utils/api_error_text";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { KeyboardAvoidingView, Platform, RefreshControl, ScrollView } from "react-native";
 
 /** Shape What's Next: no round (why + the last result), a vote, or a photo round — with its countdown. */
 function ShapeWhatsNext() {
   const { data, isLoading, isError, error, refetch } = useContribution();
+  const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
   const onEnded = useCallback(() => void refetch(), [refetch]);
 
@@ -22,7 +25,8 @@ function ShapeWhatsNext() {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      await refetch();
+      // The example galleries too: images the admin just added show without waiting for the cache.
+      await Promise.all([refetch(), queryClient.invalidateQueries({ queryKey: ["contributionExamples"] })]);
     } finally {
       setRefreshing(false);
     }
@@ -40,7 +44,14 @@ function ShapeWhatsNext() {
         {phase ? (
           <>
             <CountdownCard key={phase.id + phase.endsAt} openedAt={phase.openedAt} endsAt={phase.endsAt} serverNow={data.serverNow} onEnded={onEnded} />
-            {phase.kind === "vote" ? <VotePanel key={phase.id + (phase.myVote?.candidateId ?? "")} phase={phase} /> : <PhotoPhasePanel phase={phase} />}
+            {phase.kind === "vote" ? (
+              <>
+                <VotePanel key={phase.id + (phase.myVote?.candidateId ?? "")} phase={phase} />
+                {phase.results ? <LiveResultsCard rows={phase.results} mineId={phase.myVote?.candidateId} /> : null}
+              </>
+            ) : (
+              <PhotoPhasePanel phase={phase} />
+            )}
           </>
         ) : (
           <OffPanel state={data} />

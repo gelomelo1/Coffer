@@ -44,6 +44,26 @@
       "rowA11y": "{{name}}: {{share}}, {{votes}}",
       "winnerA11y": "{{name}}, winner: {{share}}, {{votes}}"
     },
+    "live": {
+      "title": "Standings so far",
+      "total_one": "{{count}} vote so far",
+      "total_other": "{{count}} votes so far",
+      "none": "No votes yet — yours can be the first.",
+      "yours": "your vote",
+      "mineA11y": "{{name}}, your vote: {{share}}, {{votes}}"
+    },
+    "totals": {
+      "title": "Sent by the community so far",
+      "contributors_one": "person contributed",
+      "contributors_other": "people contributed",
+      "detection_one": "detection photo",
+      "detection_other": "detection photos",
+      "forms_one": "classification form",
+      "forms_other": "classification forms",
+      "formPhotos_one": "The forms hold {{count}} photo.",
+      "formPhotos_other": "The forms hold {{count}} photos.",
+      "a11y": "{{contributors}} people contributed, {{detection}} detection photos, {{forms}} classification forms with {{formPhotos}} photos"
+    },
     "countdown": {
       "days": "d",
       "ends": "ends {{date}}",

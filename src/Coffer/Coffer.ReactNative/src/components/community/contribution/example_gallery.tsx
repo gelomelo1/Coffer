@@ -30,14 +30,17 @@ export function ExampleGallery({ form, isVisible, onClose }: { form: Contributio
 
   return (
     <CustomOverlay isVisible={isVisible} onClose={onClose} overlayTitle={t("community:shape.examples.title")}>
-      <ScrollView contentContainerStyle={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, padding: spacing.md, paddingBottom: spacing.xxl }}
+      >
         {files.map((file, i) => (
           <Pressable
             key={file}
             onPress={() => setOpen(i)}
             accessibilityRole="imagebutton"
             accessibilityLabel={label(i)}
-            style={({ pressed }) => ({ width: "47%", aspectRatio: 1, borderWidth: borders.width, borderColor: colors.border, opacity: pressed ? 0.8 : 1 })}
+            style={({ pressed }) => ({ width: "47%", aspectRatio: 1, backgroundColor: colors.surfaceAlt, borderWidth: borders.width, borderColor: colors.border, opacity: pressed ? 0.8 : 1 })}
           >
             <Image source={{ uri: contributionExampleUrl(form, file), headers }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
           </Pressable>

@@ -50,19 +50,35 @@ namespace Coffer.Tests.Contribution
         }
 
         [Fact]
-        public async Task OpenVotePhaseShowsCandidatesNotCounts()
+        public async Task OpenVotePhaseShowsCandidatesAndLiveResults()
         {
             var (id, candidates) = await OpenVote();
             AddVotes(id, candidates[0], 3);
+            AddVotes(id, candidates[2], 1);
 
             var phase = (await State(NewUser())).GetProperty("phase");
 
             Assert.Equal("vote", phase.GetProperty("kind").GetString());
             var shown = phase.GetProperty("candidates").EnumerateArray().ToList();
             Assert.Equal(candidates, shown.Select(c => c.GetProperty("id").GetGuid()).ToArray());
-            Assert.All(shown, c => Assert.False(c.TryGetProperty("votes", out _)));
-            Assert.All(shown, c => Assert.False(c.TryGetProperty("share", out _)));
             Assert.Equal(JsonValueKind.Null, phase.GetProperty("myVote").ValueKind);
+            var results = phase.GetProperty("results").EnumerateArray().ToList();
+            Assert.Equal(candidates, results.Select(r => r.GetProperty("candidateId").GetGuid()).ToArray());
+            Assert.Equal(new[] { 3, 0, 1 }, results.Select(r => r.GetProperty("votes").GetInt32()));
+            Assert.Equal(new[] { 0.75, 0, 0.25 }, results.Select(r => r.GetProperty("share").GetDouble()));
+            Assert.Equal(JsonValueKind.Null, phase.GetProperty("totals").ValueKind);
+        }
+
+        [Fact]
+        public async Task LiveResultsIncludeTheUsersOwnVote()
+        {
+            var (id, candidates) = await OpenVote();
+            var user = NewUser();
+            await Ok(await Vote(user, id, candidates[1]));
+
+            var results = (await State(user)).GetProperty("phase").GetProperty("results").EnumerateArray().ToList();
+
+            Assert.Equal(new[] { 0, 1, 0 }, results.Select(r => r.GetProperty("votes").GetInt32()));
         }
 
         [Fact]
