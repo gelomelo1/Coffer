@@ -10,7 +10,8 @@ export type Remaining = { days: number; hours: number; minutes: number; seconds:
 /** Time left until endsAt in server time, split for the countdown; never negative. */
 export function remaining(endsAt: string, offset: number, now: number): Remaining {
   const totalMs = Math.max(0, Date.parse(endsAt) - (now + offset));
-  const total = Math.floor(totalMs / 1000);
+  // Rounded up: the clock reads 00:00:00 only once the end has really come.
+  const total = Math.ceil(totalMs / 1000);
   return {
     days: Math.floor(total / 86400),
     hours: Math.floor((total % 86400) / 3600),

@@ -39,7 +39,7 @@ function ShapeWhatsNext() {
       >
         {phase ? (
           <>
-            <CountdownCard key={phase.id} openedAt={phase.openedAt} endsAt={phase.endsAt} serverNow={data.serverNow} onEnded={onEnded} />
+            <CountdownCard key={phase.id + phase.endsAt} openedAt={phase.openedAt} endsAt={phase.endsAt} serverNow={data.serverNow} onEnded={onEnded} />
             {phase.kind === "vote" ? <VotePanel key={phase.id + (phase.myVote?.candidateId ?? "")} phase={phase} /> : <PhotoPhasePanel phase={phase} />}
           </>
         ) : (

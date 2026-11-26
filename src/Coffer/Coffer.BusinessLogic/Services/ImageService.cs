@@ -188,13 +188,14 @@ namespace Coffer.BusinessLogic.Services
             if (!Directory.Exists(destinationFolder))
                 Directory.CreateDirectory(destinationFolder);
 
+            // Prepared first: a photo that can't be used must not cost the owner the image they have now.
+            var prepared = await Coffer.BusinessLogic.Images.UploadedImages.PrepareAsync(file, maxWidth);
+
             var matchingFiles = Directory.GetFiles(destinationFolder,  $"{id}_*");
             foreach (var files in matchingFiles)
             {
                await DeleteImageAsync(Path.GetFileName(files), destinationFolder);
             }
-
-            var prepared = await Coffer.BusinessLogic.Images.UploadedImages.PrepareAsync(file, maxWidth);
             var fileName = $"{id}_{DateTime.UtcNow:yyyyMMddHHmmss}{prepared.Extension}";
             var filePath = Path.Combine(destinationFolder, fileName);
 

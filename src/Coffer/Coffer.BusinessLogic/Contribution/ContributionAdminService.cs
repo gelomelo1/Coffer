@@ -81,7 +81,15 @@ namespace Coffer.BusinessLogic.Contribution
             settings.UpdatedAt = now;
             settings.UpdatedBy = adminId;
             Audit(adminId, "contribution.settings", settings.ActivePhaseId, new { settings.Enabled, settings.Reason, settings.ActivePhaseId });
-            await _db.SaveChangesAsync();
+            try
+            {
+                await _db.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                // Another admin opened a different phase at the same moment: the one-open-phase index refused this one.
+                throw MarketplaceException.Validation("contributionOtherPhaseOpen", "Another phase is open: close or interrupt it first.");
+            }
             return ToDto(settings);
         }
 
@@ -186,34 +194,38 @@ namespace Coffer.BusinessLogic.Contribution
 
         public async Task<AdminPhaseDto> CloseAsync(Guid adminId, Guid id, string? reason)
         {
-            var settings = await _lifecycle.SettleAsync();
-            var phase = await RequireOpenAsync(id);
+            await _lifecycle.SettleAsync();
+            await RequireOpenAsync(id);
             var switchReason = ContributionReasons.IsValid(reason) ? reason! : ContributionReasons.JustFinished;
-            await _lifecycle.CloseAsync(phase, _clock.UtcNow, settings, switchReason);
-            phase.UpdatedBy = adminId;
-            Audit(adminId, "contribution.close", id, new { phase.WinnerCandidateId, reason = switchReason });
+            // Conditional: when another admin (or the end date) closed it first, nothing is changed twice.
+            if (!await _lifecycle.TryCloseAsync(id, _clock.UtcNow, switchReason, onlyIfDue: false)) throw NotOpen();
+            Audit(adminId, "contribution.close", id, new { reason = switchReason });
             await _db.SaveChangesAsync();
-            return await ToDtoAsync(phase, settings);
+            return await FreshAsync(id);
         }
 
         public async Task<AdminPhaseDto> InterruptAsync(Guid adminId, Guid id, string? reason)
         {
             var settings = await _lifecycle.SettleAsync();
-            var phase = await RequireOpenAsync(id);
+            await RequireOpenAsync(id);
             var running = settings.Enabled && settings.ActivePhaseId == id;
             if (running && !ContributionReasons.IsValid(reason))
                 throw MarketplaceException.Validation("contributionReasonRequired", "Choose why there is no contribution period.");
-            var now = _clock.UtcNow;
-            phase.State = ContributionPhaseState.Interrupted;
-            phase.ClosedAt = now;
-            phase.UpdatedAt = now;
-            phase.UpdatedBy = adminId;
-            if (running) ContributionLifecycle.SwitchOffIfActive(settings, id, reason!, now);
-            else if (ContributionReasons.IsValid(reason)) settings.Reason = reason;
+            if (!await _lifecycle.TryInterruptAsync(id, _clock.UtcNow, reason)) throw NotOpen();
             Audit(adminId, "contribution.interrupt", id, new { reason });
             await _db.SaveChangesAsync();
-            return await ToDtoAsync(phase, settings);
+            return await FreshAsync(id);
         }
+
+        /// <summary>The phase as stored now (conditional updates bypass the change tracker).</summary>
+        private async Task<AdminPhaseDto> FreshAsync(Guid id)
+        {
+            _db.ChangeTracker.Clear();
+            return await GetPhaseAsync(id);
+        }
+
+        private static MarketplaceException NotOpen() =>
+            MarketplaceException.Validation("contributionPhaseNotOpen", "Only an open phase can be closed or interrupted.");
 
         public async Task<AdminPhaseDto> PickWinnerAsync(Guid adminId, Guid id, Guid candidateId)
         {
@@ -259,8 +271,7 @@ namespace Coffer.BusinessLogic.Contribution
         private async Task<ContributionPhase> RequireOpenAsync(Guid id)
         {
             var phase = await FindAsync(id);
-            if (phase.State != ContributionPhaseState.Open)
-                throw MarketplaceException.Validation("contributionPhaseNotOpen", "Only an open phase can be closed or interrupted.");
+            if (phase.State != ContributionPhaseState.Open) throw NotOpen();
             return phase;
         }
 

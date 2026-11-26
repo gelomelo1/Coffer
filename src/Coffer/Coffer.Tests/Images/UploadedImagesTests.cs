@@ -85,6 +85,24 @@ namespace Coffer.Tests.Images
         }
 
         [Fact]
+        public async Task ImagesOver50MegapixelsAreRefusedBeforeDecoding()
+        {
+            // 8000 × 7000 = 56 MP: a small file (one grey level compresses to almost nothing) that would need a huge
+            // amount of memory to decode — refused from its header alone.
+            byte[] big;
+            using (var image = new Image<L8>(8000, 7000, new L8(128)))
+            using (var stream = new MemoryStream())
+            {
+                image.SaveAsPng(stream);
+                big = stream.ToArray();
+            }
+
+            var error = await Assert.ThrowsAsync<MarketplaceException>(() => UploadedImages.PrepareAsync(FormFile(big, "a.png", "image/png"), UploadWidths.Small));
+
+            Assert.Equal("theUploadedFileIsNotAValid", error.Code);
+        }
+
+        [Fact]
         public async Task NotAnImageIsRefused()
         {
             // Passes the signature check (JPEG magic bytes) but is not a decodable image.
@@ -134,6 +152,33 @@ namespace Coffer.Tests.Images
                 var fileName = JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("image").GetString()!;
                 using var stored = Image.Load(Path.Combine(TestEnvironment.CollectionImages, fileName));
                 Assert.Equal(800, stored.Width);
+            }
+
+            [Fact]
+            public async Task FailedCoverUploadKeepsTheCurrentCover()
+            {
+                var owner = _api.Db.AddUser("cover-keep-" + Guid.NewGuid().ToString("N")[..6]);
+                var collection = _api.Db.AddCollection(owner);
+                var client = _api.ClientFor(owner);
+                var first = await client.PostAsync($"api/Collections/CoverImage/Upload/{collection.Id}", Cover(ItemTypeFilesTests.Jpeg(300, 200)));
+                Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+                var current = JsonDocument.Parse(await first.Content.ReadAsStringAsync()).RootElement.GetProperty("image").GetString()!;
+
+                // Right type and extension, but not a decodable image.
+                var broken = await client.PostAsync($"api/Collections/CoverImage/Upload/{collection.Id}",
+                    Cover(new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 1, 2, 3 }));
+
+                Assert.Equal(HttpStatusCode.BadRequest, broken.StatusCode);
+                Assert.True(File.Exists(Path.Combine(TestEnvironment.CollectionImages, current)));
+            }
+
+            private static MultipartFormDataContent Cover(byte[] bytes)
+            {
+                var form = new MultipartFormDataContent();
+                var part = new ByteArrayContent(bytes);
+                part.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+                form.Add(part, "file", "cover.jpg");
+                return form;
             }
 
             public void Dispose() => _api.Dispose();

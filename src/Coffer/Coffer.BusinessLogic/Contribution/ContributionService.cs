@@ -74,7 +74,7 @@ namespace Coffer.BusinessLogic.Contribution
                 _activity.Record(userId, "contribution.voteChanged", new ActivityTargets(),
                     new { phaseId = phase.Id, candidate = candidate.Name, previousCandidate = previous });
             }
-            await _db.SaveChangesAsync();
+            await SaveWhileRunningAsync(phase.Id);
             return new MyVoteDto(candidate.Id, text);
         }
 
@@ -93,6 +93,24 @@ namespace Coffer.BusinessLogic.Contribution
             if (phase.Kind != kind)
                 throw MarketplaceException.Validation("contributionWrongPhase", "This phase doesn't take that.");
             return phase;
+        }
+
+        /// <summary>
+        /// Saves a vote or upload only if its phase still runs at this moment, holding the phase row until the save is
+        /// committed: a request that started before the end but would land after it is refused (contributionClosed),
+        /// and a close waits for it and counts it.
+        /// </summary>
+        private async Task SaveWhileRunningAsync(Guid phaseId)
+        {
+            await using var tx = await _db.Database.BeginTransactionAsync();
+            if (!await _lifecycle.HoldOpenAsync(phaseId, _clock.UtcNow))
+            {
+                await tx.RollbackAsync();
+                _db.ChangeTracker.Clear();
+                throw MarketplaceException.Conflict("contributionClosed", "This contribution period is not running.");
+            }
+            await _db.SaveChangesAsync();
+            await tx.CommitAsync();
         }
 
         private async Task<PhaseViewDto> ViewAsync(ContributionPhase phase, Guid userId, DateTime now)

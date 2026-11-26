@@ -44,3 +44,11 @@ test("shareLabelRoundsToWholePercent", () => {
   assert.equal(shareLabel(0, "en"), "0%");
   assert.match(shareLabel(0.5, "hu"), /^50\s?%$/);
 });
+
+test("countdownShowsZeroOnlyAtTheEnd", () => {
+  // Half a second before the end the clock still reads 00:00:01, never 00:00:00 early.
+  const end = "2026-12-01T12:00:00Z";
+  const r = remaining(end, 0, Date.parse(end) - 500);
+  assert.equal(r.seconds, 1);
+  assert.equal(r.totalMs, 500);
+});

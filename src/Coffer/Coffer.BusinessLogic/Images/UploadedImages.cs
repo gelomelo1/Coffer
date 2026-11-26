@@ -29,6 +29,9 @@ namespace Coffer.BusinessLogic.Images
     /// </summary>
     public static class UploadedImages
     {
+        /// <summary>Larger images are refused before decoding (phone photos are well below; the app sends 800–1600 px wide).</summary>
+        public const long MaxPixels = 50_000_000;
+
         private static readonly DecoderOptions Decoder = new()
         {
             Configuration = new Configuration(new PngConfigurationModule(), new JpegConfigurationModule()),
@@ -57,6 +60,9 @@ namespace Coffer.BusinessLogic.Images
                 throw Invalid();
             }
 
+            // Refused from the header alone: decoding a huge image would need gigabytes of memory.
+            if ((long)info.Width * info.Height > MaxPixels) throw Invalid();
+
             var isPng = info.Metadata.DecodedImageFormat is PngFormat;
             var hasMetadata = info.Metadata.ExifProfile != null || info.Metadata.XmpProfile != null || info.Metadata.IptcProfile != null;
             if (info.Width <= maxWidth && !hasMetadata)
@@ -67,7 +73,8 @@ namespace Coffer.BusinessLogic.Images
             {
                 image = Image.Load<Rgba32>(Decoder, bytes);
             }
-            catch (Exception e) when (e is UnknownImageFormatException or InvalidImageContentException or NotSupportedException)
+            catch (Exception e) when (e is UnknownImageFormatException or InvalidImageContentException or NotSupportedException
+                                       or SixLabors.ImageSharp.Memory.InvalidMemoryOperationException)
             {
                 throw Invalid();
             }

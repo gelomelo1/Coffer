@@ -78,7 +78,7 @@ namespace Coffer.BusinessLogic.Contribution
                 }
                 else
                     _activity.Record(userId, "contribution.photosUploaded", new ActivityTargets(), new { phaseId = phase.Id, subject, count = rows.Count });
-                await _db.SaveChangesAsync();
+                await SaveWhileRunningAsync(phase.Id);
 
                 try
                 {
