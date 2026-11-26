@@ -294,12 +294,17 @@ git commit -m "feat(contribution): phases, switch and admin API (states, pause, 
 [Fact] public async Task VoteWhilePausedIsRefused()          // → 409 "contributionClosed"
 [Fact] public async Task VoteRecordsActivity()               // first → "contribution.voted" {candidate}; change → "contribution.voteChanged" {candidate, previousCandidate}
 [Fact] public async Task LatestResultShowsWinnerAndShares()  // after close: rows with votes and shares summing to 1
+[Fact] public async Task ContributionsCountAsActiveButNotForCollectorOfTheWeek()
+    // user A: 5 contribution.* entries this week, user B: 1 like → GET api/Community/Stats: topCollector == B,
+    // activeUsers milestone progress == 2 (put this test in Coffer.Tests/Community beside the existing stats tests)
 ```
 
 - [ ] **Step 2: Run and see them fail** — `dotnet test … --filter "FullyQualifiedName~ContributionVoteTests"` → FAIL.
 - [ ] **Step 3: Implement** `ContributionService` (app side) and `ContributionController : MarketplaceControllerBase`
   (`[Route("api/Contribution")]`). Activity is recorded with `IActivityLog.Record` before the vote's `SaveChanges`.
   `DailyResetsAt` = next UTC midnight; `DailyLeft` = 300 − today's uploads of the user.
+  In `Community/Stats/CommunityStatsService.cs:146` the collector-of-the-week query skips kinds starting with
+  `"contribution."` (active users keep counting them). The stats cache is 5 minutes — tests build a fresh factory.
 - [ ] **Step 4: Run the tests** — `--filter "FullyQualifiedName~Contribution"` PASS, then the full suite PASS (the
   activity kind tests enumerate `ActivityKinds`; add the new kinds wherever those tests list expected kinds).
 - [ ] **Step 5: Commit** — `git commit -m "feat(contribution): app state and voting, recorded as activity"`

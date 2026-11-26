@@ -36,7 +36,7 @@ Between rounds the contribution is switched off and the phone says why.
   Contribution photos follow this; listing and shipping/receipt photos, which the phone sends at full size today, get
   the phone resize and the server safety net too.
 - **Activity:** votes, detection uploads and completed classification forms are activity — in the user's My activity
-  log and in Stats & facts.
+  log, and in Stats & facts for active users only (not collector of the week).
 - English + Hungarian.
 
 ## Non-goals
@@ -99,7 +99,7 @@ Your human partner picked **A**.
 10. Photos are resized on the phone for fast upload (contribution photos like the rest of the app); the server resizes
     only a photo that arrives bigger than the app would send (an endpoint used without the app). Applies to every
     upload, including the listing and shipping/receipt photos the phone sends at full size today.
-11. Contributions count as activity (My activity and Stats & facts).
+11. Contributions count as activity: My activity, and active users in Stats & facts — not collector of the week.
 
 ## Design
 
@@ -340,8 +340,9 @@ Recorded with `IActivityLog.Record` in the same save as the action (as every oth
 - New category **`contribution`** in `ActivityKinds` → a new "Shape What's Next" sub-page in Settings › My activity
   (en + hu sentences: "You voted for Stamps", "You uploaded 12 photos for Stamps", "You completed a 7-photo form for
   Stamps"); tapping opens `community/shape`. No target id is needed, so `ActivityTargets` stays as it is.
-- Stats & facts picks them up without changes: they count towards **active users per week** and **most active
-  collector** (both count activity log entries). They don't count as "interactions" or "items added".
+- Stats & facts: they count towards **active users per week** only (decided by your human partner). **Collector of the
+  week** ignores every `contribution.*` entry (one filter in `CommunityStatsService`), and they don't count as
+  "interactions" or "items added".
 
 ### Account deletion
 
